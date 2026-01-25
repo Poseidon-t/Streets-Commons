@@ -5,11 +5,13 @@ import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import CompareView from './components/CompareView';
 import ShareButtons from './components/ShareButtons';
+import PhotoGallery from './components/PhotoGallery';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchElevationProfile, calculateSlope, scoreSlopeForWalkability, calculateMaxSlope } from './services/elevation';
 import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
 import { fetchSurfaceTemperature } from './services/surfacetemperature';
+import { fetchMapillaryImages, type MapillaryImage } from './services/mapillary';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
@@ -26,6 +28,7 @@ function App() {
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
+  const [mapillaryImages, setMapillaryImages] = useState<MapillaryImage[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // Compare mode state
@@ -120,6 +123,9 @@ function App() {
 
         // Fetch satellite/elevation data in background (progressive enhancement)
         fetchAndUpdateSatelliteData(selectedLocation, fetchedOsmData);
+
+        // Fetch Mapillary street photos (progressive enhancement)
+        fetchMapillaryPhotos(selectedLocation);
       } catch (error) {
         console.error('Analysis failed:', error);
         alert('Failed to analyze location. Please try again.');
@@ -144,6 +150,25 @@ function App() {
 
     // Clear URL params
     window.history.pushState({}, '', window.location.pathname);
+  };
+
+  // Fetch Mapillary street photos (runs after initial analysis)
+  const fetchMapillaryPhotos = async (selectedLocation: Location) => {
+    try {
+      const images = await fetchMapillaryImages(
+        selectedLocation.lat,
+        selectedLocation.lon,
+        800
+      );
+      setMapillaryImages(images);
+
+      if (images.length === 0) {
+        console.log('No Mapillary street photos available for this area');
+      }
+    } catch (error) {
+      console.error('Failed to fetch Mapillary photos:', error);
+      // Silently fail - photos remain empty
+    }
   };
 
   // Fetch satellite and elevation data (runs after initial analysis)
@@ -350,7 +375,7 @@ function App() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <Map location={location} osmData={osmData} />
+                <Map location={location} osmData={osmData} mapillaryImages={mapillaryImages} />
               </div>
               <div>
                 <ScoreCard metrics={metrics} />
@@ -380,8 +405,16 @@ function App() {
             {/* Metrics Grid */}
             <MetricGrid metrics={metrics} />
 
+            {/* Photo Gallery */}
+            <PhotoGallery images={mapillaryImages} locationName={location.displayName} />
+
             {/* Share Buttons */}
-            <ShareButtons location={location} metrics={metrics} dataQuality={dataQuality || undefined} />
+            <ShareButtons
+              location={location}
+              metrics={metrics}
+              dataQuality={dataQuality || undefined}
+              mapillaryImages={mapillaryImages}
+            />
 
             {/* What We Measure */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">

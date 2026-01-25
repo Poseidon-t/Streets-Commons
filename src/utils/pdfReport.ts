@@ -6,19 +6,21 @@
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import type { Location, WalkabilityMetrics, DataQuality } from '../types';
+import type { MapillaryImage } from '../services/mapillary';
 
 interface ReportData {
   location: Location;
   metrics: WalkabilityMetrics;
   dataQuality: DataQuality;
   mapElement?: HTMLElement;
+  mapillaryImages?: MapillaryImage[];
 }
 
 /**
  * Generate a professional PDF report
  */
 export async function generatePDFReport(data: ReportData): Promise<void> {
-  const { location, metrics, dataQuality } = data;
+  const { location, metrics, dataQuality, mapillaryImages = [] } = data;
 
   // Create PDF (A4 size)
   const pdf = new jsPDF('p', 'mm', 'a4');
@@ -304,6 +306,89 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
     pdf.text(`${index + 1}. ${rec}`, margin + 5, yPosition, { maxWidth: contentWidth - 10 });
     yPosition += 8;
   });
+
+  // ===== STREET-LEVEL DOCUMENTATION =====
+  yPosition += 15;
+  checkNewPage(80);
+
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(0, 0, 0);
+  pdf.text('Street-Level Documentation', margin, yPosition);
+  yPosition += 10;
+
+  if (mapillaryImages.length > 0) {
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(60, 60, 60);
+    pdf.text(`${mapillaryImages.length} community-contributed photos available from Mapillary`, margin, yPosition);
+    yPosition += 10;
+
+    // Add up to 4 photos to the PDF
+    const photosToInclude = mapillaryImages.slice(0, 4);
+    let photoCount = 0;
+
+    for (const image of photosToInclude) {
+      checkNewPage(70);
+
+      try {
+        // Fetch image as blob and convert to data URL
+        const imageUrl = image.thumb1024Url || image.thumb256Url;
+        if (imageUrl) {
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(blob);
+          });
+
+          // Calculate dimensions (maintain aspect ratio, max width = contentWidth)
+          const imgWidth = contentWidth;
+          const imgHeight = 50; // Fixed height for consistency
+
+          pdf.addImage(dataUrl, 'JPEG', margin, yPosition, imgWidth, imgHeight);
+          yPosition += imgHeight + 3;
+
+          // Add caption
+          const capturedDate = new Date(image.capturedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 100, 100);
+          pdf.text(`Photo ${photoCount + 1} • Captured: ${capturedDate}`, margin, yPosition);
+          yPosition += 8;
+          pdf.setTextColor(60, 60, 60);
+          pdf.setFontSize(10);
+
+          photoCount++;
+        }
+      } catch (error) {
+        console.error('Failed to add photo to PDF:', error);
+        // Continue with next photo if one fails
+      }
+    }
+
+    if (mapillaryImages.length > 4) {
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`+ ${mapillaryImages.length - 4} more photos available on Mapillary`, margin, yPosition);
+      yPosition += 8;
+    }
+  } else {
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(100, 100, 100);
+    pdf.text('No street-level photos available for this area', margin, yPosition);
+    yPosition += 6;
+    pdf.setFontSize(9);
+    const noPhotosText = 'This location does not have Mapillary imagery coverage yet. Community members can contribute photos using the Mapillary mobile app to help document street conditions.';
+    const lines = pdf.splitTextToSize(noPhotosText, contentWidth);
+    pdf.text(lines, margin, yPosition);
+    yPosition += lines.length * 5;
+  }
 
   // ===== FOOTER =====
   pdf.setFontSize(8);

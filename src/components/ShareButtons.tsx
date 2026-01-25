@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
 import type { Location, WalkabilityMetrics, DataQuality } from '../types';
+import type { MapillaryImage } from '../services/mapillary';
 import { generatePDFReport } from '../utils/pdfReport';
 
 interface ShareButtonsProps {
   location: Location;
   metrics: WalkabilityMetrics;
   dataQuality?: DataQuality;
+  mapillaryImages?: MapillaryImage[];
 }
 
-export default function ShareButtons({ location, metrics, dataQuality }: ShareButtonsProps) {
+export default function ShareButtons({ location, metrics, dataQuality, mapillaryImages = [] }: ShareButtonsProps) {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const shareUrl = window.location.href;
   const shareText = `${location.displayName} walkability score: ${metrics.overallScore.toFixed(1)}/10 (${metrics.label})`;
@@ -92,6 +94,7 @@ export default function ShareButtons({ location, metrics, dataQuality }: ShareBu
         metrics,
         dataQuality,
         mapElement: mapElement || undefined,
+        mapillaryImages,
       });
     } catch (error) {
       console.error('Failed to generate PDF:', error);

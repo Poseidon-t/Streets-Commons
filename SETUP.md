@@ -53,7 +53,28 @@ cp .env.example .env
 # VITE_OPENWEATHER_API_KEY=your_key_here
 ```
 
-### 3. Surface Temperature Metric
+### 3. Street-Level Photos (Mapillary)
+
+**Requires:** Free Mapillary API access token
+
+```bash
+# Get access token
+# Visit: https://www.mapillary.com/dashboard/developers
+# Create app → Copy Client Token
+
+# Configure
+cp .env.example .env
+# Edit .env and add:
+# VITE_MAPILLARY_ACCESS_TOKEN=your_token_here
+```
+
+**Features:**
+- 📷 Interactive photo markers on map
+- 🖼️ Photo gallery showing street conditions
+- 📄 Photos included in PDF reports
+- ✅ Honest disclosure when no photos available
+
+### 4. Surface Temperature Metric
 
 **Requires:** Backend API + Google Earth Engine
 
@@ -122,6 +143,7 @@ npm run build
 
 **Environment Variables:**
 - `VITE_OPENWEATHER_API_KEY` (optional - tree canopy)
+- `VITE_MAPILLARY_ACCESS_TOKEN` (optional - street photos)
 - `VITE_API_URL` (optional - surface temp backend)
 
 ### Backend (Railway/Render/Fly.io)
@@ -145,7 +167,9 @@ app.use(cors({
 
 ---
 
-## Metric Breakdown
+## Feature Breakdown
+
+### Core Metrics
 
 | Metric | Data Source | Setup Required | Progressive |
 |--------|-------------|----------------|-------------|
@@ -158,6 +182,13 @@ app.use(cors({
 | Surface Temp | Google Earth Engine | Backend + GEE auth | Yes |
 
 **Progressive = Loads after initial OSM analysis**
+
+### Additional Features
+
+| Feature | Data Source | Setup Required | Includes |
+|---------|-------------|----------------|----------|
+| Street Photos | Mapillary API | Free access token | Map markers, gallery, PDF photos |
+| PDF Reports | jsPDF | None | All metrics, map, photos, recommendations |
 
 ---
 
@@ -230,6 +261,7 @@ curl -X POST http://localhost:3001/api/surface-temperature \
 | OSM Overpass API | Unlimited | Free forever |
 | Open-Elevation API | Unlimited | Free forever |
 | OpenWeather Agro API | 1,000 calls/day | $40/month for unlimited |
+| Mapillary API | 50,000 tile requests/day | Free forever |
 | Google Earth Engine | 250,000 requests/month | Free for non-commercial |
 
 **Estimated costs for 10,000 analyses/month:** $0 (within free tiers)
@@ -286,11 +318,13 @@ GEE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----
 ## Next Steps
 
 1. ✅ Start with 4 OSM metrics (instant setup)
-2. ✅ Add tree canopy (5 min - OpenWeather API key)
-3. ✅ Add surface temp (30 min - backend + GEE)
-4. 🚀 Deploy to production
-5. 🚀 Add rate limiting + caching
-6. 🚀 Monitor usage + costs
+2. ✅ Add slope metric (auto-enabled, no setup)
+3. ✅ Add tree canopy (5 min - OpenWeather API key)
+4. ✅ Add street photos (5 min - Mapillary access token)
+5. ✅ Add surface temp (30 min - backend + GEE)
+6. 🚀 Deploy to production
+7. 🚀 Add rate limiting + caching
+8. 🚀 Monitor usage + costs
 
 ---
 
