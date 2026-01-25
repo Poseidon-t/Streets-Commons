@@ -4,6 +4,7 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import CompareView from './components/CompareView';
+import ShareButtons from './components/ShareButtons';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { COLORS } from './constants';
@@ -286,6 +287,9 @@ function App() {
 
             {/* Metrics Grid */}
             <MetricGrid metrics={metrics} />
+
+            {/* Share Buttons */}
+            <ShareButtons location={location} metrics={metrics} />
 
             {/* What We Measure */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
