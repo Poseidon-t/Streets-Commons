@@ -6,12 +6,13 @@ import Map from './components/Map';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
 function App() {
   const [location, setLocation] = useState<Location | null>(null);
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
+  const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleLocationSelect = async (selectedLocation: Location) => {
@@ -20,10 +21,11 @@ function App() {
     setMetrics(null);
 
     try {
-      const osmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
-      const calculatedMetrics = calculateMetrics(osmData, selectedLocation.lat, selectedLocation.lon);
-      const quality = assessDataQuality(osmData);
+      const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+      const calculatedMetrics = calculateMetrics(fetchedOsmData, selectedLocation.lat, selectedLocation.lon);
+      const quality = assessDataQuality(fetchedOsmData);
 
+      setOsmData(fetchedOsmData);
       setMetrics(calculatedMetrics);
       setDataQuality(quality);
     } catch (error) {
@@ -69,7 +71,7 @@ function App() {
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <Map location={location} />
+                <Map location={location} osmData={osmData} />
               </div>
               <div>
                 <ScoreCard metrics={metrics} />
