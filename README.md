@@ -170,13 +170,16 @@ npm run test:ui       # Watch mode
 - ✅ Slope (via SRTM elevation data)
 - ✅ Tree canopy (via Sentinel-2/Landsat NDVI)
 
-## ❌ What We CANNOT Measure
+## ❌ What We CANNOT Measure (Yet)
 
 - ❌ Actual sidewalk width
 - ❌ Pavement condition
 - ❌ Obstacles (bikes, vendors)
 - ❌ Lighting at night
-- ❌ Surface temperature (requires paid Landsat thermal API or on-site measurement)
+- ❌ **Surface temperature**: No simple API exists
+  - Landsat thermal data is free but requires OAuth (Google Earth Engine) or manual downloads (USGS EarthExplorer)
+  - Air temperature APIs ≠ surface/pavement temperature
+  - Possible future solution: Server-side proxy with GEE authentication
 
 **We're honest about limitations.**
 
@@ -193,9 +196,9 @@ Following user principle: *"only if it is 100%, we dont need to show some random
 - ❌ "Economic Projections" (3352× ROI, $77M retail uplift - absurd fake numbers)
 
 ### Phase 2: Replaced with Real Satellite Data
-- ✅ **Slope**: Now using real SRTM elevation data (30m resolution)
-- ✅ **Tree Canopy**: Now using real Sentinel-2/Landsat NDVI satellite imagery
-- ⏳ **Surface Temperature**: Planned (Landsat thermal data - requires research)
+- ✅ **Slope**: Now using real SRTM elevation data (30m resolution) via Open-Elevation API (no auth)
+- ✅ **Tree Canopy**: Now using real Sentinel-2/Landsat NDVI satellite imagery via OpenWeather Agro API (free API key)
+- ⚠️ **Surface Temperature**: Blocked - Landsat thermal data requires OAuth (Google Earth Engine) or manual downloads (USGS). No simple REST API exists for client-side web apps. Air temperature APIs (OpenWeather) ≠ surface temperature (what we need for pavement heat).
 
 **Result**: Honest, verifiable metrics from actual data sources ✅
 
