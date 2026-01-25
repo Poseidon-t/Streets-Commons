@@ -5,17 +5,13 @@ import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
-import { calculateDemographics } from './utils/demographics';
-import { calculateEconomicProjections } from './utils/economics';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality, Demographics, EconomicProjections } from './types';
+import type { Location, WalkabilityMetrics, DataQuality } from './types';
 
 function App() {
   const [location, setLocation] = useState<Location | null>(null);
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
-  const [demographics, setDemographics] = useState<Demographics | null>(null);
-  const [economics, setEconomics] = useState<EconomicProjections | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleLocationSelect = async (selectedLocation: Location) => {
@@ -27,13 +23,9 @@ function App() {
       const osmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
       const calculatedMetrics = calculateMetrics(osmData, selectedLocation.lat, selectedLocation.lon);
       const quality = assessDataQuality(osmData);
-      const calculatedDemographics = calculateDemographics();
-      const calculatedEconomics = calculateEconomicProjections(osmData);
 
       setMetrics(calculatedMetrics);
       setDataQuality(quality);
-      setDemographics(calculatedDemographics);
-      setEconomics(calculatedEconomics);
     } catch (error) {
       console.error('Analysis failed:', error);
       alert('Failed to analyze location. Please try again.');
@@ -106,69 +98,6 @@ function App() {
 
             {/* Metrics Grid */}
             <MetricGrid metrics={metrics} />
-
-            {/* Who's Affected */}
-            {demographics && (
-              <div className="bg-white rounded-2xl p-8 border-2 border-gray-100 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Who's Affected</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div>
-                    <div className="text-3xl font-bold" style={{ color: COLORS.primary }}>
-                      {demographics.totalPopulation.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">Residents (800m radius)</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold" style={{ color: COLORS.accent }}>
-                      {demographics.children.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">Children (0-14)</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold" style={{ color: COLORS.accent }}>
-                      {demographics.elderly.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">Elderly (65+)</div>
-                  </div>
-                  <div>
-                    <div className="text-3xl font-bold" style={{ color: COLORS.primary }}>
-                      {demographics.dailyVisitors.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600">Daily visitors</div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Economic Case */}
-            {economics && (
-              <div className="bg-white rounded-2xl p-8 border-2 border-gray-100 shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Economic Projections</h2>
-                <p className="text-sm text-gray-600 mb-6">
-                  Estimated economic impact of walkability improvements (10-year projections)
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <div className="text-sm font-semibold text-gray-600 mb-1">Retail Uplift</div>
-                    <div className="text-2xl font-bold" style={{ color: COLORS.excellent }}>
-                      ${economics.retailUplift.toLocaleString()}/yr
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-600 mb-1">Health Savings</div>
-                    <div className="text-2xl font-bold" style={{ color: COLORS.excellent }}>
-                      ${economics.healthSavings.toLocaleString()}/yr
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-600 mb-1">10-Year ROI</div>
-                    <div className="text-2xl font-bold" style={{ color: COLORS.accent }}>
-                      {economics.roi.toFixed(1)}×
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* What We Measure */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
