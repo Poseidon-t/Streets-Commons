@@ -1,39 +1,142 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddressInput from './components/streetcheck/AddressInput';
 import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
+import CompareView from './components/CompareView';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
+interface AnalysisData {
+  location: Location;
+  metrics: WalkabilityMetrics;
+  quality: DataQuality;
+  osmData: OSMData;
+}
+
 function App() {
+  const [compareMode, setCompareMode] = useState(false);
   const [location, setLocation] = useState<Location | null>(null);
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const handleLocationSelect = async (selectedLocation: Location) => {
-    setLocation(selectedLocation);
-    setIsAnalyzing(true);
-    setMetrics(null);
+  // Compare mode state
+  const [location1, setLocation1] = useState<AnalysisData | null>(null);
+  const [location2, setLocation2] = useState<AnalysisData | null>(null);
+  const [isAnalyzingCompare, setIsAnalyzingCompare] = useState<1 | 2 | null>(null);
 
-    try {
-      const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
-      const calculatedMetrics = calculateMetrics(fetchedOsmData, selectedLocation.lat, selectedLocation.lon);
-      const quality = assessDataQuality(fetchedOsmData);
+  // Load from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lat = params.get('lat');
+    const lon = params.get('lon');
+    const name = params.get('name');
+    const compare = params.get('compare');
 
-      setOsmData(fetchedOsmData);
-      setMetrics(calculatedMetrics);
-      setDataQuality(quality);
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      alert('Failed to analyze location. Please try again.');
-    } finally {
-      setIsAnalyzing(false);
+    if (lat && lon && name) {
+      const urlLocation: Location = {
+        lat: parseFloat(lat),
+        lon: parseFloat(lon),
+        displayName: decodeURIComponent(name),
+      };
+
+      if (compare === 'true') {
+        setCompareMode(true);
+      } else {
+        handleLocationSelect(urlLocation);
+      }
     }
+  }, []);
+
+  const handleLocationSelect = async (selectedLocation: Location) => {
+    if (compareMode) {
+      if (!location1) {
+        setIsAnalyzingCompare(1);
+        try {
+          const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+          const calculatedMetrics = calculateMetrics(fetchedOsmData, selectedLocation.lat, selectedLocation.lon);
+          const quality = assessDataQuality(fetchedOsmData);
+
+          setLocation1({
+            location: selectedLocation,
+            metrics: calculatedMetrics,
+            quality,
+            osmData: fetchedOsmData,
+          });
+        } catch (error) {
+          console.error('Analysis failed:', error);
+          alert('Failed to analyze location 1. Please try again.');
+        } finally {
+          setIsAnalyzingCompare(null);
+        }
+      } else if (!location2) {
+        setIsAnalyzingCompare(2);
+        try {
+          const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+          const calculatedMetrics = calculateMetrics(fetchedOsmData, selectedLocation.lat, selectedLocation.lon);
+          const quality = assessDataQuality(fetchedOsmData);
+
+          setLocation2({
+            location: selectedLocation,
+            metrics: calculatedMetrics,
+            quality,
+            osmData: fetchedOsmData,
+          });
+        } catch (error) {
+          console.error('Analysis failed:', error);
+          alert('Failed to analyze location 2. Please try again.');
+        } finally {
+          setIsAnalyzingCompare(null);
+        }
+      }
+    } else {
+      setLocation(selectedLocation);
+      setIsAnalyzing(true);
+      setMetrics(null);
+
+      try {
+        const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+        const calculatedMetrics = calculateMetrics(fetchedOsmData, selectedLocation.lat, selectedLocation.lon);
+        const quality = assessDataQuality(fetchedOsmData);
+
+        setOsmData(fetchedOsmData);
+        setMetrics(calculatedMetrics);
+        setDataQuality(quality);
+
+        // Update URL with current location (shareable link)
+        const url = new URL(window.location.href);
+        url.searchParams.set('lat', selectedLocation.lat.toString());
+        url.searchParams.set('lon', selectedLocation.lon.toString());
+        url.searchParams.set('name', encodeURIComponent(selectedLocation.displayName));
+        window.history.pushState({}, '', url);
+      } catch (error) {
+        console.error('Analysis failed:', error);
+        alert('Failed to analyze location. Please try again.');
+      } finally {
+        setIsAnalyzing(false);
+      }
+    }
+  };
+
+  const handleCompareMode = () => {
+    setCompareMode(true);
+    setLocation(null);
+    setMetrics(null);
+    setDataQuality(null);
+    setOsmData(null);
+  };
+
+  const handleExitCompareMode = () => {
+    setCompareMode(false);
+    setLocation1(null);
+    setLocation2(null);
+
+    // Clear URL params
+    window.history.pushState({}, '', window.location.pathname);
   };
 
   return (
@@ -50,15 +153,97 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Address Search */}
-        <div className="mb-8">
-          <AddressInput
-            onSelect={handleLocationSelect}
-            placeholder="Enter any address worldwide..."
-          />
-        </div>
+        {/* Mode Toggle */}
+        {!compareMode && location && metrics && (
+          <div className="mb-6 flex justify-center">
+            <button
+              onClick={handleCompareMode}
+              className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg"
+              style={{ backgroundColor: COLORS.accent }}
+            >
+              📊 Compare with Another Location
+            </button>
+          </div>
+        )}
 
-        {isAnalyzing && (
+        {compareMode && (
+          <div className="mb-6 flex justify-center gap-4">
+            <button
+              onClick={handleExitCompareMode}
+              className="px-6 py-3 rounded-xl font-semibold bg-gray-200 text-gray-700 transition-all hover:bg-gray-300"
+            >
+              ← Exit Compare Mode
+            </button>
+            {location1 && location2 && (
+              <button
+                onClick={() => {
+                  setLocation1(null);
+                  setLocation2(null);
+                }}
+                className="px-6 py-3 rounded-xl font-semibold bg-gray-200 text-gray-700 transition-all hover:bg-gray-300"
+              >
+                🔄 Reset Comparison
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Address Search */}
+        {compareMode ? (
+          <div className="mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Location 1 {location1 && '✓'}
+                </label>
+                <AddressInput
+                  onSelect={handleLocationSelect}
+                  placeholder="Enter first address..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Location 2 {location2 && '✓'}
+                </label>
+                <AddressInput
+                  onSelect={handleLocationSelect}
+                  placeholder="Enter second address..."
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8">
+            <AddressInput
+              onSelect={handleLocationSelect}
+              placeholder="Enter any address worldwide..."
+            />
+          </div>
+        )}
+
+        {/* Compare Mode Loading */}
+        {compareMode && isAnalyzingCompare && (
+          <div className="flex flex-col items-center py-16">
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
+            <p className="text-lg text-gray-600">Analyzing location {isAnalyzingCompare}...</p>
+            <p className="text-sm text-gray-500">Fetching OpenStreetMap data</p>
+          </div>
+        )}
+
+        {/* Compare Mode Results */}
+        {compareMode && location1 && location2 && !isAnalyzingCompare && (
+          <CompareView
+            location1={location1.location}
+            metrics1={location1.metrics}
+            quality1={location1.quality}
+            location2={location2.location}
+            metrics2={location2.metrics}
+            quality2={location2.quality}
+          />
+        )}
+
+        {/* Single Location Loading */}
+        {!compareMode && isAnalyzing && (
           <div className="flex flex-col items-center py-16">
             <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-lg text-gray-600">Analyzing walkability...</p>
@@ -66,7 +251,8 @@ function App() {
           </div>
         )}
 
-        {location && metrics && !isAnalyzing && (
+        {/* Single Location Results */}
+        {!compareMode && location && metrics && !isAnalyzing && (
           <div className="space-y-8">
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -123,15 +309,35 @@ function App() {
           </div>
         )}
 
-        {!location && !isAnalyzing && (
+        {!compareMode && !location && !isAnalyzing && (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">🚶</div>
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
               Check Your Neighborhood
             </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
               Get honest walkability analysis based on real OpenStreetMap data.
               We only show metrics we can verify — no fake estimates.
+            </p>
+            <button
+              onClick={handleCompareMode}
+              className="px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg"
+              style={{ backgroundColor: COLORS.accent, color: 'white' }}
+            >
+              Or Compare Two Locations
+            </button>
+          </div>
+        )}
+
+        {compareMode && !location1 && !isAnalyzingCompare && (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📊</div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Compare Two Locations
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Enter two addresses to compare their walkability side-by-side.
+              See which location performs better in each metric.
             </p>
           </div>
         )}
