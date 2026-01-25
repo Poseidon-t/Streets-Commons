@@ -8,6 +8,7 @@ import ShareButtons from './components/ShareButtons';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchElevationProfile, calculateSlope, scoreSlopeForWalkability, calculateMaxSlope } from './services/elevation';
+import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
@@ -116,8 +117,8 @@ function App() {
         url.searchParams.set('name', encodeURIComponent(selectedLocation.displayName));
         window.history.pushState({}, '', url);
 
-        // Fetch slope data in background (progressive enhancement)
-        fetchAndUpdateSlope(selectedLocation, fetchedOsmData);
+        // Fetch satellite/elevation data in background (progressive enhancement)
+        fetchAndUpdateSatelliteData(selectedLocation, fetchedOsmData);
       } catch (error) {
         console.error('Analysis failed:', error);
         alert('Failed to analyze location. Please try again.');
@@ -144,11 +145,15 @@ function App() {
     window.history.pushState({}, '', window.location.pathname);
   };
 
-  // Fetch slope data (runs after initial analysis)
-  const fetchAndUpdateSlope = async (
+  // Fetch satellite and elevation data (runs after initial analysis)
+  const fetchAndUpdateSatelliteData = async (
     selectedLocation: Location,
     currentOsmData: OSMData
   ) => {
+    let slopeScore: number | undefined;
+    let treeCanopyScore: number | undefined;
+
+    // Fetch slope data (SRTM elevation)
     try {
       const elevations = await fetchElevationProfile(
         selectedLocation.lat,
@@ -158,20 +163,42 @@ function App() {
 
       const avgSlope = calculateSlope(elevations, 800);
       const maxSlope = calculateMaxSlope(elevations, 800);
-      const slopeScore = scoreSlopeForWalkability(avgSlope, maxSlope);
+      slopeScore = scoreSlopeForWalkability(avgSlope, maxSlope);
 
-      // Recalculate metrics with slope included
+      // Update metrics with slope
       const updatedMetrics = calculateMetrics(
         currentOsmData,
         selectedLocation.lat,
         selectedLocation.lon,
-        slopeScore
+        slopeScore,
+        treeCanopyScore
       );
-
       setMetrics(updatedMetrics);
     } catch (error) {
       console.error('Failed to fetch slope data:', error);
       // Silently fail - slope metric remains at 0
+    }
+
+    // Fetch tree canopy data (Sentinel-2 NDVI)
+    try {
+      const ndvi = await fetchNDVI(selectedLocation.lat, selectedLocation.lon);
+
+      if (ndvi !== null) {
+        treeCanopyScore = scoreTreeCanopy(ndvi);
+
+        // Recalculate metrics with tree canopy included
+        const updatedMetrics = calculateMetrics(
+          currentOsmData,
+          selectedLocation.lat,
+          selectedLocation.lon,
+          slopeScore,
+          treeCanopyScore
+        );
+        setMetrics(updatedMetrics);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tree canopy data:', error);
+      // Silently fail - tree canopy metric remains at 0
     }
   };
 

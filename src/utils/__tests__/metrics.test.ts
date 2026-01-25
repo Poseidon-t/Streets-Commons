@@ -27,7 +27,7 @@ describe('calculateMetrics', () => {
     nodes: new Map(),
   };
 
-  it('should calculate all 5 metrics', () => {
+  it('should calculate all 6 metrics', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
     expect(metrics).toHaveProperty('crossingDensity');
@@ -35,6 +35,7 @@ describe('calculateMetrics', () => {
     expect(metrics).toHaveProperty('networkEfficiency');
     expect(metrics).toHaveProperty('destinationAccess');
     expect(metrics).toHaveProperty('slope');
+    expect(metrics).toHaveProperty('treeCanopy');
     expect(metrics).toHaveProperty('overallScore');
     expect(metrics).toHaveProperty('label');
   });
@@ -52,6 +53,8 @@ describe('calculateMetrics', () => {
     expect(metrics.destinationAccess).toBeLessThanOrEqual(10);
     expect(metrics.slope).toBeGreaterThanOrEqual(0);
     expect(metrics.slope).toBeLessThanOrEqual(10);
+    expect(metrics.treeCanopy).toBeGreaterThanOrEqual(0);
+    expect(metrics.treeCanopy).toBeLessThanOrEqual(10);
     expect(metrics.overallScore).toBeGreaterThanOrEqual(0);
     expect(metrics.overallScore).toBeLessThanOrEqual(10);
   });

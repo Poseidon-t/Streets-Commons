@@ -127,6 +127,15 @@ export default function MetricGrid({ metrics }: MetricGridProps) {
       dataSource: 'SRTM elevation data via Open-Elevation API',
       icon: '⛰️',
     },
+    {
+      name: 'Tree Canopy',
+      score: metrics.treeCanopy,
+      description: 'Vegetation coverage providing shade, cooling, air quality, and pedestrian comfort',
+      calculation: 'Fetches NDVI (Normalized Difference Vegetation Index) from Sentinel-2/Landsat 8 satellite imagery. NDVI range: -1 to +1. Values 0.6+ indicate dense trees, 0.4-0.6 moderate vegetation, <0.4 sparse/none. Uses most recent cloud-free image from last 30 days.',
+      standard: 'Score 10 = NDVI ≥0.6 (dense tree canopy). Score 5-10 = NDVI 0.4-0.6 (moderate vegetation). Score 0-5 = NDVI <0.4 (sparse/no trees)',
+      dataSource: 'Sentinel-2/Landsat 8 NDVI via OpenWeather Agro API',
+      icon: '🌳',
+    },
   ];
 
   return (

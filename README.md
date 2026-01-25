@@ -19,7 +19,7 @@ Transform citizens from complainers into advocates with evidence. **Data is leve
 - 800m analysis radius visualization
 - Live legend with counts
 
-### 📊 4 Verifiable Metrics
+### 📊 6 Verifiable Metrics
 
 | Metric | Data Source | What It Measures |
 |--------|-------------|------------------|
@@ -27,6 +27,8 @@ Transform citizens from complainers into advocates with evidence. **Data is leve
 | **Sidewalk Coverage** | OSM `sidewalk=*` tags | % of streets with sidewalk documentation |
 | **Network Efficiency** | Calculated from OSM | Street grid connectivity ratio |
 | **Destination Access** | OSM amenity/shop/leisure | Variety of destination types within 800m |
+| **Slope** | SRTM elevation data | Terrain gradient (wheelchair accessibility) |
+| **Tree Canopy** | Sentinel-2/Landsat NDVI | Vegetation coverage (shade, cooling, air quality) |
 
 Each metric card shows:
 - What it measures
@@ -58,6 +60,10 @@ Each metric card shows:
 # Install dependencies
 npm install
 
+# Set up environment (optional - for tree canopy metric)
+cp .env.example .env
+# Edit .env and add your OpenWeather API key
+
 # Start dev server
 npm run dev
 
@@ -70,9 +76,34 @@ npm test
 
 Visit [http://localhost:5174](http://localhost:5174)
 
+### API Keys (Optional)
+
+- **Tree Canopy Metric**: Requires free OpenWeather API key
+  - Get it at: [openweathermap.org/api](https://openweathermap.org/api)
+  - Free tier: 1,000 calls/day
+  - Add to `.env` as `VITE_OPENWEATHER_API_KEY`
+  - If not provided, tree canopy score defaults to 0
+
 ## 📊 Scoring System
 
-**0-10 scale** with weighted average:
+**0-10 scale** with weighted average (dynamic based on available data):
+
+**All 6 metrics available:**
+- Crossing Density: 20%
+- Sidewalk Coverage: 20%
+- Network Efficiency: 15%
+- Destination Access: 15%
+- Slope: 15%
+- Tree Canopy: 15%
+
+**5 metrics (no API key):**
+- Crossing Density: 25%
+- Sidewalk Coverage: 25%
+- Network Efficiency: 15%
+- Destination Access: 15%
+- Slope: 20%
+
+**4 metrics (OSM only):**
 - Crossing Density: 30%
 - Sidewalk Coverage: 30%
 - Network Efficiency: 20%
@@ -97,6 +128,8 @@ Visit [http://localhost:5174](http://localhost:5174)
 **Data Sources:**
 - Nominatim (geocoding)
 - Overpass API (OSM data)
+- Open-Elevation API (SRTM elevation)
+- OpenWeather Agro API (Sentinel-2/Landsat NDVI)
 
 ## 📁 Structure
 
@@ -126,7 +159,7 @@ npm test              # Run all tests
 npm run test:ui       # Watch mode
 ```
 
-**Coverage**: 5 test files, all passing ✅
+**Coverage**: All tests passing ✅
 
 ## ✅ What We CAN Measure
 
@@ -134,6 +167,8 @@ npm run test:ui       # Watch mode
 - ✅ Sidewalk coverage (via OSM tags)
 - ✅ Street network connectivity
 - ✅ POI access + variety
+- ✅ Slope (via SRTM elevation data)
+- ✅ Tree canopy (via Sentinel-2/Landsat NDVI)
 
 ## ❌ What We CANNOT Measure
 
@@ -141,29 +176,28 @@ npm run test:ui       # Watch mode
 - ❌ Pavement condition
 - ❌ Obstacles (bikes, vendors)
 - ❌ Lighting at night
-- ❌ Tree canopy (no reliable remote source)
-- ❌ Surface temperature (no reliable remote source)
-- ❌ Slope (no reliable remote source)
+- ❌ Surface temperature (requires paid Landsat thermal API or on-site measurement)
 
 **We're honest about limitations.**
 
-## 📝 What We Removed
+## 📝 Evolution: From Fake to Real
 
 Following user principle: *"only if it is 100%, we dont need to show some random walkable score"*
 
-### Removed Fake Metrics:
+### Phase 1: Removed Fake Metrics
 - ❌ Tree Canopy (was estimated from sidewalks - fake)
 - ❌ Surface Temperature (was proxy from tree canopy - fake)
 - ❌ Slope (was random 6-9 number - fake)
-
-### Removed Fake Demographics:
 - ❌ "Who's Affected" section (fixed 7,000 people/km² for ALL locations - fake)
 - ❌ Hardcoded 18% children, 12% elderly (not location-specific - fake)
-
-### Removed Fake Economics:
 - ❌ "Economic Projections" (3352× ROI, $77M retail uplift - absurd fake numbers)
 
-**Result**: Now showing ONLY verifiable OSM data ✅
+### Phase 2: Replaced with Real Satellite Data
+- ✅ **Slope**: Now using real SRTM elevation data (30m resolution)
+- ✅ **Tree Canopy**: Now using real Sentinel-2/Landsat NDVI satellite imagery
+- ⏳ **Surface Temperature**: Planned (Landsat thermal data - requires research)
+
+**Result**: Honest, verifiable metrics from actual data sources ✅
 
 ## 🎨 Design Principles
 

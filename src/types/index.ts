@@ -14,6 +14,7 @@ export interface WalkabilityMetrics {
   destinationAccess: number;
   // Satellite/elevation data metrics
   slope: number; // From SRTM elevation data
+  treeCanopy: number; // From Sentinel-2/Landsat NDVI data
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }
