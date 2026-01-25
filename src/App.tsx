@@ -7,6 +7,7 @@ import CompareView from './components/CompareView';
 import ShareButtons from './components/ShareButtons';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
+import { fetchElevationProfile, calculateSlope, scoreSlopeForWalkability, calculateMaxSlope } from './services/elevation';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
@@ -114,6 +115,9 @@ function App() {
         url.searchParams.set('lon', selectedLocation.lon.toString());
         url.searchParams.set('name', encodeURIComponent(selectedLocation.displayName));
         window.history.pushState({}, '', url);
+
+        // Fetch slope data in background (progressive enhancement)
+        fetchAndUpdateSlope(selectedLocation, fetchedOsmData);
       } catch (error) {
         console.error('Analysis failed:', error);
         alert('Failed to analyze location. Please try again.');
@@ -138,6 +142,37 @@ function App() {
 
     // Clear URL params
     window.history.pushState({}, '', window.location.pathname);
+  };
+
+  // Fetch slope data (runs after initial analysis)
+  const fetchAndUpdateSlope = async (
+    selectedLocation: Location,
+    currentOsmData: OSMData
+  ) => {
+    try {
+      const elevations = await fetchElevationProfile(
+        selectedLocation.lat,
+        selectedLocation.lon,
+        800
+      );
+
+      const avgSlope = calculateSlope(elevations, 800);
+      const maxSlope = calculateMaxSlope(elevations, 800);
+      const slopeScore = scoreSlopeForWalkability(avgSlope, maxSlope);
+
+      // Recalculate metrics with slope included
+      const updatedMetrics = calculateMetrics(
+        currentOsmData,
+        selectedLocation.lat,
+        selectedLocation.lon,
+        slopeScore
+      );
+
+      setMetrics(updatedMetrics);
+    } catch (error) {
+      console.error('Failed to fetch slope data:', error);
+      // Silently fail - slope metric remains at 0
+    }
   };
 
   return (

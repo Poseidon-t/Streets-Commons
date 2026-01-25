@@ -118,6 +118,15 @@ export default function MetricGrid({ metrics }: MetricGridProps) {
       dataSource: 'OpenStreetMap amenity=*, shop=*, leisure=*, railway=* tags',
       icon: '🏪',
     },
+    {
+      name: 'Slope',
+      score: metrics.slope,
+      description: 'Terrain gradient affecting wheelchair accessibility and ease of walking',
+      calculation: 'Fetches elevation data from SRTM (30m resolution) for 9 points in 800m radius. Calculates average slope (70% weight) and maximum slope (30% weight). Progressive enhancement - loads after initial analysis.',
+      standard: 'Score 10 = ≤2% avg slope (flat/gentle). Score 5 = 5% avg slope (moderate). Score 0 = ≥5% avg slope (steep/inaccessible). Wheelchair standard: ≤5% gradient',
+      dataSource: 'SRTM elevation data via Open-Elevation API',
+      icon: '⛰️',
+    },
   ];
 
   return (

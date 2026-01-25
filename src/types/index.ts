@@ -7,11 +7,13 @@ export interface Location {
 }
 
 export interface WalkabilityMetrics {
-  // OSM-verifiable metrics only
+  // OSM-verifiable metrics
   crossingDensity: number;
   sidewalkCoverage: number;
   networkEfficiency: number;
   destinationAccess: number;
+  // Satellite/elevation data metrics
+  slope: number; // From SRTM elevation data
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }

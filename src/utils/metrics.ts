@@ -161,26 +161,37 @@ function assessDataQuality(data: OSMData): DataQuality {
 export function calculateMetrics(
   data: OSMData,
   centerLat: number,
-  centerLon: number
+  centerLon: number,
+  slopeScore?: number // Optional slope from elevation data
 ): WalkabilityMetrics {
   const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
   const sidewalkCoverage = calculateSidewalkCoverage(data);
   const networkEfficiency = calculateNetworkEfficiency(data);
   const destinationAccess = calculateDestinationAccess(data);
+  const slope = slopeScore ?? 0; // Default to 0 if not provided yet
 
-  // Weighted average of 4 metrics
-  const overallScore = Math.round(
-    (crossingDensity * 0.30 +
-      sidewalkCoverage * 0.30 +
-      networkEfficiency * 0.20 +
-      destinationAccess * 0.20) * 10
-  ) / 10;
+  // Weighted average - include slope if available
+  const overallScore = slopeScore !== undefined
+    ? Math.round(
+        (crossingDensity * 0.25 +
+          sidewalkCoverage * 0.25 +
+          networkEfficiency * 0.15 +
+          destinationAccess * 0.15 +
+          slope * 0.20) * 10
+      ) / 10
+    : Math.round(
+        (crossingDensity * 0.30 +
+          sidewalkCoverage * 0.30 +
+          networkEfficiency * 0.20 +
+          destinationAccess * 0.20) * 10
+      ) / 10;
 
   return {
     crossingDensity,
     sidewalkCoverage,
     networkEfficiency,
     destinationAccess,
+    slope,
     overallScore,
     label: getScoreLabel(overallScore),
   };
