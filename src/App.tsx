@@ -4,15 +4,16 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import { fetchOSMData } from './services/overpass';
-import { calculateMetrics } from './utils/metrics';
+import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { calculateDemographics } from './utils/demographics';
 import { calculateEconomicProjections } from './utils/economics';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, Demographics, EconomicProjections } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, Demographics, EconomicProjections } from './types';
 
 function App() {
   const [location, setLocation] = useState<Location | null>(null);
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
+  const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [demographics, setDemographics] = useState<Demographics | null>(null);
   const [economics, setEconomics] = useState<EconomicProjections | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -25,10 +26,12 @@ function App() {
     try {
       const osmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
       const calculatedMetrics = calculateMetrics(osmData, selectedLocation.lat, selectedLocation.lon);
+      const quality = assessDataQuality(osmData);
       const calculatedDemographics = calculateDemographics();
       const calculatedEconomics = calculateEconomicProjections(osmData);
 
       setMetrics(calculatedMetrics);
+      setDataQuality(quality);
       setDemographics(calculatedDemographics);
       setEconomics(calculatedEconomics);
     } catch (error) {
@@ -78,6 +81,26 @@ function App() {
               </div>
               <div>
                 <ScoreCard metrics={metrics} />
+                {dataQuality && (
+                  <div className="mt-4 bg-white rounded-xl p-4 border-2 border-gray-100">
+                    <h3 className="font-semibold text-gray-800 mb-2">Data Quality</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>Crossings: {dataQuality.crossingCount}</div>
+                      <div>Streets: {dataQuality.streetCount}</div>
+                      <div>Sidewalks: {dataQuality.sidewalkCount}</div>
+                      <div>POIs: {dataQuality.poiCount}</div>
+                    </div>
+                    <div className="mt-2">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                        dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {dataQuality.confidence.toUpperCase()} CONFIDENCE
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -147,34 +170,24 @@ function App() {
               </div>
             )}
 
-            {/* Limitations */}
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8">
-              <h3 className="text-xl font-bold text-yellow-900 mb-4">
-                ⚠️ What This Analysis Can & Cannot Measure
+            {/* What We Measure */}
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+              <h3 className="text-xl font-bold text-blue-900 mb-4">
+                ✅ What This Analysis Measures
               </h3>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-green-800 mb-2">✅ What We CAN Measure (Remote)</h4>
-                  <ul className="text-sm text-green-900 space-y-1">
-                    <li>• Crossing locations from OpenStreetMap</li>
-                    <li>• Street network connectivity</li>
-                    <li>• Green space presence (parks, trees)</li>
-                    <li>• Destination types and locations</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-red-800 mb-2">❌ What We CANNOT Measure</h4>
-                  <ul className="text-sm text-red-900 space-y-1">
-                    <li>• Actual sidewalk width or condition</li>
-                    <li>• Real surface temperature (using proxy)</li>
-                    <li>• Precise slope (using estimates)</li>
-                    <li>• Obstacles, lighting, or safety perception</li>
-                  </ul>
-                </div>
+              <div className="space-y-2 text-sm text-blue-900">
+                <p><strong>✓ Crossing Density:</strong> Actual OSM-tagged pedestrian crossings</p>
+                <p><strong>✓ Sidewalk Coverage:</strong> Streets with sidewalk=* tags (often incomplete)</p>
+                <p><strong>✓ Network Efficiency:</strong> Street grid connectivity</p>
+                <p><strong>✓ Destination Access:</strong> Variety of nearby amenities</p>
               </div>
-              <p className="text-sm text-yellow-800 mt-4">
-                <strong>Transparency:</strong> SafeStreets provides approximately 40-50% of a complete walkability assessment using entirely free global data sources. For full assessments, on-site audits are recommended.
-              </p>
+              <div className="mt-6 p-4 bg-yellow-100 border border-yellow-300 rounded">
+                <p className="text-sm text-yellow-900">
+                  <strong>⚠️ NOT measured:</strong> Tree canopy, surface temperature, slope, sidewalk width,
+                  pavement condition, lighting, or actual safety perception. These require satellite imagery,
+                  elevation data, or on-site audits.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -186,8 +199,8 @@ function App() {
               Check Your Neighborhood
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Enter any address worldwide to get a detailed walkability analysis based on OpenStreetMap data.
-              We measure crossing safety, green coverage, network connectivity, and more.
+              Get honest walkability analysis based on real OpenStreetMap data.
+              We only show metrics we can verify — no fake estimates.
             </p>
           </div>
         )}
@@ -205,7 +218,7 @@ function App() {
               contributors
             </p>
             <p className="text-xs text-gray-500">
-              SafeStreets Phase 1 MVP • Open Source • Free Forever
+              SafeStreets • Honest Analysis • No Fake Metrics
             </p>
           </div>
         </div>

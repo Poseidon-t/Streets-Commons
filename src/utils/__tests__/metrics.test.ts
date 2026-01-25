@@ -14,8 +14,8 @@ describe('calculateMetrics', () => {
       { id: 11, tags: { footway: 'sidewalk' } },
     ],
     streets: [
-      { id: 20, tags: { highway: 'residential' } },
-      { id: 21, tags: { highway: 'residential' } },
+      { id: 20, tags: { highway: 'residential', sidewalk: 'both' } },
+      { id: 21, tags: { highway: 'residential', sidewalk: 'left' } },
       { id: 22, tags: { highway: 'tertiary' } },
     ],
     pois: [
@@ -23,19 +23,16 @@ describe('calculateMetrics', () => {
       { id: 31, tags: { shop: 'convenience' } },
       { id: 32, tags: { amenity: 'restaurant' } },
       { id: 33, tags: { leisure: 'park' } },
-      { id: 34, tags: { natural: 'tree' } },
     ],
     nodes: new Map(),
   };
 
-  it('should calculate all metrics', () => {
+  it('should calculate all 4 metrics', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
-    expect(metrics).toHaveProperty('crossingGaps');
-    expect(metrics).toHaveProperty('treeCanopy');
-    expect(metrics).toHaveProperty('surfaceTemp');
+    expect(metrics).toHaveProperty('crossingDensity');
+    expect(metrics).toHaveProperty('sidewalkCoverage');
     expect(metrics).toHaveProperty('networkEfficiency');
-    expect(metrics).toHaveProperty('slope');
     expect(metrics).toHaveProperty('destinationAccess');
     expect(metrics).toHaveProperty('overallScore');
     expect(metrics).toHaveProperty('label');
@@ -44,10 +41,10 @@ describe('calculateMetrics', () => {
   it('should return scores between 0 and 10', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
-    expect(metrics.crossingGaps).toBeGreaterThanOrEqual(0);
-    expect(metrics.crossingGaps).toBeLessThanOrEqual(10);
-    expect(metrics.treeCanopy).toBeGreaterThanOrEqual(0);
-    expect(metrics.treeCanopy).toBeLessThanOrEqual(10);
+    expect(metrics.crossingDensity).toBeGreaterThanOrEqual(0);
+    expect(metrics.crossingDensity).toBeLessThanOrEqual(10);
+    expect(metrics.sidewalkCoverage).toBeGreaterThanOrEqual(0);
+    expect(metrics.sidewalkCoverage).toBeLessThanOrEqual(10);
     expect(metrics.networkEfficiency).toBeGreaterThanOrEqual(0);
     expect(metrics.networkEfficiency).toBeLessThanOrEqual(10);
     expect(metrics.destinationAccess).toBeGreaterThanOrEqual(0);
@@ -57,7 +54,6 @@ describe('calculateMetrics', () => {
   });
 
   it('should return correct label for excellent score', () => {
-    // Mock data that should give high scores
     const excellentData: OSMData = {
       crossings: Array(20).fill(null).map((_, i) => ({
         id: i,
@@ -66,7 +62,7 @@ describe('calculateMetrics', () => {
         tags: { highway: 'crossing' },
       })),
       sidewalks: Array(10).fill(null).map((_, i) => ({ id: i, tags: { footway: 'sidewalk' } })),
-      streets: Array(10).fill(null).map((_, i) => ({ id: i, tags: { highway: 'residential' } })),
+      streets: Array(10).fill(null).map((_, i) => ({ id: i, tags: { highway: 'residential', sidewalk: 'both' } })),
       pois: [
         { tags: { amenity: 'school' } },
         { tags: { shop: 'supermarket' } },
@@ -98,7 +94,7 @@ describe('calculateMetrics', () => {
 
   it('should calculate destination access correctly', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-    // We have 5 destination categories represented
+    // We have 4 destination categories represented
     expect(metrics.destinationAccess).toBeGreaterThan(0);
   });
 });

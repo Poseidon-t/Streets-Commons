@@ -1,18 +1,13 @@
-import type { OSMData, WalkabilityMetrics } from '../types';
-import {
-  MAX_CROSSING_GAP,
-  MIN_TREE_CANOPY,
-  METRIC_WEIGHTS,
-} from '../constants';
+import type { OSMData, WalkabilityMetrics, DataQuality } from '../types';
+import { MAX_CROSSING_GAP } from '../constants';
 
-// Calculate distance between two points (Haversine formula)
 function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371000; // Earth radius in meters
+  const R = 6371000;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
@@ -27,143 +22,106 @@ function calculateDistance(
 }
 
 /**
- * Metric 1: Crossing Gaps
- * Measures maximum distance between pedestrian crossings
- * Standard: ≤200m gaps
+ * Metric 1: Crossing Density
+ * Measures density of marked pedestrian crossings
+ * Source: OSM highway=crossing nodes
  */
-function calculateCrossingGaps(data: OSMData, centerLat: number, centerLon: number): number {
+function calculateCrossingDensity(data: OSMData, centerLat: number, centerLon: number): number {
   if (data.crossings.length === 0) return 0;
+  if (data.streets.length === 0) return 0;
 
-  // Find largest gap by checking distance from center to nearest crossing
-  const crossingsWithDistance = data.crossings.map(c => ({
-    ...c,
-    distance: calculateDistance(centerLat, centerLon, c.lat, c.lon),
-  }));
+  // Calculate crossings per km of road
+  const estimatedRoadKm = (data.streets.length * 100) / 1000;
+  const crossingsPerKm = data.crossings.length / estimatedRoadKm;
 
-  // Group crossings by direction (N, S, E, W, NE, NW, SE, SW)
-  const directions = [
-    { name: 'N', angle: 0 },
-    { name: 'NE', angle: 45 },
-    { name: 'E', angle: 90 },
-    { name: 'SE', angle: 135 },
-    { name: 'S', angle: 180 },
-    { name: 'SW', angle: 225 },
-    { name: 'W', angle: 270 },
-    { name: 'NW', angle: 315 },
-  ];
-
+  // Also check max gap from center
   let maxGap = 0;
-  directions.forEach(dir => {
-    // Find nearest crossing in this direction
-    const crossingsInDir = crossingsWithDistance.filter(c => {
-      const angle = Math.atan2(c.lat - centerLat, c.lon - centerLon) * 180 / Math.PI;
-      const normalizedAngle = (angle + 360) % 360;
-      const diff = Math.abs(normalizedAngle - dir.angle);
-      return diff < 45 || diff > 315;
-    });
-
-    if (crossingsInDir.length > 0) {
-      const nearest = Math.min(...crossingsInDir.map(c => c.distance));
-      maxGap = Math.max(maxGap, nearest);
-    } else {
-      maxGap = MAX_CROSSING_GAP * 3; // No crossing in this direction
+  data.crossings.forEach(c => {
+    if (c.lat && c.lon) {
+      const distance = calculateDistance(centerLat, centerLon, c.lat, c.lon);
+      maxGap = Math.max(maxGap, distance);
     }
   });
 
-  // Score: 10 at 0m gap, 5 at 200m gap, 0 at 400m+ gap
-  const score = Math.max(0, 10 - (maxGap / MAX_CROSSING_GAP) * 5);
+  // Score based on both density and max gap
+  const densityScore = Math.min(10, (crossingsPerKm / 8) * 10);
+  const gapScore = Math.max(0, 10 - (maxGap / MAX_CROSSING_GAP) * 5);
+
+  const score = (densityScore + gapScore) / 2;
   return Math.round(score * 10) / 10;
 }
 
 /**
- * Metric 2: Tree Canopy
- * Would use Sentinel-2 NDVI in production
- * For MVP: estimate from OSM landuse=forest, natural=tree_row, etc.
+ * Metric 2: Sidewalk Coverage
+ * Percentage of streets with sidewalk tags
+ * Source: OSM sidewalk=* tags on ways
  */
-function calculateTreeCanopy(data: OSMData): number {
+function calculateSidewalkCoverage(data: OSMData): number {
   if (data.streets.length === 0) return 0;
 
-  // Count tree-related OSM features
-  const greenElements = data.pois.filter(p =>
-    p.tags?.natural === 'tree' ||
-    p.tags?.landuse === 'forest' ||
-    p.tags?.landuse === 'grass' ||
-    p.tags?.leisure === 'park'
+  const streetsWithSidewalks = data.streets.filter(
+    s => {
+      const sw = s.tags?.sidewalk;
+      return sw && sw !== 'no' && sw !== 'none';
+    }
   );
 
-  // Estimate coverage based on green element density
-  const estimatedCoverage = Math.min(100, (greenElements.length / data.streets.length) * 50);
+  const coverage = (streetsWithSidewalks.length / data.streets.length) * 100;
 
-  // Score: 10 at 30%+, 5 at 15%, 0 at 0%
-  const score = Math.min(10, (estimatedCoverage / MIN_TREE_CANOPY) * 10);
+  // Score: 90%+ = 10, 45% = 5, 0% = 0
+  const score = Math.min(10, (coverage / 90) * 10);
   return Math.round(score * 10) / 10;
 }
 
 /**
- * Metric 3: Surface Temperature
- * Would use Landsat 8 thermal in production
- * For MVP: return placeholder based on tree canopy (more trees = cooler)
- */
-function calculateSurfaceTemp(treeCanopyScore: number): number {
-  // Inverse relationship: more trees = better temp score
-  // Tree score 10 → temp score 10, tree score 0 → temp score 0
-  return treeCanopyScore;
-}
-
-/**
- * Metric 4: Network Efficiency
- * Measures detour factor (actual walking distance vs straight-line)
- * Uses intersection density as proxy
+ * Metric 3: Network Efficiency
+ * Grid-like connectivity (intersection density)
+ * Source: OSM crossings vs street segments
  */
 function calculateNetworkEfficiency(data: OSMData): number {
   if (data.streets.length === 0) return 0;
 
-  const intersectionDensity = data.crossings.length / data.streets.length;
+  const connectivity = data.crossings.length / data.streets.length;
 
-  // High density (>0.5) = grid-like = efficient (low detour)
-  // Low density (<0.2) = winding = inefficient (high detour)
-  // Score: 10 at 0.5+, 5 at 0.25, 0 at 0
-  const score = Math.min(10, (intersectionDensity / 0.5) * 10);
+  // Grid networks: ~0.5 ratio (1 intersection per 2 streets)
+  // Score: 0.5+ = 10, 0.25 = 5, 0 = 0
+  const score = Math.min(10, (connectivity / 0.5) * 10);
   return Math.round(score * 10) / 10;
 }
 
 /**
- * Metric 5: Slope
- * Would use SRTM elevation data in production
- * For MVP: return moderate score (most urban areas are <5% slope)
- */
-function calculateSlope(): number {
-  // Placeholder: assume moderate slope (7-8 score)
-  return Math.round((7 + Math.random()) * 10) / 10;
-}
-
-/**
- * Metric 6: Destination Access
- * Counts types of destinations within 800m
- * Categories: school, transit, shop, healthcare, etc.
+ * Metric 4: Destination Access
+ * Variety of destination types within 800m
+ * Source: OSM amenity, shop, leisure tags
  */
 function calculateDestinationAccess(data: OSMData): number {
   const categories = {
-    school: false,
+    education: false,
     transit: false,
-    shop: false,
+    shopping: false,
     healthcare: false,
     food: false,
     recreation: false,
   };
 
   data.pois.forEach(poi => {
-    if (poi.tags?.amenity === 'school') categories.school = true;
-    if (poi.tags?.amenity === 'bus_station' || poi.tags?.railway === 'station') categories.transit = true;
-    if (poi.tags?.shop) categories.shop = true;
-    if (poi.tags?.amenity === 'hospital' || poi.tags?.amenity === 'clinic') categories.healthcare = true;
-    if (poi.tags?.amenity === 'restaurant' || poi.tags?.amenity === 'cafe') categories.food = true;
-    if (poi.tags?.leisure === 'park' || poi.tags?.leisure === 'playground') categories.recreation = true;
+    if (poi.tags?.amenity === 'school' || poi.tags?.amenity === 'kindergarten')
+      categories.education = true;
+    if (poi.tags?.amenity === 'bus_station' || poi.tags?.railway === 'station')
+      categories.transit = true;
+    if (poi.tags?.shop)
+      categories.shopping = true;
+    if (poi.tags?.amenity === 'hospital' || poi.tags?.amenity === 'clinic' || poi.tags?.amenity === 'pharmacy')
+      categories.healthcare = true;
+    if (poi.tags?.amenity === 'restaurant' || poi.tags?.amenity === 'cafe' || poi.tags?.amenity === 'bar')
+      categories.food = true;
+    if (poi.tags?.leisure === 'park' || poi.tags?.leisure === 'playground' || poi.tags?.leisure === 'sports_centre')
+      categories.recreation = true;
   });
 
   const typeCount = Object.values(categories).filter(Boolean).length;
 
-  // Score: 10 at 6 types, 5 at 3 types, 0 at 0 types
+  // Score: 6 types = 10, 3 types = 5, 0 = 0
   const score = Math.min(10, (typeCount / 6) * 10);
   return Math.round(score * 10) / 10;
 }
@@ -176,37 +134,56 @@ function getScoreLabel(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' | 
   return 'Critical';
 }
 
+function assessDataQuality(data: OSMData): DataQuality {
+  const crossingCount = data.crossings.length;
+  const streetCount = data.streets.length;
+  const sidewalkCount = data.sidewalks.length;
+  const poiCount = data.pois.length;
+
+  // Assess confidence based on data completeness
+  let confidence: 'high' | 'medium' | 'low' = 'low';
+
+  if (streetCount > 50 && crossingCount > 10 && poiCount > 20) {
+    confidence = 'high';
+  } else if (streetCount > 20 && crossingCount > 5 && poiCount > 10) {
+    confidence = 'medium';
+  }
+
+  return {
+    crossingCount,
+    streetCount,
+    sidewalkCount,
+    poiCount,
+    confidence,
+  };
+}
+
 export function calculateMetrics(
   data: OSMData,
   centerLat: number,
   centerLon: number
 ): WalkabilityMetrics {
-  const crossingGaps = calculateCrossingGaps(data, centerLat, centerLon);
-  const treeCanopy = calculateTreeCanopy(data);
-  const surfaceTemp = calculateSurfaceTemp(treeCanopy);
+  const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
+  const sidewalkCoverage = calculateSidewalkCoverage(data);
   const networkEfficiency = calculateNetworkEfficiency(data);
-  const slope = calculateSlope();
   const destinationAccess = calculateDestinationAccess(data);
 
-  // Weighted average (excluding surface temp for now since it's derived)
+  // Weighted average of 4 metrics
   const overallScore = Math.round(
-    (crossingGaps * METRIC_WEIGHTS.crossingGaps +
-      treeCanopy * METRIC_WEIGHTS.treeCanopy +
-      networkEfficiency * METRIC_WEIGHTS.networkEfficiency +
-      slope * METRIC_WEIGHTS.slope +
-      destinationAccess * METRIC_WEIGHTS.destinationAccess +
-      (data.sidewalks.length / Math.max(1, data.streets.length) * 10) * METRIC_WEIGHTS.sidewalkCoverage) *
-      10
+    (crossingDensity * 0.30 +
+      sidewalkCoverage * 0.30 +
+      networkEfficiency * 0.20 +
+      destinationAccess * 0.20) * 10
   ) / 10;
 
   return {
-    crossingGaps,
-    treeCanopy,
-    surfaceTemp,
+    crossingDensity,
+    sidewalkCoverage,
     networkEfficiency,
-    slope,
     destinationAccess,
     overallScore,
     label: getScoreLabel(overallScore),
   };
 }
+
+export { assessDataQuality };

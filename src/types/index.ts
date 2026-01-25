@@ -7,14 +7,21 @@ export interface Location {
 }
 
 export interface WalkabilityMetrics {
-  crossingGaps: number;
-  treeCanopy: number;
-  surfaceTemp: number;
+  // OSM-verifiable metrics only
+  crossingDensity: number;
+  sidewalkCoverage: number;
   networkEfficiency: number;
-  slope: number;
   destinationAccess: number;
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
+}
+
+export interface DataQuality {
+  crossingCount: number;
+  streetCount: number;
+  sidewalkCount: number;
+  poiCount: number;
+  confidence: 'high' | 'medium' | 'low';
 }
 
 export interface OSMData {
@@ -32,14 +39,6 @@ export interface Demographics {
   dailyVisitors: number;
 }
 
-export interface CountryContext {
-  name: string;
-  gdpPerCapita: number;
-  roadDeaths: number;
-  urbanization: number;
-  currency: string;
-}
-
 export interface EconomicProjections {
   retailUplift: number;
   propertyValue: number;
@@ -53,8 +52,8 @@ export interface Analysis {
   id: string;
   location: Location;
   metrics: WalkabilityMetrics;
+  dataQuality: DataQuality;
   demographics: Demographics;
-  countryContext: CountryContext;
   economicProjections: EconomicProjections;
   timestamp: Date;
 }
