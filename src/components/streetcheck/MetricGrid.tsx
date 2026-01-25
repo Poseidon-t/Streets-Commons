@@ -9,11 +9,13 @@ interface MetricCardProps {
   name: string;
   score: number;
   description: string;
+  calculation: string;
   standard: string;
+  dataSource: string;
   icon: string;
 }
 
-function MetricCard({ name, score, description, standard, icon }: MetricCardProps) {
+function MetricCard({ name, score, description, calculation, standard, dataSource, icon }: MetricCardProps) {
   const getColor = () => {
     if (score >= 8) return COLORS.excellent;
     if (score >= 6) return COLORS.good;
@@ -42,13 +44,11 @@ function MetricCard({ name, score, description, standard, icon }: MetricCardProp
         </span>
       </div>
 
-      <div className="text-3xl font-bold mb-2" style={{ color: getColor() }}>
+      <div className="text-3xl font-bold mb-3" style={{ color: getColor() }}>
         {score.toFixed(1)}
       </div>
 
-      <p className="text-sm text-gray-600 mb-3">{description}</p>
-
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+      <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
         <div
           className="h-2 rounded-full transition-all duration-1000"
           style={{
@@ -58,8 +58,23 @@ function MetricCard({ name, score, description, standard, icon }: MetricCardProp
         />
       </div>
 
-      <div className="text-xs text-gray-500">
-        <strong>Standard:</strong> {standard}
+      <div className="space-y-2 text-xs">
+        <div>
+          <strong className="text-gray-700">What it measures:</strong>
+          <p className="text-gray-600 mt-1">{description}</p>
+        </div>
+        <div>
+          <strong className="text-gray-700">How it's calculated:</strong>
+          <p className="text-gray-600 mt-1">{calculation}</p>
+        </div>
+        <div>
+          <strong className="text-gray-700">Standard:</strong>
+          <p className="text-gray-600 mt-1">{standard}</p>
+        </div>
+        <div>
+          <strong className="text-gray-700">Data source:</strong>
+          <p className="text-blue-600 mt-1">{dataSource}</p>
+        </div>
       </div>
     </div>
   );
@@ -70,29 +85,37 @@ export default function MetricGrid({ metrics }: MetricGridProps) {
     {
       name: 'Crossing Density',
       score: metrics.crossingDensity,
-      description: 'Frequency and distribution of marked pedestrian crossings',
-      standard: 'OSM highway=crossing nodes',
+      description: 'How many marked pedestrian crossings exist in the area and how well-distributed they are',
+      calculation: 'Counts OSM nodes tagged as highway=crossing, calculates crossings per km of road, and measures maximum gap from center point. Combines density score (ideal: 8+ crossings/km) with gap score (penalty if furthest crossing >200m away)',
+      standard: 'Score 10 = 8+ crossings/km with no crossing >200m away. Score 5 = 4 crossings/km or moderate gaps. Score 0 = no marked crossings',
+      dataSource: 'OpenStreetMap highway=crossing nodes',
       icon: '🚶',
     },
     {
       name: 'Sidewalk Coverage',
       score: metrics.sidewalkCoverage,
-      description: 'Percentage of streets with sidewalk tags',
-      standard: 'OSM sidewalk=* tags',
+      description: 'Percentage of streets that have documented sidewalk infrastructure',
+      calculation: 'Counts streets with sidewalk=* tags (values: both, left, right, yes) and divides by total street count. Does NOT count sidewalk=no or sidewalk=none',
+      standard: 'Score 10 = 90%+ streets have sidewalk tags. Score 5 = 45% coverage. Score 0 = no sidewalk data. Note: OSM sidewalk tagging is often incomplete',
+      dataSource: 'OpenStreetMap sidewalk=* tags on highway ways',
       icon: '🚶‍♀️',
     },
     {
       name: 'Network Efficiency',
       score: metrics.networkEfficiency,
-      description: 'Street grid connectivity and walkable routing',
-      standard: 'Intersection density ratio',
+      description: 'How well-connected the street grid is for walking (more intersections = shorter, more direct routes)',
+      calculation: 'Ratio of crossing points to street segments. Grid-like neighborhoods have ~0.5 ratio (1 intersection per 2 street segments). Cul-de-sac sprawl has low ratios',
+      standard: 'Score 10 = ratio ≥0.5 (dense grid). Score 5 = ratio 0.25 (moderate). Score 0 = ratio near 0 (disconnected streets)',
+      dataSource: 'Calculated from OSM crossings and street segments',
       icon: '🗺️',
     },
     {
       name: 'Destination Access',
       score: metrics.destinationAccess,
-      description: 'Variety of amenities within walking distance',
-      standard: 'OSM amenity, shop, leisure tags',
+      description: 'Variety of daily destinations (school, shops, transit, healthcare, food, recreation) within 800m walking distance',
+      calculation: 'Checks for presence of 6 destination categories: education (school, kindergarten), transit (bus/rail stations), shopping (any shop tag), healthcare (hospital, clinic, pharmacy), food (restaurant, cafe, bar), recreation (park, playground, sports)',
+      standard: 'Score 10 = all 6 destination types present. Score 5 = 3 types. Score 0 = no destinations. Does NOT measure distance to each destination, only variety',
+      dataSource: 'OpenStreetMap amenity=*, shop=*, leisure=*, railway=* tags',
       icon: '🏪',
     },
   ];
