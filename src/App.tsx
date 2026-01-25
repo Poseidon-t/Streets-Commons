@@ -381,7 +381,7 @@ function App() {
             <MetricGrid metrics={metrics} />
 
             {/* Share Buttons */}
-            <ShareButtons location={location} metrics={metrics} />
+            <ShareButtons location={location} metrics={metrics} dataQuality={dataQuality || undefined} />
 
             {/* What We Measure */}
             <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">

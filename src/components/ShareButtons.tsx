@@ -1,12 +1,16 @@
+import { useState } from 'react';
 import { COLORS } from '../constants';
-import type { Location, WalkabilityMetrics } from '../types';
+import type { Location, WalkabilityMetrics, DataQuality } from '../types';
+import { generatePDFReport } from '../utils/pdfReport';
 
 interface ShareButtonsProps {
   location: Location;
   metrics: WalkabilityMetrics;
+  dataQuality?: DataQuality;
 }
 
-export default function ShareButtons({ location, metrics }: ShareButtonsProps) {
+export default function ShareButtons({ location, metrics, dataQuality }: ShareButtonsProps) {
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const shareUrl = window.location.href;
   const shareText = `${location.displayName} walkability score: ${metrics.overallScore.toFixed(1)}/10 (${metrics.label})`;
 
@@ -72,6 +76,31 @@ export default function ShareButtons({ location, metrics }: ShareButtonsProps) {
     URL.revokeObjectURL(url);
   };
 
+  const handleGeneratePDF = async () => {
+    if (!dataQuality) {
+      alert('Data quality information not available');
+      return;
+    }
+
+    setIsGeneratingPDF(true);
+    try {
+      // Get map element
+      const mapElement = document.querySelector('.leaflet-container') as HTMLElement;
+
+      await generatePDFReport({
+        location,
+        metrics,
+        dataQuality,
+        mapElement: mapElement || undefined,
+      });
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF report. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-lg">
       <h3 className="text-xl font-bold text-gray-800 mb-4">Share Results</h3>
@@ -109,14 +138,25 @@ export default function ShareButtons({ location, metrics }: ShareButtonsProps) {
         </div>
 
         {/* Export Data */}
-        <button
-          onClick={handleExportJSON}
-          className="w-full px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2"
-          style={{ backgroundColor: COLORS.accent }}
-        >
-          <span>📥</span>
-          <span>Export Data (JSON)</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={handleExportJSON}
+            className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            style={{ backgroundColor: COLORS.accent }}
+          >
+            <span>📥</span>
+            <span>JSON</span>
+          </button>
+          <button
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPDF}
+            className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: COLORS.primary }}
+          >
+            <span>📄</span>
+            <span>{isGeneratingPDF ? 'Generating...' : 'PDF Report'}</span>
+          </button>
+        </div>
 
         <p className="text-xs text-gray-500 text-center mt-4">
           Share this analysis to help advocate for better walkable infrastructure
