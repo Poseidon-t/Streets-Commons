@@ -136,6 +136,15 @@ export default function MetricGrid({ metrics }: MetricGridProps) {
       dataSource: 'Sentinel-2/Landsat 8 NDVI via OpenWeather Agro API',
       icon: '🌳',
     },
+    {
+      name: 'Surface Temperature',
+      score: metrics.surfaceTemp,
+      description: 'Ground/pavement temperature affecting pedestrian comfort and urban heat exposure',
+      calculation: 'Fetches Landsat 8/9 thermal infrared data (Band 10) via Google Earth Engine backend API. Uses most recent cloud-free image (<20% cloud cover) from last 90 days. Converts from Kelvin to Celsius. Surface temp measures actual ground heat, not air temperature.',
+      standard: 'Score 10 = ≤25°C (comfortable). Score 5-10 = 25-35°C (warm). Score 0-5 = 35-45°C (hot). Score 0 = >45°C (extreme heat)',
+      dataSource: 'Landsat 8/9 Collection 2 Surface Temperature via Google Earth Engine',
+      icon: '🌡️',
+    },
   ];
 
   return (

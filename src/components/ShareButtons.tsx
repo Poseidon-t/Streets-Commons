@@ -54,6 +54,7 @@ export default function ShareButtons({ location, metrics }: ShareButtonsProps) {
         destinationAccess: metrics.destinationAccess,
         slope: metrics.slope,
         treeCanopy: metrics.treeCanopy,
+        surfaceTemp: metrics.surfaceTemp,
       },
       timestamp: new Date().toISOString(),
       tool: 'SafeStreets',

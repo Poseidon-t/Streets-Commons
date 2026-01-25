@@ -9,6 +9,7 @@ import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchElevationProfile, calculateSlope, scoreSlopeForWalkability, calculateMaxSlope } from './services/elevation';
 import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
+import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
@@ -152,6 +153,7 @@ function App() {
   ) => {
     let slopeScore: number | undefined;
     let treeCanopyScore: number | undefined;
+    let surfaceTempScore: number | undefined;
 
     // Fetch slope data (SRTM elevation)
     try {
@@ -171,7 +173,8 @@ function App() {
         selectedLocation.lat,
         selectedLocation.lon,
         slopeScore,
-        treeCanopyScore
+        treeCanopyScore,
+        surfaceTempScore
       );
       setMetrics(updatedMetrics);
     } catch (error) {
@@ -192,13 +195,40 @@ function App() {
           selectedLocation.lat,
           selectedLocation.lon,
           slopeScore,
-          treeCanopyScore
+          treeCanopyScore,
+          surfaceTempScore
         );
         setMetrics(updatedMetrics);
       }
     } catch (error) {
       console.error('Failed to fetch tree canopy data:', error);
       // Silently fail - tree canopy metric remains at 0
+    }
+
+    // Fetch surface temperature data (Landsat thermal via backend)
+    try {
+      const result = await fetchSurfaceTemperature(
+        selectedLocation.lat,
+        selectedLocation.lon
+      );
+
+      if (result !== null) {
+        surfaceTempScore = result.score;
+
+        // Recalculate metrics with surface temp included
+        const updatedMetrics = calculateMetrics(
+          currentOsmData,
+          selectedLocation.lat,
+          selectedLocation.lon,
+          slopeScore,
+          treeCanopyScore,
+          surfaceTempScore
+        );
+        setMetrics(updatedMetrics);
+      }
+    } catch (error) {
+      console.error('Failed to fetch surface temperature data:', error);
+      // Silently fail - surface temp metric remains at 0
     }
   };
 

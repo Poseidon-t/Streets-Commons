@@ -163,7 +163,8 @@ export function calculateMetrics(
   centerLat: number,
   centerLon: number,
   slopeScore?: number, // Optional slope from elevation data
-  treeCanopyScore?: number // Optional tree canopy from NDVI data
+  treeCanopyScore?: number, // Optional tree canopy from NDVI data
+  surfaceTempScore?: number // Optional surface temp from Landsat thermal
 ): WalkabilityMetrics {
   const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
   const sidewalkCoverage = calculateSidewalkCoverage(data);
@@ -171,16 +172,29 @@ export function calculateMetrics(
   const destinationAccess = calculateDestinationAccess(data);
   const slope = slopeScore ?? 0; // Default to 0 if not provided yet
   const treeCanopy = treeCanopyScore ?? 0; // Default to 0 if not provided yet
+  const surfaceTemp = surfaceTempScore ?? 0; // Default to 0 if not provided yet
 
   // Weighted average - adjust based on available data
-  // 6 metrics (all available): crossing 20%, sidewalk 20%, network 15%, destination 15%, slope 15%, tree 15%
-  // 5 metrics (no tree): crossing 25%, sidewalk 25%, network 15%, destination 15%, slope 20%
-  // 4 metrics (no slope/tree): crossing 30%, sidewalk 30%, network 20%, destination 20%
+  // 7 metrics (all available): crossing 18%, sidewalk 18%, network 13%, destination 13%, slope 13%, tree 13%, temp 12%
+  // 6 metrics (no temp): crossing 20%, sidewalk 20%, network 15%, destination 15%, slope 15%, tree 15%
+  // 5 metrics (no tree/temp): crossing 25%, sidewalk 25%, network 15%, destination 15%, slope 20%
+  // 4 metrics (OSM only): crossing 30%, sidewalk 30%, network 20%, destination 20%
 
   let overallScore: number;
 
-  if (slopeScore !== undefined && treeCanopyScore !== undefined) {
-    // All 6 metrics available
+  if (slopeScore !== undefined && treeCanopyScore !== undefined && surfaceTempScore !== undefined) {
+    // All 7 metrics available
+    overallScore = Math.round(
+      (crossingDensity * 0.18 +
+        sidewalkCoverage * 0.18 +
+        networkEfficiency * 0.13 +
+        destinationAccess * 0.13 +
+        slope * 0.13 +
+        treeCanopy * 0.13 +
+        surfaceTemp * 0.12) * 10
+    ) / 10;
+  } else if (slopeScore !== undefined && treeCanopyScore !== undefined) {
+    // 6 metrics (no surface temp)
     overallScore = Math.round(
       (crossingDensity * 0.20 +
         sidewalkCoverage * 0.20 +
@@ -190,7 +204,7 @@ export function calculateMetrics(
         treeCanopy * 0.15) * 10
     ) / 10;
   } else if (slopeScore !== undefined) {
-    // 5 metrics (no tree)
+    // 5 metrics (no tree/temp)
     overallScore = Math.round(
       (crossingDensity * 0.25 +
         sidewalkCoverage * 0.25 +
@@ -215,6 +229,7 @@ export function calculateMetrics(
     destinationAccess,
     slope,
     treeCanopy,
+    surfaceTemp,
     overallScore,
     label: getScoreLabel(overallScore),
   };

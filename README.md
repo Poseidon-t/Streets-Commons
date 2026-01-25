@@ -19,7 +19,7 @@ Transform citizens from complainers into advocates with evidence. **Data is leve
 - 800m analysis radius visualization
 - Live legend with counts
 
-### 📊 6 Verifiable Metrics
+### 📊 7 Verifiable Metrics
 
 | Metric | Data Source | What It Measures |
 |--------|-------------|------------------|
@@ -29,6 +29,7 @@ Transform citizens from complainers into advocates with evidence. **Data is leve
 | **Destination Access** | OSM amenity/shop/leisure | Variety of destination types within 800m |
 | **Slope** | SRTM elevation data | Terrain gradient (wheelchair accessibility) |
 | **Tree Canopy** | Sentinel-2/Landsat NDVI | Vegetation coverage (shade, cooling, air quality) |
+| **Surface Temperature** | Landsat thermal via GEE | Ground/pavement heat (urban heat island effect) |
 
 Each metric card shows:
 - What it measures
@@ -56,58 +57,66 @@ Each metric card shows:
 
 ## 🚀 Quick Start
 
+### Minimal Setup (4 Metrics - No APIs Required)
+
 ```bash
 # Install dependencies
 npm install
 
-# Set up environment (optional - for tree canopy metric)
-cp .env.example .env
-# Edit .env and add your OpenWeather API key
-
 # Start dev server
 npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
 ```
 
 Visit [http://localhost:5174](http://localhost:5174)
 
-### API Keys (Optional)
+**Metrics:** Crossing Density, Sidewalk Coverage, Network Efficiency, Destination Access ✅
 
-- **Tree Canopy Metric**: Requires free OpenWeather API key
-  - Get it at: [openweathermap.org/api](https://openweathermap.org/api)
-  - Free tier: 1,000 calls/day
-  - Add to `.env` as `VITE_OPENWEATHER_API_KEY`
-  - If not provided, tree canopy score defaults to 0
+### Full Setup (All 7 Metrics)
+
+See [SETUP.md](SETUP.md) for detailed instructions.
+
+**Quick summary:**
+
+```bash
+# Frontend with tree canopy
+cp .env.example .env
+# Add VITE_OPENWEATHER_API_KEY
+
+# Backend for surface temperature
+cd api && npm install
+earthengine authenticate  # or use service account
+npm run dev
+
+# Frontend connects to backend
+# Add VITE_API_URL=http://localhost:3001 to .env
+```
+
+### API Keys & Backend (Optional)
+
+- **Tree Canopy**: Free OpenWeather API key ([get it here](https://openweathermap.org/api))
+- **Surface Temperature**: Requires backend + Google Earth Engine ([setup guide](api/README.md))
 
 ## 📊 Scoring System
 
-**0-10 scale** with weighted average (dynamic based on available data):
+**0-10 scale** with dynamic weighted average based on available data:
 
-**All 6 metrics available:**
-- Crossing Density: 20%
-- Sidewalk Coverage: 20%
-- Network Efficiency: 15%
-- Destination Access: 15%
-- Slope: 15%
-- Tree Canopy: 15%
+**All 7 metrics (full setup):**
+- Crossing Density: 18%, Sidewalk Coverage: 18%
+- Network Efficiency: 13%, Destination Access: 13%
+- Slope: 13%, Tree Canopy: 13%, Surface Temp: 12%
+
+**6 metrics (no backend):**
+- Crossing Density: 20%, Sidewalk Coverage: 20%
+- Network Efficiency: 15%, Destination Access: 15%
+- Slope: 15%, Tree Canopy: 15%
 
 **5 metrics (no API key):**
-- Crossing Density: 25%
-- Sidewalk Coverage: 25%
-- Network Efficiency: 15%
-- Destination Access: 15%
-- Slope: 20%
+- Crossing Density: 25%, Sidewalk Coverage: 25%
+- Network Efficiency: 15%, Destination Access: 15%, Slope: 20%
 
-**4 metrics (OSM only):**
-- Crossing Density: 30%
-- Sidewalk Coverage: 30%
-- Network Efficiency: 20%
-- Destination Access: 20%
+**4 metrics (minimal - OSM only):**
+- Crossing Density: 30%, Sidewalk Coverage: 30%
+- Network Efficiency: 20%, Destination Access: 20%
 
 | Score | Label |
 |-------|-------|
@@ -130,6 +139,7 @@ Visit [http://localhost:5174](http://localhost:5174)
 - Overpass API (OSM data)
 - Open-Elevation API (SRTM elevation)
 - OpenWeather Agro API (Sentinel-2/Landsat NDVI)
+- Google Earth Engine (Landsat thermal)
 
 ## 📁 Structure
 
@@ -169,19 +179,18 @@ npm run test:ui       # Watch mode
 - ✅ POI access + variety
 - ✅ Slope (via SRTM elevation data)
 - ✅ Tree canopy (via Sentinel-2/Landsat NDVI)
+- ✅ Surface temperature (via Landsat thermal/Google Earth Engine)
 
-## ❌ What We CANNOT Measure (Yet)
+## ❌ What We CANNOT Measure
 
 - ❌ Actual sidewalk width
 - ❌ Pavement condition
 - ❌ Obstacles (bikes, vendors)
 - ❌ Lighting at night
-- ❌ **Surface temperature**: No simple API exists
-  - Landsat thermal data is free but requires OAuth (Google Earth Engine) or manual downloads (USGS EarthExplorer)
-  - Air temperature APIs ≠ surface/pavement temperature
-  - Possible future solution: Server-side proxy with GEE authentication
+- ❌ Real-time pedestrian traffic
+- ❌ Crime/safety perception
 
-**We're honest about limitations.**
+**We're honest about limitations and only show verifiable data.**
 
 ## 📝 Evolution: From Fake to Real
 
@@ -196,11 +205,11 @@ Following user principle: *"only if it is 100%, we dont need to show some random
 - ❌ "Economic Projections" (3352× ROI, $77M retail uplift - absurd fake numbers)
 
 ### Phase 2: Replaced with Real Satellite Data
-- ✅ **Slope**: Now using real SRTM elevation data (30m resolution) via Open-Elevation API (no auth)
-- ✅ **Tree Canopy**: Now using real Sentinel-2/Landsat NDVI satellite imagery via OpenWeather Agro API (free API key)
-- ⚠️ **Surface Temperature**: Blocked - Landsat thermal data requires OAuth (Google Earth Engine) or manual downloads (USGS). No simple REST API exists for client-side web apps. Air temperature APIs (OpenWeather) ≠ surface temperature (what we need for pavement heat).
+- ✅ **Slope**: Real SRTM elevation data (30m) via Open-Elevation API (no auth)
+- ✅ **Tree Canopy**: Real Sentinel-2/Landsat NDVI via OpenWeather Agro API (free API key)
+- ✅ **Surface Temperature**: Real Landsat thermal data via Google Earth Engine (backend proxy)
 
-**Result**: Honest, verifiable metrics from actual data sources ✅
+**Result**: All 7 metrics now use 100% verifiable satellite/OSM data ✅
 
 ## 🎨 Design Principles
 
