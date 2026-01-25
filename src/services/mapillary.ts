@@ -35,25 +35,20 @@ export async function fetchMapillaryImages(
   }
 
   try {
+    // Limit radius to maximum allowed (prevents infinite recursion)
+    // Mapillary API requires bbox < 0.01 degrees square
+    const MAX_RADIUS = 555; // ~0.005 degrees = ~555 meters
+    const actualRadius = Math.min(radiusMeters, MAX_RADIUS);
+
     // Convert radius in meters to approximate degrees
     // 1 degree ≈ 111km, so 800m ≈ 0.0072 degrees
-    const deltaLat = radiusMeters / 111000;
-    const deltaLon = radiusMeters / (111000 * Math.cos((centerLat * Math.PI) / 180));
+    const deltaLat = actualRadius / 111000;
+    const deltaLon = actualRadius / (111000 * Math.cos((centerLat * Math.PI) / 180));
 
     const minLon = centerLon - deltaLon;
     const minLat = centerLat - deltaLat;
     const maxLon = centerLon + deltaLon;
     const maxLat = centerLat + deltaLat;
-
-    // Check bbox size (must be < 0.01 degrees square)
-    const bboxWidth = maxLon - minLon;
-    const bboxHeight = maxLat - minLat;
-    if (bboxWidth > 0.01 || bboxHeight > 0.01) {
-      console.warn('Bounding box too large for Mapillary API. Reducing search radius.');
-      // Reduce to max allowed
-      const maxRadius = 555; // ~0.005 degrees
-      return fetchMapillaryImages(centerLat, centerLon, maxRadius);
-    }
 
     const bbox = `${minLon},${minLat},${maxLon},${maxLat}`;
 
