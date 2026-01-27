@@ -53,6 +53,7 @@ Each metric card shows:
 ### 🎯 Data Quality Transparency
 - Actual counts (crossings, streets, sidewalks, POIs)
 - Confidence levels (high/medium/low)
+- **AI-powered sidewalk validation** using street-level imagery
 - Clear limitations section
 
 ## 🚀 Quick Start
@@ -71,7 +72,7 @@ Visit [http://localhost:5174](http://localhost:5174)
 
 **Metrics:** Crossing Density, Sidewalk Coverage, Network Efficiency, Destination Access ✅
 
-### Full Setup (All 7 Metrics)
+### Full Setup (All 7 Metrics + AI Validation)
 
 See [SETUP.md](SETUP.md) for detailed instructions.
 
@@ -89,12 +90,19 @@ npm run dev
 
 # Frontend connects to backend
 # Add VITE_API_URL=http://localhost:3001 to .env
+
+# CV Backend for AI sidewalk validation (optional)
+cd cv-backend
+pip install -r requirements.txt
+python main.py
+# Add VITE_CV_API_URL=http://localhost:8000 to .env
 ```
 
-### API Keys & Backend (Optional)
+### API Keys & Backends (Optional)
 
 - **Tree Canopy**: Free OpenWeather API key ([get it here](https://openweathermap.org/api))
 - **Surface Temperature**: Requires backend + Google Earth Engine ([setup guide](api/README.md))
+- **AI Sidewalk Validation**: Self-hosted CV backend ([deployment guide](cv-backend/DEPLOYMENT.md))
 
 ## 📊 Scoring System
 
@@ -128,11 +136,16 @@ npm run dev
 
 ## 🛠️ Tech Stack
 
+### Frontend
 - React 19 + TypeScript
 - Vite 7
 - Tailwind CSS 3.4
 - Leaflet + React Leaflet
 - Vitest
+
+### Backends
+- **Surface Temp**: Node.js + Express + Google Earth Engine
+- **AI Validation**: FastAPI + Hugging Face Transformers (SegFormer)
 
 **Data Sources:**
 - Nominatim (geocoding)
@@ -140,26 +153,39 @@ npm run dev
 - Open-Elevation API (SRTM elevation)
 - OpenWeather Agro API (Sentinel-2/Landsat NDVI)
 - Google Earth Engine (Landsat thermal)
+- Mapillary (street-level imagery)
+- Hugging Face SegFormer (sidewalk detection)
 
 ## 📁 Structure
 
 ```
 src/
 ├── components/
-│   ├── Map.tsx              # Interactive map
-│   ├── CompareView.tsx      # Comparison UI
-│   ├── ShareButtons.tsx     # Share/export
+│   ├── Map.tsx                      # Interactive map
+│   ├── CompareView.tsx              # Comparison UI
+│   ├── ShareButtons.tsx             # Share/export
 │   └── streetcheck/
-│       ├── AddressInput.tsx # Search
-│       ├── ScoreCard.tsx    # Score display
-│       └── MetricGrid.tsx   # Metrics
+│       ├── AddressInput.tsx         # Search
+│       ├── ScoreCard.tsx            # Score display
+│       └── MetricGrid.tsx           # Metrics
 ├── services/
-│   ├── nominatim.ts         # Geocoding
-│   └── overpass.ts          # OSM data
+│   ├── nominatim.ts                 # Geocoding
+│   ├── overpass.ts                  # OSM data
+│   ├── mapillary.ts                 # Street imagery
+│   └── sidewalkImageAnalysis.ts     # CV analysis
 ├── utils/
-│   └── metrics.ts           # Calculations
+│   └── metrics.ts                   # Calculations
 └── types/
-    └── index.ts             # TypeScript types
+    └── index.ts                     # TypeScript types
+
+cv-backend/
+├── main.py                          # FastAPI CV service
+├── requirements.txt                 # Python dependencies
+├── Dockerfile                       # Container config
+├── railway.toml                     # Railway deployment
+├── README.md                        # Full docs
+├── DEPLOYMENT.md                    # Quick deploy guide
+└── test_local.py                    # Local testing
 ```
 
 ## 🧪 Testing
@@ -181,16 +207,16 @@ npm run test:ui       # Watch mode
 - ✅ Tree canopy (via Sentinel-2/Landsat NDVI)
 - ✅ Surface temperature (via Landsat thermal/Google Earth Engine)
 
-## ❌ What We CANNOT Measure
+## ⚠️ What Has Limitations
 
-- ❌ Actual sidewalk width
-- ❌ Pavement condition
-- ❌ Obstacles (bikes, vendors)
-- ❌ Lighting at night
-- ❌ Real-time pedestrian traffic
-- ❌ Crime/safety perception
+- ⚠️ **Sidewalk condition**: OSM shows if mapped, not current state
+  - **Solution**: AI analyzes street photos to detect obstructions/issues
+- ⚠️ **Actual width**: Not measured by standard tools
+- ❌ **Lighting at night**: No satellite/street data available
+- ❌ **Real-time traffic**: Would require sensors
+- ❌ **Safety perception**: Subjective, no verifiable source
 
-**We're honest about limitations and only show verifiable data.**
+**We're honest about limitations and validate data with AI when possible.**
 
 ## 📝 Evolution: From Fake to Real
 
@@ -226,10 +252,13 @@ Following user principle: *"only if it is 100%, we dont need to show some random
 - [ ] Real demographics (when sources found)
 
 ### Phase 3
-- [ ] PDF policy reports
-- [ ] Streetmix integration
-- [ ] 3DStreet integration
-- [ ] Paid tier ($29)
+- [x] PDF policy reports (includes metrics, map, street photos, methodology)
+- [x] Mapillary street-level photos (integrated on map + gallery + PDF)
+- [x] AI-powered sidewalk validation (self-hosted CV backend)
+- [x] Data quality confidence indicators (high/medium/low badges)
+- [ ] Streetmix integration (street design visualization)
+- [ ] 3DStreet integration (3D street visualization)
+- [ ] Stripe payment (paid tier $29)
 
 ## 🤝 Contributing
 

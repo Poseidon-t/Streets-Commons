@@ -1,0 +1,55 @@
+name: Deploy CV Backend to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cv-backend/**'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.app/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          cd cv-backend
+          railway up --service cv-backend
+
+      - name: Verify deployment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          cd cv-backend
+          # Get the deployment URL
+          DEPLOY_URL=$(railway status --json | jq -r '.deployments[0].url')
+          echo "Deployed to: $DEPLOY_URL"
+
+          # Wait 30 seconds for deployment to be ready
+          sleep 30
+
+          # Health check
+          curl -f "$DEPLOY_URL/health" || exit 1
+          echo "✅ Deployment successful and healthy!"
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ CV Backend deployed successfully!"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed. Check logs above."
