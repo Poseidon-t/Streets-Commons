@@ -25,6 +25,8 @@
 - [ ] Debouncing works (400ms delay)
 - [ ] Results are selectable
 - [ ] Loading spinner shows during search
+- [ ] Location bias works (local results prioritized if geolocation enabled)
+- [ ] Works globally even if geolocation denied
 
 #### Map Display
 - [ ] Map centers on selected location

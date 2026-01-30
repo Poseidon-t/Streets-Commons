@@ -31,3 +31,24 @@ api/data/purchases.json
 *.njsproj
 *.sln
 *.sw?
+
+# Test artifacts
+test-results/
+playwright-report/
+coverage/
+
+# Generated/temp files
+*.html
+!src/**/*.html
+!public/**/*.html
+!index.html
+
+# Shell scripts (dev-only)
+*.sh
+!.husky/*.sh
+
+# Marketing tools (separate repo)
+marketing/
+
+# Unused Python proxies
+api/*.py

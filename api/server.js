@@ -1751,6 +1751,18 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   }
 });
 
+// Serve frontend static files in production
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '..', 'dist');
+  app.use(express.static(distPath));
+  // SPA fallback - serve index.html for non-API routes
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(distPath, 'index.html'));
+    }
+  });
+}
+
 // Global error handler - catches unhandled route errors
 app.use((err, req, res, _next) => {
   console.error('Unhandled error:', err.message);

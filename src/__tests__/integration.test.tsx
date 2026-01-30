@@ -3,8 +3,9 @@
  * Tests full user workflows and feature interactions
  */
 
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../App';
 
@@ -21,7 +22,7 @@ describe('SafeStreets Integration Tests', () => {
     it('should display initial state with search input', () => {
       render(<App />);
 
-      expect(screen.getByText(/SafeStreets/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /SafeStreets/i })).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/Enter any address/i)).toBeInTheDocument();
     });
 
@@ -51,7 +52,7 @@ describe('SafeStreets Integration Tests', () => {
 
       // Note: Actual testing would require mocking Nominatim API
       // This is a placeholder for the full integration test
-      expect(screen.getByText(/Check Your Neighborhood/i)).toBeInTheDocument();
+      expect(screen.getByText(/Analyze Any Neighborhood Worldwide/i)).toBeInTheDocument();
     });
   });
 
@@ -59,11 +60,12 @@ describe('SafeStreets Integration Tests', () => {
     it('should switch to compare mode when button clicked', () => {
       render(<App />);
 
-      const compareButton = screen.getByText(/Compare with Another Location/i);
+      const compareButton = screen.getByRole('button', { name: /Compare Two Locations/i });
       fireEvent.click(compareButton);
 
-      expect(screen.getByText(/Location 1/i)).toBeInTheDocument();
-      expect(screen.getByText(/Location 2/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Compare Two Locations/i })).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Enter first address/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/Enter second address/i)).toBeInTheDocument();
     });
 
     it('should exit compare mode', () => {
@@ -120,7 +122,7 @@ describe('SafeStreets Integration Tests', () => {
 
       render(<App />);
       // Should not crash and should show error message
-      expect(screen.getByText(/SafeStreets/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /SafeStreets/i })).toBeInTheDocument();
     });
 
     it('should handle invalid locations', () => {
