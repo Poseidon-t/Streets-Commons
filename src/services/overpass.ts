@@ -4,52 +4,49 @@ import type { OSMData } from '../types';
 export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const radius = ANALYSIS_RADIUS;
 
-  // Comprehensive query for all walkability-related features
-  const query = `
-    [out:json][timeout:25];
-    (
-      // Pedestrian crossings
-      node(around:${radius},${lat},${lon})["highway"="crossing"];
-      node(around:${radius},${lat},${lon})["crossing"];
+  // Optimized query - faster, less likely to timeout
+  // CRITICAL: [out:json] at the start ensures JSON response format
+  const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out center;`;
 
-      // Sidewalks and footways
-      way(around:${radius},${lat},${lon})["footway"="sidewalk"];
-      way(around:${radius},${lat},${lon})["sidewalk"];
-      way(around:${radius},${lat},${lon})["highway"="footway"];
+  // Use backend proxy to avoid CORS issues
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
-      // Streets and roads
-      way(around:${radius},${lat},${lon})["highway"~"^(primary|secondary|tertiary|residential|living_street|pedestrian)$"];
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Overpass can be slow)
 
-      // Green spaces and trees
-      node(around:${radius},${lat},${lon})["natural"="tree"];
-      way(around:${radius},${lat},${lon})["landuse"="forest"];
-      way(around:${radius},${lat},${lon})["landuse"="grass"];
-      way(around:${radius},${lat},${lon})["leisure"="park"];
+    const response = await fetch(`${apiUrl}/api/overpass`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+      signal: controller.signal
+    });
 
-      // Points of interest - destinations
-      node(around:${radius},${lat},${lon})["amenity"~"^(school|kindergarten|college|university)$"];
-      node(around:${radius},${lat},${lon})["amenity"~"^(bus_station|ferry_terminal)$"];
-      node(around:${radius},${lat},${lon})["railway"="station"];
-      node(around:${radius},${lat},${lon})["shop"];
-      node(around:${radius},${lat},${lon})["amenity"~"^(hospital|clinic|doctors|pharmacy)$"];
-      node(around:${radius},${lat},${lon})["amenity"~"^(restaurant|cafe|bar|fast_food)$"];
-      node(around:${radius},${lat},${lon})["leisure"~"^(park|playground|sports_centre)$"];
-    );
-    out body;
-    >;
-    out skel qt;
-  `;
+    clearTimeout(timeoutId);
 
-  const response = await fetch(OVERPASS_URL, {
-    method: 'POST',
-    body: query,
-  });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP ${response.status}`);
+    }
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch OSM data');
+    const result = await response.json();
+    return processOSMData(result.data);
+
+  } catch (error: any) {
+    console.error('Failed to fetch OSM data:', error);
+
+    // Better error message based on error type
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. The OpenStreetMap servers are busy. Please try again in a moment.');
+    }
+
+    throw new Error(`Failed to fetch OSM data. ${error.message || 'Unknown error'}. Please try again in a moment.`);
   }
+}
 
-  const data = await response.json();
+function processOSMData(data: any): OSMData {
 
   // Build node lookup map
   const nodes = new Map();

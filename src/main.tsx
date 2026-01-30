@@ -1,10 +1,60 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { ClerkProvider } from '@clerk/clerk-react'
 import './index.css'
 import App from './App.tsx'
+import ReportView from './components/ReportView.tsx'
+import AdvocacyProposalView from './components/AdvocacyProposalView.tsx'
+// Professional Reports
+import {
+  FifteenMinuteCityReport,
+  BuildingDensityReport,
+  TransitAccessReport,
+  ADAAccessibilityReport,
+  StreetLightingReport,
+  FullProfessionalReport
+} from './components/reports'
+
+// Import Clerk publishable key
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Clerk Publishable Key. Add VITE_CLERK_PUBLISHABLE_KEY to your .env file.')
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ClerkProvider
+      publishableKey={PUBLISHABLE_KEY}
+      afterSignInUrl={window.location.href}
+      afterSignUpUrl={window.location.href}
+    >
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path="/report" element={<ReportView />} />
+          <Route path="/proposal" element={<AdvocacyProposalView />} />
+          {/* Professional Reports */}
+          <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
+          <Route path="/report/building-density" element={<BuildingDensityReport />} />
+          <Route path="/report/transit-access" element={<TransitAccessReport />} />
+          <Route path="/report/ada-accessibility" element={<ADAAccessibilityReport />} />
+          <Route path="/report/street-lighting" element={<StreetLightingReport />} />
+          <Route path="/report/professional-full" element={<FullProfessionalReport />} />
+          <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
+              <div className="text-center px-6">
+                <h1 className="text-6xl font-bold mb-4" style={{ color: '#2a3a2a' }}>404</h1>
+                <p className="text-xl mb-6" style={{ color: '#5a6a5a' }}>Page not found</p>
+                <a href="/" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ backgroundColor: '#e07850' }}>
+                  Go to SafeStreets
+                </a>
+              </div>
+            </div>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </ClerkProvider>
   </StrictMode>,
 )

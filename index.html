@@ -4,7 +4,108 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>temp-project</title>
+
+    <!-- Primary Meta Tags -->
+    <title>SafeStreets - Free Walkability Analysis Using Real Satellite Data</title>
+    <meta name="title" content="SafeStreets - Free Walkability Analysis Using Real Satellite Data" />
+    <meta name="description" content="Get professional walkability scores for any address worldwide. 9 metrics powered by NASA satellite data, real-time air quality, and AI—100% free. Competitors charge $10,000/year." />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://safestreets.app/" />
+    <meta property="og:title" content="SafeStreets - Free Walkability Analysis Using Real Satellite Data" />
+    <meta property="og:description" content="Get professional walkability scores for any address worldwide. 9 metrics powered by NASA satellite data, real-time air quality, and AI—100% free. Competitors charge $10,000/year." />
+    <meta property="og:image" content="https://safestreets.app/og-image.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://safestreets.app/" />
+    <meta property="twitter:title" content="SafeStreets - Free Walkability Analysis Using Real Satellite Data" />
+    <meta property="twitter:description" content="Get professional walkability scores for any address worldwide. 9 metrics powered by NASA satellite data, real-time air quality, and AI—100% free." />
+    <meta property="twitter:image" content="https://safestreets.app/og-image.png" />
+
+    <!-- Google Fonts - preconnect + load -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+    <!-- Preconnect to API endpoints for faster loading -->
+    <link rel="preconnect" href="https://nominatim.openstreetmap.org" />
+    <link rel="preconnect" href="https://overpass-api.de" />
+    <link rel="dns-prefetch" href="https://api.openaq.org" />
+
+    <!-- Schema.org Structured Data for FAQPage -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is it really free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! All 9 core metrics are completely free with no sign-up required. We use 100% free data sources (NASA, ESA, OpenStreetMap, OpenAQ), so our data costs are $0/year. The free tier has unlimited searches and works globally."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is this different from WalkScore?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SafeStreets uses real satellite data (terrain slope, tree canopy, temperature) and real-time air quality—features WalkScore doesn't offer. We also provide professional tools like 15-minute city analysis and ADA compliance reports. Plus, our free tier is actually free (WalkScore API costs $1,000-10,000/year)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What's your refund policy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We offer a 30-day money-back guarantee. If you're not satisfied with your purchase for any reason, we'll provide a full refund—no questions asked. You can request a refund directly from your Stripe receipt email."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a subscription or one-time payment?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "One-time payment! Unlike other tools that charge $1,000-10,000/year, SafeStreets charges $19 or $79 once and you keep access forever. No recurring fees, no hidden costs."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- Schema.org for SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SafeStreets",
+      "applicationCategory": "UtilityApplication",
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "name": "Free Tier"
+        },
+        {
+          "@type": "Offer",
+          "price": "19",
+          "priceCurrency": "USD",
+          "name": "Advocate Tier"
+        },
+        {
+          "@type": "Offer",
+          "price": "79",
+          "priceCurrency": "USD",
+          "name": "Professional Tier"
+        }
+      ],
+      "description": "Professional walkability analysis using real satellite data from NASA and ESA. Analyze any address worldwide with 9 free metrics including terrain slope, tree canopy, air quality, and more."
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

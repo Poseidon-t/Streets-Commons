@@ -12,10 +12,13 @@ export interface WalkabilityMetrics {
   sidewalkCoverage: number;
   networkEfficiency: number;
   destinationAccess: number;
+  greenSpaceAccess: number; // NEW: Parks, gardens, recreation areas
   // Satellite/elevation data metrics
-  slope: number; // From SRTM elevation data
-  treeCanopy: number; // From Sentinel-2/Landsat NDVI data
-  surfaceTemp: number; // From Landsat thermal data
+  slope: number; // From NASADEM elevation data
+  treeCanopy: number; // From Sentinel-2 NDVI data
+  surfaceTemp: number; // From NASA POWER temperature data
+  airQuality: number; // From OpenAQ monitoring stations
+  heatIsland: number; // From Sentinel-2 SWIR heat island analysis
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }

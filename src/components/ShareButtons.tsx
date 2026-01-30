@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
 import type { Location, WalkabilityMetrics, DataQuality } from '../types';
-import type { MapillaryImage } from '../services/mapillary';
-import { generatePDFReport } from '../utils/pdfReport';
+import PaymentModal from './PaymentModalWithAuth';
 
 interface ShareButtonsProps {
   location: Location;
   metrics: WalkabilityMetrics;
   dataQuality?: DataQuality;
-  mapillaryImages?: MapillaryImage[];
 }
 
-export default function ShareButtons({ location, metrics, dataQuality, mapillaryImages = [] }: ShareButtonsProps) {
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const shareUrl = window.location.href;
+export default function ShareButtons({ location, metrics, dataQuality }: ShareButtonsProps) {
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  // Build shareable URL with location params
+  const baseUrl = window.location.origin;
+  const shareUrl = `${baseUrl}/?lat=${location.lat}&lon=${location.lon}&name=${encodeURIComponent(location.displayName)}`;
   const shareText = `${location.displayName} walkability score: ${metrics.overallScore.toFixed(1)}/10 (${metrics.label})`;
 
   const handleCopyLink = async () => {
@@ -26,20 +27,50 @@ export default function ShareButtons({ location, metrics, dataQuality, mapillary
     }
   };
 
-  const handleShareTwitter = () => {
-    const text = encodeURIComponent(`${shareText}\n\nCheck your neighborhood's walkability:`);
-    const url = encodeURIComponent(shareUrl);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+  const handleShareTwitter = async () => {
+    const prodUrl = `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}`;
+    const shortName = location.city || location.displayName.split(',')[0] || 'This area';
+    const tweetText = `${shortName} walkability score: ${metrics.overallScore.toFixed(1)}/10 - ${metrics.label}\n\n${prodUrl}`;
+
+    // Try to open Twitter, fallback to clipboard
+    const popup = window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank', 'width=550,height=420');
+
+    if (!popup || popup.closed) {
+      try {
+        await navigator.clipboard.writeText(tweetText);
+        alert('Tweet copied to clipboard! Paste it on Twitter.');
+      } catch {
+        alert('Could not open Twitter. Copy this tweet:\n\n' + tweetText);
+      }
+    }
   };
 
-  const handleShareFacebook = () => {
-    const url = encodeURIComponent(shareUrl);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+  const handleShareFacebook = async () => {
+    const prodUrl = `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}`;
+    const popup = window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(prodUrl)}`, '_blank', 'width=550,height=420');
+
+    if (!popup || popup.closed) {
+      try {
+        await navigator.clipboard.writeText(prodUrl);
+        alert('Link copied to clipboard! Share it on Facebook.');
+      } catch {
+        alert('Could not open Facebook. Share this link:\n\n' + prodUrl);
+      }
+    }
   };
 
-  const handleShareLinkedIn = () => {
-    const url = encodeURIComponent(shareUrl);
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+  const handleShareLinkedIn = async () => {
+    const prodUrl = `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}`;
+    const popup = window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(prodUrl)}`, '_blank', 'width=550,height=420');
+
+    if (!popup || popup.closed) {
+      try {
+        await navigator.clipboard.writeText(prodUrl);
+        alert('Link copied to clipboard! Share it on LinkedIn.');
+      } catch {
+        alert('Could not open LinkedIn. Share this link:\n\n' + prodUrl);
+      }
+    }
   };
 
   const handleExportJSON = () => {
@@ -78,30 +109,22 @@ export default function ShareButtons({ location, metrics, dataQuality, mapillary
     URL.revokeObjectURL(url);
   };
 
-  const handleGeneratePDF = async () => {
+  const handleGeneratePDF = () => {
     if (!dataQuality) {
       alert('Data quality information not available');
       return;
     }
 
-    setIsGeneratingPDF(true);
-    try {
-      // Get map element
-      const mapElement = document.querySelector('.leaflet-container') as HTMLElement;
+    // Store report data in sessionStorage
+    const reportData = {
+      location,
+      metrics,
+      dataQuality,
+    };
+    sessionStorage.setItem('reportData', JSON.stringify(reportData));
 
-      await generatePDFReport({
-        location,
-        metrics,
-        dataQuality,
-        mapElement: mapElement || undefined,
-        mapillaryImages,
-      });
-    } catch (error) {
-      console.error('Failed to generate PDF:', error);
-      alert('Failed to generate PDF report. Please try again.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
+    // Open report in new window
+    window.open('/report', '_blank');
   };
 
   return (
@@ -119,7 +142,7 @@ export default function ShareButtons({ location, metrics, dataQuality, mapillary
         </button>
 
         {/* Social Media Shares */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <button
             onClick={handleShareTwitter}
             className="px-4 py-3 rounded-xl font-semibold bg-blue-400 text-white hover:bg-blue-500 transition-all text-sm"
@@ -152,19 +175,45 @@ export default function ShareButtons({ location, metrics, dataQuality, mapillary
           </button>
           <button
             onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
-            className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2"
             style={{ backgroundColor: COLORS.primary }}
           >
             <span>📄</span>
-            <span>{isGeneratingPDF ? 'Generating...' : 'PDF Report'}</span>
+            <span>View Report</span>
           </button>
+        </div>
+
+        {/* Premium Features CTA */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-blue-50 border-2 border-orange-200 rounded-xl">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h4 className="font-bold text-gray-800 mb-1">🔓 Premium Tools</h4>
+              <p className="text-xs text-gray-600 mb-2">
+                Streetmix + 3DStreet + Policy Reports + Budget Analysis
+              </p>
+              <p className="text-lg font-bold text-orange-600">From $19 one-time</p>
+            </div>
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="px-4 py-2 rounded-xl font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
+              style={{ backgroundColor: COLORS.accent }}
+            >
+              Unlock →
+            </button>
+          </div>
         </div>
 
         <p className="text-xs text-gray-500 text-center mt-4">
           Share this analysis to help advocate for better walkable infrastructure
         </p>
       </div>
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        locationName={location.displayName}
+      />
     </div>
   );
 }

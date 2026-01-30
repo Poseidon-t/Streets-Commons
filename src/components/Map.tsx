@@ -1,15 +1,12 @@
 import { MapContainer, TileLayer, Circle, Marker, Popup, CircleMarker } from 'react-leaflet';
-import { Icon, DivIcon } from 'leaflet';
+import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Location, OSMData } from '../types';
-import type { MapillaryImage } from '../services/mapillary';
 import { ANALYSIS_RADIUS, COLORS } from '../constants';
-import { getMapillaryViewerUrl } from '../services/mapillary';
 
 interface MapProps {
   location: Location | null;
   osmData?: OSMData | null;
-  mapillaryImages?: MapillaryImage[];
 }
 
 const defaultIcon = new Icon({
@@ -22,16 +19,7 @@ const defaultIcon = new Icon({
   shadowSize: [41, 41],
 });
 
-// Camera icon for Mapillary photos
-const cameraIcon = new DivIcon({
-  html: '<div style="background: #05CB63; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📷</div>',
-  className: '',
-  iconSize: [30, 30],
-  iconAnchor: [15, 15],
-  popupAnchor: [0, -15],
-});
-
-export default function Map({ location, osmData, mapillaryImages }: MapProps) {
+export default function Map({ location, osmData }: MapProps) {
   const defaultCenter: [number, number] = [13.7563, 100.5018]; // Bangkok
   const center: [number, number] = location
     ? [location.lat, location.lon]
@@ -59,10 +47,10 @@ export default function Map({ location, osmData, mapillaryImages }: MapProps) {
   };
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden shadow-lg border-2 border-gray-100">
+    <div className="w-full rounded-2xl overflow-hidden shadow-lg border-2" style={{ borderColor: '#e0dbd0' }}>
       {/* Map Legend */}
       {osmData && (
-        <div className="bg-white px-4 py-3 border-b border-gray-200">
+        <div className="px-4 py-3 border-b" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
           <div className="flex flex-wrap gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -92,16 +80,10 @@ export default function Map({ location, osmData, mapillaryImages }: MapProps) {
               <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
               <span>Transit</span>
             </div>
-            {mapillaryImages && mapillaryImages.length > 0 && (
-              <div className="flex items-center gap-1">
-                <span>📷</span>
-                <span>Street Photos ({mapillaryImages.length})</span>
-              </div>
-            )}
           </div>
         </div>
       )}
-      <div className="w-full h-[500px]">
+      <div className="w-full h-[300px] sm:h-[400px] md:h-[500px]">
       <MapContainer
         center={center}
         zoom={15}
@@ -196,47 +178,6 @@ export default function Map({ location, osmData, mapillaryImages }: MapProps) {
               );
             })}
 
-            {/* Mapillary Street Photos */}
-            {mapillaryImages?.map((image) => {
-              const capturedDate = new Date(image.capturedAt).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              });
-
-              return (
-                <Marker
-                  key={`mapillary-${image.id}`}
-                  position={[image.lat, image.lon]}
-                  icon={cameraIcon}
-                >
-                  <Popup maxWidth={300}>
-                    <div className="space-y-2">
-                      {image.thumb256Url && (
-                        <img
-                          src={image.thumb256Url}
-                          alt="Street view"
-                          className="w-full rounded"
-                        />
-                      )}
-                      <div className="text-sm">
-                        <strong>Street-Level Photo</strong>
-                        <br />
-                        <span className="text-gray-600">Captured: {capturedDate}</span>
-                      </div>
-                      <a
-                        href={getMapillaryViewerUrl(image.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline block"
-                      >
-                        View in Mapillary →
-                      </a>
-                    </div>
-                  </Popup>
-                </Marker>
-              );
-            })}
           </>
         )}
       </MapContainer>

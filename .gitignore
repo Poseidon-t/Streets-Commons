@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Environment variables (contain secrets)
+.env
+.env.*
+!.env.example
+api/.env
+
+# Purchase database (contains customer data)
+api/data/purchases.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

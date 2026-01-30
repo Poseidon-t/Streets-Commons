@@ -1,20 +1,33 @@
 {
   "name": "safestreets-api",
-  "version": "1.0.0",
-  "description": "Backend API for SafeStreets - Landsat surface temperature via Google Earth Engine",
+  "version": "2.0.0",
+  "description": "Backend API for SafeStreets - Free data sources (NASA POWER, OpenAQ, OpenStreetMap)",
   "main": "server.js",
   "type": "module",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
-  "keywords": ["walkability", "landsat", "earth-engine", "surface-temperature"],
+  "keywords": [
+    "walkability",
+    "nasa-power",
+    "openaq",
+    "openstreetmap",
+    "nasadem",
+    "elevation",
+    "air-quality"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "@clerk/clerk-sdk-node": "^4.13.23",
     "cors": "^2.8.5",
-    "@google/earthengine": "^0.1.384",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "geotiff": "^3.0.0",
+    "multer": "^2.0.2",
+    "pdf-parse": "^2.4.5",
+    "pdfjs-dist": "^5.4.530",
+    "stripe": "^20.3.0"
   }
 }

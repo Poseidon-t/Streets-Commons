@@ -1,10 +1,12 @@
 /**
- * Elevation data service using Open-Elevation API
+ * Elevation data service using NASADEM via backend API
  * Free, no API key required
- * Data source: SRTM 30m resolution
+ * Data source: NASADEM 30m resolution (NASA's Digital Elevation Model)
+ * Backend provides both elevation and slope calculation
  */
 
-const OPEN_ELEVATION_API = 'https://api.open-elevation.com/api/v1/lookup';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+const OPEN_ELEVATION_API = 'https://api.open-elevation.com/api/v1/lookup'; // Fallback
 
 interface ElevationPoint {
   latitude: number;
@@ -17,25 +19,46 @@ interface ElevationResponse {
 }
 
 /**
- * Fetch elevation for a single point
+ * Fetch elevation for a single point using NASADEM backend API
  */
 export async function fetchElevation(lat: number, lon: number): Promise<number> {
   try {
-    const response = await fetch(`${OPEN_ELEVATION_API}?locations=${lat},${lon}`);
+    // Try NASADEM backend first
+    const response = await fetch(`${API_BASE_URL}/api/elevation?lat=${lat}&lon=${lon}`, {
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
 
     if (!response.ok) {
-      throw new Error(`Elevation API error: ${response.status}`);
+      throw new Error(`NASADEM API error: ${response.status}`);
     }
 
-    const data: ElevationResponse = await response.json();
+    const data = await response.json();
 
-    if (data.results && data.results.length > 0) {
-      return data.results[0].elevation;
+    if (data.success && typeof data.data.elevation === 'number') {
+      return data.data.elevation;
     }
 
-    throw new Error('No elevation data returned');
+    throw new Error('No elevation data returned from NASADEM');
   } catch (error) {
-    console.error('Failed to fetch elevation:', error);
+    console.warn('NASADEM elevation fetch failed, trying fallback:', error);
+
+    // Fallback to Open-Elevation API
+    try {
+      const fallbackResponse = await fetch(`${OPEN_ELEVATION_API}?locations=${lat},${lon}`);
+
+      if (!fallbackResponse.ok) {
+        throw new Error(`Fallback elevation API error: ${fallbackResponse.status}`);
+      }
+
+      const fallbackData: ElevationResponse = await fallbackResponse.json();
+
+      if (fallbackData.results && fallbackData.results.length > 0) {
+        return fallbackData.results[0].elevation;
+      }
+    } catch (fallbackError) {
+      console.error('Both elevation APIs failed:', fallbackError);
+    }
+
     throw error;
   }
 }
@@ -135,6 +158,40 @@ export function calculateMaxSlope(elevations: number[], radius: number = 800): n
 }
 
 /**
+ * Fetch slope directly from NASADEM backend API (real terrain gradient calculation)
+ * Returns slope in degrees (more accurate than elevation profile method)
+ */
+export async function fetchSlope(lat: number, lon: number): Promise<number> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/slope?lat=${lat}&lon=${lon}`, {
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
+
+    if (!response.ok) {
+      throw new Error(`Slope API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.success && typeof data.data.slope === 'number') {
+      return data.data.slope; // Slope in degrees
+    }
+
+    throw new Error('No slope data returned');
+  } catch (error) {
+    console.warn('NASADEM slope fetch failed:', error);
+    throw error;
+  }
+}
+
+/**
+ * Convert slope from degrees to percentage
+ */
+export function degreesToPercent(degrees: number): number {
+  return Math.tan(degrees * Math.PI / 180) * 100;
+}
+
+/**
  * Score slope for walkability (wheelchair accessibility)
  * Target: ≤5% gradient
  * Returns 0-10 score
@@ -150,4 +207,23 @@ export function scoreSlopeForWalkability(avgSlope: number, maxSlope: number): nu
   const score = (avgScore * 0.7 + maxScore * 0.3);
 
   return Math.round(score * 10) / 10;
+}
+
+/**
+ * Score slope from degrees (for NASADEM backend data)
+ * Returns 0-10 score based on real terrain slope
+ */
+export function scoreSlopeFromDegrees(slopeDegrees: number): number {
+  // Scoring based on slope angle in degrees:
+  // 0-2°: 10 points (Flat, ideal)
+  // 2-5°: 8 points (Gentle)
+  // 5-10°: 6 points (Moderate)
+  // 10-15°: 4 points (Steep)
+  // >15°: 2 points (Very steep)
+
+  if (slopeDegrees <= 2) return 10;
+  if (slopeDegrees <= 5) return 8;
+  if (slopeDegrees <= 10) return 6;
+  if (slopeDegrees <= 15) return 4;
+  return 2;
 }

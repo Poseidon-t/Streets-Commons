@@ -24,11 +24,14 @@ export default function CompareView({
     return score1 > score2 ? 'left' : 'right';
   };
 
+  // Only show 6 core metrics (matching main UI)
   const metrics = [
-    { name: 'Crossing Density', score1: metrics1.crossingDensity, score2: metrics2.crossingDensity },
-    { name: 'Sidewalk Coverage', score1: metrics1.sidewalkCoverage, score2: metrics2.sidewalkCoverage },
-    { name: 'Network Efficiency', score1: metrics1.networkEfficiency, score2: metrics2.networkEfficiency },
-    { name: 'Destination Access', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
+    { name: 'Street Crossings', score1: metrics1.crossingDensity, score2: metrics2.crossingDensity },
+    { name: 'Street Network', score1: metrics1.networkEfficiency, score2: metrics2.networkEfficiency },
+    { name: 'Daily Needs', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
+    { name: 'Parks Nearby', score1: metrics1.greenSpaceAccess, score2: metrics2.greenSpaceAccess },
+    { name: 'Terrain Slope', score1: metrics1.slope, score2: metrics2.slope },
+    { name: 'Tree Canopy', score1: metrics1.treeCanopy, score2: metrics2.treeCanopy },
     { name: 'Overall Score', score1: metrics1.overallScore, score2: metrics2.overallScore },
   ];
 
@@ -100,6 +103,21 @@ export default function CompareView({
       {/* Metric-by-Metric Comparison */}
       <div className="bg-white rounded-2xl p-8 border-2 border-gray-100 shadow-lg">
         <h3 className="text-2xl font-bold text-gray-800 mb-6">Metric Comparison</h3>
+
+        {/* Location Headers */}
+        <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b-2 border-gray-200">
+          <div className="text-center">
+            <div className="text-sm font-bold text-gray-800 truncate px-2" title={location1.displayName}>
+              📍 {location1.displayName.split(',')[0]}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm font-bold text-gray-800 truncate px-2" title={location2.displayName}>
+              📍 {location2.displayName.split(',')[0]}
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-4">
           {metrics.map((metric) => {
             const winner = getWinner(metric.score1, metric.score2);
@@ -110,8 +128,8 @@ export default function CompareView({
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-gray-700">{metric.name}</h4>
                   {winner !== 'tie' && (
-                    <span className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-800 font-semibold">
-                      {winner === 'left' ? '← WINNER' : 'WINNER →'}
+                    <span className="text-xs px-3 py-1 rounded-full bg-green-100 text-green-800 font-bold">
+                      ✓ {winner === 'left' ? location1.displayName.split(',')[0] : location2.displayName.split(',')[0]} wins
                     </span>
                   )}
                   {winner === 'tie' && (

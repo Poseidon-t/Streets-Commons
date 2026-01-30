@@ -1,19 +1,23 @@
 /**
- * Surface temperature service using Landsat thermal data via backend API
- * Requires: Backend API running on localhost:3001 (development) or production URL
+ * Surface temperature service using NASA POWER meteorological data
+ * Requires: Backend API running on localhost:3002 (development) or production URL
  *
- * Data source: Landsat 8/9 Collection 2 Surface Temperature
- * Via: Google Earth Engine (cloud processing)
+ * Data source: NASA POWER (30-day average temperature)
+ * 100% FREE - No API keys required
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
 
-interface SurfaceTemperatureResponse {
+interface NASAPowerResponse {
   success: boolean;
   data: {
-    temperatureCelsius: number;
-    temperatureFahrenheit: number;
-    score: number;
+    avgTemp: number;
+    maxTemp: number;
+    minTemp: number;
+    // Legacy field names for backwards compatibility
+    averageTemperature?: number;
+    averageMaxTemperature?: number;
+    averageMinTemperature?: number;
     location: { lat: number; lon: number };
     dataSource: string;
     timestamp: string;
@@ -22,7 +26,7 @@ interface SurfaceTemperatureResponse {
 }
 
 /**
- * Fetch surface temperature from Landsat thermal data
+ * Fetch surface temperature from NASA POWER meteorological data
  * Returns score (0-10) for walkability
  */
 export async function fetchSurfaceTemperature(
@@ -30,12 +34,9 @@ export async function fetchSurfaceTemperature(
   lon: number
 ): Promise<{ score: number; tempCelsius: number } | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/surface-temperature`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ lat, lon }),
+    const response = await fetch(`${API_BASE_URL}/api/nasa-power-temperature?lat=${lat}&lon=${lon}`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(15000), // 15 second timeout
     });
 
     if (!response.ok) {
@@ -43,15 +44,20 @@ export async function fetchSurfaceTemperature(
       throw new Error(error.error || `API error: ${response.status}`);
     }
 
-    const result: SurfaceTemperatureResponse = await response.json();
+    const result: NASAPowerResponse = await response.json();
 
     if (!result.success || !result.data) {
       throw new Error('Invalid API response');
     }
 
+    // Use average max temperature for walkability scoring (pedestrian comfort)
+    // Support both new and legacy field names
+    const tempCelsius = result.data.maxTemp || result.data.averageMaxTemperature || result.data.avgTemp || result.data.averageTemperature || 25;
+    const score = scoreSurfaceTemperature(tempCelsius);
+
     return {
-      score: result.data.score,
-      tempCelsius: result.data.temperatureCelsius,
+      score,
+      tempCelsius,
     };
   } catch (error) {
     console.error('Failed to fetch surface temperature:', error);

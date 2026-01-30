@@ -126,6 +126,47 @@ function calculateDestinationAccess(data: OSMData): number {
   return Math.round(score * 10) / 10;
 }
 
+/**
+ * Metric 5: Green Space Access
+ * Access to parks, gardens, forests, and recreation areas
+ * Source: OSM landuse, leisure, natural tags
+ */
+function calculateGreenSpaceAccess(data: OSMData): number {
+  let greenSpaces = 0;
+  let totalArea = 0; // Rough estimate
+
+  data.pois.forEach(poi => {
+    // Parks and gardens
+    if (poi.tags?.leisure === 'park' || poi.tags?.leisure === 'garden') {
+      greenSpaces++;
+      totalArea += 1; // Each counts as 1 unit
+    }
+    // Natural areas
+    if (poi.tags?.natural === 'wood' || poi.tags?.landuse === 'forest') {
+      greenSpaces++;
+      totalArea += 2; // Forests count more
+    }
+    // Recreation areas
+    if (poi.tags?.leisure === 'playground' ||
+        poi.tags?.leisure === 'pitch' ||
+        poi.tags?.leisure === 'sports_centre') {
+      greenSpaces++;
+      totalArea += 0.5; // Sports areas count less
+    }
+    // Meadows and grass
+    if (poi.tags?.landuse === 'meadow' || poi.tags?.landuse === 'grass') {
+      greenSpaces++;
+      totalArea += 0.5;
+    }
+  });
+
+  // Score based on quantity and diversity
+  // WHO recommends green space within 300m (we're checking 800m)
+  // Ideal: 5+ green spaces
+  const score = Math.min(10, (greenSpaces / 5) * 10);
+  return Math.round(score * 10) / 10;
+}
+
 function getScoreLabel(score: number): 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical' {
   if (score >= 8) return 'Excellent';
   if (score >= 6) return 'Good';
@@ -162,63 +203,73 @@ export function calculateMetrics(
   data: OSMData,
   centerLat: number,
   centerLon: number,
-  slopeScore?: number, // Optional slope from elevation data
-  treeCanopyScore?: number, // Optional tree canopy from NDVI data
-  surfaceTempScore?: number // Optional surface temp from Landsat thermal
+  slopeScore?: number, // Optional slope from NASADEM elevation data
+  treeCanopyScore?: number, // Optional tree canopy from Sentinel-2 NDVI data
+  surfaceTempScore?: number, // Optional surface temp from NASA POWER
+  airQualityScore?: number, // Optional air quality from OpenAQ
+  heatIslandScore?: number // Optional heat island from Sentinel-2 SWIR
 ): WalkabilityMetrics {
   const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
   const sidewalkCoverage = calculateSidewalkCoverage(data);
   const networkEfficiency = calculateNetworkEfficiency(data);
   const destinationAccess = calculateDestinationAccess(data);
+  const greenSpaceAccess = calculateGreenSpaceAccess(data);
   const slope = slopeScore ?? 0; // Default to 0 if not provided yet
   const treeCanopy = treeCanopyScore ?? 0; // Default to 0 if not provided yet
   const surfaceTemp = surfaceTempScore ?? 0; // Default to 0 if not provided yet
+  const airQuality = airQualityScore ?? 0; // Default to 0 if not provided yet
+  const heatIsland = heatIslandScore ?? 0; // Default to 0 if not provided yet
 
   // Weighted average - adjust based on available data
-  // 7 metrics (all available): crossing 18%, sidewalk 18%, network 13%, destination 13%, slope 13%, tree 13%, temp 12%
-  // 6 metrics (no temp): crossing 20%, sidewalk 20%, network 15%, destination 15%, slope 15%, tree 15%
-  // 5 metrics (no tree/temp): crossing 25%, sidewalk 25%, network 15%, destination 15%, slope 20%
-  // 4 metrics (OSM only): crossing 30%, sidewalk 30%, network 20%, destination 20%
+  // 10 metrics (all available): crossing 14%, sidewalk 14%, network 10%, destination 10%, green 10%, slope 10%, tree 10%, temp 8%, air 7%, heat 7%
+  // 5 metrics (OSM only): crossing 25%, sidewalk 25%, network 15%, destination 15%, green 20%
 
   let overallScore: number;
 
-  if (slopeScore !== undefined && treeCanopyScore !== undefined && surfaceTempScore !== undefined) {
-    // All 7 metrics available
+  // Count how many satellite metrics are available
+  const satelliteMetrics = [slopeScore, treeCanopyScore, surfaceTempScore, airQualityScore, heatIslandScore];
+  const availableSatelliteCount = satelliteMetrics.filter(s => s !== undefined).length;
+
+  if (availableSatelliteCount === 5) {
+    // All 10 metrics available
     overallScore = Math.round(
-      (crossingDensity * 0.18 +
-        sidewalkCoverage * 0.18 +
-        networkEfficiency * 0.13 +
-        destinationAccess * 0.13 +
-        slope * 0.13 +
-        treeCanopy * 0.13 +
-        surfaceTemp * 0.12) * 10
+      (crossingDensity * 0.14 +
+        sidewalkCoverage * 0.14 +
+        networkEfficiency * 0.10 +
+        destinationAccess * 0.10 +
+        greenSpaceAccess * 0.10 +
+        slope * 0.10 +
+        treeCanopy * 0.10 +
+        surfaceTemp * 0.08 +
+        airQuality * 0.07 +
+        heatIsland * 0.07) * 10
     ) / 10;
-  } else if (slopeScore !== undefined && treeCanopyScore !== undefined) {
-    // 6 metrics (no surface temp)
-    overallScore = Math.round(
-      (crossingDensity * 0.20 +
-        sidewalkCoverage * 0.20 +
-        networkEfficiency * 0.15 +
-        destinationAccess * 0.15 +
-        slope * 0.15 +
-        treeCanopy * 0.15) * 10
-    ) / 10;
-  } else if (slopeScore !== undefined) {
-    // 5 metrics (no tree/temp)
+  } else if (availableSatelliteCount > 0) {
+    // Partial satellite data - adjust weights dynamically
+    const osmWeight = 0.5; // 50% for OSM metrics
+    const satelliteWeight = 0.5; // 50% for satellite metrics
+
+    const osmScore = (
+      crossingDensity * 0.25 +
+      sidewalkCoverage * 0.25 +
+      networkEfficiency * 0.15 +
+      destinationAccess * 0.15 +
+      greenSpaceAccess * 0.20
+    ) * osmWeight;
+
+    const satelliteScore = (
+      slope + treeCanopy + surfaceTemp + airQuality + heatIsland
+    ) / 5 * satelliteWeight;
+
+    overallScore = Math.round((osmScore + satelliteScore) * 10) / 10;
+  } else {
+    // 5 metrics (OSM only)
     overallScore = Math.round(
       (crossingDensity * 0.25 +
         sidewalkCoverage * 0.25 +
         networkEfficiency * 0.15 +
         destinationAccess * 0.15 +
-        slope * 0.20) * 10
-    ) / 10;
-  } else {
-    // 4 metrics (OSM only)
-    overallScore = Math.round(
-      (crossingDensity * 0.30 +
-        sidewalkCoverage * 0.30 +
-        networkEfficiency * 0.20 +
-        destinationAccess * 0.20) * 10
+        greenSpaceAccess * 0.20) * 10
     ) / 10;
   }
 
@@ -227,9 +278,12 @@ export function calculateMetrics(
     sidewalkCoverage,
     networkEfficiency,
     destinationAccess,
+    greenSpaceAccess,
     slope,
     treeCanopy,
     surfaceTemp,
+    airQuality,
+    heatIsland,
     overallScore,
     label: getScoreLabel(overallScore),
   };
