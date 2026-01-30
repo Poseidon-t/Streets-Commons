@@ -1756,9 +1756,11 @@ if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '..', 'dist');
   app.use(express.static(distPath));
   // SPA fallback - serve index.html for non-API routes
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/')) {
+  app.use((req, res, next) => {
+    if (req.method === 'GET' && !req.path.startsWith('/api/')) {
       res.sendFile(path.join(distPath, 'index.html'));
+    } else {
+      next();
     }
   });
 }
