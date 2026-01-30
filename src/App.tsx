@@ -103,23 +103,32 @@ function App() {
     setIsAnalyzing(true);
     setMetrics(null);
 
+    // Cancel any in-flight satellite fetches from previous location
+    if (satelliteAbortRef.current) {
+      satelliteAbortRef.current.abort();
+    }
+    const abortController = new AbortController();
+    satelliteAbortRef.current = abortController;
+
+    // Fire OSM and all satellite requests simultaneously
+    const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+    const satellitePromises = startSatelliteFetches(selectedLocation);
+
     try {
-      const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+      // Wait for OSM data first (needed for core metrics)
+      const fetchedOsmData = await osmPromise;
       const calculatedMetrics = calculateMetrics(
         fetchedOsmData,
         selectedLocation.lat,
         selectedLocation.lon,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined
+        undefined, undefined, undefined, undefined, undefined
       );
       const quality = assessDataQuality(fetchedOsmData);
 
       setOsmData(fetchedOsmData);
       setMetrics(calculatedMetrics);
       setDataQuality(quality);
+      setIsAnalyzing(false);
 
       // Update URL with current location (shareable link)
       const url = new URL(window.location.href);
@@ -128,13 +137,13 @@ function App() {
       url.searchParams.set('name', encodeURIComponent(selectedLocation.displayName));
       window.history.pushState({}, '', url);
 
-      // Fetch satellite/elevation data in background (progressive enhancement)
-      fetchAndUpdateSatelliteData(selectedLocation, fetchedOsmData);
+      // Progressively update metrics as satellite data arrives
+      // (requests were already fired above, now just await results)
+      progressivelyUpdateMetrics(selectedLocation, fetchedOsmData, satellitePromises, abortController);
 
     } catch (error) {
       console.error('Analysis failed:', error);
       alert('Failed to analyze location. Please try again.');
-    } finally {
       setIsAnalyzing(false);
     }
   };
@@ -156,58 +165,59 @@ function App() {
     window.history.pushState({}, '', window.location.pathname);
   };
 
-  // Fetch satellite and elevation data (runs after initial analysis)
-  // Uses AbortController to cancel stale requests when location changes
-  // Fetches all sources in parallel and recalculates metrics once
-  const fetchAndUpdateSatelliteData = async (
+  // Start all satellite fetches immediately (called before OSM completes)
+  const startSatelliteFetches = (selectedLocation: Location) => ({
+    slope: fetchSlope(selectedLocation.lat, selectedLocation.lon)
+      .then(deg => scoreSlopeFromDegrees(deg))
+      .catch(() => undefined),
+    ndvi: fetchNDVI(selectedLocation.lat, selectedLocation.lon)
+      .then(ndvi => ndvi !== null ? scoreTreeCanopy(ndvi) : undefined)
+      .catch(() => undefined),
+    surfaceTemp: fetchSurfaceTemperature(selectedLocation.lat, selectedLocation.lon)
+      .then(r => r?.score)
+      .catch(() => undefined),
+    airQuality: fetchAirQuality(selectedLocation.lat, selectedLocation.lon)
+      .then(r => r?.score)
+      .catch(() => undefined),
+    heatIsland: fetchHeatIsland(selectedLocation.lat, selectedLocation.lon)
+      .then(r => r?.score)
+      .catch(() => undefined),
+  });
+
+  // Progressively update metrics as each satellite result arrives
+  const progressivelyUpdateMetrics = (
     selectedLocation: Location,
-    currentOsmData: OSMData
+    currentOsmData: OSMData,
+    promises: ReturnType<typeof startSatelliteFetches>,
+    abortController: AbortController
   ) => {
-    // Cancel any in-flight satellite fetches from previous location
-    if (satelliteAbortRef.current) {
-      satelliteAbortRef.current.abort();
-    }
-    const abortController = new AbortController();
-    satelliteAbortRef.current = abortController;
+    const scores: {
+      slope?: number;
+      ndvi?: number;
+      surfaceTemp?: number;
+      airQuality?: number;
+      heatIsland?: number;
+    } = {};
 
-    // Fetch all satellite data sources in parallel
-    const [slopeResult, ndviResult, surfaceTempResult, airQualityResult, heatIslandResult] = await Promise.allSettled([
-      fetchSlope(selectedLocation.lat, selectedLocation.lon).then(deg => scoreSlopeFromDegrees(deg)),
-      fetchNDVI(selectedLocation.lat, selectedLocation.lon).then(ndvi => ndvi !== null ? scoreTreeCanopy(ndvi) : undefined),
-      fetchSurfaceTemperature(selectedLocation.lat, selectedLocation.lon).then(r => r?.score),
-      fetchAirQuality(selectedLocation.lat, selectedLocation.lon).then(r => r?.score),
-      fetchHeatIsland(selectedLocation.lat, selectedLocation.lon).then(r => r?.score),
-    ]);
+    const recalc = () => {
+      if (abortController.signal.aborted) return;
+      setMetrics(calculateMetrics(
+        currentOsmData,
+        selectedLocation.lat,
+        selectedLocation.lon,
+        scores.slope,
+        scores.ndvi,
+        scores.surfaceTemp,
+        scores.airQuality,
+        scores.heatIsland
+      ));
+    };
 
-    // Bail out if this request was aborted (user changed location)
-    if (abortController.signal.aborted) return;
-
-    // Extract scores from settled results
-    const slopeScore = slopeResult.status === 'fulfilled' ? slopeResult.value : undefined;
-    const treeCanopyScore = ndviResult.status === 'fulfilled' ? ndviResult.value : undefined;
-    const surfaceTempScore = surfaceTempResult.status === 'fulfilled' ? surfaceTempResult.value : undefined;
-    const airQualityScore = airQualityResult.status === 'fulfilled' ? airQualityResult.value : undefined;
-    const heatIslandScore = heatIslandResult.status === 'fulfilled' ? heatIslandResult.value : undefined;
-
-    // Log any failures
-    if (slopeResult.status === 'rejected') console.error('Failed to fetch slope data:', slopeResult.reason);
-    if (ndviResult.status === 'rejected') console.error('Failed to fetch tree canopy data:', ndviResult.reason);
-    if (surfaceTempResult.status === 'rejected') console.error('Failed to fetch surface temperature data:', surfaceTempResult.reason);
-    if (airQualityResult.status === 'rejected') console.error('Failed to fetch air quality data:', airQualityResult.reason);
-    if (heatIslandResult.status === 'rejected') console.error('Failed to fetch heat island data:', heatIslandResult.reason);
-
-    // Single recalculation with all available satellite data
-    const updatedMetrics = calculateMetrics(
-      currentOsmData,
-      selectedLocation.lat,
-      selectedLocation.lon,
-      slopeScore,
-      treeCanopyScore,
-      surfaceTempScore,
-      airQualityScore,
-      heatIslandScore
-    );
-    setMetrics(updatedMetrics);
+    promises.slope.then(v => { scores.slope = v; recalc(); });
+    promises.ndvi.then(v => { scores.ndvi = v; recalc(); });
+    promises.surfaceTemp.then(v => { scores.surfaceTemp = v; recalc(); });
+    promises.airQuality.then(v => { scores.airQuality = v; recalc(); });
+    promises.heatIsland.then(v => { scores.heatIsland = v; recalc(); });
   };
 
   return (

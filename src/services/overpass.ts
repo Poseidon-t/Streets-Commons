@@ -13,7 +13,7 @@ export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout (Overpass can be slow)
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
     const response = await fetch(`${apiUrl}/api/overpass`, {
       method: 'POST',

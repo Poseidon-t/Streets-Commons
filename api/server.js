@@ -60,6 +60,35 @@ const stripe = process.env.STRIPE_SECRET_KEY
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Simple in-memory cache for Overpass responses (10-minute TTL, max 200 entries)
+const overpassCache = new Map();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const CACHE_MAX = 200;
+
+function getCacheKey(query) {
+  // Simple hash: use first 200 chars + length as key
+  return query.slice(0, 200) + ':' + query.length;
+}
+
+function getFromCache(key) {
+  const entry = overpassCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.time > CACHE_TTL) {
+    overpassCache.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setCache(key, data) {
+  // Evict oldest if at capacity
+  if (overpassCache.size >= CACHE_MAX) {
+    const oldest = overpassCache.keys().next().value;
+    overpassCache.delete(oldest);
+  }
+  overpassCache.set(key, { data, time: Date.now() });
+}
+
 // Middleware
 const allowedOrigins = [
   'http://localhost:5173',
@@ -114,13 +143,21 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Overpass API proxy - Microsoft Planetary Computer first
+// Overpass API proxy with caching
 app.post('/api/overpass', async (req, res) => {
   try {
     const { query } = req.body;
 
     if (!query) {
       return res.status(400).json({ error: 'Missing required parameter: query' });
+    }
+
+    // Check cache first
+    const cacheKey = getCacheKey(query);
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+      console.log('🗺️  Overpass cache hit');
+      return res.json({ success: true, data: cached });
     }
 
     console.log(`🗺️  Proxying Overpass query...`);
@@ -138,7 +175,7 @@ app.post('/api/overpass', async (req, res) => {
     for (const endpoint of endpoints) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000);
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s per mirror — fail fast
 
         const response = await fetch(endpoint, {
           method: 'POST',
@@ -159,6 +196,7 @@ app.post('/api/overpass', async (req, res) => {
           if (contentType && contentType.includes('application/json')) {
             const data = await response.json();
             console.log(`✅ Overpass data fetched from: ${endpoint}`);
+            setCache(cacheKey, data);
             return res.json({ success: true, data });
           } else {
             // Server returned XML or other format despite [out:json] directive
