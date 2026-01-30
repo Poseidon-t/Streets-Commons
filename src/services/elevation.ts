@@ -5,7 +5,7 @@
  * Backend provides both elevation and slope calculation
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 const OPEN_ELEVATION_API = 'https://api.open-elevation.com/api/v1/lookup'; // Fallback
 
 interface ElevationPoint {

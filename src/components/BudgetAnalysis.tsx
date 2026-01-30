@@ -58,7 +58,7 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
     setResources([]);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+      const apiUrl = import.meta.env.VITE_API_URL || '';
 
       const response = await fetch(`${apiUrl}/api/analyze-budget-location`, {
         method: 'POST',

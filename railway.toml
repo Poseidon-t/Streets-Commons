@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "VITE_API_URL= npm run build"
+buildCommand = "npm run build"
 
 [deploy]
 startCommand = "node api/server.js"

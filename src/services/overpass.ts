@@ -9,7 +9,7 @@ export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out center;`;
 
   // Use backend proxy to avoid CORS issues
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+  const apiUrl = import.meta.env.VITE_API_URL || '';
 
   try {
     const controller = new AbortController();

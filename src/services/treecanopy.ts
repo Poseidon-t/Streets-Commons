@@ -56,7 +56,7 @@ async function estimateNDVIFromOSM(lat: number, lon: number): Promise<number> {
     `;
 
     // Use backend proxy to avoid CORS issues
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+    const apiUrl = import.meta.env.VITE_API_URL || '';
     const response = await fetch(`${apiUrl}/api/overpass`, {
       method: 'POST',
       headers: {
@@ -90,12 +90,7 @@ async function estimateNDVIFromOSM(lat: number, lon: number): Promise<number> {
  * Returns NDVI mean value or null if unavailable
  */
 async function fetchSatelliteNDVI(lat: number, lon: number): Promise<number | null> {
-  const apiUrl = import.meta.env.VITE_API_URL;
-
-  if (!apiUrl) {
-    console.log('Backend API not configured, using OSM estimation');
-    return null;
-  }
+  const apiUrl = import.meta.env.VITE_API_URL || '';
 
   try {
     const response = await fetch(`${apiUrl}/api/ndvi?lat=${lat}&lon=${lon}`, {

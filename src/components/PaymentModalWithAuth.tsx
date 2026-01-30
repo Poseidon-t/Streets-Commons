@@ -44,7 +44,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+      const apiUrl = import.meta.env.VITE_API_URL || '';
 
       // Create Stripe checkout session via backend
       const response = await fetch(`${apiUrl}/api/create-checkout-session`, {

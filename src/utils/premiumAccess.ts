@@ -73,7 +73,7 @@ export async function verifyTokenWithBackend(token: string): Promise<{
   error?: string;
 }> {
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+    const apiUrl = import.meta.env.VITE_API_URL || '';
     const response = await fetch(`${apiUrl}/api/verify-token?token=${encodeURIComponent(token)}`);
 
     if (!response.ok) {
@@ -111,7 +111,7 @@ export async function requestNewMagicLink(email: string): Promise<{
   tier?: PremiumTier;
 }> {
   try {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+    const apiUrl = import.meta.env.VITE_API_URL || '';
     const response = await fetch(`${apiUrl}/api/resend-access`, {
       method: 'POST',
       headers: {
