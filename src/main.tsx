@@ -27,8 +27,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider
       publishableKey={PUBLISHABLE_KEY}
-      afterSignInUrl={window.location.href}
-      afterSignUpUrl={window.location.href}
+      fallbackRedirectUrl={window.location.href}
     >
       <BrowserRouter>
         <Routes>
