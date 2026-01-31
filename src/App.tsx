@@ -280,7 +280,7 @@ function App() {
             </div>
           </button>
           <div className="flex items-center gap-6">
-            <a href="#pricing" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Pricing</a>
+            <button onClick={() => setShowPaymentModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Pricing</button>
             <a href="#faq" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <UserButton
               afterSignOutUrl="/"
@@ -1224,7 +1224,7 @@ function App() {
 
       {/* FAQ Section - Only show when no analysis is displayed */}
       {!compareMode && !location && !isAnalyzing && (
-        <section className="py-12" style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}>
+        <section id="faq" className="py-12" style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}>
           <div className="max-w-4xl mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-10 text-earth-text-dark">
               Frequently Asked Questions
