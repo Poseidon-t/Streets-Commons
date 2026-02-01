@@ -1,0 +1,10 @@
+node_modules
+api/node_modules
+dist
+api/dist
+.git
+*.md
+test-results
+playwright-report
+marketing
+e2e
