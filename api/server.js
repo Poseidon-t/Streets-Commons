@@ -1861,9 +1861,32 @@ app.get('/api/verify-token', async (req, res) => {
 });
 
 // Serve frontend static files if dist folder exists
-import { existsSync } from 'fs';
-const distPath = path.join(__dirname, '..', 'dist');
-if (existsSync(path.join(distPath, 'index.html'))) {
+import { existsSync, readdirSync } from 'fs';
+
+// Try multiple possible dist locations
+const possiblePaths = [
+  path.join(__dirname, '..', 'dist'),
+  path.join(process.cwd(), 'dist'),
+  '/app/dist',
+];
+let distPath = null;
+for (const p of possiblePaths) {
+  console.log(`Checking for dist at: ${p} -> exists: ${existsSync(path.join(p, 'index.html'))}`);
+  if (existsSync(path.join(p, 'index.html'))) {
+    distPath = p;
+    break;
+  }
+}
+// Also log directory contents for debugging
+try {
+  console.log('__dirname:', __dirname);
+  console.log('cwd:', process.cwd());
+  console.log('Parent dir contents:', readdirSync(path.join(__dirname, '..')).slice(0, 20));
+  console.log('CWD contents:', readdirSync(process.cwd()).slice(0, 20));
+} catch (e) { console.log('Dir listing error:', e.message); }
+
+if (distPath) {
+  console.log(`Serving frontend from: ${distPath}`);
 
   // Hashed assets (js/css) get long cache since filenames change on rebuild
   app.use('/assets', express.static(path.join(distPath, 'assets'), {
