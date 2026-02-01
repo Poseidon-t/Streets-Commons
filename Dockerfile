@@ -9,6 +9,10 @@ RUN npm ci
 # Copy everything
 COPY . .
 
+# Pass Vite env vars as build args (Railway injects env vars as build args automatically)
+ARG VITE_CLERK_PUBLISHABLE_KEY
+ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
+
 # Build the frontend (creates dist/)
 RUN npm run build
 
