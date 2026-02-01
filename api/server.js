@@ -1773,13 +1773,46 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
+      const { tier, userId, locationName } = session.metadata || {};
       console.log(`✅ Payment successful for ${session.customer_email}`);
-      console.log(`   Tier: ${session.metadata.tier}`);
-      console.log(`   Location: ${session.metadata.locationName}`);
-      // Here you would typically:
-      // 1. Update user's premium status in your database
-      // 2. Send confirmation email
-      // 3. Grant access to premium features
+      console.log(`   Tier: ${tier}`);
+      console.log(`   Location: ${locationName}`);
+
+      // Update Clerk user metadata to grant premium access
+      if (userId && tier) {
+        try {
+          const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+          if (!clerkSecretKey) {
+            console.error('❌ CLERK_SECRET_KEY not configured — cannot activate tier');
+          } else {
+            const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${clerkSecretKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                public_metadata: {
+                  tier,
+                  activatedAt: new Date().toISOString(),
+                  stripeSessionId: session.id,
+                },
+              }),
+            });
+
+            if (clerkRes.ok) {
+              console.log(`✅ Clerk metadata updated: ${userId} → ${tier}`);
+            } else {
+              const errBody = await clerkRes.text();
+              console.error(`❌ Clerk API error (${clerkRes.status}): ${errBody}`);
+            }
+          }
+        } catch (clerkErr) {
+          console.error('❌ Failed to update Clerk metadata:', clerkErr.message);
+        }
+      } else {
+        console.warn('⚠️  Missing userId or tier in session metadata — cannot activate');
+      }
     }
 
     res.json({ received: true });
@@ -1789,13 +1822,84 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
   }
 });
 
+// Verify payment status - frontend polls this after Stripe redirect
+app.get('/api/verify-payment', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId' });
+  }
+
+  const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+  if (!clerkSecretKey) {
+    return res.status(500).json({ error: 'Clerk not configured' });
+  }
+
+  try {
+    const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+      headers: { 'Authorization': `Bearer ${clerkSecretKey}` },
+    });
+
+    if (!clerkRes.ok) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
+    const user = await clerkRes.json();
+    const tier = user.public_metadata?.tier || 'free';
+
+    res.json({ tier, activated: tier !== 'free' });
+  } catch (error) {
+    console.error('Verify payment error:', error.message);
+    res.status(500).json({ error: 'Failed to verify payment status' });
+  }
+});
+
+// Verify access token (legacy magic-link support)
+app.get('/api/verify-token', async (req, res) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing token' });
+  }
+
+  try {
+    const jwt = await import('jsonwebtoken');
+    const secret = process.env.JWT_SECRET || process.env.STRIPE_SECRET_KEY || 'fallback-secret';
+    const decoded = jwt.default.verify(token, secret);
+
+    res.json({
+      valid: true,
+      tier: decoded.tier,
+      email: decoded.email,
+    });
+  } catch (error) {
+    res.status(401).json({ valid: false, error: 'Invalid or expired token' });
+  }
+});
+
 // Serve frontend static files in production
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '..', 'dist');
-  app.use(express.static(distPath));
-  // SPA fallback - serve index.html for non-API routes
+
+  // Hashed assets (js/css) get long cache since filenames change on rebuild
+  app.use('/assets', express.static(path.join(distPath, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+  }));
+
+  // All other static files - no cache to prevent stale index.html
+  app.use(express.static(distPath, {
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      }
+    },
+  }));
+
+  // SPA fallback - serve index.html for non-API routes (no cache)
   app.use((req, res, next) => {
     if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     } else {
       next();
@@ -1836,5 +1940,7 @@ app.listen(PORT, () => {
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
-  console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}\n`);
+  console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);
+  console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);
+  console.log(`   🪝 Stripe Webhook: POST /api/stripe-webhook ${process.env.STRIPE_WEBHOOK_SECRET ? '(configured)' : '(needs STRIPE_WEBHOOK_SECRET)'}\n`);
 });
