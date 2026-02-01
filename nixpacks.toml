@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm install", "cd api && npm install"]
+
+[phases.build]
+cmds = ["npm run build", "cp -r dist api/dist"]
+
+[start]
+cmd = "node api/server.js"
