@@ -100,18 +100,7 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (server-to-server, curl, etc.)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      const err = new Error('Not allowed by CORS');
-      err.status = 403;
-      callback(err);
-    }
-  }
-}));
+app.use(cors());
 
 // Rate limiting: 100 requests per minute per IP
 const apiLimiter = rateLimit({
