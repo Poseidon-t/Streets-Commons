@@ -90,16 +90,6 @@ function setCache(key, data) {
 }
 
 // Middleware
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  'http://localhost:5177',
-  'http://localhost:5181',
-  'https://safestreets-api-production.up.railway.app',
-  'https://safestreets.streetsandcommons.com',
-  process.env.FRONTEND_URL,
-].filter(Boolean);
-
 app.use(cors());
 
 // Rate limiting: 100 requests per minute per IP
