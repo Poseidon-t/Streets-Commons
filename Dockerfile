@@ -19,6 +19,9 @@ RUN npm ci
 # Copy dist into api/dist so server can find it
 RUN cp -r /app/dist /app/api/dist
 
+# Verify dist exists
+RUN ls -la /app/dist/index.html && ls -la /app/api/dist/index.html && echo "DIST OK"
+
 WORKDIR /app
 
 EXPOSE 3001
