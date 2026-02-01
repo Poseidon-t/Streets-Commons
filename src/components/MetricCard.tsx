@@ -1,35 +1,26 @@
 /**
- * User-Friendly Metric Card Component
- * Shows walkability metrics in plain language with progressive disclosure
+ * Metric Card Component
+ * Clean, sharp walkability metric cards with progressive disclosure
  */
 
 import { useState } from 'react';
 
 interface MetricCardProps {
-  // Display
   icon: string;
   headline: string;
-  score: number; // 1-10 scale
+  score: number;
   badge: 'excellent' | 'good' | 'moderate' | 'needs-improvement' | 'safety-concern';
-
-  // User-facing content
   description: string;
   whyItMatters: string;
   example?: string;
-
-  // Progressive disclosure (technical details)
   technicalMeasurement?: string;
   recommendedStandard?: string;
   dataSource?: string;
   additionalContext?: string;
-
-  // Data quality
   dataQuality?: {
     level: 'high' | 'medium' | 'low';
     explanation: string;
   };
-
-  // Visual
   status?: 'pass' | 'fail';
 }
 
@@ -46,170 +37,162 @@ export default function MetricCard({
   dataSource,
   additionalContext,
   dataQuality,
-  status
 }: MetricCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
-  // Badge styling
   const badgeConfig = {
-    'excellent': { color: 'bg-green-100 text-green-800 border-green-200', label: 'EXCELLENT' },
-    'good': { color: 'bg-blue-100 text-blue-800 border-blue-200', label: 'GOOD' },
-    'moderate': { color: 'bg-yellow-100 text-yellow-800 border-yellow-200', label: 'MODERATE' },
-    'needs-improvement': { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'NEEDS IMPROVEMENT' },
-    'safety-concern': { color: 'bg-red-100 text-red-800 border-red-200', label: 'SAFETY CONCERN' }
+    'excellent': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Excellent' },
+    'good': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', label: 'Good' },
+    'moderate': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', label: 'Moderate' },
+    'needs-improvement': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', label: 'Needs Work' },
+    'safety-concern': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', label: 'Concern' },
   };
 
-  // Score bar color
   const getScoreColor = () => {
-    if (score >= 8) return 'bg-green-500';
-    if (score >= 5) return 'bg-yellow-500';
+    if (score >= 8) return 'bg-emerald-500';
+    if (score >= 5) return 'bg-amber-500';
     if (score >= 3) return 'bg-orange-500';
     return 'bg-red-500';
   };
 
-  // Data quality badge styling
-  const dataQualityConfig = {
-    'high': { icon: '🟢', color: 'bg-green-50 text-green-700 border-green-200', label: 'High Confidence' },
-    'medium': { icon: '🟡', color: 'bg-yellow-50 text-yellow-700 border-yellow-200', label: 'Medium Confidence' },
-    'low': { icon: '🔴', color: 'bg-red-50 text-red-700 border-red-200', label: 'Low Confidence' }
+  const getScoreTrack = () => {
+    if (score >= 8) return 'bg-emerald-100';
+    if (score >= 5) return 'bg-amber-100';
+    if (score >= 3) return 'bg-orange-100';
+    return 'bg-red-100';
   };
 
-  // Legacy status badge (for backwards compatibility)
-  const statusBadge = status === 'pass'
-    ? { color: 'bg-green-50 text-green-700 border-green-200', label: 'PASS' }
-    : status === 'fail'
-    ? { color: 'bg-red-50 text-red-700 border-red-200', label: 'FAIL' }
-    : null;
+  const dataQualityConfig = {
+    'high': { dot: 'bg-emerald-400', label: 'High confidence' },
+    'medium': { dot: 'bg-amber-400', label: 'Medium confidence' },
+    'low': { dot: 'bg-red-400', label: 'Low confidence' },
+  };
+
+  const b = badgeConfig[badge];
 
   return (
-    <div className="rounded-lg border hover:shadow-lg transition-all p-4 sm:p-5 md:p-6 flex flex-col h-full" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
-      {/* Header with Icon and Badge */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <span className="text-2xl">{icon}</span>
-          <h3 className="text-base font-bold leading-snug" style={{ color: '#2a3a2a' }}>
+    <div className="rounded-xl border border-gray-200 bg-white hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-2xl flex-shrink-0">{icon}</span>
+          <h3 className="text-[15px] font-semibold text-gray-900 leading-tight">
             {headline}
           </h3>
         </div>
-
-        {/* Badges */}
-        <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${badgeConfig[badge].color}`}>
-            {badgeConfig[badge].label}
-          </span>
-          {dataQuality && (
-            <span
-              className={`px-2 py-0.5 rounded text-[10px] font-medium tracking-wide border ${dataQualityConfig[dataQuality.level].color} flex items-center gap-1`}
-              title={dataQuality.explanation}
-            >
-              <span className="text-[10px]">{dataQualityConfig[dataQuality.level].icon}</span>
-              {dataQualityConfig[dataQuality.level].label}
-            </span>
-          )}
-        </div>
+        <span className={`${b.bg} ${b.text} ${b.border} border px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide flex-shrink-0`}>
+          {b.label}
+        </span>
       </div>
 
-      {/* Score - Big and Bold */}
-      <div className="mb-3">
-        <div className="flex items-baseline gap-1.5 mb-2">
-          <span className="text-3xl font-bold" style={{ color: '#2a3a2a' }}>
-            {score}
-          </span>
-          <span className="text-base font-medium" style={{ color: '#8a9a8a' }}>/10</span>
+      {/* Score */}
+      <div className="mb-4">
+        <div className="flex items-baseline gap-1 mb-2">
+          <span className="text-3xl font-bold text-gray-900 tabular-nums">{score}</span>
+          <span className="text-sm font-medium text-gray-400">/10</span>
         </div>
-        <div className="w-full rounded-full h-1.5 overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
+        <div className={`w-full rounded-full h-2 overflow-hidden ${getScoreTrack()}`}>
           <div
-            className={`h-full rounded-full transition-all duration-500 ${getScoreColor()}`}
+            className={`h-full rounded-full transition-all duration-700 ease-out ${getScoreColor()}`}
             style={{ width: `${(score / 10) * 100}%` }}
           />
         </div>
       </div>
 
-      {/* Plain Language Description */}
-      <p className="text-sm leading-relaxed mb-4 flex-grow" style={{ color: '#5a6a5a' }}>
+      {/* Description */}
+      <p className="text-[13.5px] leading-relaxed text-gray-600 mb-4 flex-grow">
         {description}
       </p>
 
-      {/* Progressive Disclosure Toggle */}
+      {/* Data quality indicator (inline) */}
+      {dataQuality && (
+        <div className="flex items-center gap-1.5 mb-4">
+          <span className={`w-2 h-2 rounded-full ${dataQualityConfig[dataQuality.level].dot}`} />
+          <span className="text-xs text-gray-400 font-medium">{dataQualityConfig[dataQuality.level].label}</span>
+        </div>
+      )}
+
+      {/* Toggle */}
       <button
         onClick={() => setShowDetails(!showDetails)}
-        className="flex items-center gap-1.5 text-sm font-medium transition-colors mt-auto"
-        style={{ color: '#6a7a6a' }}
+        className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mt-auto group"
       >
         <svg
-          className={`w-3.5 h-3.5 transition-transform ${showDetails ? 'rotate-180' : ''}`}
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${showDetails ? 'rotate-180' : ''} group-hover:text-gray-700`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-        {showDetails ? 'Less details' : 'More details'}
+        {showDetails ? 'Show less' : 'Learn more'}
       </button>
 
-      {/* Details (Progressive Disclosure) */}
+      {/* Expanded Details */}
       {showDetails && (
-        <div className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: '#e0dbd0' }}>
-          {/* Why It Matters */}
-          <div>
-            <h4 className="font-semibold text-sm mb-1.5 flex items-center gap-1.5" style={{ color: '#2a3a2a' }}>
-              <span>💡</span>
+        <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
+          {/* Why it matters - highlighted */}
+          <div className="bg-gray-50 rounded-lg p-3.5">
+            <h4 className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
               Why this matters
             </h4>
-            <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a' }}>
+            <p className="text-[13px] leading-relaxed text-gray-700">
               {whyItMatters}
             </p>
           </div>
 
-          {/* Example */}
+          {/* Example - callout style */}
           {example && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5 flex items-center gap-1.5" style={{ color: '#2a3a2a' }}>
-                <span>📍</span>
-                Example
-              </h4>
-              <p className="text-sm leading-relaxed italic" style={{ color: '#5a6a5a' }}>
+            <div className="border-l-2 border-blue-300 pl-3.5 py-0.5">
+              <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Example</p>
+              <p className="text-[13px] leading-relaxed text-gray-600 italic">
                 {example}
               </p>
             </div>
           )}
 
+          {/* Data quality */}
           {dataQuality && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5 flex items-center gap-1.5" style={{ color: '#2a3a2a' }}>
-                {dataQualityConfig[dataQuality.level].icon}
-                Data quality: {dataQualityConfig[dataQuality.level].label}
-              </h4>
-              <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a' }}>{dataQuality.explanation}</p>
+            <div className="border-l-2 border-gray-200 pl-3.5 py-0.5">
+              <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                Data quality
+              </p>
+              <p className="text-[13px] leading-relaxed text-gray-600">
+                {dataQuality.explanation}
+              </p>
             </div>
           )}
 
-          {technicalMeasurement && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5" style={{ color: '#2a3a2a' }}>Technical measurement</h4>
-              <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a' }}>{technicalMeasurement}</p>
+          {/* Technical details - compact */}
+          {(technicalMeasurement || recommendedStandard) && (
+            <div className="bg-gray-50 rounded-lg p-3.5 space-y-3">
+              {technicalMeasurement && (
+                <div>
+                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">How we measure</p>
+                  <p className="text-[13px] leading-relaxed text-gray-600">{technicalMeasurement}</p>
+                </div>
+              )}
+              {recommendedStandard && (
+                <div>
+                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Standard</p>
+                  <p className="text-[13px] leading-relaxed text-gray-600">{recommendedStandard}</p>
+                </div>
+              )}
             </div>
           )}
 
-          {recommendedStandard && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5" style={{ color: '#2a3a2a' }}>Recommended standard</h4>
-              <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a' }}>{recommendedStandard}</p>
-            </div>
-          )}
-
+          {/* Additional context */}
           {additionalContext && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5" style={{ color: '#2a3a2a' }}>Additional context</h4>
-              <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a' }}>{additionalContext}</p>
-            </div>
+            <p className="text-[13px] leading-relaxed text-gray-500 italic">
+              {additionalContext}
+            </p>
           )}
 
+          {/* Data source - minimal */}
           {dataSource && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1.5" style={{ color: '#2a3a2a' }}>Data sources</h4>
-              <p className="text-xs leading-relaxed" style={{ color: '#8a9a8a' }}>{dataSource}</p>
-            </div>
+            <p className="text-[11px] text-gray-400 pt-1">
+              Source: {dataSource}
+            </p>
           )}
         </div>
       )}

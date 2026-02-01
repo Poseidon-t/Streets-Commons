@@ -60,10 +60,10 @@ const stripe = process.env.STRIPE_SECRET_KEY
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Simple in-memory cache for Overpass responses (10-minute TTL, max 200 entries)
+// In-memory cache for Overpass responses (30-minute TTL, max 1000 entries)
 const overpassCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
-const CACHE_MAX = 200;
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes — OSM data rarely changes
+const CACHE_MAX = 1000;
 
 function getCacheKey(query) {
   // Simple hash: use first 200 chars + length as key
@@ -92,10 +92,11 @@ function setCache(key, data) {
 // Middleware
 app.use(cors());
 
-// Rate limiting: 100 requests per minute per IP
+// Rate limiting: 300 requests per minute per IP
+// (one analysis = ~6 API calls; supports ~50 analyses/min per user)
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again in a minute.' },
@@ -137,71 +138,72 @@ app.post('/api/overpass', async (req, res) => {
     const cacheKey = getCacheKey(query);
     const cached = getFromCache(cacheKey);
     if (cached) {
-      console.log('🗺️  Overpass cache hit');
       return res.json({ success: true, data: cached });
     }
 
-    console.log(`🗺️  Proxying Overpass query...`);
-
-    // Try reliable Overpass mirrors in order of speed/reliability
+    // Race all mirrors simultaneously — use the first valid JSON response
     const endpoints = [
-      'https://overpass.kumi.systems/api/interpreter', // Most reliable, good uptime
-      'https://overpass-api.de/api/interpreter', // Official but can be slow
-      'https://overpass.openstreetmap.ru/cgi/interpreter', // Russian mirror
-      'https://overpass.openstreetmap.fr/api/interpreter' // French mirror (backup)
+      'https://overpass.kumi.systems/api/interpreter',
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.openstreetmap.ru/cgi/interpreter',
+      'https://overpass.openstreetmap.fr/api/interpreter',
     ];
 
-    let lastError = null;
+    const MIRROR_TIMEOUT = 8000; // 8s per mirror
 
-    for (const endpoint of endpoints) {
-      try {
+    // Fire all mirrors at once, resolve with first valid JSON result
+    const data = await new Promise((resolve, reject) => {
+      let pending = endpoints.length;
+      let settled = false;
+      const controllers = [];
+
+      endpoints.forEach((endpoint, i) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s per mirror — fail fast
+        controllers.push(controller);
 
-        const response = await fetch(endpoint, {
+        const timer = setTimeout(() => controller.abort(), MIRROR_TIMEOUT);
+
+        fetch(endpoint, {
           method: 'POST',
           body: query,
           signal: controller.signal,
-          headers: {
-            'Content-Type': 'text/plain',
-            'Accept': 'application/json'
-          },
-        });
+          headers: { 'Content-Type': 'text/plain', 'Accept': 'application/json' },
+        })
+          .then(async (response) => {
+            clearTimeout(timer);
+            if (settled) return;
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const ct = response.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) {
+              await response.text(); // drain body
+              throw new Error(`Non-JSON response: ${ct}`);
+            }
+            return response.json();
+          })
+          .then((json) => {
+            if (settled || !json) return;
+            settled = true;
+            console.log(`✅ Overpass: ${endpoint} won the race`);
+            // Abort remaining mirrors
+            controllers.forEach((c, j) => { if (j !== i) c.abort(); });
+            resolve(json);
+          })
+          .catch((err) => {
+            clearTimeout(timer);
+            pending--;
+            if (!settled && pending === 0) {
+              reject(new Error('All Overpass mirrors failed'));
+            }
+          });
+      });
+    });
 
-        clearTimeout(timeoutId);
-
-        if (response.ok) {
-          const contentType = response.headers.get('content-type');
-
-          // Check if response is JSON
-          if (contentType && contentType.includes('application/json')) {
-            const data = await response.json();
-            console.log(`✅ Overpass data fetched from: ${endpoint}`);
-            setCache(cacheKey, data);
-            return res.json({ success: true, data });
-          } else {
-            // Server returned XML or other format despite [out:json] directive
-            const text = await response.text();
-            console.warn(`⚠️  ${endpoint} returned non-JSON response (${contentType}), trying next...`);
-            lastError = new Error(`Server returned ${contentType} instead of JSON`);
-            continue;
-          }
-        }
-
-        console.warn(`⚠️  ${endpoint} returned ${response.status}, trying next...`);
-        lastError = new Error(`HTTP ${response.status}`);
-      } catch (error) {
-        console.warn(`⚠️  Failed to fetch from ${endpoint}:`, error.message);
-        lastError = error;
-      }
-    }
-
-    throw lastError || new Error('All Overpass endpoints failed');
+    setCache(cacheKey, data);
+    return res.json({ success: true, data });
   } catch (error) {
-    console.error('❌ Error proxying Overpass request:', error);
+    console.error('❌ Overpass error:', error.message);
     res.status(500).json({
       error: error.message || 'Failed to fetch Overpass data',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
 });

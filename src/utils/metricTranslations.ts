@@ -122,15 +122,15 @@ function translateCrossingDensity(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Safe crossings make it easier to reach shops, parks, and transit stops without long detours. More crosswalks mean shorter, more direct walks and safer routes for children and seniors.',
+    whyItMatters: 'More crosswalks mean shorter, more direct walks — especially important for children and seniors. Without them, pedestrians jaywalk or detour blocks out of their way.',
     example: examples[badge],
-    technicalMeasurement: 'We count marked pedestrian crossings per 1,000 feet of roadway. This includes zebra crossings, signalized crossings, and marked mid-block crossings.',
-    recommendedStandard: 'Pedestrian safety guidelines recommend crossings every 300-600 feet (1-2 blocks) on busy streets. WHO Global Action Plan recommends crossings at maximum 200m intervals in urban areas.',
+    technicalMeasurement: 'Marked pedestrian crossings per 1,000 ft of roadway — includes zebra, signalized, and mid-block crossings.',
+    recommendedStandard: 'WHO recommends crossings every 200m max. Safety guidelines suggest every 300-600 ft (1-2 blocks) on busy streets.',
     dataSource: 'OpenStreetMap pedestrian crossing data',
     additionalContext: score < 5 ? 'Low crossing density often forces pedestrians to jaywalk or take long detours, increasing both danger and inconvenience.' : undefined,
     dataQuality: {
       level: 'medium',
-      explanation: 'Based on OpenStreetMap volunteer data. Crossings are easier to spot and map than sidewalk condition, so this is generally reliable. However, informal crossings, recently added crossings, and unmarked crossings may be missing. Data quality is better in well-mapped areas.'
+      explanation: 'OpenStreetMap volunteer data. Generally reliable — crossings are easy to spot and map. Some informal or new crossings may be missing.'
     }
   };
 }
@@ -242,16 +242,16 @@ function translateNetworkEfficiency(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Efficient street networks mean shorter walks to destinations. Disconnected streets or dead-ends force longer routes, affecting whether you\'ll choose to walk instead of drive. Direct routes save time and make walking more appealing.',
+    whyItMatters: 'Direct routes save time and make walking viable. Dead-ends and disconnected streets force detours that turn a quick walk into a drive.',
     example: score < 5
       ? `A 10-minute straight-line walk actually takes ${10 + Math.round(10 * extraDistance / 100)} minutes due to street layout.`
       : `A 10-minute straight-line walk takes about ${10 + Math.round(10 * extraDistance / 100)} minutes - very reasonable.`,
-    technicalMeasurement: `We compare actual walking routes to straight-line distances between common destinations. ${efficiency}% efficiency means typical routes are ${extraDistance}% longer than crow-flies distance.`,
-    recommendedStandard: 'ITDP TOD Standard recommends small block sizes (80-100m) with high intersection density (≥140 intersections per km²) for walkable neighborhoods. Grid-pattern neighborhoods with many through-streets score 85-95%.',
+    technicalMeasurement: `Walking routes vs. straight-line distances. ${efficiency}% efficiency = routes are ${extraDistance}% longer than crow-flies.`,
+    recommendedStandard: 'ITDP recommends small blocks (80-100m) with 140+ intersections/km². Grid neighborhoods score 85-95%.',
     dataSource: 'OpenStreetMap street network analysis',
     dataQuality: {
       level: 'high',
-      explanation: 'Based on OpenStreetMap street network data. Street connectivity and layout are objective geometric measurements that are highly reliable. OSM street networks are generally very accurate and complete, as roads are one of the most well-mapped features globally.'
+      explanation: 'OpenStreetMap street network — roads are the most well-mapped features globally. Geometric measurements are objective and highly reliable.'
     }
   };
 }
@@ -286,16 +286,16 @@ function translateDestinationAccess(rawScore: number, _locationName: string): Us
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'When daily destinations are nearby, you can leave your car at home more often. This saves money on gas and parking, gives you exercise, and makes spontaneous trips easy. You\'re more likely to know neighbors and feel connected to your community.',
+    whyItMatters: 'Nearby shops, restaurants, and services mean you can walk instead of drive. That saves money, gives you exercise, and makes spontaneous trips easy.',
     example: score >= 7
       ? 'Nearby destinations:\n• Grocery store: 5-minute walk\n• Coffee shop: 3-minute walk\n• Park: 7-minute walk\n• Restaurant: 4-minute walk'
       : undefined,
-    technicalMeasurement: `We count how many common destination types (groceries, restaurants, schools, parks, transit, healthcare, etc.) you can reach within a 15-minute walk (about 0.75 miles). ${percentage}% means most essential services are walkable.`,
-    recommendedStandard: '15-minute city concept aims for all essential services within a 15-minute walk. High-scoring areas (80%+) typically have mixed-use zoning that combines residential and commercial uses.',
+    technicalMeasurement: `Counts destination types (groceries, restaurants, schools, parks, transit, healthcare) within a 15-min walk. ${percentage}% of essential services are walkable.`,
+    recommendedStandard: '15-minute city standard: all essential services within a 15-min walk. Requires mixed-use zoning (residential + commercial).',
     dataSource: 'OpenStreetMap points of interest (POI) data',
     dataQuality: {
       level: 'medium',
-      explanation: 'Based on OpenStreetMap POI (point of interest) data. Major destinations like grocery stores, schools, and parks are generally well-mapped. However, smaller businesses, new establishments, temporary closures, and home-based services may be missing or outdated. Quality varies by region.'
+      explanation: 'OpenStreetMap POI data. Major destinations are well-mapped; smaller businesses and new establishments may be missing.'
     }
   };
 }
@@ -329,16 +329,16 @@ function translateGreenSpaceAccess(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Nearby parks give you places to exercise, relax, and enjoy nature without driving. Easy access to green spaces improves mental health, encourages outdoor activity, and provides safe places for children to play. Properties near parks often have higher values.',
+    whyItMatters: 'Nearby parks improve mental health, encourage outdoor activity, and give kids safe places to play. Properties near parks also hold higher values.',
     example: score >= 8
       ? 'Your nearest green spaces:\n• Local park: 3-minute walk - playground, trails\n• Community garden: 5-minute walk\n• Walking trail: 7-minute walk'
       : undefined,
-    technicalMeasurement: 'We measure walking distance to the nearest park, playground, trail, or natural area. This includes public parks, community gardens, forests, and outdoor recreation spaces.',
-    recommendedStandard: 'Research shows people use parks much more frequently when they\'re less than a 10-minute walk (0.5 miles) away. WHO recommends green spaces within 300m of all residences.',
+    technicalMeasurement: 'Walking distance to nearest park, playground, trail, or natural area.',
+    recommendedStandard: 'WHO recommends green space within 300m of all residences. Park use drops sharply beyond a 10-min walk.',
     dataSource: 'OpenStreetMap parks and recreation data',
     dataQuality: {
       level: 'medium',
-      explanation: 'Based on OpenStreetMap volunteer data. Major public parks are generally well-mapped, but smaller parks, pocket parks, community gardens, and newly created green spaces may be missing. Private parks and restricted-access green spaces may not be included.'
+      explanation: 'OpenStreetMap data. Major parks are well-mapped; pocket parks and community gardens may be missing.'
     }
   };
 }
@@ -373,18 +373,18 @@ function translateSlope(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Flat terrain makes walking easier for everyone - especially seniors, people with disabilities, parents with strollers, and anyone carrying groceries. Steep hills can make short walks feel exhausting and may prevent people from walking altogether.',
+    whyItMatters: 'Flat terrain makes walking accessible for everyone — seniors, wheelchair users, parents with strollers. Steep hills turn short walks into exhausting treks.',
     example: score >= 8
       ? 'Terrain is gentle enough for wheelchairs, strollers, and anyone with mobility concerns.'
       : score < 4
       ? 'Think San Francisco hills - walks will be strenuous.'
       : undefined,
-    technicalMeasurement: 'We analyze elevation changes along typical walking routes in this area using digital elevation data.',
-    recommendedStandard: 'Slopes above 5% (about 1 foot of elevation gain per 20 feet of distance) become challenging for many people. This 5% threshold is the maximum for ADA wheelchair accessibility. San Francisco hills often exceed 10-15% grade.',
+    technicalMeasurement: 'Elevation changes along walking routes using satellite terrain data.',
+    recommendedStandard: 'ADA max: 5% grade. Slopes above 5% are challenging for many people. San Francisco hills exceed 10-15%.',
     dataSource: 'SRTM elevation data (30-meter resolution) via Open-Elevation API',
     dataQuality: {
       level: 'high',
-      explanation: 'Based on NASA Shuttle Radar Topography Mission (SRTM) satellite data. This is highly accurate and reliable terrain data collected from space with 30-meter resolution. Elevation measurements are verified and consistent worldwide.'
+      explanation: 'NASA SRTM satellite data — 30m resolution, verified and consistent worldwide.'
     }
   };
 }
@@ -419,19 +419,19 @@ function translateTreeCanopy(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Trees make walks more comfortable in summer heat and provide cleaner air. Shaded streets can be 10-15°F cooler than treeless ones. More trees also make neighborhoods more attractive and can increase home values by 7-15%.',
+    whyItMatters: 'Shaded streets are 10-15°F cooler than treeless ones. Trees also clean the air and boost home values by 7-15%.',
     example: score >= 7
       ? 'On a 90°F day, shaded sidewalks feel like 75°F. Most of your walks will have overhead shade.'
       : score < 4
       ? 'On a 90°F day, you\'ll be walking in full sun. Consider morning or evening walks in summer.'
       : undefined,
-    technicalMeasurement: 'We use satellite imagery to measure vegetation density (NDVI - Normalized Difference Vegetation Index) from Sentinel-2 optical bands. NDVI ranges from -1 (water/urban) to +1 (dense vegetation). Values above 0.3 indicate healthy tree canopy.',
-    recommendedStandard: 'Studies show tree-lined streets encourage 15-20% more walking and improve air quality. Urban areas should aim for NDVI values above 0.3 for adequate green cover. Dense residential areas typically range 0.2-0.4.',
+    technicalMeasurement: 'Sentinel-2 satellite NDVI (vegetation index). Values above 0.3 = healthy tree canopy.',
+    recommendedStandard: 'Tree-lined streets see 15-20% more walking. Target: NDVI above 0.3. Dense residential areas typically range 0.2-0.4.',
     dataSource: 'Sentinel-2 NDVI satellite analysis (10-meter resolution) via Microsoft Planetary Computer',
     additionalContext: 'Tree shade is especially important in hot climates. Lack of shade can make summer walking uncomfortable or dangerous during heat waves.',
     dataQuality: {
       level: 'high',
-      explanation: 'Based on ESA Sentinel-2 satellite imagery with 10-meter resolution. NDVI (vegetation index) is a scientifically validated measure that accurately detects tree canopy from space. Updated regularly with fresh imagery. This is highly reliable objective data.'
+      explanation: 'ESA Sentinel-2 satellite imagery, 10m resolution. NDVI is a scientifically validated vegetation measure, updated regularly.'
     }
   };
 }
