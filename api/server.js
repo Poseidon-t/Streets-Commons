@@ -1863,8 +1863,9 @@ app.get('/api/verify-token', async (req, res) => {
 // Serve frontend static files if dist folder exists
 import { existsSync, readdirSync } from 'fs';
 
-// Try multiple possible dist locations
+// Try multiple possible dist locations (api/dist is copied during Railway build)
 const possiblePaths = [
+  path.join(__dirname, 'dist'),
   path.join(__dirname, '..', 'dist'),
   path.join(process.cwd(), 'dist'),
   '/app/dist',
