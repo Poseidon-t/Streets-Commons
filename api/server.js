@@ -1861,7 +1861,7 @@ app.get('/api/verify-token', async (req, res) => {
 });
 
 // Serve frontend static files if dist folder exists
-import { existsSync, readdirSync } from 'fs';
+import { existsSync } from 'fs';
 
 // Try multiple possible dist locations (api/dist is copied during Railway build)
 const possiblePaths = [
@@ -1872,19 +1872,11 @@ const possiblePaths = [
 ];
 let distPath = null;
 for (const p of possiblePaths) {
-  console.log(`Checking for dist at: ${p} -> exists: ${existsSync(path.join(p, 'index.html'))}`);
   if (existsSync(path.join(p, 'index.html'))) {
     distPath = p;
     break;
   }
 }
-// Also log directory contents for debugging
-try {
-  console.log('__dirname:', __dirname);
-  console.log('cwd:', process.cwd());
-  console.log('Parent dir contents:', readdirSync(path.join(__dirname, '..')).slice(0, 20));
-  console.log('CWD contents:', readdirSync(process.cwd()).slice(0, 20));
-} catch (e) { console.log('Dir listing error:', e.message); }
 
 if (distPath) {
   console.log(`Serving frontend from: ${distPath}`);
