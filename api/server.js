@@ -1860,9 +1860,10 @@ app.get('/api/verify-token', async (req, res) => {
   }
 });
 
-// Serve frontend static files in production
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
+// Serve frontend static files if dist folder exists
+import { existsSync } from 'fs';
+const distPath = path.join(__dirname, '..', 'dist');
+if (existsSync(path.join(distPath, 'index.html'))) {
 
   // Hashed assets (js/css) get long cache since filenames change on rebuild
   app.use('/assets', express.static(path.join(distPath, 'assets'), {
