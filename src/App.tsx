@@ -13,6 +13,7 @@ const ShareButtons = lazy(() => import('./components/ShareButtons'));
 const StreetmixIntegration = lazy(() => import('./components/StreetmixIntegration'));
 const BudgetAnalysis = lazy(() => import('./components/BudgetAnalysis'));
 const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
+const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const ProfessionalFeatures = lazy(() => import('./components/ProfessionalFeatures'));
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
@@ -64,6 +65,10 @@ function App() {
 
   // Payment modal state for Professional upgrade
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showLetterModal, setShowLetterModal] = useState(false);
+
+  // Payment success banner
+  const [paymentSuccess, setPaymentSuccess] = useState<{ tier: string } | null>(null);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -72,6 +77,32 @@ function App() {
         satelliteAbortRef.current.abort();
       }
     };
+  }, []);
+
+  // Handle Stripe payment redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    const tier = params.get('tier');
+
+    if (payment === 'success' && tier) {
+      setPaymentSuccess({ tier });
+
+      // Clean URL params
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      url.searchParams.delete('tier');
+      window.history.replaceState({}, '', url.toString());
+
+      // Auto-dismiss after 8 seconds
+      setTimeout(() => setPaymentSuccess(null), 8000);
+    }
+
+    if (payment === 'cancelled') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      window.history.replaceState({}, '', url.toString());
+    }
   }, []);
 
   // Load from URL on mount
@@ -232,6 +263,18 @@ function App() {
         locationName={location?.displayName || ''}
       />
 
+      {/* AI Advocacy Letter Modal */}
+      {location && metrics && (
+        <Suspense fallback={null}>
+          <AdvocacyLetterModal
+            isOpen={showLetterModal}
+            onClose={() => setShowLetterModal(false)}
+            location={location}
+            metrics={metrics}
+          />
+        </Suspense>
+      )}
+
       {/* Custom styles for light aesthetic */}
       <style>{`
         .search-box-light {
@@ -295,6 +338,31 @@ function App() {
         </div>
       </header>
 
+      {/* Payment Success Banner */}
+      {paymentSuccess && (
+        <div className="bg-green-50 border-b border-green-200 px-6 py-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">&#x2705;</span>
+              <div>
+                <p className="font-semibold text-green-800">
+                  Payment successful! {paymentSuccess.tier === 'professional' ? 'Professional' : 'Advocate'} tier activated.
+                </p>
+                <p className="text-sm text-green-700">
+                  Your premium features are now unlocked. It may take a moment to reflect — try refreshing if needed.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setPaymentSuccess(null)}
+              className="text-green-600 hover:text-green-800 text-xl leading-none"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section - Light earthy aesthetic */}
       {!compareMode && !location && !isAnalyzing && (
         <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
@@ -327,7 +395,7 @@ function App() {
               </span>
               <span className="text-earth-text-light">·</span>
               <span className="text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">9</span> walkability metrics
+                <span className="text-earth-green font-semibold">10</span> walkability metrics
               </span>
             </div>
 
@@ -912,6 +980,29 @@ function App() {
               </Suspense>
             </ErrorBoundary>
 
+            {/* AI Advocacy Letter */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">✉️</div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">
+                    Draft Letter to Officials
+                  </h2>
+                  <p className="text-gray-600 text-sm mb-4">
+                    AI generates a professional advocacy letter citing your walkability data, international
+                    safety standards, and specific recommendations — ready to email to your city council.
+                  </p>
+                  <button
+                    onClick={() => setShowLetterModal(true)}
+                    className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
+                    style={{ backgroundColor: COLORS.primary }}
+                  >
+                    Generate Letter
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Professional Features */}
             <ErrorBoundary>
               <Suspense fallback={null}>
@@ -941,7 +1032,7 @@ function App() {
               </h3>
               <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
                 <div>
-                  <strong className="block mb-1">9 Verified Metrics</strong>
+                  <strong className="block mb-1">10 Verified Metrics</strong>
                   <p style={{ color: '#4a5a4a' }}>We analyze pedestrian crossings, sidewalks, street connectivity, nearby destinations, green spaces, terrain slope, tree coverage, surface temperature, and air quality using real data from OpenStreetMap, NASA POWER, and OpenAQ monitoring stations.</p>
                 </div>
                 <div>
@@ -1022,7 +1113,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Get Instant Analysis</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        9 walkability metrics calculated in seconds using real satellite data and OpenStreetMap infrastructure.
+                        10 walkability metrics calculated in seconds using real satellite data and OpenStreetMap infrastructure.
                       </p>
                     </div>
 

@@ -14,6 +14,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fromUrl } from 'geotiff';
 import Stripe from 'stripe';
+import Anthropic from '@anthropic-ai/sdk';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -1857,6 +1858,93 @@ app.get('/api/verify-token', async (req, res) => {
     });
   } catch (error) {
     res.status(401).json({ valid: false, error: 'Invalid or expired token' });
+  }
+});
+
+// ─── Advocacy Letter Generator (Claude AI) ───────────────────────────────────
+
+const advocacyLetterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 letters per hour per IP
+  message: { error: 'Too many letter requests. Please try again later.' },
+});
+
+app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res) => {
+  try {
+    const { location, metrics, authorName, recipientTitle } = req.body;
+
+    if (!location || !metrics) {
+      return res.status(400).json({ error: 'Missing location or metrics data' });
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ error: 'AI letter generation is not configured' });
+    }
+
+    const anthropic = new Anthropic({ apiKey });
+
+    // Build a concise metrics summary for the prompt
+    const metricLines = [];
+    if (metrics.crossingDensity !== undefined) metricLines.push(`Crosswalk Density: ${metrics.crossingDensity}/10`);
+    if (metrics.sidewalkCoverage !== undefined) metricLines.push(`Sidewalk Coverage: ${metrics.sidewalkCoverage}/10`);
+    if (metrics.networkEfficiency !== undefined) metricLines.push(`Street Connectivity: ${metrics.networkEfficiency}/10`);
+    if (metrics.destinationAccess !== undefined) metricLines.push(`Daily Needs Nearby: ${metrics.destinationAccess}/10`);
+    if (metrics.greenSpaceAccess !== undefined) metricLines.push(`Parks & Green Space: ${metrics.greenSpaceAccess}/10`);
+    if (metrics.slope !== undefined) metricLines.push(`Flat Terrain: ${metrics.slope}/10`);
+    if (metrics.treeCanopy !== undefined) metricLines.push(`Shade & Tree Canopy: ${metrics.treeCanopy}/10`);
+    if (metrics.surfaceTemp !== undefined) metricLines.push(`Cool Walking Conditions: ${metrics.surfaceTemp}/10`);
+    if (metrics.airQuality !== undefined) metricLines.push(`Air Quality: ${metrics.airQuality}/10`);
+    if (metrics.heatIsland !== undefined) metricLines.push(`Heat Island Effect: ${metrics.heatIsland}/10`);
+
+    const worstMetrics = Object.entries(metrics)
+      .filter(([k, v]) => typeof v === 'number' && k !== 'overallScore' && v <= 4)
+      .sort((a, b) => a[1] - b[1])
+      .slice(0, 3)
+      .map(([k]) => k);
+
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1500,
+      messages: [{
+        role: 'user',
+        content: `Write a formal advocacy letter to a local government official about pedestrian safety and walkability improvements needed at the following location.
+
+LOCATION: ${location.displayName}
+COORDINATES: ${location.lat}, ${location.lon}
+OVERALL WALKABILITY SCORE: ${metrics.overallScore.toFixed(1)}/10 (${metrics.label})
+
+METRIC SCORES:
+${metricLines.join('\n')}
+
+WORST AREAS (scores ≤ 4): ${worstMetrics.length > 0 ? worstMetrics.join(', ') : 'None — all areas are adequate'}
+
+${authorName ? `AUTHOR: ${authorName}` : ''}
+${recipientTitle ? `RECIPIENT: ${recipientTitle}` : 'RECIPIENT: Local City Council / Municipal Authority'}
+
+INSTRUCTIONS:
+- Write a professional, respectful 400-500 word letter
+- Open with the specific location and its walkability score
+- Cite the 2-3 worst metrics with specific numbers
+- Reference relevant standards (WHO, NACTO, ADA) where appropriate
+- Include 2-3 specific, actionable recommendations tied to the worst metrics
+- End with a clear call to action (site visit, public meeting, budget allocation)
+- Use a formal but accessible tone — this should persuade, not lecture
+- Do NOT include placeholder brackets like [Your Name] — write it as a complete letter
+- If an author name is provided, sign with that name; otherwise sign as "A Concerned Resident"
+- Do NOT include a subject line — just the letter body starting with "Dear..."`,
+      }],
+    });
+
+    const letterText = message.content[0]?.text;
+    if (!letterText) {
+      return res.status(500).json({ error: 'Failed to generate letter' });
+    }
+
+    res.json({ success: true, letter: letterText });
+  } catch (error) {
+    console.error('Advocacy letter generation failed:', error.message);
+    res.status(500).json({ error: 'Failed to generate letter. Please try again.' });
   }
 });
 
