@@ -24,14 +24,16 @@ export default function CompareView({
     return score1 > score2 ? 'left' : 'right';
   };
 
-  // Only show 6 core metrics (matching main UI)
+  // 8 core metrics + overall
   const metrics = [
     { name: 'Street Crossings', score1: metrics1.crossingDensity, score2: metrics2.crossingDensity },
     { name: 'Street Network', score1: metrics1.networkEfficiency, score2: metrics2.networkEfficiency },
     { name: 'Daily Needs', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
-    { name: 'Parks Nearby', score1: metrics1.greenSpaceAccess, score2: metrics2.greenSpaceAccess },
     { name: 'Terrain Slope', score1: metrics1.slope, score2: metrics2.slope },
     { name: 'Tree Canopy', score1: metrics1.treeCanopy, score2: metrics2.treeCanopy },
+    { name: 'Surface Temp', score1: metrics1.surfaceTemp, score2: metrics2.surfaceTemp },
+    { name: 'Air Quality', score1: metrics1.airQuality, score2: metrics2.airQuality },
+    { name: 'Heat Island', score1: metrics1.heatIsland, score2: metrics2.heatIsland },
     { name: 'Overall Score', score1: metrics1.overallScore, score2: metrics2.overallScore },
   ];
 

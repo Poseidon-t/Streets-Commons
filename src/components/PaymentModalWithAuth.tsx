@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useUser, useSignIn, SignIn } from '@clerk/clerk-react';
+import { useUser, SignIn } from '@clerk/clerk-react';
 import { COLORS } from '../constants';
 
 interface PaymentModalProps {
@@ -13,25 +13,13 @@ interface PaymentModalProps {
   locationName: string;
 }
 
-type PricingTier = 'advocate' | 'professional';
-
 export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: PaymentModalProps) {
   const { isSignedIn, user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedTier, setSelectedTier] = useState<PricingTier>('advocate');
   const [showSignIn, setShowSignIn] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [companyLogo, setCompanyLogo] = useState<File | null>(null);
 
   if (!isOpen) return null;
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      setCompanyLogo(file);
-    }
-  };
 
   const handlePayment = async () => {
     // Check if user is signed in
@@ -54,12 +42,9 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
         },
         body: JSON.stringify({
           email: user.primaryEmailAddress?.emailAddress,
-          tier: selectedTier,
+          tier: 'advocate',
           locationName,
-          userId: user.id, // Clerk user ID for webhook
-          metadata: {
-            companyName: selectedTier === 'professional' ? companyName : undefined,
-          },
+          userId: user.id,
         }),
       });
 
@@ -69,18 +54,6 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
       }
 
       const { url } = await response.json();
-
-      // Store logo in localStorage for professional tier (will be used after activation)
-      if (selectedTier === 'professional' && companyLogo) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          localStorage.setItem('pending_logo', reader.result as string);
-          localStorage.setItem('pending_company_name', companyName);
-          window.location.href = url;
-        };
-        reader.readAsDataURL(companyLogo);
-        return;
-      }
 
       // Redirect to Stripe checkout
       window.location.href = url;
@@ -113,12 +86,10 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
           <div className="flex flex-col items-center">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Sign In to Continue</h2>
             <p className="text-gray-600 text-center mb-6">
-              Sign in to purchase {selectedTier === 'advocate' ? 'Advocate' : 'Professional'} tier for {locationName}
+              Sign in to purchase Advocate tier for {locationName}
             </p>
             <SignIn
               routing="virtual"
-              signUpUrl="/sign-up"
-              afterSignInUrl={window.location.href}
               forceRedirectUrl={window.location.href}
               appearance={{
                 elements: {
@@ -135,7 +106,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-5xl w-full p-8 relative my-8">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-8 relative my-8">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -151,10 +122,10 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🔓</div>
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            Unlock Premium Tools
+            Unlock Advocate Tools
           </h2>
           <p className="text-gray-600">
-            Professional features for {locationName}
+            Premium features for {locationName}
           </p>
           {isSignedIn && user && (
             <p className="text-sm text-gray-500 mt-2">
@@ -163,168 +134,41 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
           )}
         </div>
 
-        {/* Pricing Tiers */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Advocate Tier */}
-          <div
-            onClick={() => setSelectedTier('advocate')}
-            className={`relative border-2 rounded-2xl p-6 cursor-pointer transition-all ${
-              selectedTier === 'advocate'
-                ? 'border-blue-500 shadow-lg'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {selectedTier === 'advocate' && (
-              <div className="absolute top-4 right-4 text-blue-500">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
-
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">🏘️ Advocate</h3>
-              <div className="text-4xl font-bold text-gray-800 mb-1">$19</div>
-              <div className="text-sm text-gray-500">One-time • No subscription</div>
-            </div>
-
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>Streetmix Integration</strong> - Design better streets</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>3DStreet Visualization</strong> - 3D street redesigns</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>Policy Report PDF</strong> - All metrics & compliance</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>Budget Analysis</strong> - AI-powered insights</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>International Standards</strong> - WHO, ADA</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">✓</span>
-                <span><strong>Advocacy Proposal</strong> - One-page PDF for officials</span>
-              </li>
-            </ul>
+        {/* Advocate Tier */}
+        <div className="border-2 border-blue-500 rounded-2xl p-6 mb-8 shadow-lg">
+          <div className="text-center mb-4">
+            <h3 className="text-xl font-bold text-gray-800 mb-2">🏘️ Advocate</h3>
+            <div className="text-4xl font-bold text-gray-800 mb-1">$19</div>
+            <div className="text-sm text-gray-500">One-time · No subscription</div>
           </div>
 
-          {/* Professional Tier */}
-          <div
-            onClick={() => setSelectedTier('professional')}
-            className={`relative border-2 rounded-2xl p-6 cursor-pointer transition-all ${
-              selectedTier === 'professional'
-                ? 'border-purple-500 shadow-lg'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-          >
-            {selectedTier === 'professional' && (
-              <div className="absolute top-4 right-4 text-purple-500">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-            )}
-
-            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-              <span className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                BEST VALUE
-              </span>
-            </div>
-
-            <div className="text-center mb-4">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">🏢 Professional</h3>
-              <div className="text-4xl font-bold text-gray-800 mb-1">$79</div>
-              <div className="text-sm text-gray-500">One-time • No subscription</div>
-            </div>
-
-            <ul className="space-y-2 text-sm text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>Everything in Advocate</strong> +</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>15-Minute City Score</strong> - Essential services analysis</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>Building Density 3D</strong> - FAR calculation & visualization</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>Transit Access Analysis</strong> - Car-free feasibility</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>ADA Accessibility Report</strong> - Wheelchair compliance</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>Street Lighting Safety</strong> - Nighttime analysis</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">✓</span>
-                <span><strong>Custom Branding</strong> - Add your logo & company name</span>
-              </li>
-            </ul>
-          </div>
+          <ul className="space-y-2 text-sm text-gray-700">
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>Streetmix Integration</strong> - Design better streets</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>3DStreet Visualization</strong> - 3D street redesigns</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>Policy Report PDF</strong> - All metrics & compliance</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>Budget Analysis</strong> - AI-powered insights</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>International Standards</strong> - WHO, ADA</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-green-600 font-bold">✓</span>
+              <span><strong>Advocacy Proposal</strong> - One-page PDF for officials</span>
+            </li>
+          </ul>
         </div>
-
-        {/* Custom Branding Section (Professional only) */}
-        {selectedTier === 'professional' && (
-          <div className="bg-purple-50 border border-purple-200 rounded-xl p-6 mb-6">
-            <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <span>🎨</span>
-              Custom Branding (Optional)
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Your Organization Name"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Will appear on PDF reports as "Prepared by: [Your Name]"
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Company Logo
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                  className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                />
-                {companyLogo && (
-                  <p className="text-xs text-green-600 mt-1">
-                    ✓ Logo uploaded: {companyLogo.name}
-                  </p>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Will appear at the top of PDF reports
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Error Message */}
         {error && (
@@ -338,7 +182,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
           onClick={handlePayment}
           disabled={isLoading}
           className="w-full px-6 py-4 rounded-xl font-semibold text-white transition-all hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ backgroundColor: selectedTier === 'advocate' ? COLORS.accent : '#9333ea' }}
+          style={{ backgroundColor: COLORS.accent }}
         >
           {isLoading ? (
             <span className="flex items-center justify-center gap-2">
@@ -349,9 +193,9 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
               Processing...
             </span>
           ) : !isSignedIn ? (
-            `Sign In & Pay - ${selectedTier === 'advocate' ? '$19' : '$79'}`
+            'Sign In & Pay - $19'
           ) : (
-            `Complete Purchase - ${selectedTier === 'advocate' ? '$19' : '$79'}`
+            'Complete Purchase - $19'
           )}
         </button>
 

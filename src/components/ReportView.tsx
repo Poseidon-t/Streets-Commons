@@ -61,12 +61,14 @@ export default function ReportView() {
   };
 
   const metricsArray = [
+    { name: 'Street Crossings', score: metrics.crossingDensity, icon: '🚶', description: 'Marked pedestrian crossings (OpenStreetMap)' },
     { name: 'Street Grid', score: metrics.networkEfficiency, icon: '🏙️', description: 'Block size and street connectivity' },
-    { name: 'Destinations', score: metrics.destinationAccess, icon: '🏪', description: 'Amenities within walking distance' },
-    { name: 'Parks', score: metrics.greenSpaceAccess || 0, icon: '🌳', description: 'Access to green spaces' },
-    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌲', description: 'Shade from trees' },
+    { name: 'Daily Needs', score: metrics.destinationAccess, icon: '🏪', description: 'Essential services within walking distance (OpenStreetMap)' },
     { name: 'Flat Routes', score: metrics.slope, icon: '🏃', description: 'Terrain difficulty' },
-    { name: 'Crossings', score: metrics.crossingDensity, icon: '🚦', description: 'Pedestrian crossing density' },
+    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌲', description: 'Shade from trees (Sentinel-2 NDVI)' },
+    { name: 'Surface Temp', score: metrics.surfaceTemp, icon: '🌡️', description: 'Surface temperature (NASA POWER)' },
+    { name: 'Air Quality', score: metrics.airQuality, icon: '💨', description: 'Air quality index (OpenAQ)' },
+    { name: 'Heat Island', score: metrics.heatIsland, icon: '🔥', description: 'Urban heat island effect (Sentinel-2 SWIR)' },
   ];
 
   const topMetrics = [...metricsArray].sort((a, b) => b.score - a.score).slice(0, 2);
@@ -136,7 +138,7 @@ export default function ReportView() {
             </h3>
 
             <p className="text-base text-gray-700 mb-4 leading-relaxed">
-              This walkability assessment analyzes six critical factors that determine pedestrian experience and safety in {location.city || location.displayName}. The overall score of {score.toFixed(1)}/10 indicates {metrics.label.toLowerCase()} with notable strengths and areas for improvement.
+              This walkability assessment analyzes eight critical factors that determine pedestrian experience and safety in {location.city || location.displayName}. The overall score of {score.toFixed(1)}/10 indicates {metrics.label.toLowerCase()} with notable strengths and areas for improvement.
             </p>
 
             <p className="text-base text-gray-700 mb-6 leading-relaxed">
@@ -178,7 +180,7 @@ export default function ReportView() {
           </h2>
 
           <p className="text-base text-gray-700 mb-8">
-            Six factors that determine how pleasant and safe it is to walk here:
+            Eight factors that determine how pleasant and safe it is to walk here:
           </p>
 
           <div className="space-y-6">
@@ -253,15 +255,21 @@ export default function ReportView() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Pedestrian Crossing Frequency</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {metrics.crossingDensity >= 5 ? 'Meets' : 'Below'}
+                  <span className="text-gray-800">Crossing Density (≤200m spacing)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.crossingDensity >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">15-Minute Neighborhood (amenities)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.destinationAccess >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.destinationAccess >= 6 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Street Shading & Microclimate</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.treeCanopy >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.treeCanopy >= 7 ? 'Meets' : 'Partial'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-800">Accessible Terrain (≤5% grade)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.slope >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.slope >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
               </div>
@@ -274,21 +282,21 @@ export default function ReportView() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Pedestrian Crossing Density (15-20/km²)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                    {metrics.crossingDensity >= 5 ? 'Partial' : 'Below'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
                   <span className="text-gray-800">Street Connectivity</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.networkEfficiency >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                     {metrics.networkEfficiency >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Green Space Access (400m)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${(metrics.greenSpaceAccess || 0) >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {(metrics.greenSpaceAccess || 0) >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Urban Heat Management</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.heatIsland >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.heatIsland >= 7 ? 'Meets' : 'Partial'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-800">Air Quality (WHO Guidelines)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.airQuality >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.airQuality >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
               </div>
@@ -301,21 +309,27 @@ export default function ReportView() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Pedestrian Path Density</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.sidewalkCoverage >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.sidewalkCoverage >= 6 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Pedestrian Crossings</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.crossingDensity >= 6 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Safe Crossing Intervals (≤50m)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                    {metrics.crossingDensity >= 5 ? 'Partial' : 'Below'}
+                  <span className="text-gray-800">15-Minute City (Services Access)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.destinationAccess >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.destinationAccess >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Street Shading & Microclimate</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.treeCanopy >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.treeCanopy >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Walking Comfort (Surface Temp)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.surfaceTemp >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.surfaceTemp >= 6 ? 'Meets' : 'Partial'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-800">Terrain Accessibility (≤5% grade)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.slope >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.slope >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
               </div>
@@ -325,7 +339,7 @@ export default function ReportView() {
           <div className="mt-8 bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg">
             <h4 className="font-bold text-blue-900 mb-2">Overall Assessment:</h4>
             <p className="text-sm text-blue-800">
-              This area demonstrates strong fundamentals in street connectivity and green space access, aligning well with NACTO and ITDP principles for walkable neighborhoods. {metrics.crossingDensity < 5 ? 'The primary gap is pedestrian crossing infrastructure, which falls below GSDG standards and represents the most critical opportunity for improvement.' : 'The area meets most international standards for pedestrian infrastructure.'}
+              This area demonstrates {score >= 6 ? 'solid' : 'mixed'} fundamentals in environmental walkability, assessed against NACTO and ITDP principles. {score < 6 ? 'Key areas for improvement include urban heat management and environmental comfort for pedestrians.' : 'The area meets most international standards for pedestrian environmental comfort.'}
             </p>
           </div>
 

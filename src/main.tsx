@@ -6,15 +6,8 @@ import './index.css'
 import App from './App.tsx'
 import ReportView from './components/ReportView.tsx'
 import AdvocacyProposalView from './components/AdvocacyProposalView.tsx'
-// Professional Reports
-import {
-  FifteenMinuteCityReport,
-  BuildingDensityReport,
-  TransitAccessReport,
-  ADAAccessibilityReport,
-  StreetLightingReport,
-  FullProfessionalReport
-} from './components/reports'
+// Reports
+import { FifteenMinuteCityReport } from './components/reports'
 
 // Import Clerk publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -35,13 +28,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<App />} />
           <Route path="/report" element={<ReportView />} />
           <Route path="/proposal" element={<AdvocacyProposalView />} />
-          {/* Professional Reports */}
+          {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
-          <Route path="/report/building-density" element={<BuildingDensityReport />} />
-          <Route path="/report/transit-access" element={<TransitAccessReport />} />
-          <Route path="/report/ada-accessibility" element={<ADAAccessibilityReport />} />
-          <Route path="/report/street-lighting" element={<StreetLightingReport />} />
-          <Route path="/report/professional-full" element={<FullProfessionalReport />} />
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
               <div className="text-center px-6">

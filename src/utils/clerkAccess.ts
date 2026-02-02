@@ -15,7 +15,7 @@ interface User {
   };
 }
 
-export type PremiumTier = 'free' | 'advocate' | 'professional';
+export type PremiumTier = 'free' | 'advocate';
 
 export interface AccessInfo {
   tier: PremiumTier;
@@ -42,15 +42,15 @@ function getDevTierOverride(): PremiumTier | null {
   }
 
   // If explicitly set to a tier, use that
-  if (override === 'advocate' || override === 'professional') {
+  if (override === 'advocate') {
     console.log(`🔓 DEV MODE: Premium tier overridden to "${override}"`);
     return override;
   }
 
-  // Auto-enable professional on localhost for testing
+  // Auto-enable advocate on localhost for testing
   if (isLocalhost) {
-    console.log('🔓 DEV MODE: Auto-enabled professional tier (localhost)');
-    return 'professional';
+    console.log('🔓 DEV MODE: Auto-enabled advocate tier (localhost)');
+    return 'advocate';
   }
 
   return null;
@@ -87,20 +87,10 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
 /**
  * Check if user has specific tier access
  */
-export function hasAccess(user: User | null | undefined, requiredTier: 'advocate' | 'professional'): boolean {
+export function hasAccess(user: User | null | undefined, requiredTier: 'advocate'): boolean {
   const { tier } = getAccessInfoFromUser(user);
-
   if (tier === 'free') return false;
-
-  if (requiredTier === 'advocate') {
-    return tier === 'advocate' || tier === 'professional';
-  }
-
-  if (requiredTier === 'professional') {
-    return tier === 'professional';
-  }
-
-  return false;
+  return tier === 'advocate';
 }
 
 /**
@@ -111,10 +101,3 @@ export function isPremium(user: User | null | undefined): boolean {
   return tier !== 'free';
 }
 
-/**
- * Get professional status
- */
-export function isProfessional(user: User | null | undefined): boolean {
-  const { tier } = getAccessInfoFromUser(user);
-  return tier === 'professional';
-}

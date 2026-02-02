@@ -7,7 +7,7 @@ const TOKEN_KEY = 'safestreets_access_token';
 const TIER_KEY = 'safestreets_tier';
 const EMAIL_KEY = 'safestreets_email';
 
-export type PremiumTier = 'free' | 'advocate' | 'professional';
+export type PremiumTier = 'free' | 'advocate';
 
 export interface AccessInfo {
   tier: PremiumTier;
@@ -47,20 +47,10 @@ export function getAccessInfo(): AccessInfo {
 /**
  * Check if user has specific tier access
  */
-export function hasAccess(requiredTier: 'advocate' | 'professional'): boolean {
+export function hasAccess(requiredTier: 'advocate'): boolean {
   const { tier, isValid } = getAccessInfo();
-
   if (!isValid) return false;
-
-  if (requiredTier === 'advocate') {
-    return tier === 'advocate' || tier === 'professional';
-  }
-
-  if (requiredTier === 'professional') {
-    return tier === 'professional';
-  }
-
-  return false;
+  return tier === 'advocate';
 }
 
 /**

@@ -204,12 +204,14 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
 
   // Top 2 strengths and weaknesses
   const metricsArray = [
+    { name: 'Street Crossings', score: metrics.crossingDensity, icon: '🚶', unit: ' per km' },
     { name: 'Street Grid', score: metrics.networkEfficiency, icon: '🏙️', unit: 'm blocks' },
-    { name: 'Destinations', score: metrics.destinationAccess, icon: '🏪', unit: ' amenities' },
-    { name: 'Parks', score: metrics.greenSpaceAccess || 0, icon: '🌳', unit: ' green spaces' },
-    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌲', unit: '% canopy' },
+    { name: 'Daily Needs', score: metrics.destinationAccess, icon: '🏪', unit: ' types' },
     { name: 'Flat Routes', score: metrics.slope, icon: '🏃', unit: '° slope' },
-    { name: 'Crossings', score: metrics.crossingDensity, icon: '🚦', unit: '/km²' },
+    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌲', unit: '% canopy' },
+    { name: 'Surface Temp', score: metrics.surfaceTemp, icon: '🌡️', unit: '°C' },
+    { name: 'Air Quality', score: metrics.airQuality, icon: '💨', unit: ' AQI' },
+    { name: 'Heat Island', score: metrics.heatIsland, icon: '🔥', unit: ' index' },
   ].sort((a, b) => b.score - a.score);
 
   const topMetrics = metricsArray.slice(0, 2);
@@ -250,7 +252,7 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
   pdf.setFontSize(11);
   pdf.setTextColor(COLORS.mediumGray[0], COLORS.mediumGray[1], COLORS.mediumGray[2]);
   pdf.setFont('helvetica', 'normal');
-  pdf.text('Six factors that determine how pleasant and safe it is to walk here:', margin, y);
+  pdf.text('Eight factors that determine how pleasant and safe it is to walk here:', margin, y);
   y += 12;
 
   // Helper function to draw metric row
@@ -304,13 +306,15 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
     y += rowHeight + 5;
   };
 
-  // Draw all 6 metrics
+  // Draw all 8 metrics
+  drawMetric('🚶', 'Street Crossings', metrics.crossingDensity, 'Marked pedestrian crossings (OpenStreetMap)');
   drawMetric('🏙️', 'Street Grid', metrics.networkEfficiency, 'Block size and street connectivity');
-  drawMetric('🏪', 'Destinations', metrics.destinationAccess, 'Amenities within walking distance');
-  drawMetric('🌳', 'Parks', metrics.greenSpaceAccess || 0, 'Access to green spaces');
-  drawMetric('🌲', 'Tree Canopy', metrics.treeCanopy, 'Shade from trees');
-  drawMetric('🏃', 'Flat Routes', metrics.slope, 'Terrain difficulty');
-  drawMetric('🚦', 'Crossings', metrics.crossingDensity, 'Pedestrian crossing density');
+  drawMetric('🏪', 'Daily Needs', metrics.destinationAccess, 'Essential services nearby (OpenStreetMap)');
+  drawMetric('🏃', 'Flat Routes', metrics.slope, 'Terrain difficulty (NASADEM)');
+  drawMetric('🌲', 'Tree Canopy', metrics.treeCanopy, 'Shade from trees (Sentinel-2 NDVI)');
+  drawMetric('🌡️', 'Surface Temp', metrics.surfaceTemp, 'Surface temperature (NASA POWER)');
+  drawMetric('💨', 'Air Quality', metrics.airQuality, 'Air quality index (OpenAQ)');
+  drawMetric('🔥', 'Heat Island', metrics.heatIsland, 'Urban heat island (Sentinel-2 SWIR)');
 
   y += 5;
 
@@ -437,8 +441,9 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
     'National Association of City Transportation Officials',
     [
       { label: 'Block Size (80-150m recommended)', value: '~95m', status: metrics.networkEfficiency >= 7 ? 'meets' : 'partial' },
-      { label: 'Pedestrian Crossing Frequency', value: `${Math.round(metrics.crossingDensity * 10)}/km²`, status: metrics.crossingDensity >= 5 ? 'meets' : 'below' },
-      { label: '15-Minute Neighborhood (amenities)', value: 'Good', status: metrics.destinationAccess >= 6 ? 'meets' : 'partial' },
+      { label: 'Crossing Density (≤200m spacing)', value: `${metrics.crossingDensity.toFixed(1)}/10`, status: metrics.crossingDensity >= 7 ? 'meets' : 'partial' },
+      { label: 'Street Shading & Microclimate', value: `${Math.round(metrics.treeCanopy * 10)}%`, status: metrics.treeCanopy >= 7 ? 'meets' : 'partial' },
+      { label: 'Accessible Terrain (≤5% grade)', value: 'Good', status: metrics.slope >= 7 ? 'meets' : 'partial' },
     ]
   );
 
@@ -447,9 +452,9 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
     'Global Street Design Guide (GSDG)',
     'NACTO in collaboration with Global Designing Cities Initiative',
     [
-      { label: 'Pedestrian Crossing Density (15-20/km²)', value: `${Math.round(metrics.crossingDensity * 10)}/km²`, status: metrics.crossingDensity >= 5 ? 'partial' : 'below' },
       { label: 'Street Connectivity', value: 'High', status: metrics.networkEfficiency >= 7 ? 'meets' : 'partial' },
-      { label: 'Green Space Access (400m)', value: 'Good', status: (metrics.greenSpaceAccess || 0) >= 7 ? 'meets' : 'partial' },
+      { label: 'Urban Heat Management', value: 'Good', status: metrics.heatIsland >= 7 ? 'meets' : 'partial' },
+      { label: 'Air Quality (WHO Guidelines)', value: 'Good', status: metrics.airQuality >= 7 ? 'meets' : 'partial' },
     ]
   );
 
@@ -458,9 +463,10 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
     'Pedestrians First',
     'Institute for Transportation & Development Policy (ITDP)',
     [
-      { label: 'Pedestrian Path Density', value: 'Good', status: metrics.sidewalkCoverage >= 6 ? 'meets' : 'partial' },
-      { label: 'Safe Crossing Intervals (≤50m)', value: '~165m', status: metrics.crossingDensity >= 5 ? 'partial' : 'below' },
-      { label: 'Street Shading & Microclimate', value: `${Math.round(metrics.treeCanopy * 10)}%`, status: metrics.treeCanopy >= 7 ? 'meets' : 'partial' },
+      { label: 'Pedestrian Crossings', value: `${metrics.crossingDensity.toFixed(1)}/10`, status: metrics.crossingDensity >= 6 ? 'meets' : 'partial' },
+      { label: '15-Minute City (Services Access)', value: `${metrics.destinationAccess.toFixed(1)}/10`, status: metrics.destinationAccess >= 7 ? 'meets' : 'partial' },
+      { label: 'Walking Comfort (Surface Temp)', value: 'Good', status: metrics.surfaceTemp >= 6 ? 'meets' : 'partial' },
+      { label: 'Terrain Accessibility (≤5% grade)', value: 'Good', status: metrics.slope >= 7 ? 'meets' : 'partial' },
     ]
   );
 
@@ -483,7 +489,7 @@ export async function generatePDFReport(data: ReportData): Promise<void> {
   pdf.text('Overall Assessment:', margin + 5, assessBoxY + 6);
 
   pdf.setFont('helvetica', 'normal');
-  const assessText = `This area demonstrates strong fundamentals in street connectivity and green space access, aligning well with NACTO and ITDP principles for walkable neighborhoods. ${metrics.crossingDensity < 5 ? 'The primary gap is pedestrian crossing infrastructure, which falls below GSDG standards and represents the most critical opportunity for improvement.' : 'The area meets most international standards for pedestrian infrastructure.'}`;
+  const assessText = `This area demonstrates ${score >= 6 ? 'solid' : 'mixed'} fundamentals in environmental walkability, assessed against NACTO and ITDP principles. ${score < 6 ? 'Key areas for improvement include urban heat management and environmental comfort for pedestrians.' : 'The area meets most international standards for pedestrian environmental comfort.'}`;
   const assessLines = pdf.splitTextToSize(assessText, contentWidth - 10);
   pdf.text(assessLines, margin + 5, assessBoxY + 11);
 

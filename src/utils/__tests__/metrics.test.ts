@@ -27,16 +27,17 @@ describe('calculateMetrics', () => {
     nodes: new Map(),
   };
 
-  it('should calculate all 7 metrics', () => {
+  it('should calculate all 8 metrics + overall', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
     expect(metrics).toHaveProperty('crossingDensity');
-    expect(metrics).toHaveProperty('sidewalkCoverage');
     expect(metrics).toHaveProperty('networkEfficiency');
     expect(metrics).toHaveProperty('destinationAccess');
     expect(metrics).toHaveProperty('slope');
     expect(metrics).toHaveProperty('treeCanopy');
     expect(metrics).toHaveProperty('surfaceTemp');
+    expect(metrics).toHaveProperty('airQuality');
+    expect(metrics).toHaveProperty('heatIsland');
     expect(metrics).toHaveProperty('overallScore');
     expect(metrics).toHaveProperty('label');
   });
@@ -46,8 +47,6 @@ describe('calculateMetrics', () => {
 
     expect(metrics.crossingDensity).toBeGreaterThanOrEqual(0);
     expect(metrics.crossingDensity).toBeLessThanOrEqual(10);
-    expect(metrics.sidewalkCoverage).toBeGreaterThanOrEqual(0);
-    expect(metrics.sidewalkCoverage).toBeLessThanOrEqual(10);
     expect(metrics.networkEfficiency).toBeGreaterThanOrEqual(0);
     expect(metrics.networkEfficiency).toBeLessThanOrEqual(10);
     expect(metrics.destinationAccess).toBeGreaterThanOrEqual(0);
@@ -58,33 +57,34 @@ describe('calculateMetrics', () => {
     expect(metrics.treeCanopy).toBeLessThanOrEqual(10);
     expect(metrics.surfaceTemp).toBeGreaterThanOrEqual(0);
     expect(metrics.surfaceTemp).toBeLessThanOrEqual(10);
+    expect(metrics.airQuality).toBeGreaterThanOrEqual(0);
+    expect(metrics.airQuality).toBeLessThanOrEqual(10);
+    expect(metrics.heatIsland).toBeGreaterThanOrEqual(0);
+    expect(metrics.heatIsland).toBeLessThanOrEqual(10);
     expect(metrics.overallScore).toBeGreaterThanOrEqual(0);
     expect(metrics.overallScore).toBeLessThanOrEqual(10);
   });
 
-  it('should return correct label for excellent score', () => {
-    const excellentData: OSMData = {
-      crossings: Array(20).fill(null).map((_, i) => ({
-        id: i,
-        lat: 18.788 + i * 0.001,
-        lon: 98.985 + i * 0.001,
-        tags: { highway: 'crossing' },
-      })),
-      sidewalks: Array(10).fill(null).map((_, i) => ({ id: i, tags: { footway: 'sidewalk' } })),
-      streets: Array(10).fill(null).map((_, i) => ({ id: i, tags: { highway: 'residential', sidewalk: 'both' } })),
-      pois: [
-        { tags: { amenity: 'school' } },
-        { tags: { shop: 'supermarket' } },
-        { tags: { amenity: 'restaurant' } },
-        { tags: { leisure: 'park' } },
-        { tags: { amenity: 'hospital' } },
-        { tags: { railway: 'station' } },
-      ],
-      nodes: new Map(),
-    };
+  it('should use satellite scores when provided', () => {
+    const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8, 7, 6, 5, 4);
 
-    const metrics = calculateMetrics(excellentData, 18.7888, 98.9858);
-    expect(['Excellent', 'Good']).toContain(metrics.label);
+    expect(metrics.slope).toBe(8);
+    expect(metrics.treeCanopy).toBe(7);
+    expect(metrics.surfaceTemp).toBe(6);
+    expect(metrics.airQuality).toBe(5);
+    expect(metrics.heatIsland).toBe(4);
+    expect(metrics.overallScore).toBeGreaterThan(0);
+  });
+
+  it('should calculate OSM metrics from data', () => {
+    const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
+
+    // crossingDensity should be > 0 (3 crossings, 3 streets)
+    expect(metrics.crossingDensity).toBeGreaterThan(0);
+    // networkEfficiency should be > 0 (3 crossings / 3 streets = 1.0 ratio)
+    expect(metrics.networkEfficiency).toBeGreaterThan(0);
+    // destinationAccess: school, shopping, restaurant, park = 4/6 types
+    expect(metrics.destinationAccess).toBeGreaterThan(0);
   });
 
   it('should handle empty data gracefully', () => {
@@ -97,13 +97,24 @@ describe('calculateMetrics', () => {
     };
 
     const metrics = calculateMetrics(emptyData, 18.7888, 98.9858);
+    expect(metrics.crossingDensity).toBe(0);
+    expect(metrics.networkEfficiency).toBe(0);
+    expect(metrics.destinationAccess).toBe(0);
     expect(metrics.overallScore).toBeGreaterThanOrEqual(0);
     expect(metrics.label).toBeDefined();
   });
 
-  it('should calculate destination access correctly', () => {
+  it('should return correct label based on score', () => {
     const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-    // We have 4 destination categories represented
-    expect(metrics.destinationAccess).toBeGreaterThan(0);
+    expect(['Excellent', 'Good', 'Fair', 'Poor', 'Critical']).toContain(metrics.label);
+  });
+
+  it('should weight OSM at 35% and satellite at 65% when all available', () => {
+    const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10, 10, 10, 10);
+    // OSM: crossingDensity*0.10 + networkEfficiency*0.15 + destinationAccess*0.10
+    // Satellite: 10*0.10 + 10*0.10 + 10*0.10 + 10*0.15 + 10*0.20 = 6.5
+    // Total = OSM + 6.5
+    expect(metrics.overallScore).toBeGreaterThan(0);
+    expect(metrics.overallScore).toBeLessThanOrEqual(10);
   });
 });

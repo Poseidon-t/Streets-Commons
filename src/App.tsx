@@ -14,7 +14,8 @@ const StreetmixIntegration = lazy(() => import('./components/StreetmixIntegratio
 const BudgetAnalysis = lazy(() => import('./components/BudgetAnalysis'));
 const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
-const ProfessionalFeatures = lazy(() => import('./components/ProfessionalFeatures'));
+const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
+const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchSlope, scoreSlopeFromDegrees } from './services/elevation';
@@ -24,7 +25,7 @@ import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { isPremium, isProfessional } from './utils/clerkAccess';
+import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
 
@@ -42,11 +43,11 @@ function App() {
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
 
   // Premium access - Clerk integration
   const { user } = useUser();
   const userIsPremium = isPremium(user);
-  const userIsProfessional = isProfessional(user);
 
   // Backward compatibility with magic link system
   const accessInfo = getAccessInfo();
@@ -63,7 +64,7 @@ function App() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showAllFaqs, setShowAllFaqs] = useState(false);
 
-  // Payment modal state for Professional upgrade
+  // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showLetterModal, setShowLetterModal] = useState(false);
 
@@ -133,6 +134,7 @@ function App() {
     setLocation(selectedLocation);
     setIsAnalyzing(true);
     setMetrics(null);
+    setSatelliteLoaded(new Set());
 
     // Cancel any in-flight satellite fetches from previous location
     if (satelliteAbortRef.current) {
@@ -244,11 +246,16 @@ function App() {
       ));
     };
 
-    promises.slope.then(v => { scores.slope = v; recalc(); });
-    promises.ndvi.then(v => { scores.ndvi = v; recalc(); });
-    promises.surfaceTemp.then(v => { scores.surfaceTemp = v; recalc(); });
-    promises.airQuality.then(v => { scores.airQuality = v; recalc(); });
-    promises.heatIsland.then(v => { scores.heatIsland = v; recalc(); });
+    const markLoaded = (key: string) => {
+      if (abortController.signal.aborted) return;
+      setSatelliteLoaded(prev => new Set(prev).add(key));
+    };
+
+    promises.slope.then(v => { scores.slope = v; markLoaded('slope'); recalc(); });
+    promises.ndvi.then(v => { scores.ndvi = v; markLoaded('treeCanopy'); recalc(); });
+    promises.surfaceTemp.then(v => { scores.surfaceTemp = v; markLoaded('surfaceTemp'); recalc(); });
+    promises.airQuality.then(v => { scores.airQuality = v; markLoaded('airQuality'); recalc(); });
+    promises.heatIsland.then(v => { scores.heatIsland = v; markLoaded('heatIsland'); recalc(); });
   };
 
   return (
@@ -256,7 +263,7 @@ function App() {
       {/* Activation Handler - Processes magic link tokens */}
       <ActivationHandler />
 
-      {/* Payment Modal for Professional upgrade */}
+      {/* Payment Modal */}
       <PaymentModalWithAuth
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
@@ -346,7 +353,7 @@ function App() {
               <span className="text-2xl">&#x2705;</span>
               <div>
                 <p className="font-semibold text-green-800">
-                  Payment successful! {paymentSuccess.tier === 'professional' ? 'Professional' : 'Advocate'} tier activated.
+                  Payment successful! Advocate tier activated.
                 </p>
                 <p className="text-sm text-green-700">
                   Your premium features are now unlocked. It may take a moment to reflect — try refreshing if needed.
@@ -395,7 +402,7 @@ function App() {
               </span>
               <span className="text-earth-text-light">·</span>
               <span className="text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">10</span> walkability metrics
+                <span className="text-earth-green font-semibold">8</span> walkability metrics
               </span>
             </div>
 
@@ -957,7 +964,7 @@ function App() {
             </div>
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} />
 
             {/* Streetmix Integration */}
             <ErrorBoundary>
@@ -1003,14 +1010,10 @@ function App() {
               </div>
             </div>
 
-            {/* Professional Features */}
+            {/* 15-Minute City Score (free for all users) */}
             <ErrorBoundary>
               <Suspense fallback={null}>
-                <ProfessionalFeatures
-                  location={location}
-                  isProfessional={userIsProfessional || accessInfo.tier === 'professional'}
-                  onUpgradeClick={() => setShowPaymentModal(true)}
-                />
+                <FifteenMinuteCity location={location} />
               </Suspense>
             </ErrorBoundary>
 
@@ -1032,8 +1035,8 @@ function App() {
               </h3>
               <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
                 <div>
-                  <strong className="block mb-1">10 Verified Metrics</strong>
-                  <p style={{ color: '#4a5a4a' }}>We analyze pedestrian crossings, sidewalks, street connectivity, nearby destinations, green spaces, terrain slope, tree coverage, surface temperature, and air quality using real data from OpenStreetMap, NASA POWER, and OpenAQ monitoring stations.</p>
+                  <strong className="block mb-1">8 Verified Metrics</strong>
+                  <p style={{ color: '#4a5a4a' }}>We analyze street crossings, connectivity, nearby destinations, terrain slope, tree coverage, surface temperature, air quality, and urban heat using real data from OpenStreetMap, NASA POWER, Sentinel-2, and OpenAQ monitoring stations.</p>
                 </div>
                 <div>
                   <strong className="block mb-1">Global Standards</strong>
@@ -1050,6 +1053,17 @@ function App() {
                 </p>
               </div>
             </div>
+
+            {/* Advocacy Chatbot (floating) */}
+            <ErrorBoundary>
+              <Suspense fallback={null}>
+                <AdvocacyChatbot
+                  location={location}
+                  metrics={metrics}
+                  dataQuality={dataQuality || undefined}
+                />
+              </Suspense>
+            </ErrorBoundary>
           </div>
         )}
 
@@ -1113,7 +1127,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Get Instant Analysis</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        10 walkability metrics calculated in seconds using real satellite data and OpenStreetMap infrastructure.
+                        8 walkability metrics calculated in seconds using real satellite data and OpenStreetMap infrastructure.
                       </p>
                     </div>
 
@@ -1133,7 +1147,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Take Action</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Generate PDF reports, compare locations, or upgrade for professional tools like ADA compliance analysis.
+                        Generate PDF reports, compare locations, or upgrade for advocacy tools like policy reports and budget analysis.
                       </p>
                     </div>
                   </div>
@@ -1156,30 +1170,66 @@ function App() {
             <section className="py-16" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)' }}>
               <div className="max-w-5xl mx-auto px-6">
                 <h2 className="text-3xl font-bold text-center mb-4 text-earth-text-dark">
-                  6 Key Metrics, Completely Free
+                  8 Key Metrics, Completely Free
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  No credit card required. No sign-up. Get professional-grade walkability analysis instantly using real satellite data and OpenStreetMap.
+                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using real data from NASA, Sentinel-2, and OpenStreetMap.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Street Crossings */}
                   <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-teal-50 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
                       <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Crosswalk illustration */}
-                        <rect x="8" y="28" width="48" height="16" fill="#f97316" opacity="0.2"/>
-                        <rect x="12" y="30" width="6" height="12" fill="#f97316"/>
-                        <rect x="22" y="30" width="6" height="12" fill="#f97316"/>
-                        <rect x="32" y="30" width="6" height="12" fill="#f97316"/>
-                        <rect x="42" y="30" width="6" height="12" fill="#f97316"/>
-                        {/* Person walking */}
-                        <circle cx="32" cy="14" r="4" fill="#1e293b"/>
-                        <path d="M32 18 L32 28 M28 22 L36 22 M32 28 L28 36 M32 28 L36 36" stroke="#1e293b" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M8 32 L56 32" stroke="#0d9488" strokeWidth="3" strokeLinecap="round"/>
+                        <path d="M32 8 L32 56" stroke="#0d9488" strokeWidth="3" strokeLinecap="round"/>
+                        <rect x="26" y="26" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <rect x="26" y="30" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <rect x="26" y="34" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <rect x="34" y="26" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <rect x="34" y="30" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <rect x="34" y="34" width="4" height="2" fill="#0d9488" rx="0.5"/>
+                        <circle cx="22" cy="28" r="3" fill="#1e293b"/>
+                        <path d="M22 31 L22 38 M19 34 L25 34 M22 38 L19 44 M22 38 L25 44" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
                     </div>
                     <h3 className="font-bold text-gray-900 mb-2">Street Crossings</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Density of pedestrian crossings and traffic signals. Safe crossings make walking comfortable and reduce jaywalking risk.</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">Density of marked pedestrian crossings from OpenStreetMap. More crosswalks mean safer, more direct walking routes.</p>
+                  </div>
+
+                  {/* Daily Needs */}
+                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
+                      <svg viewBox="0 0 64 64" className="w-10 h-10">
+                        <rect x="8" y="24" width="18" height="20" fill="#6366f1" opacity="0.2" rx="2"/>
+                        <rect x="23" y="18" width="18" height="26" fill="#6366f1" opacity="0.3" rx="2"/>
+                        <rect x="38" y="22" width="18" height="22" fill="#6366f1" opacity="0.2" rx="2"/>
+                        <text x="17" y="38" textAnchor="middle" fill="#6366f1" fontSize="12">🛒</text>
+                        <text x="32" y="35" textAnchor="middle" fill="#6366f1" fontSize="12">🏫</text>
+                        <text x="47" y="37" textAnchor="middle" fill="#6366f1" fontSize="12">🏥</text>
+                        <path d="M8 48 L56 48" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">Daily Needs</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Access to groceries, healthcare, transit, schools, and restaurants within walking distance from OpenStreetMap data.</p>
+                  </div>
+
+                  {/* Surface Temperature */}
+                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                      <svg viewBox="0 0 64 64" className="w-10 h-10">
+                        <rect x="28" y="8" width="8" height="40" rx="4" fill="#f97316" opacity="0.2"/>
+                        <rect x="30" y="20" width="4" height="28" rx="2" fill="#f97316"/>
+                        <circle cx="32" cy="50" r="8" fill="#f97316" opacity="0.3"/>
+                        <circle cx="32" cy="50" r="5" fill="#f97316"/>
+                        <path d="M12 20 L20 20" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M12 32 L20 32" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M44 20 L52 20" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M44 32 L52 32" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">Surface Temperature</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">NASA POWER satellite data measures surface temperatures that affect walking comfort, especially during summer months.</p>
                   </div>
 
                   {/* Street Network */}
@@ -1202,51 +1252,35 @@ function App() {
                     <p className="text-sm text-gray-600 leading-relaxed">Connectivity and efficiency of the street grid. Well-connected networks mean shorter, more direct walking routes.</p>
                   </div>
 
-                  {/* Daily Needs */}
+                  {/* Air Quality */}
                   <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
                     <div className="w-16 h-16 mb-4 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
                       <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Buildings - mixed use */}
-                        <rect x="8" y="24" width="16" height="32" fill="#a855f7" opacity="0.3" rx="2"/>
-                        <rect x="10" y="28" width="4" height="4" fill="#a855f7"/>
-                        <rect x="18" y="28" width="4" height="4" fill="#a855f7"/>
-                        <rect x="10" y="36" width="4" height="4" fill="#a855f7"/>
-                        <rect x="18" y="36" width="4" height="4" fill="#a855f7"/>
-                        <rect x="12" y="48" width="8" height="8" fill="#1e293b"/>
-                        <rect x="28" y="32" width="14" height="24" fill="#a855f7" opacity="0.3" rx="2"/>
-                        <rect x="30" y="36" width="10" height="6" fill="#a855f7"/>
-                        <text x="33" y="41" fill="white" fontSize="6" fontWeight="bold">$</text>
-                        <rect x="46" y="20" width="12" height="36" fill="#a855f7" opacity="0.3" rx="2"/>
-                        <rect x="48" y="24" width="8" height="4" fill="#a855f7"/>
-                        <rect x="48" y="32" width="8" height="4" fill="#a855f7"/>
-                        <rect x="48" y="40" width="8" height="4" fill="#a855f7"/>
+                        <circle cx="32" cy="32" r="20" fill="#a855f7" opacity="0.15"/>
+                        <path d="M16 28 Q24 24 32 28 Q40 32 48 28" stroke="#a855f7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                        <path d="M16 36 Q24 32 32 36 Q40 40 48 36" stroke="#a855f7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                        <path d="M16 44 Q24 40 32 44 Q40 48 48 44" stroke="#a855f7" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.5"/>
+                        <text x="32" y="22" textAnchor="middle" fill="#a855f7" fontSize="10" fontWeight="bold">AQI</text>
                       </svg>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Daily Needs</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Access to shops, restaurants, and essential services within walking distance. The foundation of a 15-minute neighborhood.</p>
+                    <h3 className="font-bold text-gray-900 mb-2">Air Quality</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Real-time air quality from OpenAQ's 15,000+ monitoring stations worldwide. Clean air is essential for healthy walking.</p>
                   </div>
 
-                  {/* Parks Nearby */}
+                  {/* Heat Island */}
                   <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
                       <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Park with trees and bench */}
-                        <ellipse cx="20" cy="28" rx="12" ry="14" fill="#22c55e" opacity="0.6"/>
-                        <rect x="18" y="32" width="4" height="16" fill="#854d0e"/>
-                        <ellipse cx="44" cy="24" rx="10" ry="12" fill="#22c55e" opacity="0.8"/>
-                        <rect x="42" y="28" width="4" height="20" fill="#854d0e"/>
-                        <ellipse cx="32" cy="32" rx="8" ry="10" fill="#22c55e"/>
-                        <rect x="30" y="36" width="4" height="12" fill="#854d0e"/>
-                        {/* Bench */}
-                        <rect x="24" y="52" width="16" height="3" fill="#1e293b"/>
-                        <rect x="26" y="55" width="2" height="4" fill="#1e293b"/>
-                        <rect x="36" y="55" width="2" height="4" fill="#1e293b"/>
-                        {/* Ground */}
-                        <ellipse cx="32" cy="58" rx="24" ry="4" fill="#22c55e" opacity="0.2"/>
+                        <rect x="12" y="28" width="12" height="24" fill="#ef4444" opacity="0.3" rx="2"/>
+                        <rect x="26" y="20" width="12" height="32" fill="#ef4444" opacity="0.4" rx="2"/>
+                        <rect x="40" y="24" width="12" height="28" fill="#ef4444" opacity="0.3" rx="2"/>
+                        <path d="M8 56 L56 56" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
+                        <circle cx="32" cy="12" r="6" fill="#ef4444" opacity="0.6"/>
+                        <path d="M32 6 L32 2 M38 12 L42 12 M26 12 L22 12 M36 8 L39 5 M28 8 L25 5" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Parks Nearby</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Access to parks, gardens, and green spaces. Urban nature provides shade, clean air, and mental health benefits.</p>
+                    <h3 className="font-bold text-gray-900 mb-2">Heat Island</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Sentinel-2 SWIR satellite analysis detects urban heat islands where concrete and asphalt absorb heat, making walking uncomfortable.</p>
                   </div>
 
                   {/* Terrain Slope */}
@@ -1342,7 +1376,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 6 key walkability metrics are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally.
+                    Yes! All 8 key walkability metrics are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally.
                   </p>
                 </div>
               </div>
@@ -1417,7 +1451,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The free tier works instantly without any account. For paid tiers (Advocate $19, Professional $79), payment is processed through Stripe—no separate account needed. Just pay once and access premium features immediately.
+                    No! The free tier works instantly without any account. For the Advocate tier ($19), payment is processed through Stripe—no separate account needed. Just pay once and access premium features immediately.
                   </p>
                 </div>
               </div>
@@ -1442,7 +1476,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">One-time payment!</strong> Unlike other tools that charge $1,000-10,000/year, SafeStreets charges $19 or $79 once and you keep access forever. No recurring fees, no hidden costs.
+                    <strong className="text-green-700">One-time payment!</strong> Unlike other tools that charge $1,000-10,000/year, SafeStreets charges $19 once and you keep access forever. No recurring fees, no hidden costs.
                   </p>
                 </div>
               </div>
@@ -1466,11 +1500,8 @@ function App() {
                   id="faq-6-content"
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
-                  <p className="mb-3">
-                    <strong className="text-gray-900">Advocate ($19):</strong> Policy report PDFs, Streetmix integration, 3D street visualization, budget analysis, and international standards comparison.
-                  </p>
                   <p>
-                    <strong className="text-gray-900">Professional ($79):</strong> Everything in Advocate plus 15-minute city score, building density (FAR), transit access analysis, ADA accessibility reports, street lighting safety analysis, and custom branding.
+                    <strong className="text-gray-900">Advocate ($19):</strong> AI advocacy letter generator, policy report PDFs, Streetmix integration, 3D street visualization, budget analysis, and international standards comparison.
                   </p>
                 </div>
               </div>
@@ -1498,7 +1529,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use professional-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure), <strong>Sentinel-2</strong> satellite imagery via Google Earth Engine (10m resolution vegetation data), and <strong>NASADEM</strong> (1-arc-second global elevation). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
+                    We use research-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (1-arc-second global elevation), <strong>NASA POWER</strong> (surface temperature), and <strong>OpenAQ</strong> (air quality from 15,000+ stations). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
                   </p>
                 </div>
               </div>
@@ -1548,7 +1579,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! The free tier can be used for personal or commercial purposes. For commercial use with custom branding and advanced features, we recommend the Professional tier ($79 one-time). Perfect for real estate listings, urban planning consultations, or community advocacy.
+                    Yes! The free tier can be used for personal or commercial purposes. For advocacy tools and policy reports, the Advocate tier ($19 one-time) is perfect for community advocacy and urban planning.
                   </p>
                 </div>
               </div>
@@ -1608,7 +1639,7 @@ function App() {
                 <h3 className="text-xl font-bold text-terra">SafeStreets</h3>
               </div>
               <p className="text-sm mb-4 leading-relaxed" style={{ color: '#8a9a8a' }}>
-                Professional walkability analysis powered by real satellite data. Analyze street infrastructure, terrain, and green space coverage anywhere on Earth.
+                Satellite-powered walkability analysis. Analyze street infrastructure, terrain, and environmental conditions anywhere on Earth.
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs" style={{ backgroundColor: 'rgba(74, 138, 60, 0.15)', border: '1px solid rgba(74, 138, 60, 0.25)', color: '#6aaa5a' }}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#6aaa5a' }}></span>
@@ -1632,13 +1663,6 @@ function App() {
                   <div>
                     <span className="font-semibold" style={{ color: '#e0dbd0' }}>Advocate: $19</span>
                     <p className="text-xs" style={{ color: '#7a8a7a' }}>Policy tools + custom reports</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#a070c0' }}></span>
-                  <div>
-                    <span className="font-semibold" style={{ color: '#e0dbd0' }}>Professional: $79</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Advanced analysis + branding</p>
                   </div>
                 </li>
               </ul>

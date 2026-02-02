@@ -128,29 +128,20 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
   console.log(`Fetching tree canopy data for ${lat.toFixed(4)}, ${lon.toFixed(4)}...`);
 
   try {
-    // STEP 1: Try to get real satellite NDVI from backend (Google Earth Engine)
+    // Use real Sentinel-2 satellite NDVI only — no OSM fallback
     const satelliteNDVI = await fetchSatelliteNDVI(lat, lon);
 
     if (satelliteNDVI !== null) {
-      console.log(`🛰️ Using real Sentinel-2 satellite data: NDVI ${satelliteNDVI.toFixed(2)}`);
+      console.log(`🛰️ Sentinel-2 satellite NDVI: ${satelliteNDVI.toFixed(2)}`);
       return satelliteNDVI;
     }
 
-    // STEP 2: Fallback to OSM green space estimation
-    console.log('🗺️ Using OSM green space estimation');
-    const osmNDVI = await estimateNDVIFromOSM(lat, lon);
-    console.log(`Tree canopy NDVI (OSM estimate): ${osmNDVI.toFixed(2)}`);
-    return osmNDVI;
+    // Satellite unavailable — return null (metric shows as unavailable)
+    console.log('Satellite NDVI unavailable for this location');
+    return null;
   } catch (error) {
     console.error('Failed to fetch tree canopy data:', error);
-
-    // Last resort: try OSM estimation
-    try {
-      return await estimateNDVIFromOSM(lat, lon);
-    } catch (fallbackError) {
-      console.error('All NDVI methods failed:', fallbackError);
-      return null;
-    }
+    return null;
   }
 }
 

@@ -22,6 +22,7 @@ interface MetricCardProps {
     explanation: string;
   };
   status?: 'pass' | 'fail';
+  isLoading?: boolean;
 }
 
 export default function MetricCard({
@@ -37,6 +38,7 @@ export default function MetricCard({
   dataSource,
   additionalContext,
   dataQuality,
+  isLoading,
 }: MetricCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
@@ -69,6 +71,35 @@ export default function MetricCard({
   };
 
   const b = badgeConfig[badge];
+
+  if (isLoading) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 flex flex-col h-full">
+        {/* Header */}
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="text-2xl flex-shrink-0">{icon}</span>
+          <h3 className="text-[15px] font-semibold text-gray-900 leading-tight">
+            {dataSource?.split(' ')[0] || 'Satellite'} Data
+          </h3>
+        </div>
+
+        {/* Loading shimmer */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-gray-400 font-medium">Loading satellite data...</span>
+          </div>
+          <div className="w-full rounded-full h-2 overflow-hidden bg-gray-100">
+            <div className="h-full rounded-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" style={{ width: '60%' }} />
+          </div>
+        </div>
+
+        <p className="text-[13.5px] leading-relaxed text-gray-400 flex-grow">
+          Fetching real-time data from {dataSource || 'satellite sources'}...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col h-full">

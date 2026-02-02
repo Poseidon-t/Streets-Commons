@@ -56,19 +56,15 @@ function getBadge(score: number): UserFriendlyMetric['badge'] {
 /**
  * Translate all metrics to user-friendly format
  *
- * Shows 6 core metrics with highest data reliability:
- * 1. Street Crossings (OSM) - 95% global coverage
- * 2. Street Network (OSM) - 99% global coverage
- * 3. Daily Needs (OSM POIs) - 85% coverage in urban areas
- * 4. Parks Nearby (OSM) - 90% coverage
- * 5. Terrain Slope (NASADEM) - 99% global coverage
- * 6. Tree Canopy (Sentinel-2 NDVI) - 95% global coverage
- *
- * Hidden metrics (lower reliability or seasonal):
- * - Sidewalks: Very incomplete OSM data (<30% coverage globally)
- * - Surface Temp: Confusing for users, redundant with heat island
- * - Air Quality: Only works within 25km of monitoring stations (~60% coverage)
- * - Heat Island: Fails in winter/cloudy conditions (~70% coverage)
+ * 8 metrics: 3 OSM + 5 satellite/scientific:
+ * 1. Safe Street Crossings (OSM crossings) - well-mapped in urban areas
+ * 2. Street Connectivity (OSM geometry) - mathematical, objective
+ * 3. Daily Needs Nearby (OSM POIs) - good coverage in cities
+ * 4. Flat Terrain (NASA SRTM) - 99% global coverage
+ * 5. Shade & Greenery (Sentinel-2 NDVI) - 95% global coverage
+ * 6. Cool Walking Conditions (NASA POWER) - global coverage
+ * 7. Air Quality (OpenAQ) - real monitoring stations
+ * 8. Heat Island (Sentinel-2 SWIR) - satellite imagery
  */
 export function translateMetrics(
   metrics: WalkabilityMetrics,
@@ -79,9 +75,11 @@ export function translateMetrics(
     translateCrossingDensity(metrics.crossingDensity),
     translateNetworkEfficiency(metrics.networkEfficiency),
     translateDestinationAccess(metrics.destinationAccess, locationName),
-    translateGreenSpaceAccess(metrics.greenSpaceAccess),
     translateSlope(metrics.slope),
     translateTreeCanopy(metrics.treeCanopy),
+    translateSurfaceTemperature(metrics.surfaceTemp),
+    translateAirQuality(metrics.airQuality),
+    translateHeatIsland(metrics.heatIsland),
   ];
 }
 
@@ -439,8 +437,7 @@ function translateTreeCanopy(rawScore: number): UserFriendlyMetric {
 /**
  * Surface Temperature → Cool Walking Conditions
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _translateSurfaceTemp(rawScore: number): UserFriendlyMetric {
+function translateSurfaceTemperature(rawScore: number): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
@@ -486,8 +483,7 @@ function _translateSurfaceTemp(rawScore: number): UserFriendlyMetric {
 /**
  * Air Quality → Clean Air for Walking
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _translateAirQuality(rawScore: number): UserFriendlyMetric {
+function translateAirQuality(rawScore: number): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
@@ -533,8 +529,7 @@ function _translateAirQuality(rawScore: number): UserFriendlyMetric {
 /**
  * Heat Island → Urban Cooling
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _translateHeatIsland(rawScore: number): UserFriendlyMetric {
+function translateHeatIsland(rawScore: number): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 

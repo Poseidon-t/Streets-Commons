@@ -7,12 +7,10 @@ export interface Location {
 }
 
 export interface WalkabilityMetrics {
-  // OSM-verifiable metrics
-  crossingDensity: number;
-  sidewalkCoverage: number;
-  networkEfficiency: number;
-  destinationAccess: number;
-  greenSpaceAccess: number; // NEW: Parks, gardens, recreation areas
+  // OSM metrics (crowdsourced but well-mapped)
+  crossingDensity: number; // OSM highway=crossing nodes
+  networkEfficiency: number; // OSM street grid geometry
+  destinationAccess: number; // OSM amenity/shop/leisure POIs
   // Satellite/elevation data metrics
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data

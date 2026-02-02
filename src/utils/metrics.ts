@@ -209,76 +209,58 @@ export function calculateMetrics(
   airQualityScore?: number, // Optional air quality from OpenAQ
   heatIslandScore?: number // Optional heat island from Sentinel-2 SWIR
 ): WalkabilityMetrics {
+  // 3 OSM metrics (always available)
   const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
-  const sidewalkCoverage = calculateSidewalkCoverage(data);
   const networkEfficiency = calculateNetworkEfficiency(data);
   const destinationAccess = calculateDestinationAccess(data);
-  const greenSpaceAccess = calculateGreenSpaceAccess(data);
-  const slope = slopeScore ?? 0; // Default to 0 if not provided yet
-  const treeCanopy = treeCanopyScore ?? 0; // Default to 0 if not provided yet
-  const surfaceTemp = surfaceTempScore ?? 0; // Default to 0 if not provided yet
-  const airQuality = airQualityScore ?? 0; // Default to 0 if not provided yet
-  const heatIsland = heatIslandScore ?? 0; // Default to 0 if not provided yet
 
-  // Weighted average - adjust based on available data
-  // 10 metrics (all available): crossing 14%, sidewalk 14%, network 10%, destination 10%, green 10%, slope 10%, tree 10%, temp 8%, air 7%, heat 7%
-  // 5 metrics (OSM only): crossing 25%, sidewalk 25%, network 15%, destination 15%, green 20%
+  // 5 satellite metrics (loaded progressively)
+  const slope = slopeScore ?? 0;
+  const treeCanopy = treeCanopyScore ?? 0;
+  const surfaceTemp = surfaceTempScore ?? 0;
+  const airQuality = airQualityScore ?? 0;
+  const heatIsland = heatIslandScore ?? 0;
 
+  // 8 metrics total: 3 OSM + 5 satellite
+  // Weights when all 8 available:
+  //   crossingDensity: 10%, networkEfficiency: 15%, destinationAccess: 10%
+  //   slope: 10%, treeCanopy: 10%, surfaceTemp: 10%, airQuality: 15%, heatIsland: 20%
   let overallScore: number;
 
-  // Count how many satellite metrics are available
+  const osmScore = crossingDensity * 0.10 + networkEfficiency * 0.15 + destinationAccess * 0.10;
+
   const satelliteMetrics = [slopeScore, treeCanopyScore, surfaceTempScore, airQualityScore, heatIslandScore];
-  const availableSatelliteCount = satelliteMetrics.filter(s => s !== undefined).length;
+  const availableSatellite = satelliteMetrics.filter(s => s !== undefined);
+  const availableSatelliteCount = availableSatellite.length;
 
   if (availableSatelliteCount === 5) {
-    // All 10 metrics available
+    // All 8 metrics available
     overallScore = Math.round(
-      (crossingDensity * 0.14 +
-        sidewalkCoverage * 0.14 +
-        networkEfficiency * 0.10 +
-        destinationAccess * 0.10 +
-        greenSpaceAccess * 0.10 +
+      (osmScore +
         slope * 0.10 +
         treeCanopy * 0.10 +
-        surfaceTemp * 0.08 +
-        airQuality * 0.07 +
-        heatIsland * 0.07) * 10
+        surfaceTemp * 0.10 +
+        airQuality * 0.15 +
+        heatIsland * 0.20) * 10
     ) / 10;
   } else if (availableSatelliteCount > 0) {
-    // Partial satellite data - adjust weights dynamically
-    const osmWeight = 0.5; // 50% for OSM metrics
-    const satelliteWeight = 0.5; // 50% for satellite metrics
-
-    const osmScore = (
-      crossingDensity * 0.25 +
-      sidewalkCoverage * 0.25 +
-      networkEfficiency * 0.15 +
-      destinationAccess * 0.15 +
-      greenSpaceAccess * 0.20
-    ) * osmWeight;
-
-    const satelliteScore = (
-      slope + treeCanopy + surfaceTemp + airQuality + heatIsland
-    ) / 5 * satelliteWeight;
-
-    overallScore = Math.round((osmScore + satelliteScore) * 10) / 10;
-  } else {
-    // 5 metrics (OSM only)
+    // Partial satellite — OSM 35%, available satellite shares remaining 65%
+    const satWeight = 0.65 / availableSatelliteCount;
+    const satSum = availableSatellite.reduce((sum, s) => sum + (s ?? 0), 0);
     overallScore = Math.round(
-      (crossingDensity * 0.25 +
-        sidewalkCoverage * 0.25 +
-        networkEfficiency * 0.15 +
-        destinationAccess * 0.15 +
-        greenSpaceAccess * 0.20) * 10
+      (osmScore + satSum * satWeight) * 10
+    ) / 10;
+  } else {
+    // OSM only — average of 3 OSM metrics
+    overallScore = Math.round(
+      ((crossingDensity + networkEfficiency + destinationAccess) / 3) * 10
     ) / 10;
   }
 
   return {
     crossingDensity,
-    sidewalkCoverage,
     networkEfficiency,
     destinationAccess,
-    greenSpaceAccess,
     slope,
     treeCanopy,
     surfaceTemp,

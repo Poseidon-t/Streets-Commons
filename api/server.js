@@ -1685,16 +1685,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
         name: 'SafeStreets Advocate',
         description: 'Streetmix, 3DStreet, Policy Reports, Budget Analysis',
       },
-      professional: {
-        amount: 7900, // $79 in cents
-        name: 'SafeStreets Professional',
-        description: 'Everything in Advocate + 15-Min City, Transit Analysis, ADA Reports, Custom Branding',
-      },
     };
 
     const selectedPricing = pricing[tier];
     if (!selectedPricing) {
-      return res.status(400).json({ error: 'Invalid tier. Must be "advocate" or "professional"' });
+      return res.status(400).json({ error: 'Invalid tier. Must be "advocate"' });
     }
 
     console.log(`💳 Creating checkout session for ${email} - ${tier} tier`);
@@ -1945,6 +1940,134 @@ INSTRUCTIONS:
   } catch (error) {
     console.error('Advocacy letter generation failed:', error.message);
     res.status(500).json({ error: 'Failed to generate letter. Please try again.' });
+  }
+});
+
+// ─── Advocacy Chatbot (Claude AI, streaming) ──────────────────────────────────
+
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // 20 messages per minute per IP
+  message: { error: 'Too many messages. Please slow down.' },
+});
+
+app.post('/api/chat', chatLimiter, async (req, res) => {
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return res.status(503).json({ error: 'Chat is not configured' });
+    }
+
+    const { messages, context } = req.body;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'Missing messages' });
+    }
+
+    // Build system prompt with analysis context
+    let systemPrompt = `You are the SafeStreets Advocacy Assistant — a friendly, knowledgeable helper embedded in a walkability analysis tool. Your role is to help residents understand their neighborhood's walkability data and take action to improve it.
+
+PERSONALITY:
+- Warm, encouraging, and practical
+- You explain data simply without dumbing it down
+- You focus on actionable next steps
+- You're honest about data limitations
+- Keep responses concise (2-4 paragraphs max unless the user asks for more detail)
+
+CAPABILITIES:
+1. EXPLAIN RESULTS: Help users understand what their walkability scores mean in plain language
+2. SUGGEST NEXT STEPS: Based on weakest metrics, suggest specific improvements to advocate for
+3. DRAFT CONTENT: Write advocacy letters, social media posts, talking points, or email templates
+4. WHO TO CONTACT: Suggest the right officials/departments based on the issue type
+5. COMPARE CONTEXT: Help users understand if their scores are typical or unusual
+6. NEWS & CONTEXT: When asked, suggest relevant search terms for local walkability news
+
+STANDARDS YOU KNOW:
+- WHO recommends minimum 8m² green space per person
+- NACTO recommends crosswalks every 80-100m on urban streets
+- ADA requires curb cuts at all intersections
+- ITDP standards for pedestrian infrastructure
+- UN-Habitat guidelines for walkable cities`;
+
+    // Inject location-specific context if provided
+    if (context) {
+      systemPrompt += `\n\nCURRENT ANALYSIS DATA:`;
+      if (context.locationName) {
+        systemPrompt += `\nLocation: ${context.locationName}`;
+      }
+      if (context.metrics) {
+        const m = context.metrics;
+        systemPrompt += `\n\nMetric Scores (0-10 scale):`;
+        if (m.crossingDensity !== undefined) systemPrompt += `\n- Street Crossings: ${m.crossingDensity}/10`;
+        if (m.networkEfficiency !== undefined) systemPrompt += `\n- Street Connectivity: ${m.networkEfficiency}/10`;
+        if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10`;
+        if (m.slope !== undefined) systemPrompt += `\n- Terrain (Flatness): ${m.slope}/10`;
+        if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
+        if (m.surfaceTemp !== undefined) systemPrompt += `\n- Surface Temperature: ${m.surfaceTemp}/10`;
+        if (m.airQuality !== undefined) systemPrompt += `\n- Air Quality: ${m.airQuality}/10`;
+        if (m.heatIsland !== undefined) systemPrompt += `\n- Heat Island Effect: ${m.heatIsland}/10`;
+        if (m.overallScore !== undefined) systemPrompt += `\n- Overall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
+
+        // Identify weakest metrics
+        const metricEntries = [
+          ['Street Crossings', m.crossingDensity],
+          ['Street Connectivity', m.networkEfficiency],
+          ['Daily Needs Access', m.destinationAccess],
+          ['Terrain', m.slope],
+          ['Tree Canopy', m.treeCanopy],
+          ['Surface Temperature', m.surfaceTemp],
+          ['Air Quality', m.airQuality],
+          ['Heat Island', m.heatIsland],
+        ].filter(([, v]) => typeof v === 'number');
+
+        const weakest = metricEntries.sort((a, b) => a[1] - b[1]).slice(0, 3);
+        if (weakest.length > 0) {
+          systemPrompt += `\n\nWeakest areas: ${weakest.map(([name, score]) => `${name} (${score}/10)`).join(', ')}`;
+        }
+      }
+      if (context.dataQuality) {
+        systemPrompt += `\nData confidence: ${context.dataQuality.confidence}`;
+      }
+    }
+
+    const anthropic = new Anthropic({ apiKey });
+
+    // Set up SSE streaming
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
+
+    // Limit conversation to last 20 messages to control token usage
+    const trimmedMessages = messages.slice(-20).map(msg => ({
+      role: msg.role === 'user' ? 'user' : 'assistant',
+      content: msg.content,
+    }));
+
+    const stream = anthropic.messages.stream({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: trimmedMessages,
+    });
+
+    for await (const event of stream) {
+      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
+        res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
+      }
+    }
+
+    res.write(`data: [DONE]\n\n`);
+    res.end();
+  } catch (error) {
+    console.error('Chat error:', error.message);
+    // If headers already sent (streaming started), just end
+    if (res.headersSent) {
+      res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
+      res.end();
+    } else {
+      res.status(500).json({ error: 'Chat failed. Please try again.' });
+    }
   }
 });
 
