@@ -16,6 +16,7 @@ const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
+
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchSlope, scoreSlopeFromDegrees } from './services/elevation';

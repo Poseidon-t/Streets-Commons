@@ -14,7 +14,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fromUrl } from 'geotiff';
 import Stripe from 'stripe';
-import Anthropic from '@anthropic-ai/sdk';
+
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -1872,20 +1872,17 @@ app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res
       return res.status(400).json({ error: 'Missing location or metrics data' });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      return res.status(503).json({ error: 'AI letter generation is not configured' });
+    const groqKey = process.env.GROQ_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (!groqKey && !geminiKey) {
+      return res.status(503).json({ error: 'AI letter generation is not configured. Add GROQ_API_KEY or GEMINI_API_KEY.' });
     }
-
-    const anthropic = new Anthropic({ apiKey });
 
     // Build a concise metrics summary for the prompt
     const metricLines = [];
     if (metrics.crossingDensity !== undefined) metricLines.push(`Crosswalk Density: ${metrics.crossingDensity}/10`);
-    if (metrics.sidewalkCoverage !== undefined) metricLines.push(`Sidewalk Coverage: ${metrics.sidewalkCoverage}/10`);
     if (metrics.networkEfficiency !== undefined) metricLines.push(`Street Connectivity: ${metrics.networkEfficiency}/10`);
     if (metrics.destinationAccess !== undefined) metricLines.push(`Daily Needs Nearby: ${metrics.destinationAccess}/10`);
-    if (metrics.greenSpaceAccess !== undefined) metricLines.push(`Parks & Green Space: ${metrics.greenSpaceAccess}/10`);
     if (metrics.slope !== undefined) metricLines.push(`Flat Terrain: ${metrics.slope}/10`);
     if (metrics.treeCanopy !== undefined) metricLines.push(`Shade & Tree Canopy: ${metrics.treeCanopy}/10`);
     if (metrics.surfaceTemp !== undefined) metricLines.push(`Cool Walking Conditions: ${metrics.surfaceTemp}/10`);
@@ -1898,12 +1895,7 @@ app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res
       .slice(0, 3)
       .map(([k]) => k);
 
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
-      messages: [{
-        role: 'user',
-        content: `Write a formal advocacy letter to a local government official about pedestrian safety and walkability improvements needed at the following location.
+    const prompt = `Write a formal advocacy letter to a local government official about pedestrian safety and walkability improvements needed at the following location.
 
 LOCATION: ${location.displayName}
 COORDINATES: ${location.lat}, ${location.lon}
@@ -1927,13 +1919,11 @@ INSTRUCTIONS:
 - Use a formal but accessible tone — this should persuade, not lecture
 - Do NOT include placeholder brackets like [Your Name] — write it as a complete letter
 - If an author name is provided, sign with that name; otherwise sign as "A Concerned Resident"
-- Do NOT include a subject line — just the letter body starting with "Dear..."`,
-      }],
-    });
+- Do NOT include a subject line — just the letter body starting with "Dear..."`;
 
-    const letterText = message.content[0]?.text;
+    const letterText = await callAIWithFallback(prompt, groqKey, geminiKey);
     if (!letterText) {
-      return res.status(500).json({ error: 'Failed to generate letter' });
+      return res.status(500).json({ error: 'Failed to generate letter. AI services unavailable.' });
     }
 
     res.json({ success: true, letter: letterText });
@@ -1943,18 +1933,18 @@ INSTRUCTIONS:
   }
 });
 
-// ─── Advocacy Chatbot (Claude AI, streaming) ──────────────────────────────────
+// ─── Advocacy Chatbot (Groq, streaming) ──────────────────────────────────────
 
 const chatLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 20, // 20 messages per minute per IP
+  windowMs: 60 * 1000,
+  max: 20,
   message: { error: 'Too many messages. Please slow down.' },
 });
 
 app.post('/api/chat', chatLimiter, async (req, res) => {
   try {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    const groqKey = process.env.GROQ_API_KEY;
+    if (!groqKey) {
       return res.status(503).json({ error: 'Chat is not configured' });
     }
 
@@ -1980,7 +1970,6 @@ CAPABILITIES:
 3. DRAFT CONTENT: Write advocacy letters, social media posts, talking points, or email templates
 4. WHO TO CONTACT: Suggest the right officials/departments based on the issue type
 5. COMPARE CONTEXT: Help users understand if their scores are typical or unusual
-6. NEWS & CONTEXT: When asked, suggest relevant search terms for local walkability news
 
 STANDARDS YOU KNOW:
 - WHO recommends minimum 8m² green space per person
@@ -1989,7 +1978,6 @@ STANDARDS YOU KNOW:
 - ITDP standards for pedestrian infrastructure
 - UN-Habitat guidelines for walkable cities`;
 
-    // Inject location-specific context if provided
     if (context) {
       systemPrompt += `\n\nCURRENT ANALYSIS DATA:`;
       if (context.locationName) {
@@ -2008,7 +1996,6 @@ STANDARDS YOU KNOW:
         if (m.heatIsland !== undefined) systemPrompt += `\n- Heat Island Effect: ${m.heatIsland}/10`;
         if (m.overallScore !== undefined) systemPrompt += `\n- Overall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
-        // Identify weakest metrics
         const metricEntries = [
           ['Street Crossings', m.crossingDensity],
           ['Street Connectivity', m.networkEfficiency],
@@ -2030,30 +2017,70 @@ STANDARDS YOU KNOW:
       }
     }
 
-    const anthropic = new Anthropic({ apiKey });
-
     // Set up SSE streaming
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
 
-    // Limit conversation to last 20 messages to control token usage
+    // Limit conversation to last 20 messages
     const trimmedMessages = messages.slice(-20).map(msg => ({
       role: msg.role === 'user' ? 'user' : 'assistant',
       content: msg.content,
     }));
 
-    const stream = anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: trimmedMessages,
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqKey}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...trimmedMessages,
+        ],
+        temperature: 0.4,
+        max_tokens: 1024,
+        stream: true,
+      }),
     });
 
-    for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta') {
-        res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Groq chat error:', errorText);
+      res.write(`data: ${JSON.stringify({ error: 'Chat service temporarily unavailable.' })}\n\n`);
+      res.end();
+      return;
+    }
+
+    // Stream the response
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(data);
+            const text = parsed.choices?.[0]?.delta?.content;
+            if (text) {
+              res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            }
+          } catch {
+            // Skip malformed lines
+          }
+        }
       }
     }
 
@@ -2061,7 +2088,6 @@ STANDARDS YOU KNOW:
     res.end();
   } catch (error) {
     console.error('Chat error:', error.message);
-    // If headers already sent (streaming started), just end
     if (res.headersSent) {
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       res.end();

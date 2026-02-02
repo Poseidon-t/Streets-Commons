@@ -504,7 +504,7 @@ function translateAirQuality(rawScore: number): UserFriendlyMetric {
   };
 
   return {
-    icon: '🌫️',
+    icon: '💨',
     headline: headlines[badge],
     score,
     badge,
