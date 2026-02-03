@@ -3,7 +3,7 @@
  * Converts percentages to 1-10 scores and generates plain-language descriptions
  */
 
-import type { WalkabilityMetrics } from '../types';
+import type { WalkabilityMetrics, RawMetricData } from '../types';
 
 // Placeholder type since sidewalkImageAnalysis was removed
 interface AggregatedSidewalkAnalysis {
@@ -23,6 +23,7 @@ export interface UserFriendlyMetric {
   score: number; // 1-10
   badge: 'excellent' | 'good' | 'moderate' | 'needs-improvement' | 'safety-concern';
   description: string;
+  rawValue?: string; // NEW: "PM2.5: 187 µg/m³"
   whyItMatters: string;
   example?: string;
   technicalMeasurement: string;
@@ -69,24 +70,24 @@ function getBadge(score: number): UserFriendlyMetric['badge'] {
 export function translateMetrics(
   metrics: WalkabilityMetrics,
   locationName: string,
-  _sidewalkImageAnalysis?: AggregatedSidewalkAnalysis
+  rawData?: RawMetricData
 ): UserFriendlyMetric[] {
   return [
-    translateCrossingDensity(metrics.crossingDensity),
-    translateNetworkEfficiency(metrics.networkEfficiency),
-    translateDestinationAccess(metrics.destinationAccess, locationName),
-    translateSlope(metrics.slope),
-    translateTreeCanopy(metrics.treeCanopy),
-    translateSurfaceTemperature(metrics.surfaceTemp),
-    translateAirQuality(metrics.airQuality),
-    translateHeatIsland(metrics.heatIsland),
+    translateCrossingDensity(metrics.crossingDensity, rawData),
+    translateNetworkEfficiency(metrics.networkEfficiency, rawData),
+    translateDestinationAccess(metrics.destinationAccess, locationName, rawData),
+    translateSlope(metrics.slope, rawData),
+    translateTreeCanopy(metrics.treeCanopy, rawData),
+    translateSurfaceTemperature(metrics.surfaceTemp, rawData),
+    translateAirQuality(metrics.airQuality, rawData),
+    translateHeatIsland(metrics.heatIsland, rawData),
   ];
 }
 
 /**
  * Crossing Density → Safe Street Crossings
  */
-function translateCrossingDensity(rawScore: number): UserFriendlyMetric {
+function translateCrossingDensity(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
@@ -114,12 +115,18 @@ function translateCrossingDensity(rawScore: number): UserFriendlyMetric {
     'excellent': 'Crosswalks are frequent - typically every 1-2 blocks, even on busy streets.'
   };
 
+  let rawValue: string | undefined;
+  if (raw?.crossingCount !== undefined) {
+    rawValue = `~${raw.crossingCount} crossings in area`;
+  }
+
   return {
     icon: '🚶',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'More crosswalks mean shorter, more direct walks — especially important for children and seniors. Without them, pedestrians jaywalk or detour blocks out of their way.',
     example: examples[badge],
     technicalMeasurement: 'Marked pedestrian crossings per 1,000 ft of roadway — includes zebra, signalized, and mid-block crossings.',
@@ -212,7 +219,7 @@ function _translateSidewalkCoverage(
 /**
  * Network Efficiency → Street Directness
  */
-function translateNetworkEfficiency(rawScore: number): UserFriendlyMetric {
+function translateNetworkEfficiency(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
   const efficiency = Math.round((rawScore / 10) * 100);
@@ -234,12 +241,18 @@ function translateNetworkEfficiency(rawScore: number): UserFriendlyMetric {
     'excellent': `Routes are very direct with minimal detours. The street layout adds only ${extraDistance}% extra distance.`
   };
 
+  let rawValue: string | undefined;
+  if (raw?.streetLength !== undefined) {
+    rawValue = `~${raw.streetLength.toFixed(1)} km of streets`;
+  }
+
   return {
     icon: '🗺️',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Direct routes save time and make walking viable. Dead-ends and disconnected streets force detours that turn a quick walk into a drive.',
     example: score < 5
       ? `A 10-minute straight-line walk actually takes ${10 + Math.round(10 * extraDistance / 100)} minutes due to street layout.`
@@ -257,7 +270,7 @@ function translateNetworkEfficiency(rawScore: number): UserFriendlyMetric {
 /**
  * Destination Access → Daily Needs Nearby
  */
-function translateDestinationAccess(rawScore: number, _locationName: string): UserFriendlyMetric {
+function translateDestinationAccess(rawScore: number, _locationName: string, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
   const percentage = Math.round((rawScore / 10) * 100);
@@ -278,12 +291,18 @@ function translateDestinationAccess(rawScore: number, _locationName: string): Us
     'excellent': 'You can walk to nearly all everyday places. Grocery stores, restaurants, schools, parks, and services are all within easy reach.'
   };
 
+  let rawValue: string | undefined;
+  if (raw?.poiCount !== undefined) {
+    rawValue = `~${raw.poiCount} destinations nearby`;
+  }
+
   return {
     icon: '🏪',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Nearby shops, restaurants, and services mean you can walk instead of drive. That saves money, gives you exercise, and makes spontaneous trips easy.',
     example: score >= 7
       ? 'Nearby destinations:\n• Grocery store: 5-minute walk\n• Coffee shop: 3-minute walk\n• Park: 7-minute walk\n• Restaurant: 4-minute walk'
@@ -344,7 +363,7 @@ function translateGreenSpaceAccess(rawScore: number): UserFriendlyMetric {
 /**
  * Slope → Flat Terrain
  */
-function translateSlope(rawScore: number): UserFriendlyMetric {
+function translateSlope(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
   const flatPercentage = Math.round((rawScore / 10) * 100);
@@ -365,12 +384,18 @@ function translateSlope(rawScore: number): UserFriendlyMetric {
     'excellent': `This area is very flat. ${flatPercentage}% of walks have gentle inclines comfortable for everyone.`
   };
 
+  let rawValue: string | undefined;
+  if (raw?.slopeDegrees !== undefined) {
+    rawValue = `Average slope: ${raw.slopeDegrees.toFixed(1)}°`;
+  }
+
   return {
     icon: '⛰️',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Flat terrain makes walking accessible for everyone — seniors, wheelchair users, parents with strollers. Steep hills turn short walks into exhausting treks.',
     example: score >= 8
       ? 'Terrain is gentle enough for wheelchairs, strollers, and anyone with mobility concerns.'
@@ -390,9 +415,15 @@ function translateSlope(rawScore: number): UserFriendlyMetric {
 /**
  * Tree Canopy → Shade & Greenery
  */
-function translateTreeCanopy(rawScore: number): UserFriendlyMetric {
+function translateTreeCanopy(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
+
+  let rawValue: string | undefined;
+  if (raw?.ndvi !== undefined) {
+    const pct = (raw.ndvi * 100).toFixed(0);
+    rawValue = `Vegetation: ${pct}% (NDVI: ${raw.ndvi.toFixed(2)})`;
+  }
   const coverage = Math.round((rawScore / 10) * 40); // Rough conversion to percentage
 
   const headlines = {
@@ -417,6 +448,7 @@ function translateTreeCanopy(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Shaded streets are 10-15°F cooler than treeless ones. Trees also clean the air and boost home values by 7-15%.',
     example: score >= 7
       ? 'On a 90°F day, shaded sidewalks feel like 75°F. Most of your walks will have overhead shade.'
@@ -437,9 +469,14 @@ function translateTreeCanopy(rawScore: number): UserFriendlyMetric {
 /**
  * Surface Temperature → Cool Walking Conditions
  */
-function translateSurfaceTemperature(rawScore: number): UserFriendlyMetric {
+function translateSurfaceTemperature(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
+
+  let rawValue: string | undefined;
+  if (raw?.temperature !== undefined) {
+    rawValue = `Temperature: ${raw.temperature.toFixed(1)}°C`;
+  }
 
   const headlines = {
     'safety-concern': 'Very Hot Walking Conditions',
@@ -463,6 +500,7 @@ function translateSurfaceTemperature(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Hot pavement makes walks uncomfortable and can be dangerous for heat-sensitive people, seniors, and children. Cooler areas (from trees, water, or lighter surfaces) are more pleasant for walking year-round and encourage more pedestrian activity.',
     example: score < 4
       ? 'Best walking times: Early morning (before 10am) or evening (after 6pm) to avoid peak heat.'
@@ -483,9 +521,14 @@ function translateSurfaceTemperature(rawScore: number): UserFriendlyMetric {
 /**
  * Air Quality → Clean Air for Walking
  */
-function translateAirQuality(rawScore: number): UserFriendlyMetric {
+function translateAirQuality(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
+
+  let rawValue: string | undefined;
+  if (raw?.pm25 !== undefined) {
+    rawValue = `PM2.5: ${raw.pm25.toFixed(1)} µg/m³`;
+  }
 
   const headlines = {
     'safety-concern': 'Hazardous Air Quality',
@@ -509,6 +552,7 @@ function translateAirQuality(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Clean air makes walking healthier and more enjoyable. Poor air quality can cause respiratory problems, especially for children, seniors, and people with asthma. Long-term exposure to pollution reduces life expectancy and quality of life.',
     example: score < 4
       ? 'Consider wearing a mask during walks. Check air quality before outdoor activity.'
@@ -529,9 +573,15 @@ function translateAirQuality(rawScore: number): UserFriendlyMetric {
 /**
  * Heat Island → Urban Cooling
  */
-function translateHeatIsland(rawScore: number): UserFriendlyMetric {
+function translateHeatIsland(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
+
+  let rawValue: string | undefined;
+  if (raw?.heatDifference !== undefined) {
+    const sign = raw.heatDifference >= 0 ? '+' : '';
+    rawValue = `Heat difference: ${sign}${raw.heatDifference.toFixed(1)}°C`;
+  }
 
   const headlines = {
     'safety-concern': 'Severe Heat Island Effect',
@@ -555,6 +605,7 @@ function translateHeatIsland(rawScore: number): UserFriendlyMetric {
     score,
     badge,
     description: descriptions[badge],
+    rawValue,
     whyItMatters: 'Urban heat islands make cities uncomfortably hot in summer, increase cooling costs, and can be dangerous during heat waves. Areas with trees, green space, and water stay 10-20°F cooler than concrete-heavy zones, making walking more comfortable year-round.',
     example: score >= 7
       ? 'This area benefits from tree shade and green infrastructure that keeps temperatures comfortable.'

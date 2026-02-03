@@ -44,3 +44,62 @@ export interface Analysis {
   dataQuality: DataQuality;
   timestamp: Date;
 }
+
+export interface StreetAttributes {
+  name: string;
+  highway: 'primary' | 'secondary' | 'tertiary' | 'residential' | 'living_street';
+  lanes?: number;
+  width?: number;
+  cycleway?: string;
+  cyclewayLeft?: string;
+  cyclewayRight?: string;
+  surface?: string;
+  maxspeed?: number;
+  parkingLeft?: string;
+  parkingRight?: string;
+  sidewalk?: string;
+  oneway?: boolean;
+  lit?: boolean;
+  osmId?: number;
+}
+
+export type CrossSectionElementType = 'building' | 'sidewalk' | 'tree' | 'curb' | 'parking' | 'bikelane' | 'travel_lane';
+
+export interface CrossSectionElement {
+  type: CrossSectionElementType;
+  width: number;
+  label?: string;
+  isEstimated: boolean;
+}
+
+export interface CrossSectionConfig {
+  elements: CrossSectionElement[];
+  totalWidth: number;
+  streetName: string;
+  highwayType: string;
+}
+
+export interface RawMetricData {
+  // Air Quality
+  pm25?: number;              // µg/m³
+  aqiCategory?: string;       // "Good", "Moderate", etc.
+
+  // Surface Temperature
+  temperature?: number;       // °C
+
+  // Heat Island
+  urbanTemp?: number;         // °C
+  vegetationTemp?: number;    // °C
+  heatDifference?: number;    // °C
+
+  // Slope
+  slopeDegrees?: number;      // degrees
+
+  // Tree Canopy
+  ndvi?: number;              // 0-1 scale
+
+  // OSM metrics (estimated, not direct measurements)
+  crossingCount?: number;     // count
+  streetLength?: number;      // km
+  poiCount?: number;          // count
+}

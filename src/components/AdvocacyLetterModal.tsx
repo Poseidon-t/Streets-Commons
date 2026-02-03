@@ -164,7 +164,7 @@ export default function AdvocacyLetterModal({
               <textarea
                 value={letter}
                 onChange={(e) => setLetter(e.target.value)}
-                className="w-full h-[400px] p-4 border border-gray-300 rounded-xl text-sm leading-relaxed font-serif resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full h-48 sm:h-64 md:h-[400px] p-4 border border-gray-300 rounded-xl text-sm leading-relaxed font-serif resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <p className="text-xs text-gray-500">
                 You can edit the letter above before copying or downloading.

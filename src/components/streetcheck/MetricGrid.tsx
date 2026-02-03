@@ -1,4 +1,4 @@
-import type { WalkabilityMetrics } from '../../types';
+import type { WalkabilityMetrics, RawMetricData } from '../../types';
 import MetricCard from '../MetricCard';
 import { translateMetrics } from '../../utils/metricTranslations';
 
@@ -16,11 +16,12 @@ interface MetricGridProps {
   metrics: WalkabilityMetrics;
   locationName: string;
   satelliteLoaded?: Set<string>;
+  rawData?: RawMetricData;
 }
 
-export default function MetricGrid({ metrics, locationName, satelliteLoaded }: MetricGridProps) {
+export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData }: MetricGridProps) {
   // Translate raw metrics to user-friendly format
-  const userFriendlyMetrics = translateMetrics(metrics, locationName);
+  const userFriendlyMetrics = translateMetrics(metrics, locationName, rawData);
 
   return (
     <div className="w-full">

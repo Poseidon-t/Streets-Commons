@@ -11,6 +11,7 @@ interface MetricCardProps {
   score: number;
   badge: 'excellent' | 'good' | 'moderate' | 'needs-improvement' | 'safety-concern';
   description: string;
+  rawValue?: string;
   whyItMatters: string;
   example?: string;
   technicalMeasurement?: string;
@@ -31,6 +32,7 @@ export default function MetricCard({
   score,
   badge,
   description,
+  rawValue,
   whyItMatters,
   example,
   technicalMeasurement,
@@ -128,6 +130,12 @@ export default function MetricCard({
             style={{ width: `${(score / 10) * 100}%` }}
           />
         </div>
+        {/* Raw value */}
+        {rawValue && (
+          <p className="text-xs text-gray-500 font-mono mt-1.5">
+            {rawValue}
+          </p>
+        )}
       </div>
 
       {/* Description */}

@@ -10,7 +10,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-load heavy components (only loaded when needed)
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
-const StreetmixIntegration = lazy(() => import('./components/StreetmixIntegration'));
+const StreetCrossSection = lazy(() => import('./components/StreetCrossSection'));
 const BudgetAnalysis = lazy(() => import('./components/BudgetAnalysis'));
 const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
@@ -28,7 +28,7 @@ import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -45,6 +45,7 @@ function App() {
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
+  const [rawMetricData, setRawMetricData] = useState<RawMetricData>({});
 
   // Premium access - Clerk integration
   const { user } = useUser();
@@ -68,6 +69,10 @@ function App() {
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showLetterModal, setShowLetterModal] = useState(false);
+  const [showMethodology, setShowMethodology] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return !localStorage.getItem('safestreets_seen_onboarding'); } catch { return true; }
+  });
 
   // Payment success banner
   const [paymentSuccess, setPaymentSuccess] = useState<{ tier: string } | null>(null);
@@ -202,20 +207,15 @@ function App() {
   // Start all satellite fetches immediately (called before OSM completes)
   const startSatelliteFetches = (selectedLocation: Location) => ({
     slope: fetchSlope(selectedLocation.lat, selectedLocation.lon)
-      .then(deg => scoreSlopeFromDegrees(deg))
-      .catch(() => undefined),
+      .catch(() => null),
     ndvi: fetchNDVI(selectedLocation.lat, selectedLocation.lon)
-      .then(ndvi => ndvi !== null ? scoreTreeCanopy(ndvi) : undefined)
-      .catch(() => undefined),
+      .catch(() => null),
     surfaceTemp: fetchSurfaceTemperature(selectedLocation.lat, selectedLocation.lon)
-      .then(r => r?.score)
-      .catch(() => undefined),
+      .catch(() => null),
     airQuality: fetchAirQuality(selectedLocation.lat, selectedLocation.lon)
-      .then(r => r?.score)
-      .catch(() => undefined),
+      .catch(() => null),
     heatIsland: fetchHeatIsland(selectedLocation.lat, selectedLocation.lon)
-      .then(r => r?.score)
-      .catch(() => undefined),
+      .catch(() => null),
   });
 
   // Progressively update metrics as each satellite result arrives
@@ -232,6 +232,11 @@ function App() {
       airQuality?: number;
       heatIsland?: number;
     } = {};
+    const raw: RawMetricData = {
+      crossingCount: currentOsmData.crossings?.length,
+      poiCount: currentOsmData.pois?.length,
+      streetLength: currentOsmData.streets?.reduce((sum, s) => sum + (s.length || 0), 0),
+    };
 
     const recalc = () => {
       if (abortController.signal.aborted) return;
@@ -245,6 +250,7 @@ function App() {
         scores.airQuality,
         scores.heatIsland
       ));
+      setRawMetricData({ ...raw });
     };
 
     const markLoaded = (key: string) => {
@@ -252,11 +258,47 @@ function App() {
       setSatelliteLoaded(prev => new Set(prev).add(key));
     };
 
-    promises.slope.then(v => { scores.slope = v; markLoaded('slope'); recalc(); });
-    promises.ndvi.then(v => { scores.ndvi = v; markLoaded('treeCanopy'); recalc(); });
-    promises.surfaceTemp.then(v => { scores.surfaceTemp = v; markLoaded('surfaceTemp'); recalc(); });
-    promises.airQuality.then(v => { scores.airQuality = v; markLoaded('airQuality'); recalc(); });
-    promises.heatIsland.then(v => { scores.heatIsland = v; markLoaded('heatIsland'); recalc(); });
+    promises.slope.then(slopeDeg => {
+      if (slopeDeg !== null) {
+        raw.slopeDegrees = slopeDeg;
+        scores.slope = scoreSlopeFromDegrees(slopeDeg);
+      }
+      markLoaded('slope');
+      recalc();
+    });
+    promises.ndvi.then(ndvi => {
+      if (ndvi !== null) {
+        raw.ndvi = ndvi;
+        scores.ndvi = scoreTreeCanopy(ndvi);
+      }
+      markLoaded('treeCanopy');
+      recalc();
+    });
+    promises.surfaceTemp.then(result => {
+      if (result) {
+        raw.temperature = result.tempCelsius;
+        scores.surfaceTemp = result.score;
+      }
+      markLoaded('surfaceTemp');
+      recalc();
+    });
+    promises.airQuality.then(result => {
+      if (result) {
+        raw.pm25 = result.pm25 ?? undefined;
+        raw.aqiCategory = result.category ?? undefined;
+        scores.airQuality = result.score;
+      }
+      markLoaded('airQuality');
+      recalc();
+    });
+    promises.heatIsland.then(result => {
+      if (result) {
+        raw.heatDifference = result.effect ?? undefined;
+        scores.heatIsland = result.score;
+      }
+      markLoaded('heatIsland');
+      recalc();
+    });
   };
 
   return (
@@ -908,7 +950,7 @@ function App() {
 
         {/* Compare Mode Results */}
         {compareMode && location1 && location2 && !isAnalyzingCompare && (
-          <ErrorBoundary>
+          <ErrorBoundary sectionName="Compare View">
           <Suspense fallback={<div className="flex justify-center py-8"><div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" /></div>}>
             <CompareView
               location1={location1.location}
@@ -965,103 +1007,186 @@ function App() {
             </div>
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} />
 
-            {/* Streetmix Integration */}
-            <ErrorBoundary>
+            {/* First-time onboarding card */}
+            {showOnboarding && (
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-800 text-sm mb-2">How to read your results</h3>
+                    <ul className="text-xs text-gray-600 space-y-1">
+                      <li>Scores are 0&ndash;10 (10 = best). Below 5 needs attention.</li>
+                      <li>Green metrics = strengths. Red/orange = improvement opportunities.</li>
+                      <li>Scroll down for your street cross-section and 15-minute city score.</li>
+                      <li>Use the chat button (bottom-right) to ask questions about your data.</li>
+                    </ul>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowOnboarding(false);
+                      try { localStorage.setItem('safestreets_seen_onboarding', '1'); } catch {}
+                    }}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    Got it
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Share Buttons — early for engagement */}
+            <ErrorBoundary sectionName="Share Buttons">
               <Suspense fallback={null}>
-                <StreetmixIntegration locationName={location.displayName} />
+                <ShareButtons
+                  location={location}
+                  metrics={metrics}
+                  dataQuality={dataQuality || undefined}
+                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  onUnlock={() => setShowPaymentModal(true)}
+                />
+              </Suspense>
+            </ErrorBoundary>
+
+            {/* --- Tier 2: Understand & Act --- */}
+            <div className="flex items-center gap-3 pt-4">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Understand Your Neighborhood</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            {/* 15-Minute City Score (free for all users) */}
+            <ErrorBoundary sectionName="15-Minute City">
+              <Suspense fallback={null}>
+                <FifteenMinuteCity location={location} />
+              </Suspense>
+            </ErrorBoundary>
+
+            {/* --- Tier 3: Professional Advocacy Tools (Premium) --- */}
+            <div className="flex items-center gap-3 pt-4">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Professional Advocacy Tools</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            {/* AI Advocacy Letter (Premium) */}
+            {(userIsPremium || accessInfo.tier !== 'free') ? (
+              <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">&#x2709;&#xFE0F;</div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">
+                      Draft Letter to Officials
+                    </h2>
+                    <p className="text-gray-600 text-sm mb-4">
+                      AI generates a professional advocacy letter citing your walkability data, international
+                      safety standards, and specific recommendations — ready to email to your city council.
+                    </p>
+                    <button
+                      onClick={() => setShowLetterModal(true)}
+                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
+                      style={{ backgroundColor: COLORS.primary }}
+                    >
+                      Generate Letter
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100 opacity-90">
+                <div className="flex items-start gap-4">
+                  <div className="text-4xl">&#x1F512;</div>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">
+                      AI Advocacy Letter Generator
+                    </h2>
+                    <p className="text-gray-600 text-sm mb-3">
+                      Generate professional letters to city officials citing your walkability data, WHO/NACTO standards, and specific recommendations.
+                    </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 mb-3">
+                      Advocate Tier &mdash; $19 one-time
+                    </div>
+                    <br />
+                    <button
+                      onClick={() => setShowPaymentModal(true)}
+                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
+                      style={{ backgroundColor: COLORS.accent }}
+                    >
+                      Unlock Premium Features
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Street Cross-Section (Current = free, Recommended = premium) */}
+            <ErrorBoundary sectionName="Street Cross-Section">
+              <Suspense fallback={null}>
+                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowPaymentModal(true)} />
               </Suspense>
             </ErrorBoundary>
 
             {/* Budget Analysis */}
-            <ErrorBoundary>
+            <ErrorBoundary sectionName="Investment Guide">
               <Suspense fallback={null}>
                 <BudgetAnalysis isPremium={userIsPremium || accessInfo.tier !== 'free'} location={location} />
               </Suspense>
             </ErrorBoundary>
 
             {/* Advocacy Proposal Generator */}
-            <ErrorBoundary>
+            <ErrorBoundary sectionName="Advocacy Proposal">
               <Suspense fallback={null}>
                 <AdvocacyProposal isPremium={userIsPremium || accessInfo.tier !== 'free'} location={location} metrics={metrics} />
               </Suspense>
             </ErrorBoundary>
 
-            {/* AI Advocacy Letter */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
-              <div className="flex items-start gap-4">
-                <div className="text-4xl">✉️</div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-gray-800 mb-2">
-                    Draft Letter to Officials
-                  </h2>
-                  <p className="text-gray-600 text-sm mb-4">
-                    AI generates a professional advocacy letter citing your walkability data, international
-                    safety standards, and specific recommendations — ready to email to your city council.
-                  </p>
-                  <button
-                    onClick={() => setShowLetterModal(true)}
-                    className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
-                    style={{ backgroundColor: COLORS.primary }}
-                  >
-                    Generate Letter
-                  </button>
+            {/* --- Tier 4: Reference --- */}
+            <div className="rounded-2xl border-2 overflow-hidden" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>
+              <button
+                onClick={() => setShowMethodology(!showMethodology)}
+                className="w-full flex items-center justify-between px-8 py-5 transition hover:opacity-80"
+              >
+                <h3 className="text-xl font-bold" style={{ color: '#2a3a2a' }}>
+                  How This Analysis Works
+                </h3>
+                <span className="text-2xl text-gray-500" aria-hidden="true">
+                  {showMethodology ? '\u2212' : '+'}
+                </span>
+              </button>
+              {showMethodology && (
+                <div className="px-8 pb-8">
+                  <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
+                    <div>
+                      <strong className="block mb-1">8 Verified Metrics</strong>
+                      <p style={{ color: '#4a5a4a' }}>We analyze street crossings, connectivity, nearby destinations, terrain slope, tree coverage, surface temperature, air quality, and urban heat using real data from OpenStreetMap, NASA POWER, Sentinel-2, and OpenAQ monitoring stations.</p>
+                    </div>
+                    <div>
+                      <strong className="block mb-1">Global Standards</strong>
+                      <p style={{ color: '#4a5a4a' }}>Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
+                    </div>
+                    <div>
+                      <strong className="block mb-1">Free & Open Data</strong>
+                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, OpenAQ air quality stations (15,000+ worldwide), and Microsoft Planetary Computer satellite imagery.</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#d0dbd0' }}>
+                    <p className="text-xs" style={{ color: '#3a4a3a' }}>
+                      <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure lighting quality, pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            {/* 15-Minute City Score (free for all users) */}
-            <ErrorBoundary>
-              <Suspense fallback={null}>
-                <FifteenMinuteCity location={location} />
-              </Suspense>
-            </ErrorBoundary>
-
-            {/* Share Buttons */}
-            <ErrorBoundary>
-              <Suspense fallback={null}>
-                <ShareButtons
-                  location={location}
-                  metrics={metrics}
-                  dataQuality={dataQuality || undefined}
-                />
-              </Suspense>
-            </ErrorBoundary>
-
-            {/* How This Works */}
-            <div className="rounded-2xl p-8 border-2" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>
-              <h3 className="text-xl font-bold mb-4" style={{ color: '#2a3a2a' }}>
-                How This Analysis Works
-              </h3>
-              <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
-                <div>
-                  <strong className="block mb-1">8 Verified Metrics</strong>
-                  <p style={{ color: '#4a5a4a' }}>We analyze street crossings, connectivity, nearby destinations, terrain slope, tree coverage, surface temperature, air quality, and urban heat using real data from OpenStreetMap, NASA POWER, Sentinel-2, and OpenAQ monitoring stations.</p>
-                </div>
-                <div>
-                  <strong className="block mb-1">Global Standards</strong>
-                  <p style={{ color: '#4a5a4a' }}>Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
-                </div>
-                <div>
-                  <strong className="block mb-1">Free & Open Data</strong>
-                  <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, OpenAQ air quality stations (15,000+ worldwide), and Microsoft Planetary Computer satellite imagery.</p>
-                </div>
-              </div>
-              <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#d0dbd0' }}>
-                <p className="text-xs" style={{ color: '#3a4a3a' }}>
-                  <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure lighting quality, pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
-                </p>
-              </div>
+              )}
             </div>
 
             {/* Advocacy Chatbot (floating) */}
-            <ErrorBoundary>
+            <ErrorBoundary sectionName="Chatbot">
               <Suspense fallback={null}>
                 <AdvocacyChatbot
                   location={location}
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
+                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  onUnlock={() => setShowPaymentModal(true)}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -1148,7 +1273,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Take Action</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Generate PDF reports, compare locations, or upgrade for advocacy tools like policy reports and budget analysis.
+                        Share results on social media, or upgrade to export PDF reports, compare locations, and access AI-powered advocacy tools.
                       </p>
                     </div>
                   </div>
@@ -1502,7 +1627,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">Advocate ($19):</strong> AI advocacy letter generator, policy report PDFs, Streetmix integration, 3D street visualization, budget analysis, and international standards comparison.
+                    <strong className="text-gray-900">Advocate ($19):</strong> PDF report export, JSON data export, AI advocacy letter generator, unlimited AI chatbot, location comparison, street redesign recommendations, budget analysis, and policy proposal generator.
                   </p>
                 </div>
               </div>
@@ -1656,14 +1781,14 @@ function App() {
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#7a8a7a' }}></span>
                   <div>
                     <span className="font-semibold" style={{ color: '#e0dbd0' }}>Free Tier</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>6 key metrics, unlimited searches</p>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, 15-min city score, social sharing</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#5090b0' }}></span>
                   <div>
                     <span className="font-semibold" style={{ color: '#e0dbd0' }}>Advocate: $19</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Policy tools + custom reports</p>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>PDF reports, AI letter, street redesign, budget tools</p>
                   </div>
                 </li>
               </ul>

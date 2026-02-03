@@ -37,7 +37,9 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
   const [error, setError] = useState<string | null>(null);
   const [hasAnalyzed, setHasAnalyzed] = useState(false);
 
-  // Reset when location changes
+  const [isCached, setIsCached] = useState(false);
+
+  // Try to load cached data when location changes
   useEffect(() => {
     setInsights([]);
     setSummary(null);
@@ -45,6 +47,26 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
     setResources([]);
     setError(null);
     setHasAnalyzed(false);
+    setIsCached(false);
+
+    if (!location) return;
+
+    try {
+      const cacheKey = `safestreets_budget_${location.lat}_${location.lon}`;
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { analysis, timestamp } = JSON.parse(cached);
+        const ageMinutes = (Date.now() - timestamp) / 60000;
+        if (ageMinutes < 30 && analysis) {
+          setInsights(analysis.insights || []);
+          setSummary(analysis.summary || null);
+          setDisclaimer(analysis.disclaimer || null);
+          setResources(analysis.resources || []);
+          setHasAnalyzed(true);
+          setIsCached(true);
+        }
+      }
+    } catch { /* ignore cache errors */ }
   }, [location?.lat, location?.lon]);
 
   const analyzeBudget = async () => {
@@ -56,6 +78,7 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
     setInsights([]);
     setDisclaimer(null);
     setResources([]);
+    setIsCached(false);
 
     try {
       const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -85,11 +108,40 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
         setDisclaimer(data.analysis.disclaimer || null);
         setResources(data.analysis.resources || []);
         setHasAnalyzed(true);
+
+        // Cache the result
+        try {
+          const cacheKey = `safestreets_budget_${location.lat}_${location.lon}`;
+          sessionStorage.setItem(cacheKey, JSON.stringify({
+            analysis: data.analysis,
+            timestamp: Date.now(),
+          }));
+        } catch { /* quota exceeded */ }
       } else {
         throw new Error('Invalid response from server');
       }
     } catch (err: any) {
       console.error('Budget analysis error:', err);
+
+      // Try to serve stale cache on failure
+      try {
+        const cacheKey = `safestreets_budget_${location.lat}_${location.lon}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+          const { analysis } = JSON.parse(cached);
+          if (analysis) {
+            setInsights(analysis.insights || []);
+            setSummary(analysis.summary || null);
+            setDisclaimer(analysis.disclaimer || null);
+            setResources(analysis.resources || []);
+            setHasAnalyzed(true);
+            setIsCached(true);
+            setError('Could not refresh data. Showing previous results.');
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+
       setError(err.message || 'Failed to generate guidance. Please try again.');
     } finally {
       setIsAnalyzing(false);
@@ -189,9 +241,14 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
       {/* Insights */}
       {insights.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-xl font-bold text-gray-800 mb-3">
-            🎯 Priority Investment Areas
-          </h3>
+          <div className="flex items-center gap-2 mb-3">
+            <h3 className="text-xl font-bold text-gray-800">
+              🎯 Priority Investment Areas
+            </h3>
+            {isCached && (
+              <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Cached</span>
+            )}
+          </div>
 
           {insights.map((insight, index) => (
             <div

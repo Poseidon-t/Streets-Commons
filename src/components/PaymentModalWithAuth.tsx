@@ -145,7 +145,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
           <ul className="space-y-2 text-sm text-gray-700">
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
-              <span><strong>Streetmix Integration</strong> - Design better streets</span>
+              <span><strong>Street Redesign</strong> - Data-driven cross-section recommendations</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-green-600 font-bold">✓</span>
