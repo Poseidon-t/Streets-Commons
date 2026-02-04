@@ -1043,25 +1043,39 @@ function App() {
 
             {/* Info bar: Data quality + sources */}
             {dataQuality && (
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl px-4 py-3 border" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
-                <div className="flex items-center gap-2 text-xs" style={{ color: '#5a6a5a' }}>
-                  <span className={`px-2 py-0.5 rounded font-semibold text-[11px] ${
-                    dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                    dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {dataQuality.confidence.toUpperCase()}
-                  </span>
-                  <span>Data Confidence</span>
+              <div className="rounded-2xl p-4 sm:p-5 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-lg font-bold text-sm ${
+                      dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                      dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {dataQuality.confidence.toUpperCase()} CONFIDENCE
+                    </span>
+                    <span className="text-sm font-medium" style={{ color: '#2a3a2a' }}>Data Quality</span>
+                  </div>
+                  <div className="text-xs" style={{ color: '#8a9a8a' }}>
+                    OSM · Sentinel-2 · NASA POWER{crashData ? ' · ' + crashData.dataSource : ''}
+                  </div>
                 </div>
-                <div className="hidden sm:flex items-center gap-4 text-xs" style={{ color: '#8a9a8a' }}>
-                  <span>{dataQuality.streetCount} streets</span>
-                  <span>{dataQuality.sidewalkCount} sidewalks</span>
-                  <span>{dataQuality.crossingCount} crossings</span>
-                  <span>{dataQuality.poiCount} POIs</span>
-                </div>
-                <div className="text-[10px] ml-auto" style={{ color: '#9ca3af' }}>
-                  OSM · Sentinel-2 · NASA POWER{crashData ? ' · ' + crashData.dataSource : ''}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t" style={{ borderColor: '#e0dbd0' }}>
+                  <div className="text-center">
+                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.streetCount}</div>
+                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Streets</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.sidewalkCount}</div>
+                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Sidewalks</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.crossingCount}</div>
+                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Crossings</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.poiCount}</div>
+                    <div className="text-xs" style={{ color: '#8a9a8a' }}>POIs</div>
+                  </div>
                 </div>
               </div>
             )}
