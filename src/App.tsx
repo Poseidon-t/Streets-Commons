@@ -1037,7 +1037,7 @@ function App() {
             </h2>
 
             {/* Row 1: Map + Score side by side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
               <Map location={location} osmData={osmData} />
               <ScoreCard metrics={metrics} />
             </div>

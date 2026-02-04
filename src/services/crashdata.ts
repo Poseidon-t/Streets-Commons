@@ -160,6 +160,25 @@ async function fetchUSCrashData(lat: number, lon: number): Promise<LocalCrashDat
 }
 
 /**
+ * Reverse geocode to get country code when not provided.
+ * Uses Nominatim reverse geocoding (lightweight, returns country_code).
+ */
+async function resolveCountryCode(lat: number, lon: number): Promise<string | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=3&addressdetails=1`;
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return (data.address?.country_code || '').toUpperCase() || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch crash/fatality data for a location.
  * US: calls FCC + FARS APIs directly (no backend needed).
  * Non-US: returns WHO data from bundled static JSON (instant).
@@ -171,7 +190,15 @@ export async function fetchCrashData(
   countryCode?: string,
 ): Promise<CrashData | null> {
   try {
-    const code = (countryCode || '').toUpperCase();
+    let code = (countryCode || '').toUpperCase();
+
+    // If no country code provided, resolve it via reverse geocoding
+    if (!code) {
+      code = (await resolveCountryCode(lat, lon)) || '';
+    }
+
+    if (!code) return null;
+
     const isUS = code === 'US' || code === 'USA';
 
     if (isUS) {
@@ -179,11 +206,7 @@ export async function fetchCrashData(
     }
 
     // Non-US: instant WHO lookup (no network call)
-    if (code) {
-      return lookupWHO(code);
-    }
-
-    return null;
+    return lookupWHO(code);
   } catch (error) {
     console.warn('Crash data fetch failed (non-blocking):', error);
     return null;
