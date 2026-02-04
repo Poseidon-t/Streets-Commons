@@ -5,14 +5,14 @@ import type { WalkabilityMetrics } from '../../types';
 // These mirror the logic from ShareButtons.tsx
 
 const METRIC_LABELS: Record<string, string> = {
-  crossings: 'pedestrian crossings',
-  'street connectivity': 'street connectivity',
+  'crossing safety': 'crossing safety',
+  'sidewalk coverage': 'sidewalk coverage',
+  'traffic speed': 'traffic speed safety',
   'daily needs access': 'daily needs access',
-  'tree canopy': 'tree canopy coverage',
-  'air quality': 'air quality',
-  'heat resilience': 'surface temperature',
-  'heat island': 'heat island effect',
+  'night safety': 'well-lit streets',
   terrain: 'terrain accessibility',
+  'tree canopy': 'tree canopy coverage',
+  'thermal comfort': 'thermal comfort',
 };
 const ml = (key: string): string => METRIC_LABELS[key] || key;
 
@@ -21,14 +21,14 @@ const getRange = (s: number): 'critical' | 'poor' | 'fair' | 'good' =>
 
 function findWeakestMetric(metrics: WalkabilityMetrics): [string, number] {
   const entries: [string, number | undefined][] = [
-    ['crossings', metrics.crossingDensity],
-    ['street connectivity', metrics.networkEfficiency],
+    ['crossing safety', metrics.crossingSafety],
+    ['sidewalk coverage', metrics.sidewalkCoverage],
+    ['traffic speed', metrics.speedExposure],
     ['daily needs access', metrics.destinationAccess],
-    ['tree canopy', metrics.treeCanopy],
-    ['air quality', metrics.airQuality],
-    ['heat resilience', metrics.surfaceTemp],
-    ['heat island', metrics.heatIsland],
+    ['night safety', metrics.nightSafety],
     ['terrain', metrics.slope],
+    ['tree canopy', metrics.treeCanopy],
+    ['thermal comfort', metrics.thermalComfort],
   ];
   return entries
     .filter((e): e is [string, number] => typeof e[1] === 'number')
@@ -63,9 +63,9 @@ describe('Share Text Generation Logic', () => {
 
   describe('metric label mapping', () => {
     it('should map all known metric keys to human-readable labels', () => {
-      expect(ml('crossings')).toBe('pedestrian crossings');
+      expect(ml('crossing safety')).toBe('crossing safety');
       expect(ml('tree canopy')).toBe('tree canopy coverage');
-      expect(ml('air quality')).toBe('air quality');
+      expect(ml('night safety')).toBe('well-lit streets');
       expect(ml('terrain')).toBe('terrain accessibility');
     });
 
@@ -77,14 +77,14 @@ describe('Share Text Generation Logic', () => {
   describe('weakest metric detection', () => {
     it('should find the metric with the lowest score', () => {
       const metrics: WalkabilityMetrics = {
-        crossingDensity: 5,
-        networkEfficiency: 7,
+        crossingSafety: 5,
+        sidewalkCoverage: 7,
+        speedExposure: 6,
         destinationAccess: 6,
+        nightSafety: 4,
         slope: 8,
         treeCanopy: 2, // Weakest
-        surfaceTemp: 6,
-        airQuality: 7,
-        heatIsland: 5,
+        thermalComfort: 5,
         overallScore: 5.8,
         label: 'Fair',
       };
@@ -95,14 +95,14 @@ describe('Share Text Generation Logic', () => {
 
     it('should handle all zeros', () => {
       const metrics: WalkabilityMetrics = {
-        crossingDensity: 0,
-        networkEfficiency: 0,
+        crossingSafety: 0,
+        sidewalkCoverage: 0,
+        speedExposure: 0,
         destinationAccess: 0,
+        nightSafety: 0,
         slope: 0,
         treeCanopy: 0,
-        surfaceTemp: 0,
-        airQuality: 0,
-        heatIsland: 0,
+        thermalComfort: 0,
         overallScore: 0,
         label: 'Critical',
       };

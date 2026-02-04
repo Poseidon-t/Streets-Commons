@@ -7,16 +7,16 @@ export interface Location {
 }
 
 export interface WalkabilityMetrics {
-  // OSM metrics (crowdsourced but well-mapped)
-  crossingDensity: number; // OSM highway=crossing nodes
-  networkEfficiency: number; // OSM street grid geometry
+  // Safety metrics (OSM infrastructure)
+  crossingSafety: number; // Crossing density weighted by protection level
+  sidewalkCoverage: number; // Percentage of streets with sidewalk tags
+  speedExposure: number; // Traffic speed + lane count danger score (inverted: high = safe)
   destinationAccess: number; // OSM amenity/shop/leisure POIs
-  // Satellite/elevation data metrics
+  nightSafety: number; // Street lighting coverage from OSM lit tags
+  // Comfort metrics (satellite/elevation)
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
-  surfaceTemp: number; // From NASA POWER temperature data
-  airQuality: number; // From OpenAQ monitoring stations
-  heatIsland: number; // From Sentinel-2 SWIR heat island analysis
+  thermalComfort: number; // Consolidated surfaceTemp + heatIsland
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }
@@ -80,17 +80,9 @@ export interface CrossSectionConfig {
 }
 
 export interface RawMetricData {
-  // Air Quality
-  pm25?: number;              // µg/m³
-  aqiCategory?: string;       // "Good", "Moderate", etc.
-
-  // Surface Temperature
-  temperature?: number;       // °C
-
-  // Heat Island
-  urbanTemp?: number;         // °C
-  vegetationTemp?: number;    // °C
-  heatDifference?: number;    // °C
+  // Thermal Comfort (consolidated)
+  temperature?: number;       // °C (from NASA POWER)
+  heatDifference?: number;    // °C (urban vs vegetation)
 
   // Slope
   slopeDegrees?: number;      // degrees
@@ -98,8 +90,19 @@ export interface RawMetricData {
   // Tree Canopy
   ndvi?: number;              // 0-1 scale
 
-  // OSM metrics (estimated, not direct measurements)
+  // OSM metrics
   crossingCount?: number;     // count
   streetLength?: number;      // km
   poiCount?: number;          // count
+
+  // Speed Exposure
+  avgSpeedLimit?: number;     // mph
+  avgLanes?: number;          // count
+  highSpeedStreetPct?: number; // percentage of streets >= 35mph
+
+  // Night Safety
+  litStreetPct?: number;      // percentage of lit streets
+
+  // Sidewalk Coverage
+  sidewalkPct?: number;       // percentage
 }

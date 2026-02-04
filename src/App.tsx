@@ -279,16 +279,15 @@ function App() {
         raw.temperature = result.tempCelsius;
         scores.surfaceTemp = result.score;
       }
-      markLoaded('surfaceTemp');
+      // thermalComfort loads when both surfaceTemp and heatIsland arrive
+      if (scores.heatIsland !== undefined) markLoaded('thermalComfort');
       recalc();
     });
     promises.airQuality.then(result => {
       if (result) {
-        raw.pm25 = result.pm25 ?? undefined;
-        raw.aqiCategory = result.category ?? undefined;
         scores.airQuality = result.score;
       }
-      markLoaded('airQuality');
+      // airQuality no longer displayed as a metric card, but still passed to calculateMetrics
       recalc();
     });
     promises.heatIsland.then(result => {
@@ -296,7 +295,7 @@ function App() {
         raw.heatDifference = result.effect ?? undefined;
         scores.heatIsland = result.score;
       }
-      markLoaded('heatIsland');
+      if (scores.surfaceTemp !== undefined) markLoaded('thermalComfort');
       recalc();
     });
   };
@@ -819,16 +818,16 @@ function App() {
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(1);
                         try {
-                          const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+                          // Fire OSM and satellite requests simultaneously
+                          const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+                          const satellitePromises = startSatelliteFetches(selectedLocation);
+
+                          const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
                             fetchedOsmData,
                             selectedLocation.lat,
                             selectedLocation.lon,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined
+                            undefined, undefined, undefined, undefined, undefined
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
@@ -838,6 +837,24 @@ function App() {
                             quality,
                             osmData: fetchedOsmData,
                           });
+
+                          // Progressively update metrics as satellite data arrives
+                          const scores: Record<string, number> = {};
+                          const recalc = () => {
+                            const updated = calculateMetrics(
+                              fetchedOsmData,
+                              selectedLocation.lat,
+                              selectedLocation.lon,
+                              scores.slope, scores.ndvi, scores.surfaceTemp,
+                              scores.airQuality, scores.heatIsland
+                            );
+                            setLocation1(prev => prev ? { ...prev, metrics: updated } : prev);
+                          };
+                          satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
+                          satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
+                          satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
+                          satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
+                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
                         } catch (error) {
                           console.error('Failed to analyze location 1:', error);
                           alert('Failed to analyze location 1. Please try again.');
@@ -864,16 +881,16 @@ function App() {
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(2);
                         try {
-                          const fetchedOsmData = await fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+                          // Fire OSM and satellite requests simultaneously
+                          const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
+                          const satellitePromises = startSatelliteFetches(selectedLocation);
+
+                          const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
                             fetchedOsmData,
                             selectedLocation.lat,
                             selectedLocation.lon,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined,
-                            undefined
+                            undefined, undefined, undefined, undefined, undefined
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
@@ -883,6 +900,24 @@ function App() {
                             quality,
                             osmData: fetchedOsmData,
                           });
+
+                          // Progressively update metrics as satellite data arrives
+                          const scores: Record<string, number> = {};
+                          const recalc = () => {
+                            const updated = calculateMetrics(
+                              fetchedOsmData,
+                              selectedLocation.lat,
+                              selectedLocation.lon,
+                              scores.slope, scores.ndvi, scores.surfaceTemp,
+                              scores.airQuality, scores.heatIsland
+                            );
+                            setLocation2(prev => prev ? { ...prev, metrics: updated } : prev);
+                          };
+                          satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
+                          satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
+                          satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
+                          satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
+                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
                         } catch (error) {
                           console.error('Failed to analyze location 2:', error);
                           alert('Failed to analyze location 2. Please try again.');

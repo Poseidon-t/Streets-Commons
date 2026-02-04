@@ -9,7 +9,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMetrics, assessDataQuality } from '../utils/metrics';
 import { scoreTreeCanopy } from '../services/treecanopy';
-import { scoreAirQuality } from '../services/airquality';
+// scoreAirQuality no longer drives a visible metric, but still called for API compat
 import { scoreSlopeFromDegrees } from '../services/elevation';
 import type { OSMData } from '../types';
 
@@ -284,7 +284,6 @@ describe('User Journey — 10 Global Locations', () => {
       // Compute scores once per location
       const slopeScore = scoreSlopeFromDegrees(loc.satellite.slope);
       const treeScore = scoreTreeCanopy(loc.satellite.ndvi);
-      const aqScore = scoreAirQuality(loc.satellite.pm25);
       const metrics = calculateMetrics(
         loc.osm,
         loc.lat,
@@ -292,7 +291,7 @@ describe('User Journey — 10 Global Locations', () => {
         slopeScore,
         treeScore,
         loc.satellite.surfaceTemp,
-        aqScore,
+        undefined, // airQuality no longer a visible metric
         loc.satellite.heatIsland,
       );
       const quality = assessDataQuality(loc.osm);
@@ -312,8 +311,8 @@ describe('User Journey — 10 Global Locations', () => {
 
       it('should keep all metric scores between 0 and 10', () => {
         const fields = [
-          'crossingDensity', 'networkEfficiency', 'destinationAccess',
-          'slope', 'treeCanopy', 'surfaceTemp', 'airQuality', 'heatIsland',
+          'crossingSafety', 'sidewalkCoverage', 'destinationAccess',
+          'slope', 'treeCanopy', 'speedExposure', 'nightSafety', 'thermalComfort',
           'overallScore',
         ] as const;
         for (const f of fields) {
@@ -337,12 +336,11 @@ describe('User Journey — 10 Global Locations', () => {
     const results = locations.map((loc) => {
       const slopeScore = scoreSlopeFromDegrees(loc.satellite.slope);
       const treeScore = scoreTreeCanopy(loc.satellite.ndvi);
-      const aqScore = scoreAirQuality(loc.satellite.pm25);
       return {
         name: loc.name,
         metrics: calculateMetrics(
           loc.osm, loc.lat, loc.lon,
-          slopeScore, treeScore, loc.satellite.surfaceTemp, aqScore, loc.satellite.heatIsland,
+          slopeScore, treeScore, loc.satellite.surfaceTemp, undefined, loc.satellite.heatIsland,
         ),
       };
     });

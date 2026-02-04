@@ -3,13 +3,11 @@ import MetricCard from '../MetricCard';
 import { translateMetrics } from '../../utils/metricTranslations';
 
 // Map from metric index (in translateMetrics output order) to satellite key
-// Indices 0-2 are OSM metrics (always available), 3-7 are satellite
+// Indices 0-4 are OSM metrics (always available), 5-7 are satellite
 const METRIC_INDEX_TO_SAT_KEY: Record<number, string> = {
-  3: 'slope',
-  4: 'treeCanopy',
-  5: 'surfaceTemp',
-  6: 'airQuality',
-  7: 'heatIsland',
+  5: 'slope',
+  6: 'treeCanopy',
+  7: 'thermalComfort',
 };
 
 interface MetricGridProps {

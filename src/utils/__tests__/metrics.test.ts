@@ -68,14 +68,14 @@ describe('calculateMetrics', () => {
     it('should return all 8 metrics + overall score + label', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
-      expect(metrics).toHaveProperty('crossingDensity');
-      expect(metrics).toHaveProperty('networkEfficiency');
+      expect(metrics).toHaveProperty('crossingSafety');
+      expect(metrics).toHaveProperty('sidewalkCoverage');
       expect(metrics).toHaveProperty('destinationAccess');
       expect(metrics).toHaveProperty('slope');
       expect(metrics).toHaveProperty('treeCanopy');
-      expect(metrics).toHaveProperty('surfaceTemp');
-      expect(metrics).toHaveProperty('airQuality');
-      expect(metrics).toHaveProperty('heatIsland');
+      expect(metrics).toHaveProperty('speedExposure');
+      expect(metrics).toHaveProperty('nightSafety');
+      expect(metrics).toHaveProperty('thermalComfort');
       expect(metrics).toHaveProperty('overallScore');
       expect(metrics).toHaveProperty('label');
     });
@@ -84,8 +84,8 @@ describe('calculateMetrics', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
       const scoreFields = [
-        'crossingDensity', 'networkEfficiency', 'destinationAccess',
-        'slope', 'treeCanopy', 'surfaceTemp', 'airQuality', 'heatIsland',
+        'crossingSafety', 'sidewalkCoverage', 'destinationAccess',
+        'slope', 'treeCanopy', 'speedExposure', 'nightSafety', 'thermalComfort',
         'overallScore',
       ] as const;
 
@@ -102,14 +102,14 @@ describe('calculateMetrics', () => {
   });
 
   describe('OSM metric calculation', () => {
-    it('should calculate crossing density > 0 when crossings and streets exist', () => {
+    it('should calculate crossing safety > 0 when crossings and streets exist', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      expect(metrics.crossingDensity).toBeGreaterThan(0);
+      expect(metrics.crossingSafety).toBeGreaterThan(0);
     });
 
-    it('should calculate network efficiency > 0 when streets exist', () => {
+    it('should calculate sidewalk coverage > 0 when streets have sidewalk tags', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      expect(metrics.networkEfficiency).toBeGreaterThan(0);
+      expect(metrics.sidewalkCoverage).toBeGreaterThan(0);
     });
 
     it('should calculate destination access based on POI diversity', () => {
@@ -128,8 +128,8 @@ describe('calculateMetrics', () => {
   describe('empty data handling', () => {
     it('should return 0 for all OSM metrics when data is empty', () => {
       const metrics = calculateMetrics(emptyOSMData, 18.7888, 98.9858);
-      expect(metrics.crossingDensity).toBe(0);
-      expect(metrics.networkEfficiency).toBe(0);
+      expect(metrics.crossingSafety).toBe(0);
+      expect(metrics.sidewalkCoverage).toBe(0);
       expect(metrics.destinationAccess).toBe(0);
     });
 
@@ -142,26 +142,23 @@ describe('calculateMetrics', () => {
 
   describe('satellite metric injection', () => {
     it('should use provided satellite scores directly', () => {
-      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8, 7, 6, 5, 4);
+      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8, 7, 6, undefined, 4);
       expect(metrics.slope).toBe(8);
       expect(metrics.treeCanopy).toBe(7);
-      expect(metrics.surfaceTemp).toBe(6);
-      expect(metrics.airQuality).toBe(5);
-      expect(metrics.heatIsland).toBe(4);
+      // thermalComfort = avg(surfaceTemp=6, heatIsland=4) = 5
+      expect(metrics.thermalComfort).toBe(5);
     });
 
     it('should default satellite scores to 0 when not provided', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
       expect(metrics.slope).toBe(0);
       expect(metrics.treeCanopy).toBe(0);
-      expect(metrics.surfaceTemp).toBe(0);
-      expect(metrics.airQuality).toBe(0);
-      expect(metrics.heatIsland).toBe(0);
+      expect(metrics.thermalComfort).toBe(0);
     });
 
-    it('should incorporate satellite scores into overall when all 5 provided', () => {
+    it('should incorporate satellite scores into overall when satellite provided', () => {
       const osmOnly = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      const withSatellite = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10, 10, 10, 10);
+      const withSatellite = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10, 10, undefined, 10);
       expect(withSatellite.overallScore).toBeGreaterThan(osmOnly.overallScore);
     });
 
@@ -175,7 +172,7 @@ describe('calculateMetrics', () => {
 
   describe('score label mapping', () => {
     it('should label excellent for scores >= 8', () => {
-      const metrics = calculateMetrics(richOSMData, 18.7888, 98.9858, 10, 10, 10, 10, 10);
+      const metrics = calculateMetrics(richOSMData, 18.7888, 98.9858, 10, 10, 10, undefined, 10);
       if (metrics.overallScore >= 8) {
         expect(metrics.label).toBe('Excellent');
       }
@@ -190,17 +187,16 @@ describe('calculateMetrics', () => {
   });
 
   describe('weighting system', () => {
-    it('should weight OSM at 35% when all satellite available', () => {
-      // All satellite at 10 = 6.5 from satellite
-      // OSM portion is 35% (0.10 + 0.15 + 0.10)
-      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10, 10, 10, 10);
+    it('should use weighted formula when satellite available', () => {
+      // Safety 55% + Comfort 35% with satellite at 10
+      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10, 10, undefined, 10);
       expect(metrics.overallScore).toBeGreaterThan(0);
       expect(metrics.overallScore).toBeLessThanOrEqual(10);
     });
 
-    it('should average OSM metrics when no satellite available', () => {
+    it('should average 5 OSM metrics when no satellite available', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      const avgOSM = (metrics.crossingDensity + metrics.networkEfficiency + metrics.destinationAccess) / 3;
+      const avgOSM = (metrics.crossingSafety + metrics.sidewalkCoverage + metrics.speedExposure + metrics.nightSafety + metrics.destinationAccess) / 5;
       expect(metrics.overallScore).toBeCloseTo(avgOSM, 0);
     });
   });

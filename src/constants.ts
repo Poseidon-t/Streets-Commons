@@ -28,15 +28,16 @@ export const COLORS = {
   background: '#f8fafc',
 };
 
-// Metric weights for overall score
+// Metric weights for overall score (Safety 55%, Access 10%, Comfort 35%)
 export const METRIC_WEIGHTS = {
-  crossingGaps: 0.25,
-  treeCanopy: 0.15,
-  surfaceTemp: 0.0, // Not yet implemented
-  networkEfficiency: 0.15,
+  crossingSafety: 0.15,
+  sidewalkCoverage: 0.15,
+  speedExposure: 0.15,
+  nightSafety: 0.10,
+  destinationAccess: 0.10,
   slope: 0.10,
-  destinationAccess: 0.15,
-  sidewalkCoverage: 0.20, // OSM sidewalk tags
+  treeCanopy: 0.10,
+  thermalComfort: 0.15,
 };
 
 // Score labels

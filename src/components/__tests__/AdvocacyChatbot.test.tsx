@@ -23,14 +23,14 @@ const mockLocation: Location = {
 };
 
 const mockMetrics: WalkabilityMetrics = {
-  crossingDensity: 7.5,
-  networkEfficiency: 8.2,
+  crossingSafety: 7.5,
+  sidewalkCoverage: 8.2,
+  speedExposure: 6.0,
   destinationAccess: 9.0,
+  nightSafety: 5.0,
   slope: 9,
   treeCanopy: 4,
-  surfaceTemp: 5,
-  airQuality: 6,
-  heatIsland: 4,
+  thermalComfort: 4.5,
   overallScore: 6.5,
   label: 'Good',
 };

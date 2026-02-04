@@ -22,19 +22,37 @@ function calculateDistance(
 }
 
 /**
- * Metric 1: Crossing Density
- * Measures density of marked pedestrian crossings
- * Source: OSM highway=crossing nodes
+ * Metric 1: Crossing Safety
+ * Density of crossings weighted by protection level
+ * Source: OSM highway=crossing nodes with crossing type tags
  */
-function calculateCrossingDensity(data: OSMData, centerLat: number, centerLon: number): number {
+function calculateCrossingSafety(data: OSMData, centerLat: number, centerLon: number): number {
   if (data.crossings.length === 0) return 0;
   if (data.streets.length === 0) return 0;
 
-  // Calculate crossings per km of road
-  const estimatedRoadKm = (data.streets.length * 100) / 1000;
-  const crossingsPerKm = data.crossings.length / estimatedRoadKm;
+  // Weight crossings by protection level
+  let weightedCrossings = 0;
+  data.crossings.forEach(c => {
+    const crossingType = c.tags?.crossing;
+    if (crossingType === 'traffic_signals') {
+      weightedCrossings += 1.0;
+    } else if (crossingType === 'marked' || crossingType === 'zebra') {
+      weightedCrossings += 0.7;
+    } else if (crossingType === 'island') {
+      weightedCrossings += 0.6;
+    } else if (crossingType === 'uncontrolled') {
+      weightedCrossings += 0.3;
+    } else if (crossingType === 'unmarked') {
+      weightedCrossings += 0.1;
+    } else {
+      weightedCrossings += 0.5; // Unknown type
+    }
+  });
 
-  // Also check max gap from center
+  const estimatedRoadKm = (data.streets.length * 100) / 1000;
+  const weightedPerKm = weightedCrossings / estimatedRoadKm;
+
+  // Max gap penalty
   let maxGap = 0;
   data.crossings.forEach(c => {
     if (c.lat && c.lon) {
@@ -43,8 +61,7 @@ function calculateCrossingDensity(data: OSMData, centerLat: number, centerLon: n
     }
   });
 
-  // Score based on both density and max gap
-  const densityScore = Math.min(10, (crossingsPerKm / 8) * 10);
+  const densityScore = Math.min(10, (weightedPerKm / 8) * 10);
   const gapScore = Math.max(0, 10 - (maxGap / MAX_CROSSING_GAP) * 5);
 
   const score = (densityScore + gapScore) / 2;
@@ -74,18 +91,52 @@ function calculateSidewalkCoverage(data: OSMData): number {
 }
 
 /**
- * Metric 3: Network Efficiency
- * Grid-like connectivity (intersection density)
- * Source: OSM crossings vs street segments
+ * Metric 3: Speed Exposure
+ * How dangerous traffic speeds are for pedestrians
+ * Higher score = safer (lower speeds, fewer lanes)
+ * Source: OSM maxspeed + lanes tags
  */
-function calculateNetworkEfficiency(data: OSMData): number {
-  if (data.streets.length === 0) return 0;
+function calculateSpeedExposure(data: OSMData): number {
+  if (data.streets.length === 0) return 5; // No data, neutral
 
-  const connectivity = data.crossings.length / data.streets.length;
+  let totalDanger = 0;
+  let streetCount = 0;
 
-  // Grid networks: ~0.5 ratio (1 intersection per 2 streets)
-  // Score: 0.5+ = 10, 0.25 = 5, 0 = 0
-  const score = Math.min(10, (connectivity / 0.5) * 10);
+  data.streets.forEach(street => {
+    const speed = street.tags?.maxspeed ? parseInt(street.tags.maxspeed, 10) : null;
+    const lanes = street.tags?.lanes ? parseInt(street.tags.lanes, 10) : null;
+    const highway = street.tags?.highway;
+
+    // Infer speed from road classification if maxspeed not tagged
+    let effectiveSpeed = speed;
+    if (!effectiveSpeed || isNaN(effectiveSpeed)) {
+      if (highway === 'primary') effectiveSpeed = 45;
+      else if (highway === 'secondary') effectiveSpeed = 35;
+      else if (highway === 'tertiary') effectiveSpeed = 30;
+      else if (highway === 'residential') effectiveSpeed = 25;
+      else if (highway === 'living_street') effectiveSpeed = 15;
+      else effectiveSpeed = 30;
+    }
+
+    // Lane multiplier: more lanes = more dangerous
+    const effectiveLanes = (lanes && !isNaN(lanes)) ? lanes : (highway === 'primary' ? 4 : highway === 'secondary' ? 2 : 2);
+    const laneMultiplier = Math.min(2, effectiveLanes / 2);
+
+    // Danger: (speed/20)^2 * laneMultiplier
+    const speedDanger = Math.pow(effectiveSpeed / 20, 2) * laneMultiplier;
+    totalDanger += speedDanger;
+    streetCount++;
+  });
+
+  if (streetCount === 0) return 5;
+
+  const avgDanger = totalDanger / streetCount;
+
+  // Map to 0-10 (inverted: low danger = high score)
+  // avgDanger ~1.0 (20mph, 2 lanes) → 10
+  // avgDanger ~5.0 (45mph, 4 lanes) → 2
+  // avgDanger ~8.0 (50mph, 6 lanes) → 0
+  const score = Math.max(0, Math.min(10, 10 - (avgDanger - 1) * (10 / 7)));
   return Math.round(score * 10) / 10;
 }
 
@@ -127,43 +178,34 @@ function calculateDestinationAccess(data: OSMData): number {
 }
 
 /**
- * Metric 5: Green Space Access
- * Access to parks, gardens, forests, and recreation areas
- * Source: OSM landuse, leisure, natural tags
+ * Metric 5: Night Safety
+ * Street lighting coverage
+ * Source: OSM lit=yes/no tags on ways
  */
-function calculateGreenSpaceAccess(data: OSMData): number {
-  let greenSpaces = 0;
-  let totalArea = 0; // Rough estimate
+function calculateNightSafety(data: OSMData): number {
+  if (data.streets.length === 0) return 5;
 
-  data.pois.forEach(poi => {
-    // Parks and gardens
-    if (poi.tags?.leisure === 'park' || poi.tags?.leisure === 'garden') {
-      greenSpaces++;
-      totalArea += 1; // Each counts as 1 unit
-    }
-    // Natural areas
-    if (poi.tags?.natural === 'wood' || poi.tags?.landuse === 'forest') {
-      greenSpaces++;
-      totalArea += 2; // Forests count more
-    }
-    // Recreation areas
-    if (poi.tags?.leisure === 'playground' ||
-        poi.tags?.leisure === 'pitch' ||
-        poi.tags?.leisure === 'sports_centre') {
-      greenSpaces++;
-      totalArea += 0.5; // Sports areas count less
-    }
-    // Meadows and grass
-    if (poi.tags?.landuse === 'meadow' || poi.tags?.landuse === 'grass') {
-      greenSpaces++;
-      totalArea += 0.5;
-    }
-  });
+  const litStreets = data.streets.filter(s => s.tags?.lit === 'yes');
+  const unlitStreets = data.streets.filter(s => s.tags?.lit === 'no');
+  const taggedStreets = litStreets.length + unlitStreets.length;
 
-  // Score based on quantity and diversity
-  // WHO recommends green space within 300m (we're checking 800m)
-  // Ideal: 5+ green spaces
-  const score = Math.min(10, (greenSpaces / 5) * 10);
+  // If very few streets have lit tag, use highway type as proxy
+  if (taggedStreets < data.streets.length * 0.1) {
+    let inferredLit = 0;
+    data.streets.forEach(s => {
+      const hw = s.tags?.highway;
+      if (hw === 'primary' || hw === 'secondary') inferredLit += 0.8;
+      else if (hw === 'tertiary') inferredLit += 0.5;
+      else if (hw === 'residential') inferredLit += 0.3;
+      else if (hw === 'living_street') inferredLit += 0.5;
+    });
+    const coverage = inferredLit / data.streets.length;
+    // Cap at 6 when using inferred data
+    return Math.round(Math.min(6, coverage * 10) * 10) / 10;
+  }
+
+  const litCoverage = litStreets.length / taggedStreets;
+  const score = Math.min(10, litCoverage * 10);
   return Math.round(score * 10) / 10;
 }
 
@@ -181,7 +223,6 @@ function assessDataQuality(data: OSMData): DataQuality {
   const sidewalkCount = data.sidewalks.length;
   const poiCount = data.pois.length;
 
-  // Assess confidence based on data completeness
   let confidence: 'high' | 'medium' | 'low' = 'low';
 
   if (streetCount > 50 && crossingCount > 10 && poiCount > 20) {
@@ -203,69 +244,66 @@ export function calculateMetrics(
   data: OSMData,
   centerLat: number,
   centerLon: number,
-  slopeScore?: number, // Optional slope from NASADEM elevation data
-  treeCanopyScore?: number, // Optional tree canopy from Sentinel-2 NDVI data
-  surfaceTempScore?: number, // Optional surface temp from NASA POWER
-  airQualityScore?: number, // Optional air quality from OpenAQ
-  heatIslandScore?: number // Optional heat island from Sentinel-2 SWIR
+  slopeScore?: number,
+  treeCanopyScore?: number,
+  surfaceTempScore?: number,
+  _airQualityScore?: number, // kept for API compat, no longer scored
+  heatIslandScore?: number
 ): WalkabilityMetrics {
-  // 3 OSM metrics (always available)
-  const crossingDensity = calculateCrossingDensity(data, centerLat, centerLon);
-  const networkEfficiency = calculateNetworkEfficiency(data);
+  // 5 OSM safety metrics (always available)
+  const crossingSafety = calculateCrossingSafety(data, centerLat, centerLon);
+  const sidewalkCoverage = calculateSidewalkCoverage(data);
+  const speedExposure = calculateSpeedExposure(data);
   const destinationAccess = calculateDestinationAccess(data);
+  const nightSafety = calculateNightSafety(data);
 
-  // 5 satellite metrics (loaded progressively)
+  // 3 satellite/comfort metrics (loaded progressively)
   const slope = slopeScore ?? 0;
   const treeCanopy = treeCanopyScore ?? 0;
-  const surfaceTemp = surfaceTempScore ?? 0;
-  const airQuality = airQualityScore ?? 0;
-  const heatIsland = heatIslandScore ?? 0;
 
-  // 8 metrics total: 3 OSM + 5 satellite
-  // Weights when all 8 available:
-  //   crossingDensity: 10%, networkEfficiency: 15%, destinationAccess: 10%
-  //   slope: 10%, treeCanopy: 10%, surfaceTemp: 10%, airQuality: 15%, heatIsland: 20%
+  // Consolidated thermal comfort: average of surfaceTemp and heatIsland
+  let thermalComfort = 0;
+  if (surfaceTempScore !== undefined && heatIslandScore !== undefined) {
+    thermalComfort = (surfaceTempScore + heatIslandScore) / 2;
+  } else if (surfaceTempScore !== undefined) {
+    thermalComfort = surfaceTempScore;
+  } else if (heatIslandScore !== undefined) {
+    thermalComfort = heatIslandScore;
+  }
+
+  // Weights: Safety 55%, Access 10%, Comfort 35%
+  //   crossingSafety: 15%, sidewalkCoverage: 15%, speedExposure: 15%
+  //   nightSafety: 10%, destinationAccess: 10%
+  //   slope: 10%, treeCanopy: 10%, thermalComfort: 15%
   let overallScore: number;
 
-  const osmScore = crossingDensity * 0.10 + networkEfficiency * 0.15 + destinationAccess * 0.10;
+  const safetyScore = crossingSafety * 0.15 + sidewalkCoverage * 0.15 +
+                      speedExposure * 0.15 + nightSafety * 0.10 +
+                      destinationAccess * 0.10;
 
-  const satelliteMetrics = [slopeScore, treeCanopyScore, surfaceTempScore, airQualityScore, heatIslandScore];
+  const satelliteMetrics = [slopeScore, treeCanopyScore, surfaceTempScore, heatIslandScore];
   const availableSatellite = satelliteMetrics.filter(s => s !== undefined);
-  const availableSatelliteCount = availableSatellite.length;
 
-  if (availableSatelliteCount === 5) {
-    // All 8 metrics available
+  if (availableSatellite.length >= 2) {
     overallScore = Math.round(
-      (osmScore +
-        slope * 0.10 +
-        treeCanopy * 0.10 +
-        surfaceTemp * 0.10 +
-        airQuality * 0.15 +
-        heatIsland * 0.20) * 10
-    ) / 10;
-  } else if (availableSatelliteCount > 0) {
-    // Partial satellite — OSM 35%, available satellite shares remaining 65%
-    const satWeight = 0.65 / availableSatelliteCount;
-    const satSum = availableSatellite.reduce((sum, s) => sum + (s ?? 0), 0);
-    overallScore = Math.round(
-      (osmScore + satSum * satWeight) * 10
+      (safetyScore + slope * 0.10 + treeCanopy * 0.10 + thermalComfort * 0.15) * 10
     ) / 10;
   } else {
-    // OSM only — average of 3 OSM metrics
+    // OSM only: average the 5 OSM metrics
     overallScore = Math.round(
-      ((crossingDensity + networkEfficiency + destinationAccess) / 3) * 10
+      ((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess) / 5) * 10
     ) / 10;
   }
 
   return {
-    crossingDensity,
-    networkEfficiency,
+    crossingSafety,
+    sidewalkCoverage,
+    speedExposure,
     destinationAccess,
+    nightSafety,
     slope,
     treeCanopy,
-    surfaceTemp,
-    airQuality,
-    heatIsland,
+    thermalComfort,
     overallScore,
     label: getScoreLabel(overallScore),
   };

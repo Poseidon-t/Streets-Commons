@@ -61,14 +61,14 @@ export default function ReportView() {
   };
 
   const metricsArray = [
-    { name: 'Street Crossings', score: metrics.crossingDensity, icon: '🚶', description: 'Marked pedestrian crossings (OpenStreetMap)' },
-    { name: 'Street Grid', score: metrics.networkEfficiency, icon: '🏙️', description: 'Block size and street connectivity' },
+    { name: 'Crossing Safety', score: metrics.crossingSafety, icon: '🚦', description: 'Protected pedestrian crossings (OpenStreetMap)' },
+    { name: 'Sidewalks', score: metrics.sidewalkCoverage, icon: '🚶‍♀️', description: 'Streets with sidewalk coverage (OpenStreetMap)' },
+    { name: 'Traffic Speed', score: metrics.speedExposure, icon: '🚗', description: 'Traffic speed and lane safety (OpenStreetMap)' },
     { name: 'Daily Needs', score: metrics.destinationAccess, icon: '🏪', description: 'Essential services within walking distance (OpenStreetMap)' },
-    { name: 'Flat Routes', score: metrics.slope, icon: '🏃', description: 'Terrain difficulty' },
-    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌲', description: 'Shade from trees (Sentinel-2 NDVI)' },
-    { name: 'Surface Temp', score: metrics.surfaceTemp, icon: '🌡️', description: 'Surface temperature (NASA POWER)' },
-    { name: 'Air Quality', score: metrics.airQuality, icon: '💨', description: 'Air quality index (OpenAQ)' },
-    { name: 'Heat Island', score: metrics.heatIsland, icon: '🔥', description: 'Urban heat island effect (Sentinel-2 SWIR)' },
+    { name: 'Night Safety', score: metrics.nightSafety, icon: '💡', description: 'Street lighting coverage (OpenStreetMap)' },
+    { name: 'Flat Routes', score: metrics.slope, icon: '⛰️', description: 'Terrain difficulty (NASA SRTM)' },
+    { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌳', description: 'Shade from trees (Sentinel-2 NDVI)' },
+    { name: 'Thermal Comfort', score: metrics.thermalComfort, icon: '🌡️', description: 'Walking temperature comfort (NASA POWER + Sentinel-2)' },
   ];
 
   const topMetrics = [...metricsArray].sort((a, b) => b.score - a.score).slice(0, 2);
@@ -249,15 +249,15 @@ export default function ReportView() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Block Size (80-150m recommended)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.networkEfficiency >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.networkEfficiency >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Safe Crossing Density (≤200m spacing)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingSafety >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.crossingSafety >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Crossing Density (≤200m spacing)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.crossingDensity >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Sidewalk Coverage</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.sidewalkCoverage >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.sidewalkCoverage >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -282,21 +282,21 @@ export default function ReportView() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Street Connectivity</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.networkEfficiency >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.networkEfficiency >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Traffic Speed Safety (≤25mph urban)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.speedExposure >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.speedExposure >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-800">Urban Heat Management</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.heatIsland >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.heatIsland >= 7 ? 'Meets' : 'Partial'}
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.thermalComfort >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.thermalComfort >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Air Quality (WHO Guidelines)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.airQuality >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.airQuality >= 7 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Night Safety (Street Lighting)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.nightSafety >= 7 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.nightSafety >= 7 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
               </div>
@@ -309,9 +309,9 @@ export default function ReportView() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Pedestrian Crossings</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingDensity >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.crossingDensity >= 6 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Protected Pedestrian Crossings</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.crossingSafety >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.crossingSafety >= 6 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
@@ -321,9 +321,9 @@ export default function ReportView() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-800">Walking Comfort (Surface Temp)</span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.surfaceTemp >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {metrics.surfaceTemp >= 6 ? 'Meets' : 'Partial'}
+                  <span className="text-gray-800">Walking Comfort (Thermal)</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${metrics.thermalComfort >= 6 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {metrics.thermalComfort >= 6 ? 'Meets' : 'Partial'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

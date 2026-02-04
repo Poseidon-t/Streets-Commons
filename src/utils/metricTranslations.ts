@@ -5,25 +5,13 @@
 
 import type { WalkabilityMetrics, RawMetricData } from '../types';
 
-// Placeholder type since sidewalkImageAnalysis was removed
-interface AggregatedSidewalkAnalysis {
-  averageScore?: number;
-  sidewalkCondition?: string;
-  hasObstacles?: boolean;
-  hasWheelchairAccess?: boolean;
-  hasProperLighting?: boolean;
-  totalImages?: number;
-  discrepancyWithOSM?: boolean;
-  commonIssues?: string[];
-}
-
 export interface UserFriendlyMetric {
   icon: string;
   headline: string;
   score: number; // 1-10
   badge: 'excellent' | 'good' | 'moderate' | 'needs-improvement' | 'safety-concern';
   description: string;
-  rawValue?: string; // NEW: "PM2.5: 187 µg/m³"
+  rawValue?: string;
   whyItMatters: string;
   example?: string;
   technicalMeasurement: string;
@@ -36,16 +24,10 @@ export interface UserFriendlyMetric {
   };
 }
 
-/**
- * Convert 0-10 score to 1-10 scale
- */
 function convertToTenScale(score: number): number {
   return Math.max(1, Math.round(score));
 }
 
-/**
- * Determine badge based on score
- */
 function getBadge(score: number): UserFriendlyMetric['badge'] {
   if (score >= 8) return 'excellent';
   if (score >= 5) return 'good';
@@ -55,17 +37,15 @@ function getBadge(score: number): UserFriendlyMetric['badge'] {
 }
 
 /**
- * Translate all metrics to user-friendly format
- *
- * 8 metrics: 3 OSM + 5 satellite/scientific:
- * 1. Safe Street Crossings (OSM crossings) - well-mapped in urban areas
- * 2. Street Connectivity (OSM geometry) - mathematical, objective
- * 3. Daily Needs Nearby (OSM POIs) - good coverage in cities
- * 4. Flat Terrain (NASA SRTM) - 99% global coverage
- * 5. Shade & Greenery (Sentinel-2 NDVI) - 95% global coverage
- * 6. Cool Walking Conditions (NASA POWER) - global coverage
- * 7. Air Quality (OpenAQ) - real monitoring stations
- * 8. Heat Island (Sentinel-2 SWIR) - satellite imagery
+ * 8 metrics: 5 safety/access (OSM) + 3 comfort (satellite):
+ * 1. Crossing Safety (OSM crossings weighted by type)
+ * 2. Sidewalk Coverage (OSM sidewalk tags)
+ * 3. Traffic Speed Safety (OSM maxspeed + lanes)
+ * 4. Daily Needs Nearby (OSM POIs)
+ * 5. Night Safety (OSM lit tags)
+ * 6. Flat Terrain (NASA SRTM)
+ * 7. Shade & Greenery (Sentinel-2 NDVI)
+ * 8. Thermal Comfort (NASA POWER + Sentinel-2 SWIR consolidated)
  */
 export function translateMetrics(
   metrics: WalkabilityMetrics,
@@ -73,46 +53,38 @@ export function translateMetrics(
   rawData?: RawMetricData
 ): UserFriendlyMetric[] {
   return [
-    translateCrossingDensity(metrics.crossingDensity, rawData),
-    translateNetworkEfficiency(metrics.networkEfficiency, rawData),
+    translateCrossingSafety(metrics.crossingSafety, rawData),
+    translateSidewalkCoverage(metrics.sidewalkCoverage, rawData),
+    translateSpeedExposure(metrics.speedExposure, rawData),
     translateDestinationAccess(metrics.destinationAccess, locationName, rawData),
+    translateNightSafety(metrics.nightSafety, rawData),
     translateSlope(metrics.slope, rawData),
     translateTreeCanopy(metrics.treeCanopy, rawData),
-    translateSurfaceTemperature(metrics.surfaceTemp, rawData),
-    translateAirQuality(metrics.airQuality, rawData),
-    translateHeatIsland(metrics.heatIsland, rawData),
+    translateThermalComfort(metrics.thermalComfort, rawData),
   ];
 }
 
 /**
- * Crossing Density → Safe Street Crossings
+ * Crossing Safety → Safe Street Crossings
  */
-function translateCrossingDensity(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
+function translateCrossingSafety(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
   const headlines = {
-    'safety-concern': 'Very Hard to Cross Streets Safely',
-    'needs-improvement': 'Hard to Cross Streets Safely',
+    'safety-concern': 'Dangerous or Missing Street Crossings',
+    'needs-improvement': 'Few Protected Street Crossings',
     'moderate': 'Some Safe Street Crossings',
-    'good': 'Good Safe Street Crossings',
-    'excellent': 'Excellent Safe Street Crossings'
+    'good': 'Good Protected Street Crossings',
+    'excellent': 'Excellent Protected Crossings'
   };
 
   const descriptions = {
-    'safety-concern': 'This area has very few marked crosswalks. You\'ll often need to walk many blocks out of your way to find a safe place to cross busy streets.',
-    'needs-improvement': 'Few marked crosswalks mean you\'ll often walk extra blocks to find safe places to cross busy streets.',
-    'moderate': 'Some marked crosswalks are available, but you may still need to detour occasionally to cross safely.',
-    'good': 'Many marked crosswalks make it relatively easy to cross streets safely in most areas.',
-    'excellent': 'Abundant marked crosswalks mean you can cross streets safely almost anywhere without long detours.'
-  };
-
-  const examples = {
-    'safety-concern': 'To cross a main street safely, you may need to walk 5-6 blocks (1/4 mile) out of your way.',
-    'needs-improvement': 'To cross a main street safely, you may need to walk 3-4 blocks out of your way.',
-    'moderate': 'Most blocks have crossings, but some gaps remain on busy streets.',
-    'good': 'Crosswalks appear every 2-3 blocks on major streets.',
-    'excellent': 'Crosswalks are frequent - typically every 1-2 blocks, even on busy streets.'
+    'safety-concern': 'This area has very few safe, signalized crossings. Most crosswalks are unprotected — meaning you cross multi-lane roads without traffic signals or refuge islands.',
+    'needs-improvement': 'Few crossings have traffic signals or other protection. You\'ll often cross busy roads with only paint markings — or no markings at all.',
+    'moderate': 'Some crossings have traffic signals, but many are unprotected or unmarked. Safety varies by street.',
+    'good': 'Many crossings have traffic signals or marked crosswalks. Most streets can be crossed safely.',
+    'excellent': 'Most crossings are signalized or well-marked with good pedestrian infrastructure. Crossing streets is safe and convenient.'
   };
 
   let rawValue: string | undefined;
@@ -121,21 +93,25 @@ function translateCrossingDensity(rawScore: number, raw?: RawMetricData): UserFr
   }
 
   return {
-    icon: '🚶',
+    icon: '🚦',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
     rawValue,
-    whyItMatters: 'More crosswalks mean shorter, more direct walks — especially important for children and seniors. Without them, pedestrians jaywalk or detour blocks out of their way.',
-    example: examples[badge],
-    technicalMeasurement: 'Marked pedestrian crossings per 1,000 ft of roadway — includes zebra, signalized, and mid-block crossings.',
-    recommendedStandard: 'WHO recommends crossings every 200m max. Safety guidelines suggest every 300-600 ft (1-2 blocks) on busy streets.',
-    dataSource: 'OpenStreetMap pedestrian crossing data',
-    additionalContext: score < 5 ? 'Low crossing density often forces pedestrians to jaywalk or take long detours, increasing both danger and inconvenience.' : undefined,
+    whyItMatters: 'Signalized crossings reduce pedestrian fatalities by 40-60% compared to unprotected crosswalks. On multi-lane, high-speed roads, an unprotected crosswalk can be more dangerous than no crosswalk at all.',
+    example: score < 4
+      ? 'Crossing a 6-lane road with no signal means waiting for gaps in 45mph traffic — one of the most dangerous things a pedestrian can do.'
+      : score >= 8
+      ? 'Traffic signals and marked crosswalks make crossing safe at most intersections.'
+      : undefined,
+    technicalMeasurement: 'Pedestrian crossings per km, weighted by protection level: signalized (full credit), marked/zebra (70%), refuge island (60%), uncontrolled (30%), unmarked (10%).',
+    recommendedStandard: 'WHO recommends crossings every 200m max. NACTO recommends signalized crossings on all roads above 35mph or 4+ lanes.',
+    dataSource: 'OpenStreetMap pedestrian crossing data with type classification',
+    additionalContext: score < 5 ? 'Unprotected crosswalks on high-speed roads are a leading cause of pedestrian deaths. Advocacy for signalized crossings and refuge islands can save lives.' : undefined,
     dataQuality: {
       level: 'medium',
-      explanation: 'OpenStreetMap volunteer data. Generally reliable — crossings are easy to spot and map. Some informal or new crossings may be missing.'
+      explanation: 'OpenStreetMap crossing data with type tags. Crossing locations are well-mapped; crossing type (signalized vs unmarked) may be incomplete in some areas.'
     }
   };
 }
@@ -143,14 +119,10 @@ function translateCrossingDensity(rawScore: number, raw?: RawMetricData): UserFr
 /**
  * Sidewalk Coverage → Streets with Sidewalks
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _translateSidewalkCoverage(
-  rawScore: number,
-  imageAnalysis?: AggregatedSidewalkAnalysis
-): UserFriendlyMetric {
+function translateSidewalkCoverage(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
-  const percentage = Math.round((rawScore / 10) * 100);
+  const percentage = raw?.sidewalkPct !== undefined ? Math.round(raw.sidewalkPct) : Math.round((rawScore / 10) * 100);
 
   const headlines = {
     'safety-concern': 'Most Streets Have No Sidewalk',
@@ -168,101 +140,78 @@ function _translateSidewalkCoverage(
     'excellent': `${percentage}% of streets have sidewalks. You can walk safely separated from traffic almost everywhere.`
   };
 
-  // Enhance additional context with image analysis if available
-  let enhancedContext = score < 3
-    ? 'This is a serious safety concern. Areas without sidewalks see significantly higher pedestrian injury rates and are essentially car-dependent. Note: Mapped sidewalks may be encroached, broken, or too narrow to use comfortably - especially common in developing countries.'
-    : 'Note: This measures sidewalk presence only, not quality. Mapped sidewalks may be encroached by vendors, vehicles, or infrastructure, or may be too narrow/broken to use safely.';
-
-  // Add Mapillary analysis if available
-  if (imageAnalysis && imageAnalysis.totalImages && imageAnalysis.totalImages > 0) {
-    if (imageAnalysis.discrepancyWithOSM) {
-      enhancedContext += `\n\n⚠️ Discrepancy Alert: ${imageAnalysis.totalImages} street-level photos available for this area. Visual inspection recommended to verify actual sidewalk conditions.`;
-    } else if (imageAnalysis.commonIssues && imageAnalysis.commonIssues.length > 0 && !imageAnalysis.commonIssues[0].includes('Visual analysis requires')) {
-      enhancedContext += `\n\nStreet-level imagery (${imageAnalysis.totalImages} photos) shows: ${imageAnalysis.commonIssues.slice(0, 2).join(', ')}.`;
-    } else {
-      enhancedContext += `\n\n${imageAnalysis.totalImages} street-level photos available for visual verification. Click images below to inspect actual sidewalk conditions.`;
-    }
-  }
-
-  // Adjust data quality confidence if image analysis suggests issues
-  let dataQualityLevel: 'high' | 'medium' | 'low' = 'medium';
-  let dataQualityExplanation = 'Based on volunteer-contributed OpenStreetMap data. Shows whether sidewalks are mapped, but cannot verify current condition, width, or usability. Data accuracy varies by region - well-mapped areas (US, Europe) are more reliable than developing countries. For ground truth, we recommend validating with street-level imagery.';
-
-  if (imageAnalysis) {
-    if (imageAnalysis.discrepancyWithOSM) {
-      dataQualityLevel = 'low';
-      dataQualityExplanation = `OSM data shows ${percentage}% sidewalk coverage, but ${imageAnalysis.totalImages || 0} street-level images suggest discrepancies. Visual inspection strongly recommended. OSM may be outdated or inaccurate for this area.`;
-    } else if (imageAnalysis.totalImages && imageAnalysis.totalImages >= 5) {
-      dataQualityExplanation += ` ${imageAnalysis.totalImages} street-level photos available for verification.`;
-    }
-  }
-
   return {
     icon: '🚶‍♀️',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Walking without sidewalks is dangerous and uncomfortable. Sidewalks make everyday activities like walking to neighbors, exercising, or letting kids play outside much safer. They\'re essential for people with disabilities, seniors, and parents with strollers.',
+    whyItMatters: 'Walking without sidewalks is dangerous. Streets without sidewalks see pedestrian injury rates 2-3x higher. Sidewalks are essential for people with disabilities, seniors, and parents with strollers.',
     example: score < 3 ? `${100 - percentage}% of your walks will be alongside moving traffic with no protected walkway.` : undefined,
-    technicalMeasurement: 'We measure which streets have paved walkways separate from car traffic, including sidewalks, paths, and pedestrian lanes. This analysis is based on OpenStreetMap volunteer data, which may not reflect actual sidewalk condition, width, or usability.',
-    recommendedStandard: 'Walkable neighborhoods typically have sidewalks on 90%+ of streets. UN-Habitat SDG 11.2 requires adequate and accessible sidewalks for all urban residents. Complete Streets Guidelines recommend sidewalks on 100% of urban streets.',
+    technicalMeasurement: 'Percentage of streets with paved walkways separate from car traffic, based on OpenStreetMap sidewalk tags.',
+    recommendedStandard: 'Walkable neighborhoods have sidewalks on 90%+ of streets. Complete Streets Guidelines recommend sidewalks on 100% of urban streets.',
     dataSource: 'OpenStreetMap sidewalk infrastructure data',
-    additionalContext: enhancedContext,
+    additionalContext: score < 3
+      ? 'This is a serious safety concern. Areas without sidewalks are essentially car-dependent.'
+      : 'This measures sidewalk presence, not quality. Mapped sidewalks may be narrow, broken, or obstructed.',
     dataQuality: {
-      level: dataQualityLevel,
-      explanation: dataQualityExplanation
+      level: 'medium',
+      explanation: 'Based on OpenStreetMap data. Shows whether sidewalks are mapped, but cannot verify condition, width, or usability.'
     }
   };
 }
 
 /**
- * Network Efficiency → Street Directness
+ * Speed Exposure → Traffic Speed Safety
  */
-function translateNetworkEfficiency(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
+function translateSpeedExposure(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
-  const efficiency = Math.round((rawScore / 10) * 100);
-  const extraDistance = Math.round((100 / efficiency - 1) * 100);
+
+  let rawValue: string | undefined;
+  if (raw?.avgSpeedLimit !== undefined) {
+    rawValue = `Avg speed: ${Math.round(raw.avgSpeedLimit)} mph`;
+    if (raw?.avgLanes !== undefined) {
+      rawValue += `, ${raw.avgLanes.toFixed(1)} lanes`;
+    }
+  }
 
   const headlines = {
-    'safety-concern': 'Very Indirect Routes, Many Detours',
-    'needs-improvement': 'Indirect Routes with Detours',
-    'moderate': 'Some Extra Blocks to Get Around',
-    'good': 'Fairly Direct Routes',
-    'excellent': 'Very Direct Routes'
+    'safety-concern': 'High-Speed, Multi-Lane Roads',
+    'needs-improvement': 'Fast Traffic on Wide Roads',
+    'moderate': 'Mixed Speed Environment',
+    'good': 'Low-Speed, Walkable Streets',
+    'excellent': 'Very Safe, Slow-Speed Streets'
   };
 
   const descriptions = {
-    'safety-concern': `Getting from point A to point B requires many detours. The street layout adds ${extraDistance}% more distance compared to a straight line.`,
-    'needs-improvement': `Getting from point A to point B requires significant detours. The street layout adds ${extraDistance}% more distance.`,
-    'moderate': `Getting from point A to point B requires some detours. The street layout adds about ${extraDistance}% more distance.`,
-    'good': `Getting around is fairly direct. The street layout adds only ${extraDistance}% more distance than a straight line.`,
-    'excellent': `Routes are very direct with minimal detours. The street layout adds only ${extraDistance}% extra distance.`
+    'safety-concern': 'Streets in this area are designed for fast-moving traffic — wide, multi-lane roads with speed limits of 40-55mph. A pedestrian struck at these speeds has an 85% chance of dying.',
+    'needs-improvement': 'Many streets have high speed limits and multiple lanes. Crossing these roads is dangerous, and walking alongside them is uncomfortable.',
+    'moderate': 'Mix of high-speed arterials and slower residential streets. Safety depends heavily on which streets you walk along.',
+    'good': 'Most streets have moderate speed limits (25-30mph) and fewer lanes. Walking feels safe on most routes.',
+    'excellent': 'Streets are designed for people, not just cars. Low speeds (15-25mph) and narrow roads create a safe, walkable environment.'
   };
 
-  let rawValue: string | undefined;
-  if (raw?.streetLength !== undefined) {
-    rawValue = `~${raw.streetLength.toFixed(1)} km of streets`;
-  }
-
   return {
-    icon: '🗺️',
+    icon: '🚗',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
     rawValue,
-    whyItMatters: 'Direct routes save time and make walking viable. Dead-ends and disconnected streets force detours that turn a quick walk into a drive.',
-    example: score < 5
-      ? `A 10-minute straight-line walk actually takes ${10 + Math.round(10 * extraDistance / 100)} minutes due to street layout.`
-      : `A 10-minute straight-line walk takes about ${10 + Math.round(10 * extraDistance / 100)} minutes - very reasonable.`,
-    technicalMeasurement: `Walking routes vs. straight-line distances. ${efficiency}% efficiency = routes are ${extraDistance}% longer than crow-flies.`,
-    recommendedStandard: 'ITDP recommends small blocks (80-100m) with 140+ intersections/km². Grid neighborhoods score 85-95%.',
-    dataSource: 'OpenStreetMap street network analysis',
+    whyItMatters: 'Vehicle speed is the #1 predictor of pedestrian fatality. At 20mph, 5% of struck pedestrians die. At 40mph, 85% die. Wide, multi-lane roads amplify the danger by increasing crossing time and exposure.',
+    example: score < 4
+      ? 'Walking along a 6-lane, 45mph road with no buffer — this is one of the most dangerous pedestrian environments in America.'
+      : score >= 8
+      ? 'Narrow, slow streets where cars naturally drive at safe speeds. Comfortable for walking and crossing.'
+      : undefined,
+    technicalMeasurement: 'Average traffic speed and lane count from OpenStreetMap data. Speed inferred from road classification when not tagged. Danger score combines speed (squared) with lane multiplier.',
+    recommendedStandard: 'NACTO recommends 20-25mph on urban streets. Vision Zero targets 20mph in residential areas. Roads above 35mph with no pedestrian infrastructure should not be in walkable areas.',
+    dataSource: 'OpenStreetMap road classification, speed limit, and lane data',
+    additionalContext: score < 5 ? 'High-speed, multi-lane roads ("stroads") are the most dangerous environments for pedestrians. Speed reduction and road diets save lives.' : undefined,
     dataQuality: {
-      level: 'high',
-      explanation: 'OpenStreetMap street network — roads are the most well-mapped features globally. Geometric measurements are objective and highly reliable.'
+      level: 'medium',
+      explanation: 'Speed limits from OpenStreetMap where tagged. Where not tagged, speed is inferred from road type (primary=45mph, residential=25mph). Lane counts may be incomplete.'
     }
   };
 }
@@ -318,44 +267,53 @@ function translateDestinationAccess(rawScore: number, _locationName: string, raw
 }
 
 /**
- * Green Space Access → Parks & Nature Nearby
+ * Night Safety → Well-Lit Streets
  */
-function translateGreenSpaceAccess(rawScore: number): UserFriendlyMetric {
+function translateNightSafety(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
+  let rawValue: string | undefined;
+  if (raw?.litStreetPct !== undefined) {
+    rawValue = `${Math.round(raw.litStreetPct)}% of streets lit`;
+  }
+
   const headlines = {
-    'safety-concern': 'No Parks or Green Spaces Nearby',
-    'needs-improvement': 'Parks Are Far Away',
-    'moderate': 'Park Within Reasonable Distance',
-    'good': 'Park Nearby',
-    'excellent': 'Park Very Close By'
+    'safety-concern': 'Dark, Unlit Streets at Night',
+    'needs-improvement': 'Many Streets Lack Lighting',
+    'moderate': 'Some Streets Are Lit at Night',
+    'good': 'Most Streets Well-Lit at Night',
+    'excellent': 'Excellent Street Lighting'
   };
 
   const descriptions = {
-    'safety-concern': 'The nearest park or green space is more than a 15-minute walk away. You\'ll likely need to drive to access nature.',
-    'needs-improvement': 'The nearest park is a 10-15 minute walk away. While accessible, it\'s not immediately convenient.',
-    'moderate': 'You have a park within a 10-minute walk. It\'s accessible for planned outings.',
-    'good': 'You have a park within a 5-8 minute walk. It\'s easily accessible for regular visits.',
-    'excellent': 'You have a park, trail, or green space within a 5-minute walk from your home.'
+    'safety-concern': 'Most streets lack adequate lighting. Walking after dark is unsafe — poor visibility for both pedestrians and drivers.',
+    'needs-improvement': 'Many streets are poorly lit. Walking after dark is uncomfortable and potentially unsafe on unlit streets.',
+    'moderate': 'Some streets have lighting, but coverage is inconsistent. Stick to main roads after dark.',
+    'good': 'Most streets are well-lit. Walking after dark is generally safe and comfortable.',
+    'excellent': 'Streets are well-lit throughout the area. Walking after dark is safe and comfortable on nearly all routes.'
   };
 
   return {
-    icon: '🏞️',
+    icon: '💡',
     headline: headlines[badge],
     score,
     badge,
     description: descriptions[badge],
-    whyItMatters: 'Nearby parks improve mental health, encourage outdoor activity, and give kids safe places to play. Properties near parks also hold higher values.',
-    example: score >= 8
-      ? 'Your nearest green spaces:\n• Local park: 3-minute walk - playground, trails\n• Community garden: 5-minute walk\n• Walking trail: 7-minute walk'
+    rawValue,
+    whyItMatters: 'Nearly half of pedestrian fatalities occur at night. Good street lighting reduces pedestrian crashes by 42%. Lighting also increases perceived safety, encouraging more walking.',
+    example: score < 4
+      ? 'Walking home from a bus stop after sunset means navigating dark, unlit streets — a major safety and comfort concern.'
+      : score >= 8
+      ? 'Well-lit streets make evening walks, dog walks, and late commutes safe and pleasant.'
       : undefined,
-    technicalMeasurement: 'Walking distance to nearest park, playground, trail, or natural area.',
-    recommendedStandard: 'WHO recommends green space within 300m of all residences. Park use drops sharply beyond a 10-min walk.',
-    dataSource: 'OpenStreetMap parks and recreation data',
+    technicalMeasurement: 'Percentage of streets with lighting based on OpenStreetMap lit=yes/no tags. Where tag coverage is low, lighting is inferred from road type.',
+    recommendedStandard: 'Complete Streets standards require lighting on all pedestrian routes. IES recommends minimum 5 lux on sidewalks.',
+    dataSource: 'OpenStreetMap street lighting data',
+    additionalContext: score < 5 ? 'Poor street lighting is a major barrier to walking, especially for women and seniors. Advocacy for pedestrian-scale lighting improves safety and walkability.' : undefined,
     dataQuality: {
-      level: 'medium',
-      explanation: 'OpenStreetMap data. Major parks are well-mapped; pocket parks and community gardens may be missing.'
+      level: 'low',
+      explanation: 'OpenStreetMap lit tags have limited coverage. Many streets lack this tag. Where data is sparse, lighting is estimated from road type (major roads assumed lit, residential partially).'
     }
   };
 }
@@ -424,7 +382,7 @@ function translateTreeCanopy(rawScore: number, raw?: RawMetricData): UserFriendl
     const pct = (raw.ndvi * 100).toFixed(0);
     rawValue = `Vegetation: ${pct}% (NDVI: ${raw.ndvi.toFixed(2)})`;
   }
-  const coverage = Math.round((rawScore / 10) * 40); // Rough conversion to percentage
+  const coverage = Math.round((rawScore / 10) * 40);
 
   const headlines = {
     'safety-concern': 'Very Little Tree Shade',
@@ -467,31 +425,37 @@ function translateTreeCanopy(rawScore: number, raw?: RawMetricData): UserFriendl
 }
 
 /**
- * Surface Temperature → Cool Walking Conditions
+ * Thermal Comfort → Walking Comfort (consolidated surfaceTemp + heatIsland)
  */
-function translateSurfaceTemperature(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
+function translateThermalComfort(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
   const score = convertToTenScale(rawScore);
   const badge = getBadge(score);
 
   let rawValue: string | undefined;
+  const parts: string[] = [];
   if (raw?.temperature !== undefined) {
-    rawValue = `Temperature: ${raw.temperature.toFixed(1)}°C`;
+    parts.push(`Temp: ${raw.temperature.toFixed(1)}°C`);
   }
+  if (raw?.heatDifference !== undefined) {
+    const sign = raw.heatDifference >= 0 ? '+' : '';
+    parts.push(`Heat island: ${sign}${raw.heatDifference.toFixed(1)}°C`);
+  }
+  if (parts.length > 0) rawValue = parts.join(' | ');
 
   const headlines = {
-    'safety-concern': 'Very Hot Walking Conditions',
-    'needs-improvement': 'Hot Walking Conditions',
-    'moderate': 'Moderate Heat in Summer',
-    'good': 'Comfortable Walking Temperatures',
+    'safety-concern': 'Dangerously Hot Walking Conditions',
+    'needs-improvement': 'Hot and Uncomfortable for Walking',
+    'moderate': 'Warm but Manageable',
+    'good': 'Comfortable Walking Temperature',
     'excellent': 'Cool, Comfortable Walking'
   };
 
   const descriptions = {
-    'safety-concern': 'Ground temperatures exceed 110°F on summer days. Walking during daytime can be dangerous. Stick to early morning or evening.',
-    'needs-improvement': 'Ground temperatures often reach 105°F on summer days. Walking is uncomfortable and potentially unsafe during midday.',
-    'moderate': 'Ground temperatures average 95°F on summer days. This is warmer than ideal but manageable with morning/evening walks.',
-    'good': 'Ground temperatures stay moderate (85-90°F) even in summer. Walking is generally comfortable throughout the day.',
-    'excellent': 'Ground temperatures remain cool (below 85°F) due to shade and vegetation. Walking is comfortable year-round.'
+    'safety-concern': 'Extreme heat from high temperatures and urban heat island effect. Outdoor walking is dangerous during summer days — risk of heat stroke.',
+    'needs-improvement': 'Hot conditions with significant urban heat buildup. Summer walking is uncomfortable and potentially unsafe during midday.',
+    'moderate': 'Moderately warm conditions. Walking is manageable but consider morning or evening in summer months.',
+    'good': 'Comfortable temperatures with minimal heat island effect. Walking is pleasant throughout most of the day.',
+    'excellent': 'Cool, comfortable conditions with excellent urban cooling from vegetation and design. Walking is pleasant year-round.'
   };
 
   return {
@@ -501,124 +465,19 @@ function translateSurfaceTemperature(rawScore: number, raw?: RawMetricData): Use
     badge,
     description: descriptions[badge],
     rawValue,
-    whyItMatters: 'Hot pavement makes walks uncomfortable and can be dangerous for heat-sensitive people, seniors, and children. Cooler areas (from trees, water, or lighter surfaces) are more pleasant for walking year-round and encourage more pedestrian activity.',
+    whyItMatters: 'Heat is the leading weather-related cause of death. Urban areas can be 10-20°F hotter than surrounding areas due to concrete and asphalt. Trees, green space, and reflective surfaces reduce dangerous heat.',
     example: score < 4
       ? 'Best walking times: Early morning (before 10am) or evening (after 6pm) to avoid peak heat.'
       : score >= 8
       ? 'Comfortable for walking throughout the day, even in summer.'
       : undefined,
-    technicalMeasurement: 'We measure average maximum temperature from NASA POWER meteorological data. This provides 30-day rolling average for pedestrian comfort assessment.',
-    recommendedStandard: 'Comfortable walking temperatures are 15-25°C (59-77°F). Temperatures above 35°C (95°F) can be dangerous for extended outdoor activity. WHO recommends heat warnings above 32°C (90°F).',
-    dataSource: 'NASA POWER meteorological data (30-day average)',
-    additionalContext: score < 4 ? 'High temperatures are a serious concern in this area. Consider morning or evening walks during hot months.' : undefined,
+    technicalMeasurement: 'Combines NASA POWER surface temperature (30-day average) with Sentinel-2 SWIR urban heat island analysis.',
+    recommendedStandard: 'Comfortable walking: 15-25°C (59-77°F). Heat island difference should be <5°C. WHO recommends heat warnings above 32°C.',
+    dataSource: 'NASA POWER temperature data + Sentinel-2 SWIR heat island analysis',
+    additionalContext: score < 5 ? 'High temperatures combined with urban heat buildup make this area uncomfortable for walking. More trees and green infrastructure would help.' : undefined,
     dataQuality: {
       level: 'high',
-      explanation: 'Based on NASA POWER meteorological satellite data. This provides scientifically accurate temperature measurements with global coverage. Uses 30-day rolling average to account for seasonal variation.'
-    }
-  };
-}
-
-/**
- * Air Quality → Clean Air for Walking
- */
-function translateAirQuality(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
-  const score = convertToTenScale(rawScore);
-  const badge = getBadge(score);
-
-  let rawValue: string | undefined;
-  if (raw?.pm25 !== undefined) {
-    rawValue = `PM2.5: ${raw.pm25.toFixed(1)} µg/m³`;
-  }
-
-  const headlines = {
-    'safety-concern': 'Hazardous Air Quality',
-    'needs-improvement': 'Unhealthy Air Quality',
-    'moderate': 'Moderate Air Quality',
-    'good': 'Good Air Quality',
-    'excellent': 'Excellent Air Quality'
-  };
-
-  const descriptions = {
-    'safety-concern': 'Air quality is hazardous. PM2.5 pollution exceeds safe levels. Outdoor activity is not recommended, especially for sensitive groups.',
-    'needs-improvement': 'Air quality is unhealthy. Pollution may cause breathing discomfort during outdoor activity. Sensitive individuals should limit exposure.',
-    'moderate': 'Air quality is acceptable for most people. However, sensitive individuals may experience minor symptoms during extended outdoor activity.',
-    'good': 'Air quality is good. You can enjoy outdoor walks without health concerns for most people.',
-    'excellent': 'Air quality is excellent. Ideal conditions for walking and outdoor activity.'
-  };
-
-  return {
-    icon: '💨',
-    headline: headlines[badge],
-    score,
-    badge,
-    description: descriptions[badge],
-    rawValue,
-    whyItMatters: 'Clean air makes walking healthier and more enjoyable. Poor air quality can cause respiratory problems, especially for children, seniors, and people with asthma. Long-term exposure to pollution reduces life expectancy and quality of life.',
-    example: score < 4
-      ? 'Consider wearing a mask during walks. Check air quality before outdoor activity.'
-      : score >= 8
-      ? 'Air is clean and safe for extended outdoor activity.'
-      : undefined,
-    technicalMeasurement: 'We measure PM2.5 (fine particulate matter) from nearby monitoring stations. PM2.5 particles are small enough to penetrate deep into lungs and bloodstream.',
-    recommendedStandard: 'WHO guidelines: PM2.5 should not exceed 15 µg/m³ annual average or 45 µg/m³ 24-hour average. US EPA considers 0-12 µg/m³ "Good", 12-35 "Moderate", 35-55 "Unhealthy for Sensitive Groups".',
-    dataSource: 'OpenAQ real-time air quality monitoring (15,000+ stations globally)',
-    additionalContext: score < 5 ? 'Poor air quality is a serious health concern. Consider advocating for emissions reduction and green infrastructure.' : undefined,
-    dataQuality: {
-      level: 'high',
-      explanation: 'Based on OpenAQ real-time monitoring data from government-certified air quality stations. Data comes from official EPA, government, and verified sensors. Updated hourly. Quality depends on proximity to monitoring stations (typically within 25km).'
-    }
-  };
-}
-
-/**
- * Heat Island → Urban Cooling
- */
-function translateHeatIsland(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
-  const score = convertToTenScale(rawScore);
-  const badge = getBadge(score);
-
-  let rawValue: string | undefined;
-  if (raw?.heatDifference !== undefined) {
-    const sign = raw.heatDifference >= 0 ? '+' : '';
-    rawValue = `Heat difference: ${sign}${raw.heatDifference.toFixed(1)}°C`;
-  }
-
-  const headlines = {
-    'safety-concern': 'Severe Heat Island Effect',
-    'needs-improvement': 'Significant Heat Island',
-    'moderate': 'Moderate Heat Island',
-    'good': 'Minimal Heat Island',
-    'excellent': 'Excellent Urban Cooling'
-  };
-
-  const descriptions = {
-    'safety-concern': 'This area is significantly hotter than surrounding vegetated areas (12°C+ difference). Urban heat island effect is severe.',
-    'needs-improvement': 'This area is noticeably hotter than surrounding vegetated areas (8-12°C difference). Heat island effect is significant.',
-    'moderate': 'This area is moderately warmer than surrounding vegetated areas (5-8°C difference). Some urban heat buildup occurs.',
-    'good': 'This area stays relatively cool compared to heavily built-up zones (2-5°C difference). Good urban cooling from trees and green space.',
-    'excellent': 'This area maintains temperatures similar to vegetated areas (<2°C difference). Excellent urban cooling from abundant vegetation and water.'
-  };
-
-  return {
-    icon: '🔥',
-    headline: headlines[badge],
-    score,
-    badge,
-    description: descriptions[badge],
-    rawValue,
-    whyItMatters: 'Urban heat islands make cities uncomfortably hot in summer, increase cooling costs, and can be dangerous during heat waves. Areas with trees, green space, and water stay 10-20°F cooler than concrete-heavy zones, making walking more comfortable year-round.',
-    example: score >= 7
-      ? 'This area benefits from tree shade and green infrastructure that keeps temperatures comfortable.'
-      : score < 4
-      ? 'On a 90°F day, this area may feel like 100-105°F due to heat-absorbing surfaces. Avoid midday walks in summer.'
-      : undefined,
-    technicalMeasurement: 'We compare surface temperatures between urban and vegetated areas using Sentinel-2 SWIR satellite bands. Positive values indicate urban areas are hotter than nearby vegetation.',
-    recommendedStandard: 'Well-designed urban areas minimize heat island effect through tree canopy (40%+ coverage), permeable surfaces, green roofs, and water features. Temperature differences should be <5°C compared to vegetated areas.',
-    dataSource: 'Sentinel-2 SWIR surface temperature analysis via Microsoft Planetary Computer',
-    additionalContext: score < 5 ? 'High heat island effect indicates lack of cooling infrastructure. Consider advocating for more street trees, green space, and light-colored surfaces.' : undefined,
-    dataQuality: {
-      level: 'high',
-      explanation: 'Based on ESA Sentinel-2 SWIR (shortwave infrared) satellite imagery. Measures surface temperature differences between urban and vegetated areas with 10-meter resolution. Updated regularly. Scientifically validated method for urban heat island assessment.'
+      explanation: 'Combines NASA POWER meteorological data with Sentinel-2 SWIR satellite analysis. Both are scientifically validated with global coverage.'
     }
   };
 }
