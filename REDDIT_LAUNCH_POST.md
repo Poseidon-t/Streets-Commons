@@ -27,6 +27,8 @@ Analyzes any address worldwide and gives you **8 metrics with actual data**:
 - Tree canopy coverage (Sentinel-2 NDVI)
 - Thermal comfort (NASA POWER + Sentinel-2 heat island)
 
+**Plus:** For US addresses, it shows **actual fatal crash data** within 800m of your location (NHTSA FARS database). For international addresses, it shows your country's road traffic death rate (WHO data).
+
 **Crucially:** It shows you the RAW DATA, not just a score. So you see "Average speed: 45 mph, 4 lanes" or "12% of streets have sidewalks".
 
 ### Try it:
@@ -52,6 +54,7 @@ I pre-analyzed some interesting examples:
 - Crossing safety: 1/10 (unmarked crossings only)
 - Sidewalks: 1/10 (almost none)
 - Traffic speed: 2/10 (45mph, 6 lanes)
+- Fatal crashes: multiple within 800m (NHTSA FARS data)
 
 ### Why it's free:
 
@@ -60,6 +63,8 @@ All data sources are free:
 - NASA POWER (surface temperature)
 - Sentinel-2 (tree canopy NDVI, urban heat island)
 - NASADEM (elevation/slope)
+- NHTSA FARS (US fatal crash locations)
+- WHO Global Health Observatory (international road traffic death rates)
 
 My data costs are literally $0/year, so I can offer this for free.
 

@@ -1,6 +1,6 @@
 # SafeStreets Setup Guide
 
-Complete setup guide for the SafeStreets walkability analysis tool with all 7 metrics.
+Complete setup guide for the SafeStreets walkability analysis tool with all 8 metrics.
 
 ## Architecture Overview
 
@@ -13,7 +13,7 @@ Frontend (React/Vite) → Backend API (Node.js/Express) → Google Earth Engine
 
 ## Quick Start (Minimal Setup)
 
-Get started with **4 OSM metrics** (no API keys required):
+Get started with **5 OSM metrics** (no API keys required):
 
 ```bash
 # Frontend only
@@ -24,11 +24,11 @@ npm run dev
 
 Visit http://localhost:5174
 
-**Metrics available:** Crossing Density, Sidewalk Coverage, Network Efficiency, Destination Access
+**Metrics available:** Crossing Safety, Sidewalk Coverage, Traffic Speed, Destination Access, Night Safety
 
 ---
 
-## Full Setup (All 7 Metrics)
+## Full Setup (All 8 Metrics)
 
 ### 1. Slope Metric (Auto-enabled)
 
@@ -173,13 +173,14 @@ app.use(cors({
 
 | Metric | Data Source | Setup Required | Progressive |
 |--------|-------------|----------------|-------------|
-| Crossing Density | OSM Overpass API | None | No |
+| Crossing Safety | OSM Overpass API | None | No |
 | Sidewalk Coverage | OSM Overpass API | None | No |
-| Network Efficiency | OSM Overpass API | None | No |
+| Traffic Speed | OSM Overpass API | None | No |
 | Destination Access | OSM Overpass API | None | No |
+| Night Safety | OSM Overpass API | None | No |
 | Slope | Open-Elevation (SRTM) | None | Yes |
 | Tree Canopy | OpenWeather Agro API | Free API key | Yes |
-| Surface Temp | Google Earth Engine | Backend + GEE auth | Yes |
+| Thermal Comfort | NASA POWER + Sentinel-2 | Backend | Yes |
 
 **Progressive = Loads after initial OSM analysis**
 
@@ -189,6 +190,7 @@ app.use(cors({
 |---------|-------------|----------------|----------|
 | Street Photos | Mapillary API | Free access token | Map markers, gallery, PDF photos |
 | PDF Reports | jsPDF | None | All metrics, map, photos, recommendations |
+| Crash Data | NHTSA FARS + WHO | Backend required | US fatal crashes nearby, WHO country rates |
 
 ---
 
@@ -317,12 +319,13 @@ GEE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIE...\n-----END PRIVATE KEY-----
 
 ## Next Steps
 
-1. ✅ Start with 4 OSM metrics (instant setup)
+1. ✅ Start with 5 OSM metrics (instant setup)
 2. ✅ Add slope metric (auto-enabled, no setup)
-3. ✅ Add tree canopy (5 min - OpenWeather API key)
-4. ✅ Add street photos (5 min - Mapillary access token)
-5. ✅ Add surface temp (30 min - backend + GEE)
-6. 🚀 Deploy to production
+3. ✅ Add tree canopy (OpenWeather API key)
+4. ✅ Add street photos (Mapillary access token)
+5. ✅ Add thermal comfort (backend + NASA POWER)
+6. ✅ Crash data card (auto-enabled, NHTSA FARS + WHO)
+7. 🚀 Deploy to production
 7. 🚀 Add rate limiting + caching
 8. 🚀 Monitor usage + costs
 

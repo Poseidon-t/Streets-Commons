@@ -73,5 +73,6 @@ export async function searchAddress(query: string): Promise<Location[]> {
     displayName: item.display_name,
     city: item.address?.city || item.address?.town || item.address?.village,
     country: item.address?.country,
+    countryCode: item.address?.country_code, // ISO 3166-1 alpha-2
   }));
 }

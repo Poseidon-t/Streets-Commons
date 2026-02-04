@@ -24,11 +24,13 @@ import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
 import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
+import { fetchCrashData } from './services/crashdata';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData } from './types';
+import CrashDataCard from './components/streetcheck/CrashDataCard';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -46,6 +48,8 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [rawMetricData, setRawMetricData] = useState<RawMetricData>({});
+  const [crashData, setCrashData] = useState<CrashData | null>(null);
+  const [crashLoading, setCrashLoading] = useState(false);
 
   // Premium access - Clerk integration
   const { user } = useUser();
@@ -141,6 +145,8 @@ function App() {
     setIsAnalyzing(true);
     setMetrics(null);
     setSatelliteLoaded(new Set());
+    setCrashData(null);
+    setCrashLoading(true);
 
     // Cancel any in-flight satellite fetches from previous location
     if (satelliteAbortRef.current) {
@@ -149,9 +155,23 @@ function App() {
     const abortController = new AbortController();
     satelliteAbortRef.current = abortController;
 
-    // Fire OSM and all satellite requests simultaneously
+    // Fire OSM, satellite, and crash data requests simultaneously
     const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
     const satellitePromises = startSatelliteFetches(selectedLocation);
+
+    // Crash data fetch (non-blocking, runs in parallel)
+    fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
+      .then(data => {
+        if (!abortController.signal.aborted) {
+          setCrashData(data);
+          setCrashLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!abortController.signal.aborted) {
+          setCrashLoading(false);
+        }
+      });
 
     try {
       // Wait for OSM data first (needed for core metrics)
@@ -1018,6 +1038,9 @@ function App() {
               </div>
               <div>
                 <ScoreCard metrics={metrics} />
+                <div className="mt-4">
+                  <CrashDataCard crashData={crashData} isLoading={crashLoading} />
+                </div>
                 {dataQuality && (
                   <div className="mt-4 rounded-xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
                     <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>Data Quality</h3>
@@ -1201,7 +1224,7 @@ function App() {
                     </div>
                     <div>
                       <strong className="block mb-1">Free & Open Data</strong>
-                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, Sentinel-2 satellite imagery, and NASADEM elevation data.</p>
+                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, Sentinel-2 satellite imagery, NASADEM elevation data, NHTSA FARS crash data, and WHO health statistics.</p>
                     </div>
                   </div>
                   <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#d0dbd0' }}>
@@ -1693,7 +1716,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (1-arc-second global elevation), and <strong>NASA POWER</strong> (surface temperature). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
+                    We use research-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (1-arc-second global elevation), <strong>NASA POWER</strong> (surface temperature), <strong>NHTSA FARS</strong> (US fatal crash locations), and <strong>WHO Global Health Observatory</strong> (international road traffic death rates). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
                   </p>
                 </div>
               </div>
@@ -1772,6 +1795,31 @@ function App() {
                   </p>
                 </div>
               </div>
+
+              {/* FAQ 11 */}
+              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === 11 ? null : 11)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 11}
+                  aria-controls="faq-11-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    What is the Traffic Fatalities card?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 11 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-11-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 11 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    For <strong>US addresses</strong>, we show real fatal crash data within 800 meters of your location from the <strong>NHTSA Fatality Analysis Reporting System (FARS)</strong>, covering 2018-2022. This includes crash count, fatalities, yearly breakdown, and nearest fatal crash location. For <strong>international addresses</strong>, we show your country's road traffic death rate per 100,000 people from the <strong>WHO Global Health Observatory</strong>. This data is informational context &mdash; it does not affect the walkability score. FARS only tracks fatal crashes, not injuries.
+                  </p>
+                </div>
+              </div>
               </>
               )}
 
@@ -1780,7 +1828,7 @@ function App() {
                 onClick={() => setShowAllFaqs(!showAllFaqs)}
                 className="w-full py-4 text-sm font-medium transition-colors rounded-lg border border-earth-border hover:bg-white/50 text-earth-text-body"
               >
-                {showAllFaqs ? 'Show fewer questions' : 'Show 4 more questions'}
+                {showAllFaqs ? 'Show fewer questions' : 'Show 5 more questions'}
               </button>
             </div>
           </div>

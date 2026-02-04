@@ -3,9 +3,11 @@
  *
  * This backend provides access to:
  * - NASA POWER meteorological data (temperature)
- * - OpenAQ air quality data (PM2.5, PM10, etc.)
  * - NASADEM elevation data via Microsoft Planetary Computer
  * - OpenStreetMap infrastructure via Overpass API
+ * - NHTSA FARS fatal crash data (US)
+ * - WHO road traffic death rates (international)
+ * - Sentinel-2 NDVI + heat island data
  */
 
 import express from 'express';
@@ -1276,6 +1278,249 @@ app.get('/api/heat-island', async (req, res) => {
 });
 
 // =====================
+// CRASH / FATALITY DATA
+// =====================
+
+// WHO road traffic death rates per 100k (2021) — static dataset, updates every 2-3 years
+// Source: WHO Global Health Observatory, Indicator RS_198
+import { readFileSync } from 'fs';
+const WHO_DATA_PATH = path.join(__dirname, '..', 'src', 'data', 'whoRoadDeaths.json');
+let whoRoadDeaths = {};
+try {
+  whoRoadDeaths = JSON.parse(readFileSync(WHO_DATA_PATH, 'utf-8'));
+} catch (e) {
+  console.warn('⚠️  WHO road deaths data not found, international crash data disabled');
+}
+
+// In-memory cache for FARS county data (static historical data)
+const farsCache = new Map();
+const FARS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Earth radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Nominatim country code is ISO 3166-1 alpha-2, WHO uses alpha-3
+// Only need the US check here; for WHO lookup we accept alpha-2 and map to alpha-3
+const iso2to3 = {
+  AF:'AFG',AL:'ALB',DZ:'DZA',AD:'AND',AO:'AGO',AG:'ATG',AR:'ARG',AM:'ARM',AU:'AUS',AT:'AUT',
+  AZ:'AZE',BS:'BHS',BH:'BHR',BD:'BGD',BB:'BRB',BY:'BLR',BE:'BEL',BZ:'BLZ',BJ:'BEN',BT:'BTN',
+  BO:'BOL',BA:'BIH',BW:'BWA',BR:'BRA',BN:'BRN',BG:'BGR',BI:'BDI',KH:'KHM',CM:'CMR',CA:'CAN',
+  CV:'CPV',CF:'CAF',CL:'CHL',CN:'CHN',CO:'COL',KM:'COM',CD:'COD',CR:'CRI',CI:'CIV',HR:'HRV',
+  CU:'CUB',CY:'CYP',DK:'DNK',DJ:'DJI',DM:'DMA',DO:'DOM',EC:'ECU',EG:'EGY',ER:'ERI',EE:'EST',
+  ET:'ETH',FJ:'FJI',FI:'FIN',FR:'FRA',GA:'GAB',GM:'GMB',DE:'DEU',GH:'GHA',GR:'GRC',GD:'GRD',
+  GT:'GTM',GN:'GIN',GW:'GNB',GY:'GUY',HT:'HTI',HN:'HND',HU:'HUN',IS:'ISL',IN:'IND',ID:'IDN',
+  IR:'IRN',IQ:'IRQ',IE:'IRL',IL:'ISR',IT:'ITA',JM:'JAM',JP:'JPN',JO:'JOR',KZ:'KAZ',KE:'KEN',
+  KI:'KIR',KW:'KWT',KG:'KGZ',LA:'LAO',LV:'LVA',LB:'LBN',LS:'LSO',LY:'LBY',LT:'LTU',MG:'MDG',
+  MW:'MWI',MY:'MYS',MV:'MDV',ML:'MLI',MT:'MLT',MH:'MHL',MR:'MRT',MU:'MUS',MX:'MEX',MD:'MDA',
+  MC:'MCO',MN:'MNG',ME:'MNE',MZ:'MOZ',MM:'MMR',NA:'NAM',NR:'NRU',NP:'NPL',NL:'NLD',NZ:'NZL',
+  NI:'NIC',NE:'NER',NG:'NGA',MK:'MKD',NO:'NOR',OM:'OMN',PK:'PAK',PW:'PLW',PS:'PSE',PA:'PAN',
+  PG:'PNG',PY:'PRY',PH:'PHL',PL:'POL',PT:'PRT',PR:'PRI',QA:'QAT',KR:'KOR',RO:'ROU',RU:'RUS',
+  RW:'RWA',KN:'KNA',LC:'LCA',VC:'VCT',WS:'WSM',SM:'SMR',SA:'SAU',RS:'SRB',SL:'SLE',SG:'SGP',
+  SI:'SVN',SB:'SLB',SO:'SOM',ZA:'ZAF',SS:'SSD',ES:'ESP',LK:'LKA',SD:'SDN',SR:'SUR',SZ:'SWZ',
+  SE:'SWE',CH:'CHE',SY:'SYR',TJ:'TJK',TZ:'TZA',TH:'THA',TL:'TLS',TG:'TGO',TO:'TON',TT:'TTO',
+  TR:'TUR',TM:'TKM',TV:'TUV',UG:'UGA',UA:'UKR',AE:'ARE',GB:'GBR',US:'USA',UY:'URY',UZ:'UZB',
+  VU:'VUT',VE:'VEN',VN:'VNM',YE:'YEM',ZM:'ZMB',GQ:'GNQ',PE:'PER',CZ:'CZE',SK:'SVK',HR:'HRV',
+};
+
+app.get('/api/crash-data', async (req, res) => {
+  try {
+    const { lat, lon, country } = req.query;
+
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
+    }
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+
+    if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    const countryCode = (country || '').toUpperCase();
+    const isUS = countryCode === 'US' || countryCode === 'USA';
+
+    // --- Non-US: return WHO country-level data ---
+    if (!isUS) {
+      const iso3 = iso2to3[countryCode] || countryCode; // try direct if already alpha-3
+      const whoEntry = whoRoadDeaths[iso3];
+
+      if (!whoEntry) {
+        return res.json({
+          success: true,
+          data: null, // no data available for this country
+        });
+      }
+
+      console.log(`🌍 WHO crash data for ${whoEntry.name}: ${whoEntry.rate}/100k`);
+
+      return res.json({
+        success: true,
+        data: {
+          type: 'country',
+          deathRatePer100k: whoEntry.rate,
+          totalDeaths: 0, // WHO RS_198 only gives rate, not absolute count
+          countryName: whoEntry.name,
+          year: whoRoadDeaths._meta?.year || 2021,
+          dataSource: 'WHO Global Health Observatory',
+        },
+      });
+    }
+
+    // --- US: FARS street-level data ---
+    console.log(`🚨 Fetching US crash data for: ${lat}, ${lon}`);
+
+    // Step 1: Get state/county FIPS from FCC Census API
+    const fccController = new AbortController();
+    const fccTimeout = setTimeout(() => fccController.abort(), 10000);
+
+    const fccUrl = `https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`;
+    const fccResponse = await fetch(fccUrl, {
+      signal: fccController.signal,
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+    });
+    clearTimeout(fccTimeout);
+
+    if (!fccResponse.ok) {
+      throw new Error(`FCC API returned ${fccResponse.status}`);
+    }
+
+    const fccData = await fccResponse.json();
+
+    if (!fccData.results || fccData.results.length === 0) {
+      // Not a valid US location (e.g. ocean, territory not covered)
+      return res.json({ success: true, data: null });
+    }
+
+    const stateFips = fccData.results[0].state_fips;
+    const countyFips = fccData.results[0].county_fips;
+    const countyName = fccData.results[0].county_name || '';
+
+    if (!stateFips || !countyFips) {
+      return res.json({ success: true, data: null });
+    }
+
+    console.log(`📍 FIPS: state=${stateFips}, county=${countyFips} (${countyName})`);
+
+    // Step 2: Query FARS (with caching)
+    const fromYear = 2018;
+    const toYear = 2022;
+    const cacheKey = `crashes:${stateFips}:${countyFips}:${fromYear}-${toYear}`;
+
+    let crashes;
+    const cached = farsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < FARS_CACHE_TTL) {
+      crashes = cached.data;
+      console.log(`📦 FARS cache hit: ${crashes.length} crashes in ${countyName}`);
+    } else {
+      const farsUrl = `https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCrashesByLocation?fromCaseYear=${fromYear}&toCaseYear=${toYear}&state=${stateFips}&county=${countyFips}&format=json`;
+
+      const farsController = new AbortController();
+      const farsTimeout = setTimeout(() => farsController.abort(), 15000);
+
+      const farsResponse = await fetch(farsUrl, {
+        signal: farsController.signal,
+        headers: { 'User-Agent': 'SafeStreets/1.0' },
+      });
+      clearTimeout(farsTimeout);
+
+      if (!farsResponse.ok) {
+        throw new Error(`FARS API returned ${farsResponse.status}`);
+      }
+
+      const farsData = await farsResponse.json();
+
+      // FARS returns { Results: [{ ... }] } or array depending on format
+      crashes = Array.isArray(farsData) ? farsData :
+        (farsData.Results || farsData.results || []);
+
+      // Flatten if nested arrays
+      if (crashes.length > 0 && Array.isArray(crashes[0])) {
+        crashes = crashes.flat();
+      }
+
+      farsCache.set(cacheKey, { data: crashes, timestamp: Date.now() });
+      console.log(`✅ FARS: ${crashes.length} total crashes in ${countyName} (${fromYear}-${toYear})`);
+    }
+
+    // Step 3: Filter crashes within 800m
+    const radiusMeters = 800;
+    const nearbyCrashes = [];
+
+    for (const crash of crashes) {
+      const crashLat = parseFloat(crash.LATITUDE || crash.latitude);
+      const crashLon = parseFloat(crash.LONGITUD || crash.LONGITUDE || crash.longitude || crash.longitud);
+
+      if (isNaN(crashLat) || isNaN(crashLon) || crashLat === 0 || crashLon === 0) continue;
+
+      const dist = haversineDistance(latNum, lonNum, crashLat, crashLon);
+      if (dist <= radiusMeters) {
+        nearbyCrashes.push({
+          distance: Math.round(dist),
+          fatalities: parseInt(crash.FATALS || crash.fatals || '1', 10),
+          year: parseInt(crash.CaseYear || crash.CASEYEAR || crash.caseyear || '0', 10),
+          road: crash.TWAY_ID || crash.tway_id || 'Unknown road',
+          totalVehicles: parseInt(crash.TOTALVEHICLES || crash.totalvehicles || '0', 10),
+        });
+      }
+    }
+
+    // Step 4: Aggregate
+    const totalCrashes = nearbyCrashes.length;
+    const totalFatalities = nearbyCrashes.reduce((sum, c) => sum + c.fatalities, 0);
+
+    // Yearly breakdown
+    const yearMap = {};
+    for (let y = fromYear; y <= toYear; y++) yearMap[y] = { year: y, crashes: 0, fatalities: 0 };
+    for (const c of nearbyCrashes) {
+      if (yearMap[c.year]) {
+        yearMap[c.year].crashes++;
+        yearMap[c.year].fatalities += c.fatalities;
+      }
+    }
+    const yearlyBreakdown = Object.values(yearMap);
+
+    // Nearest crash
+    const nearest = nearbyCrashes.sort((a, b) => a.distance - b.distance)[0] || null;
+
+    console.log(`🚨 Result: ${totalCrashes} crashes, ${totalFatalities} fatalities within ${radiusMeters}m`);
+
+    res.json({
+      success: true,
+      data: {
+        type: 'local',
+        totalCrashes,
+        totalFatalities,
+        yearRange: { from: fromYear, to: toYear },
+        yearlyBreakdown,
+        nearestCrash: nearest ? {
+          distance: nearest.distance,
+          year: nearest.year,
+          fatalities: nearest.fatalities,
+          road: nearest.road,
+        } : undefined,
+        radiusMeters,
+        dataSource: 'NHTSA FARS',
+      },
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching crash data:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to fetch crash data',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
+});
+
+// =====================
 // GEMINI AI BUDGET ANALYSIS
 // =====================
 
@@ -2077,20 +2322,22 @@ TREE CANOPY & GREEN SPACE:
 - Street trees increase property values 3-15%
 - Gehl principle: trees create the "edge effect" — people linger where there is shade and enclosure
 
-AIR QUALITY:
-- WHO (2021): PM2.5 ≤5µg/m³ annual; PM10 ≤15µg/m³ annual
-- AQI: 0-50 Good; 51-100 Moderate; 101-150 Sensitive Groups; 151-200 Unhealthy; 201-300 Very Unhealthy; 301+ Hazardous
-- EPA: living within 200m of high-traffic roads → asthma, cardiovascular disease, lung cancer
-- Urban trees remove 711,000 metric tons of US air pollution annually (USDA)
-- Tree-lined streets reduce particulate exposure 30-50%
-
-HEAT ISLAND & SURFACE TEMPERATURE:
+THERMAL COMFORT (consolidated surface temperature + urban heat island):
 - Urban areas 1-3°C warmer than rural (EPA); up to 5-8°C during heatwaves
 - Dark asphalt: 60-80°C in summer; reflective surfaces: 30-50°C
 - Green roofs reduce surface temp 30-40°C (EPA)
 - Cool pavements reduce surface temps 5-15°C
 - Every 1°C above 32°C → 2-5% increase in heat mortality
-- Heat islands disproportionately affect low-income and minority neighborhoods (Rothstein's legacy in physical form)
+- Heat islands disproportionately affect low-income and minority neighborhoods
+- EPA: living within 200m of high-traffic roads → asthma, cardiovascular disease, lung cancer
+
+TRAFFIC FATALITY DATA (contextual — not a scored metric):
+- US data: NHTSA Fatality Analysis Reporting System (FARS) — fatal crashes within 800m
+- International: WHO Global Health Observatory — road traffic death rate per 100,000
+- Global average: 15.0 deaths/100k (WHO 2021); best: Norway 1.5/100k
+- US rate: 14.2/100k — nearly 3x European average of 5-6/100k
+- Pedestrians represent 23% of all road traffic deaths globally (WHO 2023)
+- 40,990 US road deaths in 2023 (NHTSA preliminary); pedestrian deaths hit 40-year high
 
 TERRAIN & SLOPE:
 - ADA max slope: 5% (1:20) accessible; 8.33% (1:12) absolute max with handrails
@@ -2380,6 +2627,7 @@ app.listen(PORT, () => {
   console.log(`   🏔️  NASADEM Slope: GET /api/slope`);
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
+  console.log(`   🚨 Crash Data: GET /api/crash-data (FARS + WHO)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);
   console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);

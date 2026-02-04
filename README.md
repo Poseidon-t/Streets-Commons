@@ -51,6 +51,12 @@ Each metric card shows:
 - Export data as JSON
 - Copy link to clipboard
 
+### 🚨 Traffic Fatality Data
+- **US addresses**: Street-level fatal crash data within 800m (NHTSA FARS, 2018-2022)
+- **International**: Country-level road traffic death rates (WHO Global Health Observatory)
+- Yearly breakdown and nearest crash info
+- Informational context — does not affect walkability score
+
 ### 🎯 Data Quality Transparency
 - Actual counts (crossings, streets, sidewalks, POIs)
 - Confidence levels (high/medium/low)
@@ -59,7 +65,7 @@ Each metric card shows:
 
 ## 🚀 Quick Start
 
-### Minimal Setup (4 Metrics - No APIs Required)
+### Minimal Setup (5 Metrics - No APIs Required)
 
 ```bash
 # Install dependencies
@@ -73,7 +79,7 @@ Visit [http://localhost:5174](http://localhost:5174)
 
 **Metrics:** Crossing Safety, Sidewalk Coverage, Traffic Speed, Destination Access, Night Safety ✅
 
-### Full Setup (All 7 Metrics + AI Validation)
+### Full Setup (All 8 Metrics + AI Validation)
 
 See [SETUP.md](SETUP.md) for detailed instructions.
 
@@ -146,6 +152,8 @@ python main.py
 - Google Earth Engine (Landsat thermal)
 - Mapillary (street-level imagery)
 - Hugging Face SegFormer (sidewalk detection)
+- NHTSA FARS (US fatal crash data)
+- WHO Global Health Observatory (international road traffic deaths)
 
 ## 📁 Structure
 
@@ -227,7 +235,7 @@ Following user principle: *"only if it is 100%, we dont need to show some random
 - ✅ **Tree Canopy**: Real Sentinel-2/Landsat NDVI via OpenWeather Agro API (free API key)
 - ✅ **Surface Temperature**: Real Landsat thermal data via Google Earth Engine (backend proxy)
 
-**Result**: All 7 metrics now use 100% verifiable satellite/OSM data ✅
+**Result**: All 8 metrics now use 100% verifiable satellite/OSM data ✅
 
 ## 🎨 Design Principles
 

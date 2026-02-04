@@ -4,6 +4,7 @@ export interface Location {
   displayName: string;
   city?: string;
   country?: string;
+  countryCode?: string; // ISO 3166-1 alpha-2 (e.g. "us", "fr")
 }
 
 export interface WalkabilityMetrics {
@@ -78,6 +79,34 @@ export interface CrossSectionConfig {
   streetName: string;
   highwayType: string;
 }
+
+// --- Crash / fatality data ---
+
+/** US street-level crash data from NHTSA FARS */
+export interface LocalCrashData {
+  type: 'local';
+  totalCrashes: number;
+  totalFatalities: number;
+  yearRange: { from: number; to: number };
+  yearlyBreakdown: { year: number; crashes: number; fatalities: number }[];
+  nearestCrash?: { distance: number; year: number; fatalities: number; road: string };
+  radiusMeters: number;
+  dataSource: 'NHTSA FARS';
+}
+
+/** International country-level data from WHO */
+export interface CountryCrashData {
+  type: 'country';
+  deathRatePer100k: number;
+  totalDeaths: number;
+  countryName: string;
+  year: number;
+  dataSource: 'WHO Global Health Observatory';
+}
+
+export type CrashData = LocalCrashData | CountryCrashData;
+
+// --- Raw metric data ---
 
 export interface RawMetricData {
   // Thermal Comfort (consolidated)
