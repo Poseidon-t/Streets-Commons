@@ -13,13 +13,13 @@ interface ShareButtonsProps {
 
 // Metric label mapping for human-readable share text
 const METRIC_LABELS: Record<string, string> = {
-  crossings: 'pedestrian crossings',
-  'street connectivity': 'street connectivity',
+  'crossing safety': 'crossing safety',
+  sidewalks: 'sidewalk coverage',
+  'traffic speed safety': 'traffic speed safety',
   'daily needs access': 'daily needs access',
+  'night safety': 'street lighting',
   'tree canopy': 'tree canopy coverage',
-  'air quality': 'air quality',
-  'heat resilience': 'surface temperature',
-  'heat island': 'heat island effect',
+  'thermal comfort': 'thermal comfort',
   terrain: 'terrain accessibility',
 };
 const ml = (key: string): string => METRIC_LABELS[key] || key;
@@ -64,7 +64,7 @@ const SHARE_TEMPLATES: Record<string, Record<string, TemplateFn[]>> = {
   },
   linkedin: {
     critical: [
-      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are 8 verified metrics derived from real geospatial data: crossing density, street connectivity, daily needs access, tree canopy (NDVI), surface temperature, air quality, heat island effect, and terrain slope.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
+      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are 8 verified metrics derived from real geospatial data: crossing safety, sidewalk coverage, traffic speed, daily needs access, night safety, terrain slope, tree canopy (NDVI), and thermal comfort.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
       (d) => `Policy question: If ${d.shortName} scores ${d.score}/10 on a satellite-verified walkability audit using NACTO and WHO benchmarks, what does that mean for the people who walk there every day?\n\nIt means the gap between stated goals and built infrastructure is measurable. And now it's public.\n\nSafeStreets analyzes any location on Earth using Sentinel-2 imagery, SRTM elevation data, and OpenStreetMap. 8 metrics. Zero self-reported data. Free.\n\n${d.prodUrl}`,
     ],
     poor: [

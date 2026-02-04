@@ -222,7 +222,7 @@ export default function ReportView() {
           <div className="mt-8 bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
             <h4 className="font-bold text-yellow-900 mb-2">📊 Data Quality</h4>
             <p className="text-sm text-yellow-800">
-              This analysis is based on OpenStreetMap data contributed by local mappers. Some infrastructure may not yet be mapped. Satellite data is from Sentinel-2 (tree cover), NASA POWER (temperature), and OpenAQ (air quality).
+              This analysis is based on OpenStreetMap data contributed by local mappers. Some infrastructure may not yet be mapped. Satellite data is from Sentinel-2 (tree canopy, heat island), NASA POWER (temperature), and NASADEM (elevation).
             </p>
           </div>
 

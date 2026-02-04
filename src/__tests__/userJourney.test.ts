@@ -359,7 +359,7 @@ describe('User Journey — 10 Global Locations', () => {
       expect(byName('Tokyo').overallScore).toBeGreaterThan(byName('Lagos').overallScore);
     });
 
-    it('Barcelona should outscore New Delhi (air quality + infrastructure)', () => {
+    it('Barcelona should outscore New Delhi (safety + infrastructure)', () => {
       expect(byName('Barcelona').overallScore).toBeGreaterThan(byName('Delhi').overallScore);
     });
 

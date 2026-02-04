@@ -1,7 +1,7 @@
 # Reddit Launch Post - r/urbanplanning
 
 ## POST TITLE (Keep under 300 characters)
-**I built a free tool to analyze your street's walkability using real satellite data (air quality, slope, tree canopy, heat island + more)**
+**I built a free tool to analyze your street's walkability using real data (crossing safety, traffic speed, sidewalks, lighting + more)**
 
 ---
 
@@ -15,19 +15,19 @@ I've been frustrated watching professional urban planning tools cost $5,000-50,0
 
 Analyzes any address worldwide and gives you **8 metrics with actual data**:
 
-**Infrastructure (OpenStreetMap):**
-- Safe street crossings density
-- Street network directness
+**Safety (OpenStreetMap — 55% weight):**
+- Crossing safety (weighted by type: signalized > unmarked)
+- Sidewalk coverage (% of streets with sidewalks)
+- Traffic speed exposure (speed limits + lane counts)
+- Night safety (street lighting coverage)
 - Daily destinations nearby
 
-**Environment (Satellite data):**
+**Comfort (Satellite data — 35% weight):**
 - Terrain slope (NASADEM)
-- Tree canopy coverage (Sentinel-2)
-- Surface temperature (NASA POWER)
-- Air quality - PM2.5 (OpenAQ monitoring stations)
-- Urban heat island effect (Sentinel-2 thermal)
+- Tree canopy coverage (Sentinel-2 NDVI)
+- Thermal comfort (NASA POWER + Sentinel-2 heat island)
 
-**Crucially:** It shows you the RAW DATA, not just a score. So you see "PM2.5: 187 µg/m³" (hazardous) or "Average slope: 8.2°" (steep for wheelchairs).
+**Crucially:** It shows you the RAW DATA, not just a score. So you see "Average speed: 45 mph, 4 lanes" or "12% of streets have sidewalks".
 
 ### Try it:
 
@@ -36,31 +36,30 @@ Analyzes any address worldwide and gives you **8 metrics with actual data**:
 I pre-analyzed some interesting examples:
 
 **Paris, Champs-Élysées:**
-- Overall: 7.8/10 (good walkability)
-- Air quality: 3/10 (PM2.5: 45 µg/m³ - traffic pollution)
-- Crossings: 9/10 (excellent)
-- Slope: 10/10 (flat)
+- Overall: 7.2/10 (good walkability)
+- Crossing safety: 8/10 (signalized crossings)
+- Sidewalks: 9/10 (excellent coverage)
+- Traffic speed: 5/10 (wide boulevard, fast traffic)
 
 **San Francisco, Lombard Street:**
-- Overall: 4.2/10 (challenging)
+- Overall: 5.1/10 (fair)
 - Slope: 1/10 (15° average - brutal for accessibility)
 - Tree canopy: 8/10 (at least there's shade)
-- Air quality: 6/10 (moderate)
+- Sidewalks: 7/10 (decent coverage)
 
 **Houston suburb (random selection):**
-- Overall: 2.1/10 (car-dependent)
-- Crossings: 1/10 (~2 in entire analysis area)
-- Destinations: 2/10 (nothing walkable)
-- Slope: 10/10 (flat but useless without infrastructure)
+- Overall: 2.5/10 (car-dependent)
+- Crossing safety: 1/10 (unmarked crossings only)
+- Sidewalks: 1/10 (almost none)
+- Traffic speed: 2/10 (45mph, 6 lanes)
 
 ### Why it's free:
 
 All data sources are free:
-- NASA POWER (meteorological)
-- Sentinel-2 (ESA satellite imagery)
-- OpenStreetMap (crowdsourced infrastructure)
-- OpenAQ (15,000+ air quality monitoring stations)
-- NASADEM (elevation)
+- OpenStreetMap (crossings, sidewalks, speed limits, lanes, lighting)
+- NASA POWER (surface temperature)
+- Sentinel-2 (tree canopy NDVI, urban heat island)
+- NASADEM (elevation/slope)
 
 My data costs are literally $0/year, so I can offer this for free.
 
@@ -104,16 +103,16 @@ Link: **https://safestreets.streetsandcommons.com**
 A: OSM quality varies. In urban areas (US/EU), crossing and street data is 90%+ accurate - roads are the most mapped feature globally. Satellite data (slope, temperature, air quality) is scientifically validated NASA/ESA sources. The tool shows data confidence levels for each metric. Rural areas have less OSM data, but satellite metrics still work.
 
 **Q: "This says my neighborhood is bad but I love it here - what gives?"**
-A: Scores are infrastructure-focused (crossings, slope, air quality) not vibes. A low score doesn't mean it's unlivable - it means there are infrastructure gaps. You might love your neighborhood AND want better sidewalks/crossings. The tool helps quantify those gaps for advocacy.
+A: Scores are safety-focused (crossing quality, sidewalks, traffic speed, lighting) not vibes. A low score doesn't mean it's unlivable - it means there are infrastructure gaps. You might love your neighborhood AND want better sidewalks/crossings. The tool helps quantify those gaps for advocacy.
 
 **Q: "Walk Score already does this."**
-A: Walk Score is a single 0-100 number with no breakdown and no satellite data. You can't see WHY you got that score or what to fix. SafeStreets gives 8 separate metrics with raw measurements, plus environmental data (air quality, heat island, slope) that Walk Score doesn't touch. And our API doesn't cost $1,000+/year.
+A: Walk Score is a single 0-100 number with no breakdown and no safety data. You can't see WHY you got that score or what to fix. SafeStreets gives 8 separate metrics with raw measurements — crossing safety, sidewalk coverage, traffic speed, street lighting — things Walk Score doesn't touch. And our API doesn't cost $1,000+/year.
 
 **Q: "Why charge for PDF exports? Seems like a cash grab."**
 A: The entire analysis is free. Premium is for advocacy tools (AI letter writing, professional reports) that have ongoing costs (Groq API, even on free tier has rate limits). 90% of users will never hit the free limits. The $19 is for activists preparing for city council meetings who need polished outputs.
 
 **Q: "This gave my street a high score but it feels unsafe due to [crime/lighting/etc]."**
-A: This tool measures infrastructure and environment (crossings, slope, air, heat), not crime, lighting, or social factors. Those require local surveys or in-person audits. Think of this as "physical walkability" - the foundation. Safety perception is a separate (important!) layer.
+A: This tool measures infrastructure safety (crossings, sidewalks, traffic speed, lighting, slope, heat) not crime or social factors. Those require local surveys or in-person audits. Think of this as "physical walkability" - the foundation. Safety perception is a separate (important!) layer.
 
 **Q: "Can I use this for my city planning job?"**
 A: Yes! Free tier works for exploratory analysis. If you need batch mode (analyze hundreds of addresses) or historical tracking, contact me about a city/enterprise tier. I'm working on bulk analysis features.
@@ -127,8 +126,8 @@ A: Three ways: (1) Share it with your local advocacy groups, (2) If you use the 
 **Q: "[Technical critique about methodology]"**
 A: [Engage honestly, don't be defensive] Great point. I'm using [explain methodology]. If you have suggestions for improvement or know of better data sources, I'm all ears. This is v1 and I'm actively iterating based on feedback.
 
-**Q: "Your air quality data is wrong for my city."**
-A: Air quality comes from OpenAQ monitoring stations - we show the nearest station's reading within 25km. If there's no station near you, it won't show data. If you see a reading that seems off, check the date/time (we use real-time data) and compare with your local air quality agency. Happy to investigate specific cases.
+**Q: "Your lighting/speed data seems off for my street."**
+A: Speed limits and lighting data come from OpenStreetMap tags. In well-mapped areas (US/EU cities), coverage is good. If your street's speed limit or lighting isn't tagged in OSM, we infer from road type (residential=25mph, primary=45mph). You can improve the data by contributing to OpenStreetMap.
 
 **Q: "I got an error when analyzing [location]."**
 A: Thanks for the report! Can you share the exact address and error message? The most common issues are: (1) Rural areas with minimal OSM data, (2) Satellite data temporarily unavailable, (3) Rate limiting if we get a traffic spike. I'm monitoring errors and fixing them as they come in.
@@ -169,23 +168,23 @@ Don't spam all at once - Reddit's algorithm penalizes that.
 Have these ready to post in comments:
 
 **Amsterdam, Jordaan District:**
-- Overall: 8.9/10
-- Crossings: 10/10
-- Destinations: 9/10
-- Air quality: 7/10
-- Commentary: "Dutch urban planning excellence. Only thing keeping it from 10/10 is some air pollution from canals."
+- Overall: 8.5/10
+- Crossing safety: 9/10 (mostly signalized)
+- Sidewalks: 9/10
+- Traffic speed: 9/10 (30km/h zones)
+- Commentary: "Dutch urban planning excellence. Low speeds, protected crossings, complete sidewalk network."
 
 **Los Angeles, Wilshire Boulevard:**
 - Overall: 3.5/10
-- Crossings: 2/10 (60-second walk between marked crosswalks)
-- Air quality: 2/10 (PM2.5: 89 µg/m³)
-- Heat island: 1/10 (+8°C vs vegetated areas)
-- Commentary: "Classic car-centric design. Wide road, no shade, blazing hot, terrible air."
+- Crossing safety: 3/10 (long gaps between crosswalks)
+- Traffic speed: 2/10 (45mph, 6 lanes)
+- Sidewalks: 4/10 (some coverage but hostile environment)
+- Commentary: "Classic car-centric design. Wide, fast road — the infrastructure tells pedestrians they don't belong."
 
 **Barcelona, Superblock (Carrer de Provença):**
-- Overall: 8.1/10
-- Crossings: 9/10
-- Air quality: 5/10 (improving but still traffic pollution)
+- Overall: 7.8/10
+- Crossing safety: 8/10 (well-signalized)
+- Traffic speed: 8/10 (superblock slows traffic)
 - Tree canopy: 8/10
 - Commentary: "Superblock transformation working - before/after would be interesting."
 

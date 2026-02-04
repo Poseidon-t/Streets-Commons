@@ -19,17 +19,18 @@ Transform citizens from complainers into advocates with evidence. **Data is leve
 - 800m analysis radius visualization
 - Live legend with counts
 
-### 📊 7 Verifiable Metrics
+### 📊 8 Verifiable Metrics
 
 | Metric | Data Source | What It Measures |
 |--------|-------------|------------------|
-| **Crossing Density** | OSM `highway=crossing` | Marked pedestrian crossings per km + distribution |
+| **Crossing Safety** | OSM `highway=crossing` | Crossings weighted by protection level (signalized > unmarked) |
 | **Sidewalk Coverage** | OSM `sidewalk=*` tags | % of streets with sidewalk documentation |
-| **Network Efficiency** | Calculated from OSM | Street grid connectivity ratio |
+| **Traffic Speed** | OSM `maxspeed` + `lanes` | Speed limit + lane count danger exposure |
 | **Destination Access** | OSM amenity/shop/leisure | Variety of destination types within 800m |
-| **Slope** | SRTM elevation data | Terrain gradient (wheelchair accessibility) |
-| **Tree Canopy** | Sentinel-2/Landsat NDVI | Vegetation coverage (shade, cooling, air quality) |
-| **Surface Temperature** | Landsat thermal via GEE | Ground/pavement heat (urban heat island effect) |
+| **Night Safety** | OSM `lit=*` tags | Street lighting coverage |
+| **Slope** | NASADEM elevation data | Terrain gradient (wheelchair accessibility) |
+| **Tree Canopy** | Sentinel-2 NDVI | Vegetation coverage (shade, cooling) |
+| **Thermal Comfort** | NASA POWER + Sentinel-2 | Surface temperature + urban heat island |
 
 Each metric card shows:
 - What it measures
@@ -70,7 +71,7 @@ npm run dev
 
 Visit [http://localhost:5174](http://localhost:5174)
 
-**Metrics:** Crossing Density, Sidewalk Coverage, Network Efficiency, Destination Access ✅
+**Metrics:** Crossing Safety, Sidewalk Coverage, Traffic Speed, Destination Access, Night Safety ✅
 
 ### Full Setup (All 7 Metrics + AI Validation)
 
@@ -106,25 +107,15 @@ python main.py
 
 ## 📊 Scoring System
 
-**0-10 scale** with dynamic weighted average based on available data:
+**0-10 scale** with safety-dominant weighting: **Safety 55% | Access 10% | Comfort 35%**
 
-**All 7 metrics (full setup):**
-- Crossing Density: 18%, Sidewalk Coverage: 18%
-- Network Efficiency: 13%, Destination Access: 13%
-- Slope: 13%, Tree Canopy: 13%, Surface Temp: 12%
+**All 8 metrics (full setup):**
+- Crossing Safety: 15%, Sidewalk Coverage: 15%, Traffic Speed: 15%
+- Night Safety: 10%, Destination Access: 10%
+- Slope: 10%, Tree Canopy: 10%, Thermal Comfort: 15%
 
-**6 metrics (no backend):**
-- Crossing Density: 20%, Sidewalk Coverage: 20%
-- Network Efficiency: 15%, Destination Access: 15%
-- Slope: 15%, Tree Canopy: 15%
-
-**5 metrics (no API key):**
-- Crossing Density: 25%, Sidewalk Coverage: 25%
-- Network Efficiency: 15%, Destination Access: 15%, Slope: 20%
-
-**4 metrics (minimal - OSM only):**
-- Crossing Density: 30%, Sidewalk Coverage: 30%
-- Network Efficiency: 20%, Destination Access: 20%
+**OSM-only (no satellite):**
+- Averages the 5 OSM metrics equally (Crossing Safety, Sidewalk Coverage, Traffic Speed, Night Safety, Destination Access)
 
 | Score | Label |
 |-------|-------|
@@ -199,20 +190,21 @@ npm run test:ui       # Watch mode
 
 ## ✅ What We CAN Measure
 
-- ✅ Crossing locations + density
+- ✅ Crossing safety (weighted by protection level)
 - ✅ Sidewalk coverage (via OSM tags)
-- ✅ Street network connectivity
+- ✅ Traffic speed + lane exposure (via OSM maxspeed/lanes)
 - ✅ POI access + variety
-- ✅ Slope (via SRTM elevation data)
-- ✅ Tree canopy (via Sentinel-2/Landsat NDVI)
-- ✅ Surface temperature (via Landsat thermal/Google Earth Engine)
+- ✅ Street lighting (via OSM lit tags)
+- ✅ Slope (via NASADEM elevation data)
+- ✅ Tree canopy (via Sentinel-2 NDVI)
+- ✅ Thermal comfort (NASA POWER + Sentinel-2 heat island)
 
 ## ⚠️ What Has Limitations
 
 - ⚠️ **Sidewalk condition**: OSM shows if mapped, not current state
   - **Solution**: AI analyzes street photos to detect obstructions/issues
 - ⚠️ **Actual width**: Not measured by standard tools
-- ❌ **Lighting at night**: No satellite/street data available
+- ⚠️ **Lighting quality**: OSM `lit` tag shows presence, not brightness/quality
 - ❌ **Real-time traffic**: Would require sensors
 - ❌ **Safety perception**: Subjective, no verifiable source
 

@@ -1893,14 +1893,14 @@ app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res
 
     // Build a concise metrics summary for the prompt
     const metricLines = [];
-    if (metrics.crossingDensity !== undefined) metricLines.push(`Crosswalk Density: ${metrics.crossingDensity}/10`);
-    if (metrics.networkEfficiency !== undefined) metricLines.push(`Street Connectivity: ${metrics.networkEfficiency}/10`);
+    if (metrics.crossingSafety !== undefined) metricLines.push(`Crossing Safety: ${metrics.crossingSafety}/10`);
+    if (metrics.sidewalkCoverage !== undefined) metricLines.push(`Sidewalk Coverage: ${metrics.sidewalkCoverage}/10`);
+    if (metrics.speedExposure !== undefined) metricLines.push(`Traffic Speed Safety: ${metrics.speedExposure}/10`);
     if (metrics.destinationAccess !== undefined) metricLines.push(`Daily Needs Nearby: ${metrics.destinationAccess}/10`);
+    if (metrics.nightSafety !== undefined) metricLines.push(`Night Safety (Lighting): ${metrics.nightSafety}/10`);
     if (metrics.slope !== undefined) metricLines.push(`Flat Terrain: ${metrics.slope}/10`);
     if (metrics.treeCanopy !== undefined) metricLines.push(`Shade & Tree Canopy: ${metrics.treeCanopy}/10`);
-    if (metrics.surfaceTemp !== undefined) metricLines.push(`Cool Walking Conditions: ${metrics.surfaceTemp}/10`);
-    if (metrics.airQuality !== undefined) metricLines.push(`Air Quality: ${metrics.airQuality}/10`);
-    if (metrics.heatIsland !== undefined) metricLines.push(`Heat Island Effect: ${metrics.heatIsland}/10`);
+    if (metrics.thermalComfort !== undefined) metricLines.push(`Thermal Comfort: ${metrics.thermalComfort}/10`);
 
     const worstMetrics = Object.entries(metrics)
       .filter(([k, v]) => typeof v === 'number' && k !== 'overallScore' && v <= 4)
@@ -2002,7 +2002,7 @@ VOICE & STYLE:
 - Sharp, direct, and confident. No filler. No corporate softness.
 - Thoughtful — connect the user's specific data to bigger urban truths
 - Inspirational — remind people that better streets are not utopian; they exist right now in cities worldwide
-- Advocate's edge — when data reveals a failing, name it clearly. A crossing density of 2/10 isn't "an area for improvement" — it's a neighborhood where the street was designed to move cars, not protect people
+- Advocate's edge — when data reveals a failing, name it clearly. A crossing safety score of 2/10 isn't "an area for improvement" — it's a neighborhood where the street was designed to move cars, not protect people
 - Use specific numbers, standards, and comparisons. Vague advice is useless advice
 - Keep responses focused (2-4 paragraphs) unless the user asks for depth. Every sentence should earn its place
 - When relevant, connect to the human story: who is affected, what daily life looks like, what changes would feel like
@@ -2146,7 +2146,7 @@ CRITICAL RULES — NEVER BREAK THESE:
 3. NEVER invent statistics beyond what's provided above or in the user's actual scores. If unsure, say so.
 4. Suggest TYPES of officials/departments — never invent specific names or contact details.
 5. Always: "Here's a draft you can send" — never "I've submitted this for you."
-6. When explaining scores, anchor to specific standards (e.g., "Your crossing density of 2.6/10 means crosswalks are far below NACTO's 80-100m standard — this is a street designed for cars, not people").
+6. When explaining scores, anchor to specific standards (e.g., "Your crossing safety score of 2.6/10 means crosswalks are sparse and unprotected, far below NACTO's 80-100m standard — this is a street designed for cars, not people").
 7. Be specific and actionable. Generic encouragement is not advocacy. Connect every recommendation to the user's data.
 8. Channel the thinkers: when a Jacobs insight or a Speck principle is relevant, weave it in naturally — not as decoration, but as the intellectual backbone of your answer.`;
 
@@ -2158,25 +2158,25 @@ CRITICAL RULES — NEVER BREAK THESE:
       if (context.metrics) {
         const m = context.metrics;
         systemPrompt += `\n\nMetric Scores (0-10 scale):`;
-        if (m.crossingDensity !== undefined) systemPrompt += `\n- Street Crossings: ${m.crossingDensity}/10`;
-        if (m.networkEfficiency !== undefined) systemPrompt += `\n- Street Connectivity: ${m.networkEfficiency}/10`;
+        if (m.crossingSafety !== undefined) systemPrompt += `\n- Crossing Safety: ${m.crossingSafety}/10`;
+        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10`;
+        if (m.speedExposure !== undefined) systemPrompt += `\n- Traffic Speed Safety: ${m.speedExposure}/10`;
         if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10`;
+        if (m.nightSafety !== undefined) systemPrompt += `\n- Night Safety (Lighting): ${m.nightSafety}/10`;
         if (m.slope !== undefined) systemPrompt += `\n- Terrain (Flatness): ${m.slope}/10`;
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
-        if (m.surfaceTemp !== undefined) systemPrompt += `\n- Surface Temperature: ${m.surfaceTemp}/10`;
-        if (m.airQuality !== undefined) systemPrompt += `\n- Air Quality: ${m.airQuality}/10`;
-        if (m.heatIsland !== undefined) systemPrompt += `\n- Heat Island Effect: ${m.heatIsland}/10`;
+        if (m.thermalComfort !== undefined) systemPrompt += `\n- Thermal Comfort: ${m.thermalComfort}/10`;
         if (m.overallScore !== undefined) systemPrompt += `\n- Overall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
         const metricEntries = [
-          ['Street Crossings', m.crossingDensity],
-          ['Street Connectivity', m.networkEfficiency],
+          ['Crossing Safety', m.crossingSafety],
+          ['Sidewalk Coverage', m.sidewalkCoverage],
+          ['Traffic Speed Safety', m.speedExposure],
           ['Daily Needs Access', m.destinationAccess],
+          ['Night Safety', m.nightSafety],
           ['Terrain', m.slope],
           ['Tree Canopy', m.treeCanopy],
-          ['Surface Temperature', m.surfaceTemp],
-          ['Air Quality', m.airQuality],
-          ['Heat Island', m.heatIsland],
+          ['Thermal Comfort', m.thermalComfort],
         ].filter(([, v]) => typeof v === 'number');
 
         const weakest = metricEntries.sort((a, b) => a[1] - b[1]).slice(0, 3);

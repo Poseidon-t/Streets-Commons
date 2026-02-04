@@ -1193,7 +1193,7 @@ function App() {
                   <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
                     <div>
                       <strong className="block mb-1">8 Verified Metrics</strong>
-                      <p style={{ color: '#4a5a4a' }}>We analyze street crossings, connectivity, nearby destinations, terrain slope, tree coverage, surface temperature, air quality, and urban heat using real data from OpenStreetMap, NASA POWER, Sentinel-2, and OpenAQ monitoring stations.</p>
+                      <p style={{ color: '#4a5a4a' }}>We analyze crossing safety, sidewalk coverage, traffic speed exposure, daily destinations, street lighting, terrain slope, tree canopy, and thermal comfort using real data from OpenStreetMap, NASA POWER, and Sentinel-2 satellite imagery.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Global Standards</strong>
@@ -1201,12 +1201,12 @@ function App() {
                     </div>
                     <div>
                       <strong className="block mb-1">Free & Open Data</strong>
-                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, OpenAQ air quality stations (15,000+ worldwide), and Microsoft Planetary Computer satellite imagery.</p>
+                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, Sentinel-2 satellite imagery, and NASADEM elevation data.</p>
                     </div>
                   </div>
                   <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#d0dbd0' }}>
                     <p className="text-xs" style={{ color: '#3a4a3a' }}>
-                      <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure lighting quality, pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
+                      <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
                     </p>
                   </div>
                 </div>
@@ -1354,8 +1354,8 @@ function App() {
                         <path d="M22 31 L22 38 M19 34 L25 34 M22 38 L19 44 M22 38 L25 44" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
                       </svg>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Street Crossings</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Density of marked pedestrian crossings from OpenStreetMap. More crosswalks mean safer, more direct walking routes.</p>
+                    <h3 className="font-bold text-gray-900 mb-2">Crossing Safety</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Pedestrian crossings weighted by protection level — signalized crossings count more than unmarked ones. Data from OpenStreetMap.</p>
                   </div>
 
                   {/* Daily Needs */}
@@ -1375,7 +1375,61 @@ function App() {
                     <p className="text-sm text-gray-600 leading-relaxed">Access to groceries, healthcare, transit, schools, and restaurants within walking distance from OpenStreetMap data.</p>
                   </div>
 
-                  {/* Surface Temperature */}
+                  {/* Sidewalk Coverage */}
+                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                      <svg viewBox="0 0 64 64" className="w-10 h-10">
+                        <rect x="8" y="44" width="48" height="12" fill="#3b82f6" opacity="0.15" rx="2"/>
+                        <rect x="8" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
+                        <rect x="44" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
+                        <path d="M14 44 L14 20" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M50 44 L50 20" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/>
+                        <circle cx="14" cy="16" r="3" fill="#1e293b"/>
+                        <path d="M14 19 L14 28 M11 23 L17 23 M14 28 L11 34 M14 28 L17 34" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
+                        <circle cx="50" cy="16" r="3" fill="#1e293b"/>
+                        <path d="M50 19 L50 28 M47 23 L53 23 M50 28 L47 34 M50 28 L53 34" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">Sidewalk Coverage</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Percentage of streets with documented sidewalks from OpenStreetMap tags. Missing sidewalks force pedestrians into traffic.</p>
+                  </div>
+
+                  {/* Traffic Speed */}
+                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                      <svg viewBox="0 0 64 64" className="w-10 h-10">
+                        <path d="M8 48 L56 48" stroke="#ef4444" strokeWidth="3" strokeLinecap="round"/>
+                        <path d="M8 40 L56 40" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4,3"/>
+                        <path d="M8 32 L56 32" stroke="#ef4444" strokeWidth="3" strokeLinecap="round"/>
+                        <path d="M40 36 L52 36" stroke="#ef4444" strokeWidth="6" opacity="0.3" strokeLinecap="round"/>
+                        <text x="32" y="22" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="bold">45mph</text>
+                        <circle cx="18" cy="36" r="3" fill="#1e293b"/>
+                        <path d="M18 39 L18 48" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">Traffic Speed</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Speed limits and lane counts from OpenStreetMap. High-speed, multi-lane roads are exponentially more dangerous for pedestrians.</p>
+                  </div>
+
+                  {/* Night Safety */}
+                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
+                    <div className="w-16 h-16 mb-4 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                      <svg viewBox="0 0 64 64" className="w-10 h-10">
+                        <rect x="8" y="8" width="48" height="48" fill="#1e293b" opacity="0.15" rx="4"/>
+                        <circle cx="20" cy="28" r="10" fill="#a855f7" opacity="0.2"/>
+                        <circle cx="44" cy="28" r="10" fill="#a855f7" opacity="0.2"/>
+                        <rect x="18" y="16" width="4" height="20" fill="#a855f7" rx="2"/>
+                        <rect x="42" y="16" width="4" height="20" fill="#a855f7" rx="2"/>
+                        <path d="M20 36 L20 52" stroke="#64748b" strokeWidth="2"/>
+                        <path d="M44 36 L44 52" stroke="#64748b" strokeWidth="2"/>
+                        <path d="M8 52 L56 52" stroke="#64748b" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <h3 className="font-bold text-gray-900 mb-2">Night Safety</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Street lighting coverage from OpenStreetMap lit tags. Well-lit streets are critical for pedestrian safety after dark.</p>
+                  </div>
+
+                  {/* Thermal Comfort */}
                   <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
                     <div className="w-16 h-16 mb-4 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
                       <svg viewBox="0 0 64 64" className="w-10 h-10">
@@ -1389,59 +1443,8 @@ function App() {
                         <path d="M44 32 L52 32" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Surface Temperature</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">NASA POWER satellite data measures surface temperatures that affect walking comfort, especially during summer months.</p>
-                  </div>
-
-                  {/* Street Network */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Street grid */}
-                        <path d="M8 32 L56 32" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round"/>
-                        <path d="M32 8 L32 56" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round"/>
-                        <path d="M8 16 L24 16 L24 8" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                        <path d="M56 48 L40 48 L40 56" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" fill="none"/>
-                        <circle cx="32" cy="32" r="4" fill="#1e293b"/>
-                        <circle cx="16" cy="32" r="3" fill="#3b82f6" opacity="0.5"/>
-                        <circle cx="48" cy="32" r="3" fill="#3b82f6" opacity="0.5"/>
-                        <circle cx="32" cy="16" r="3" fill="#3b82f6" opacity="0.5"/>
-                        <circle cx="32" cy="48" r="3" fill="#3b82f6" opacity="0.5"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Street Network</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Connectivity and efficiency of the street grid. Well-connected networks mean shorter, more direct walking routes.</p>
-                  </div>
-
-                  {/* Air Quality */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <circle cx="32" cy="32" r="20" fill="#a855f7" opacity="0.15"/>
-                        <path d="M16 28 Q24 24 32 28 Q40 32 48 28" stroke="#a855f7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                        <path d="M16 36 Q24 32 32 36 Q40 40 48 36" stroke="#a855f7" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                        <path d="M16 44 Q24 40 32 44 Q40 48 48 44" stroke="#a855f7" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.5"/>
-                        <text x="32" y="22" textAnchor="middle" fill="#a855f7" fontSize="10" fontWeight="bold">AQI</text>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Air Quality</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Real-time air quality from OpenAQ's 15,000+ monitoring stations worldwide. Clean air is essential for healthy walking.</p>
-                  </div>
-
-                  {/* Heat Island */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <rect x="12" y="28" width="12" height="24" fill="#ef4444" opacity="0.3" rx="2"/>
-                        <rect x="26" y="20" width="12" height="32" fill="#ef4444" opacity="0.4" rx="2"/>
-                        <rect x="40" y="24" width="12" height="28" fill="#ef4444" opacity="0.3" rx="2"/>
-                        <path d="M8 56 L56 56" stroke="#ef4444" strokeWidth="2" strokeLinecap="round"/>
-                        <circle cx="32" cy="12" r="6" fill="#ef4444" opacity="0.6"/>
-                        <path d="M32 6 L32 2 M38 12 L42 12 M26 12 L22 12 M36 8 L39 5 M28 8 L25 5" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Heat Island</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Sentinel-2 SWIR satellite analysis detects urban heat islands where concrete and asphalt absorb heat, making walking uncomfortable.</p>
+                    <h3 className="font-bold text-gray-900 mb-2">Thermal Comfort</h3>
+                    <p className="text-sm text-gray-600 leading-relaxed">Consolidated surface temperature and urban heat island analysis from NASA POWER and Sentinel-2 satellite data.</p>
                   </div>
 
                   {/* Terrain Slope */}
@@ -1690,7 +1693,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (1-arc-second global elevation), <strong>NASA POWER</strong> (surface temperature), and <strong>OpenAQ</strong> (air quality from 15,000+ stations). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
+                    We use research-grade data sources: <strong>OpenStreetMap</strong> (community-verified street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (1-arc-second global elevation), and <strong>NASA POWER</strong> (surface temperature). This is the same data used by governments and research institutions worldwide. All sources are 100% free and openly accessible.
                   </p>
                 </div>
               </div>
