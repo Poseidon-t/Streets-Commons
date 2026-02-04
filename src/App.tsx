@@ -1036,37 +1036,35 @@ function App() {
               {location.displayName}
             </h2>
 
-            {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Left column: Map + contextual cards */}
-              <div className="space-y-4">
-                <Map location={location} osmData={osmData} />
-                <CrashDataCard crashData={crashData} isLoading={crashLoading} />
-                {dataQuality && (
-                  <div className="rounded-2xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
-                    <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>Data Quality</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#5a6a5a' }}>
-                      <div>Crossings: {dataQuality.crossingCount}</div>
-                      <div>Streets: {dataQuality.streetCount}</div>
-                      <div>Sidewalks: {dataQuality.sidewalkCount}</div>
-                      <div>POIs: {dataQuality.poiCount}</div>
-                    </div>
-                    <div className="mt-2">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                        dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {dataQuality.confidence.toUpperCase()} CONFIDENCE
-                      </span>
-                    </div>
+            {/* Row 1: Map + Score side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Map location={location} osmData={osmData} />
+              <ScoreCard metrics={metrics} />
+            </div>
+
+            {/* Row 2: Crash data + Data quality side by side */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CrashDataCard crashData={crashData} isLoading={crashLoading} />
+              {dataQuality && (
+                <div className="rounded-2xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+                  <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>Data Quality</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#5a6a5a' }}>
+                    <div>Crossings: {dataQuality.crossingCount}</div>
+                    <div>Streets: {dataQuality.streetCount}</div>
+                    <div>Sidewalks: {dataQuality.sidewalkCount}</div>
+                    <div>POIs: {dataQuality.poiCount}</div>
                   </div>
-                )}
-              </div>
-              {/* Right column: Score */}
-              <div>
-                <ScoreCard metrics={metrics} />
-              </div>
+                  <div className="mt-2">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                      dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {dataQuality.confidence.toUpperCase()} CONFIDENCE
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Metrics Grid */}
