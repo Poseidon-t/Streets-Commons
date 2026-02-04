@@ -1043,38 +1043,38 @@ function App() {
 
             {/* Info bar: Data quality + sources */}
             {dataQuality && (
-              <div className="rounded-2xl p-4 sm:p-5 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
-                <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="rounded-2xl p-5 sm:p-6 border-2 shadow-lg" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-lg font-bold text-sm ${
+                    <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Data Quality</h3>
+                    <span className={`px-3 py-1.5 rounded-lg font-bold text-sm ${
                       dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
                       dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
                       'bg-red-100 text-red-800'
                     }`}>
-                      {dataQuality.confidence.toUpperCase()} CONFIDENCE
+                      {dataQuality.confidence.toUpperCase()}
                     </span>
-                    <span className="text-sm font-medium" style={{ color: '#2a3a2a' }}>Data Quality</span>
                   </div>
                   <div className="text-xs" style={{ color: '#8a9a8a' }}>
                     OSM · Sentinel-2 · NASA POWER{crashData ? ' · ' + crashData.dataSource : ''}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3 pt-3 border-t" style={{ borderColor: '#e0dbd0' }}>
-                  <div className="text-center">
-                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.streetCount}</div>
-                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Streets</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t" style={{ borderColor: '#e0dbd0' }}>
+                  <div className="text-center py-2">
+                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.streetCount}</div>
+                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Streets</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.sidewalkCount}</div>
-                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Sidewalks</div>
+                  <div className="text-center py-2">
+                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.sidewalkCount}</div>
+                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Sidewalks</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.crossingCount}</div>
-                    <div className="text-xs" style={{ color: '#8a9a8a' }}>Crossings</div>
+                  <div className="text-center py-2">
+                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.crossingCount}</div>
+                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Crossings</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.poiCount}</div>
-                    <div className="text-xs" style={{ color: '#8a9a8a' }}>POIs</div>
+                  <div className="text-center py-2">
+                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.poiCount}</div>
+                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>POIs</div>
                   </div>
                 </div>
               </div>
