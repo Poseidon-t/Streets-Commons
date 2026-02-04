@@ -29,7 +29,6 @@ import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
-import CrashDataCard from './components/streetcheck/CrashDataCard';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData } from './types';
 
 interface AnalysisData {
@@ -1037,35 +1036,35 @@ function App() {
             </h2>
 
             {/* Row 1: Map + Score side by side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Map location={location} osmData={osmData} />
-              <ScoreCard metrics={metrics} />
+              <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} />
             </div>
 
-            {/* Row 2: Crash data + Data quality side by side */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <CrashDataCard crashData={crashData} isLoading={crashLoading} />
-              {dataQuality && (
-                <div className="rounded-2xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
-                  <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>Data Quality</h3>
-                  <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#5a6a5a' }}>
-                    <div>Crossings: {dataQuality.crossingCount}</div>
-                    <div>Streets: {dataQuality.streetCount}</div>
-                    <div>Sidewalks: {dataQuality.sidewalkCount}</div>
-                    <div>POIs: {dataQuality.poiCount}</div>
-                  </div>
-                  <div className="mt-2">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                      dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                      dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {dataQuality.confidence.toUpperCase()} CONFIDENCE
-                    </span>
-                  </div>
+            {/* Info bar: Data quality + sources */}
+            {dataQuality && (
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl px-4 py-3 border" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
+                <div className="flex items-center gap-2 text-xs" style={{ color: '#5a6a5a' }}>
+                  <span className={`px-2 py-0.5 rounded font-semibold text-[11px] ${
+                    dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
+                    dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {dataQuality.confidence.toUpperCase()}
+                  </span>
+                  <span>Data Confidence</span>
                 </div>
-              )}
-            </div>
+                <div className="hidden sm:flex items-center gap-4 text-xs" style={{ color: '#8a9a8a' }}>
+                  <span>{dataQuality.streetCount} streets</span>
+                  <span>{dataQuality.sidewalkCount} sidewalks</span>
+                  <span>{dataQuality.crossingCount} crossings</span>
+                  <span>{dataQuality.poiCount} POIs</span>
+                </div>
+                <div className="text-[10px] ml-auto" style={{ color: '#9ca3af' }}>
+                  OSM · Sentinel-2 · NASA POWER{crashData ? ' · ' + crashData.dataSource : ''}
+                </div>
+              </div>
+            )}
 
             {/* Metrics Grid */}
             <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} />
