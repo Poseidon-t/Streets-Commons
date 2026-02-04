@@ -1038,11 +1038,9 @@ function App() {
 
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <Map location={location} osmData={osmData} />
-              </div>
+              {/* Left column: Map + contextual cards */}
               <div className="space-y-4">
-                <ScoreCard metrics={metrics} />
+                <Map location={location} osmData={osmData} />
                 <CrashDataCard crashData={crashData} isLoading={crashLoading} />
                 {dataQuality && (
                   <div className="rounded-2xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
@@ -1064,6 +1062,10 @@ function App() {
                     </div>
                   </div>
                 )}
+              </div>
+              {/* Right column: Score */}
+              <div>
+                <ScoreCard metrics={metrics} />
               </div>
             </div>
 
