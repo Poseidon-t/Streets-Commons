@@ -1041,13 +1041,11 @@ function App() {
               <div>
                 <Map location={location} osmData={osmData} />
               </div>
-              <div>
+              <div className="space-y-4">
                 <ScoreCard metrics={metrics} />
-                <div className="mt-4">
-                  <CrashDataCard crashData={crashData} isLoading={crashLoading} />
-                </div>
+                <CrashDataCard crashData={crashData} isLoading={crashLoading} />
                 {dataQuality && (
-                  <div className="mt-4 rounded-xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+                  <div className="rounded-2xl p-4 border-2" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
                     <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>Data Quality</h3>
                     <div className="grid grid-cols-2 gap-2 text-sm" style={{ color: '#5a6a5a' }}>
                       <div>Crossings: {dataQuality.crossingCount}</div>

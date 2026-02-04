@@ -86,7 +86,7 @@ function LocalCrashView({ data }: { data: LocalCrashData }) {
 
           {/* Nearest crash */}
           {data.nearestCrash && (
-            <div className="text-xs pt-2 border-t" style={{ borderColor: '#fecaca', color: '#6b7280' }}>
+            <div className="text-xs pt-2 border-t" style={{ borderColor: '#e0dbd0', color: '#6b7280' }}>
               Nearest fatal crash: <strong>{data.nearestCrash.distance}m</strong> away
               on <strong>{data.nearestCrash.road}</strong> ({data.nearestCrash.year},{' '}
               {data.nearestCrash.fatalities} {data.nearestCrash.fatalities === 1 ? 'fatality' : 'fatalities'})
@@ -155,13 +155,13 @@ function CountryCrashView({ data }: { data: CountryCrashData }) {
 
 function LoadingShimmer() {
   return (
-    <div className="rounded-xl p-4 border animate-pulse" style={{ backgroundColor: '#fff5f5', borderColor: '#fecaca' }}>
+    <div className="rounded-2xl p-4 border-2 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-5 h-5 rounded bg-red-200" />
-        <div className="h-4 w-48 rounded bg-red-200" />
+        <div className="w-5 h-5 rounded bg-gray-200" />
+        <div className="h-4 w-48 rounded bg-gray-200" />
       </div>
-      <div className="h-8 w-32 rounded bg-red-100 mb-2" />
-      <div className="h-3 w-56 rounded bg-red-100" />
+      <div className="h-8 w-32 rounded bg-gray-100 mb-2" />
+      <div className="h-3 w-56 rounded bg-gray-100" />
     </div>
   );
 }
@@ -172,8 +172,8 @@ export default function CrashDataCard({ crashData, isLoading }: CrashDataCardPro
 
   return (
     <div
-      className="rounded-xl p-4 border"
-      style={{ backgroundColor: '#fff5f5', borderColor: '#fecaca' }}
+      className="rounded-2xl p-4 border-2"
+      style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
@@ -191,7 +191,7 @@ export default function CrashDataCard({ crashData, isLoading }: CrashDataCardPro
         : <CountryCrashView data={crashData} />}
 
       {/* Source */}
-      <div className="mt-3 pt-2 border-t text-[10px]" style={{ borderColor: '#fecaca', color: '#9ca3af' }}>
+      <div className="mt-3 pt-2 border-t text-[10px]" style={{ borderColor: '#e0dbd0', color: '#9ca3af' }}>
         Source: {crashData.dataSource}
         {crashData.type === 'local' && ' · Fatal crashes only · US locations'}
         {crashData.type === 'country' && ' · Country-level estimate'}
