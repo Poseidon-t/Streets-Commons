@@ -1031,6 +1031,11 @@ function App() {
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
           <div className="space-y-8">
+            {/* Location name */}
+            <h2 className="text-2xl font-bold text-center" style={{ color: '#2a3a2a' }}>
+              {location.displayName}
+            </h2>
+
             {/* Two-column layout */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
