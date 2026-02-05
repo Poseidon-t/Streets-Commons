@@ -3,8 +3,6 @@
  * Clean, sharp walkability metric cards with progressive disclosure
  */
 
-import { useState } from 'react';
-
 interface MetricCardProps {
   icon: string;
   headline: string;
@@ -24,6 +22,8 @@ interface MetricCardProps {
   };
   status?: 'pass' | 'fail';
   isLoading?: boolean;
+  isExpanded?: boolean;
+  onToggle?: () => void;
 }
 
 export default function MetricCard({
@@ -41,9 +41,9 @@ export default function MetricCard({
   additionalContext,
   dataQuality,
   isLoading,
+  isExpanded,
+  onToggle,
 }: MetricCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
-
   const badgeConfig = {
     'excellent': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', label: 'Excellent' },
     'good': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', label: 'Good' },
@@ -76,7 +76,7 @@ export default function MetricCard({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 flex flex-col h-full">
+      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 flex flex-col">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
           <span className="text-2xl flex-shrink-0">{icon}</span>
@@ -96,7 +96,7 @@ export default function MetricCard({
           </div>
         </div>
 
-        <p className="text-[13.5px] leading-relaxed text-gray-400 flex-grow">
+        <p className="text-[13.5px] leading-relaxed text-gray-400">
           Fetching real-time data from {dataSource || 'satellite sources'}...
         </p>
       </div>
@@ -104,7 +104,7 @@ export default function MetricCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col h-full">
+    <div className="rounded-xl border border-gray-200 bg-white hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -139,7 +139,7 @@ export default function MetricCard({
       </div>
 
       {/* Description */}
-      <p className="text-[13.5px] leading-relaxed text-gray-600 mb-4 flex-grow">
+      <p className="text-[13.5px] leading-relaxed text-gray-600 mb-4">
         {description}
       </p>
 
@@ -153,86 +153,94 @@ export default function MetricCard({
 
       {/* Toggle */}
       <button
-        onClick={() => setShowDetails(!showDetails)}
+        onClick={onToggle}
         className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mt-auto group"
       >
         <svg
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${showDetails ? 'rotate-180' : ''} group-hover:text-gray-700`}
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} group-hover:text-gray-700`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
-        {showDetails ? 'Show less' : 'Learn more'}
+        {isExpanded ? 'Show less' : 'Learn more'}
       </button>
 
       {/* Expanded Details */}
-      {showDetails && (
-        <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-          {/* Why it matters - highlighted */}
-          <div className="bg-gray-50 rounded-lg p-3.5">
-            <h4 className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-              Why this matters
-            </h4>
-            <p className="text-[13px] leading-relaxed text-gray-700">
-              {whyItMatters}
-            </p>
+      {isExpanded && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Left column */}
+            <div className="space-y-4">
+              {/* Why it matters - highlighted */}
+              <div className="bg-gray-50 rounded-lg p-3.5">
+                <h4 className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                  Why this matters
+                </h4>
+                <p className="text-[13px] leading-relaxed text-gray-700">
+                  {whyItMatters}
+                </p>
+              </div>
+
+              {/* Example - callout style */}
+              {example && (
+                <div className="border-l-2 border-blue-300 pl-3.5 py-0.5">
+                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Example</p>
+                  <p className="text-[13px] leading-relaxed text-gray-600 italic">
+                    {example}
+                  </p>
+                </div>
+              )}
+
+              {/* Data quality */}
+              {dataQuality && (
+                <div className="border-l-2 border-gray-200 pl-3.5 py-0.5">
+                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">
+                    Data quality
+                  </p>
+                  <p className="text-[13px] leading-relaxed text-gray-600">
+                    {dataQuality.explanation}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Right column */}
+            <div className="space-y-4">
+              {/* Technical details - compact */}
+              {(technicalMeasurement || recommendedStandard) && (
+                <div className="bg-gray-50 rounded-lg p-3.5 space-y-3">
+                  {technicalMeasurement && (
+                    <div>
+                      <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">How we measure</p>
+                      <p className="text-[13px] leading-relaxed text-gray-600">{technicalMeasurement}</p>
+                    </div>
+                  )}
+                  {recommendedStandard && (
+                    <div>
+                      <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Standard</p>
+                      <p className="text-[13px] leading-relaxed text-gray-600">{recommendedStandard}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Additional context */}
+              {additionalContext && (
+                <p className="text-[13px] leading-relaxed text-gray-500 italic">
+                  {additionalContext}
+                </p>
+              )}
+
+              {/* Data source - minimal */}
+              {dataSource && (
+                <p className="text-[11px] text-gray-400 pt-1">
+                  Source: {dataSource}
+                </p>
+              )}
+            </div>
           </div>
-
-          {/* Example - callout style */}
-          {example && (
-            <div className="border-l-2 border-blue-300 pl-3.5 py-0.5">
-              <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Example</p>
-              <p className="text-[13px] leading-relaxed text-gray-600 italic">
-                {example}
-              </p>
-            </div>
-          )}
-
-          {/* Data quality */}
-          {dataQuality && (
-            <div className="border-l-2 border-gray-200 pl-3.5 py-0.5">
-              <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">
-                Data quality
-              </p>
-              <p className="text-[13px] leading-relaxed text-gray-600">
-                {dataQuality.explanation}
-              </p>
-            </div>
-          )}
-
-          {/* Technical details - compact */}
-          {(technicalMeasurement || recommendedStandard) && (
-            <div className="bg-gray-50 rounded-lg p-3.5 space-y-3">
-              {technicalMeasurement && (
-                <div>
-                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">How we measure</p>
-                  <p className="text-[13px] leading-relaxed text-gray-600">{technicalMeasurement}</p>
-                </div>
-              )}
-              {recommendedStandard && (
-                <div>
-                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Standard</p>
-                  <p className="text-[13px] leading-relaxed text-gray-600">{recommendedStandard}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Additional context */}
-          {additionalContext && (
-            <p className="text-[13px] leading-relaxed text-gray-500 italic">
-              {additionalContext}
-            </p>
-          )}
-
-          {/* Data source - minimal */}
-          {dataSource && (
-            <p className="text-[11px] text-gray-400 pt-1">
-              Source: {dataSource}
-            </p>
-          )}
         </div>
       )}
     </div>
