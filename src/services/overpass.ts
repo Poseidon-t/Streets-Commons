@@ -1,48 +1,102 @@
-import { OVERPASS_URL, ANALYSIS_RADIUS } from '../constants';
+import { ANALYSIS_RADIUS } from '../constants';
 import type { OSMData, StreetAttributes } from '../types';
+
+// Direct Overpass mirrors (called from browser as fallback)
+const OVERPASS_MIRRORS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.fr/api/interpreter',
+];
+
+/**
+ * Race multiple Overpass mirrors directly from the browser.
+ * Returns the first valid JSON response.
+ */
+async function queryOverpassDirect(query: string): Promise<any> {
+  const MIRROR_TIMEOUT = 12000;
+
+  return new Promise((resolve, reject) => {
+    let pending = OVERPASS_MIRRORS.length;
+    let settled = false;
+    const controllers: AbortController[] = [];
+
+    OVERPASS_MIRRORS.forEach((endpoint, i) => {
+      const controller = new AbortController();
+      controllers.push(controller);
+
+      const timer = setTimeout(() => controller.abort(), MIRROR_TIMEOUT);
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: `data=${encodeURIComponent(query)}`,
+        signal: controller.signal,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+        .then(async (response) => {
+          clearTimeout(timer);
+          if (settled) return;
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          return response.json();
+        })
+        .then((json) => {
+          if (settled || !json) return;
+          settled = true;
+          console.log(`✅ Overpass direct: ${endpoint}`);
+          controllers.forEach((c, j) => { if (j !== i) c.abort(); });
+          resolve(json);
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          pending--;
+          if (!settled && pending === 0) {
+            reject(new Error('All Overpass mirrors failed'));
+          }
+        });
+    });
+  });
+}
 
 export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const radius = ANALYSIS_RADIUS;
 
-  // Optimized query - faster, less likely to timeout
-  // CRITICAL: [out:json] at the start ensures JSON response format
   const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out center;`;
 
-  // Use backend proxy to avoid CORS issues
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
+  // Strategy 1: Backend proxy (has server-side cache + all mirrors)
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     const response = await fetch(`${apiUrl}/api/overpass`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`Proxy HTTP ${response.status}`);
 
     const result = await response.json();
     return processOSMData(result.data);
+  } catch (proxyError: any) {
+    console.warn('Backend proxy failed, trying direct Overpass mirrors:', proxyError.message);
+  }
 
-  } catch (error: any) {
-    console.error('Failed to fetch OSM data:', error);
+  // Strategy 2: Direct browser → Overpass mirrors (bypasses backend entirely)
+  try {
+    const data = await queryOverpassDirect(query);
+    return processOSMData(data);
+  } catch (directError: any) {
+    console.error('All Overpass strategies failed:', directError);
 
-    // Better error message based on error type
-    if (error.name === 'AbortError') {
+    if (directError.name === 'AbortError') {
       throw new Error('Request timed out. The OpenStreetMap servers are busy. Please try again in a moment.');
     }
 
-    throw new Error(`Failed to fetch OSM data. ${error.message || 'Unknown error'}. Please try again in a moment.`);
+    throw new Error('Failed to fetch OSM data. All Overpass mirrors failed. Please try again in a moment.');
   }
 }
 
@@ -125,9 +179,10 @@ export async function fetchNearestStreetDetails(
   for (const radius of [50, 150]) {
     const query = `[out:json][timeout:10];way(around:${radius},${lat},${lon})["highway"~"^(primary|secondary|tertiary|residential|living_street)$"];out tags;`;
 
+    // Try backend proxy first
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       const response = await fetch(`${apiUrl}/api/overpass`, {
         method: 'POST',
@@ -138,22 +193,41 @@ export async function fetchNearestStreetDetails(
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) continue;
+      if (response.ok) {
+        const result = await response.json();
+        const ways = (result.data?.elements || []).filter(
+          (e: any) => e.type === 'way' && e.tags?.highway,
+        );
 
-      const result = await response.json();
-      const ways = (result.data?.elements || []).filter(
+        if (ways.length > 0) {
+          ways.sort(
+            (a: any, b: any) =>
+              (HIGHWAY_PRIORITY[a.tags.highway] ?? 99) -
+              (HIGHWAY_PRIORITY[b.tags.highway] ?? 99),
+          );
+          return mapToStreetAttributes(ways[0].tags, ways[0].id);
+        }
+        continue;
+      }
+    } catch {
+      // Backend failed, fall through to direct
+    }
+
+    // Direct fallback
+    try {
+      const data = await queryOverpassDirect(query);
+      const ways = (data?.elements || []).filter(
         (e: any) => e.type === 'way' && e.tags?.highway,
       );
 
-      if (ways.length === 0) continue;
-
-      ways.sort(
-        (a: any, b: any) =>
-          (HIGHWAY_PRIORITY[a.tags.highway] ?? 99) -
-          (HIGHWAY_PRIORITY[b.tags.highway] ?? 99),
-      );
-
-      return mapToStreetAttributes(ways[0].tags, ways[0].id);
+      if (ways.length > 0) {
+        ways.sort(
+          (a: any, b: any) =>
+            (HIGHWAY_PRIORITY[a.tags.highway] ?? 99) -
+            (HIGHWAY_PRIORITY[b.tags.highway] ?? 99),
+        );
+        return mapToStreetAttributes(ways[0].tags, ways[0].id);
+      }
     } catch {
       continue;
     }
