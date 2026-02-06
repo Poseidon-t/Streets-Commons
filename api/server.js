@@ -93,6 +93,163 @@ function setCache(key, data) {
   overpassCache.set(key, { data, time: Date.now() });
 }
 
+// ─── Built-in Analytics ──────────────────────────────────────────────────────
+import { createHash } from 'crypto';
+import fs from 'fs';
+
+const ANALYTICS_FILE = process.env.ANALYTICS_FILE || '/data/analytics.json';
+const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
+
+// In-memory analytics store
+const analyticsStore = {
+  daily: {},  // { "2026-02-05": { pageViews: 0, ... } }
+  allTime: { pageViews: 0, analyses: 0, firstSeen: null },
+};
+
+// Track which IPs we've seen today (hashed, for unique visitor count)
+const todayVisitors = new Set();
+let lastVisitorReset = new Date().toDateString();
+
+// Load analytics from disk on startup
+function loadAnalytics() {
+  try {
+    if (fs.existsSync(ANALYTICS_FILE)) {
+      const data = JSON.parse(fs.readFileSync(ANALYTICS_FILE, 'utf-8'));
+      Object.assign(analyticsStore, data);
+      console.log('📊 Analytics loaded from disk');
+    }
+  } catch (err) {
+    console.warn('⚠️ Could not load analytics:', err.message);
+  }
+}
+
+// Save analytics to disk
+function saveAnalytics() {
+  try {
+    const dir = path.dirname(ANALYTICS_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(analyticsStore, null, 2));
+  } catch (err) {
+    // Silently fail if no volume mounted — analytics still works in-memory
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Could not save analytics:', err.message);
+    }
+  }
+}
+
+// Get today's date key
+function getToday() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// Ensure today's entry exists
+function ensureTodayExists() {
+  const today = getToday();
+  if (!analyticsStore.daily[today]) {
+    analyticsStore.daily[today] = {
+      pageViews: 0,
+      uniqueVisitors: 0,
+      analyses: 0,
+      chatMessages: 0,
+      pdfUploads: 0,
+      advocacyLetters: 0,
+      payments: 0,
+      topCountries: {},
+      topReferrers: {},
+    };
+  }
+  // Reset visitor tracking at midnight
+  const todayStr = new Date().toDateString();
+  if (todayStr !== lastVisitorReset) {
+    todayVisitors.clear();
+    lastVisitorReset = todayStr;
+  }
+  if (!analyticsStore.allTime.firstSeen) {
+    analyticsStore.allTime.firstSeen = today;
+  }
+  return analyticsStore.daily[today];
+}
+
+// Hash IP for privacy (never store raw IP)
+function hashIP(ip) {
+  return createHash('sha256').update(ip || 'unknown').digest('hex').slice(0, 16);
+}
+
+// Extract country from Accept-Language header (rough approximation)
+function guessCountry(req) {
+  const lang = req.get('accept-language') || '';
+  const match = lang.match(/[a-z]{2}-([A-Z]{2})/);
+  return match ? match[1] : 'XX';
+}
+
+// Extract domain from referrer
+function getReferrerDomain(referrer) {
+  if (!referrer) return 'direct';
+  try {
+    return new URL(referrer).hostname.replace('www.', '');
+  } catch {
+    return 'direct';
+  }
+}
+
+// Track an event
+function trackEvent(eventType, req, extra = {}) {
+  const today = ensureTodayExists();
+
+  switch (eventType) {
+    case 'pageview': {
+      today.pageViews++;
+      analyticsStore.allTime.pageViews++;
+
+      // Track unique visitors
+      const ipHash = hashIP(req.ip || req.headers['x-forwarded-for']);
+      if (!todayVisitors.has(ipHash)) {
+        todayVisitors.add(ipHash);
+        today.uniqueVisitors++;
+        analyticsStore.allTime.uniqueVisitors = (analyticsStore.allTime.uniqueVisitors || 0) + 1;
+      }
+
+      // Track country
+      const country = guessCountry(req);
+      today.topCountries[country] = (today.topCountries[country] || 0) + 1;
+
+      // Track referrer
+      const referrer = getReferrerDomain(extra.referrer);
+      today.topReferrers[referrer] = (today.topReferrers[referrer] || 0) + 1;
+      break;
+    }
+    case 'analysis':
+      today.analyses++;
+      analyticsStore.allTime.analyses++;
+      break;
+    case 'chat':
+      today.chatMessages++;
+      break;
+    case 'pdf':
+      today.pdfUploads++;
+      break;
+    case 'advocacy':
+      today.advocacyLetters++;
+      break;
+    case 'payment':
+      today.payments++;
+      break;
+  }
+}
+
+// Flush to disk every 60 seconds
+loadAnalytics();
+setInterval(saveAnalytics, 60 * 1000);
+
+// Also save on shutdown
+process.on('SIGTERM', () => {
+  console.log('📊 Saving analytics before shutdown...');
+  saveAnalytics();
+  process.exit(0);
+});
+
 // Middleware
 
 // Security headers (Helmet.js)
@@ -141,8 +298,163 @@ app.get('/health', (req, res) => {
   });
 });
 
+// ─── Analytics Endpoints ─────────────────────────────────────────────────────
+
+// Frontend beacon — track page views
+app.post('/api/track', (req, res) => {
+  const { event, referrer } = req.body || {};
+  if (event === 'pageview') {
+    trackEvent('pageview', req, { referrer });
+  }
+  res.status(204).end();
+});
+
+// JSON stats API (password-protected)
+app.get('/api/admin/stats', (req, res) => {
+  if (req.query.key !== ANALYTICS_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  ensureTodayExists();
+  res.json(analyticsStore);
+});
+
+// HTML Dashboard (password-protected)
+app.get('/admin', (req, res) => {
+  if (req.query.key !== ANALYTICS_SECRET) {
+    return res.status(401).send('Unauthorized. Add ?key=YOUR_SECRET to access.');
+  }
+
+  ensureTodayExists();
+  const today = analyticsStore.daily[getToday()] || {};
+  const allTime = analyticsStore.allTime;
+
+  // Get last 7 days for chart
+  const last7Days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split('T')[0];
+    const day = analyticsStore.daily[key] || {};
+    last7Days.push({ date: key.slice(5), views: day.pageViews || 0, analyses: day.analyses || 0 });
+  }
+
+  // Sort top items
+  const topCountries = Object.entries(today.topCountries || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const topReferrers = Object.entries(today.topReferrers || {})
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const maxViews = Math.max(...last7Days.map(d => d.views), 1);
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SafeStreets Analytics</title>
+  <meta http-equiv="refresh" content="30">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; color: #333; }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 24px; margin-bottom: 20px; color: #1e3a5f; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card h2 { font-size: 14px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat { font-size: 36px; font-weight: 700; color: #1e3a5f; }
+    .stat-small { font-size: 24px; }
+    .label { font-size: 12px; color: #888; margin-top: 4px; }
+    .chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-top: 16px; }
+    .bar { flex: 1; background: #e8f4f8; border-radius: 4px 4px 0 0; position: relative; min-height: 4px; }
+    .bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: #1e3a5f; border-radius: 4px 4px 0 0; }
+    .bar-label { font-size: 10px; text-align: center; color: #666; margin-top: 4px; }
+    .list { font-size: 14px; }
+    .list-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .list-item:last-child { border: none; }
+    .footer { text-align: center; font-size: 12px; color: #888; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SafeStreets Analytics</h1>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Today</h2>
+        <div class="stat">${today.uniqueVisitors || 0}</div>
+        <div class="label">unique visitors</div>
+        <div class="stat-small" style="margin-top:12px">${today.pageViews || 0}</div>
+        <div class="label">page views</div>
+      </div>
+      <div class="card">
+        <h2>Analyses Today</h2>
+        <div class="stat">${today.analyses || 0}</div>
+        <div class="label">walkability analyses</div>
+        <div class="stat-small" style="margin-top:12px">${today.chatMessages || 0}</div>
+        <div class="label">AI chat messages</div>
+      </div>
+      <div class="card">
+        <h2>All Time</h2>
+        <div class="stat">${allTime.pageViews || 0}</div>
+        <div class="label">total page views</div>
+        <div class="stat-small" style="margin-top:12px">${allTime.analyses || 0}</div>
+        <div class="label">total analyses</div>
+      </div>
+      <div class="card">
+        <h2>Other Today</h2>
+        <div class="list">
+          <div class="list-item"><span>PDF uploads</span><span>${today.pdfUploads || 0}</span></div>
+          <div class="list-item"><span>Advocacy letters</span><span>${today.advocacyLetters || 0}</span></div>
+          <div class="list-item"><span>Payment attempts</span><span>${today.payments || 0}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Last 7 Days (Page Views)</h2>
+        <div class="chart">
+          ${last7Days.map(d => `
+            <div style="flex:1">
+              <div class="bar" style="height:100px">
+                <div class="bar-fill" style="height:${(d.views / maxViews) * 100}%"></div>
+              </div>
+              <div class="bar-label">${d.date}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <h2>Top Referrers (Today)</h2>
+        <div class="list">
+          ${topReferrers.length ? topReferrers.map(([r, c]) => `<div class="list-item"><span>${r}</span><span>${c}</span></div>`).join('') : '<div class="list-item"><span>No data yet</span></div>'}
+        </div>
+      </div>
+      <div class="card">
+        <h2>Top Countries (Today)</h2>
+        <div class="list">
+          ${topCountries.length ? topCountries.map(([c, n]) => `<div class="list-item"><span>${c}</span><span>${n}</span></div>`).join('') : '<div class="list-item"><span>No data yet</span></div>'}
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Auto-refreshes every 30 seconds · Since ${allTime.firstSeen || 'today'}
+    </div>
+  </div>
+</body>
+</html>`;
+
+  res.type('html').send(html);
+});
+
 // Overpass API proxy with caching
 app.post('/api/overpass', async (req, res) => {
+  // Track analysis (every analysis calls overpass)
+  trackEvent('analysis', req);
+
   try {
     const { query } = req.body;
 
@@ -1526,6 +1838,9 @@ app.get('/api/crash-data', async (req, res) => {
 
 // Budget analysis endpoint with file upload support (PDF, CSV, text)
 app.post('/api/analyze-budget', upload.single('file'), async (req, res) => {
+  // Track PDF upload
+  trackEvent('pdf', req);
+
   try {
     const geminiKey = process.env.GEMINI_API_KEY;
     if (!geminiKey) {
@@ -1923,6 +2238,9 @@ Be specific to ${locationName} where possible, but be honest that this is guidan
 
 // Stripe checkout session endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
+  // Track payment attempt
+  trackEvent('payment', req);
+
   try {
     if (!stripe) {
       return res.status(500).json({
@@ -2123,6 +2441,9 @@ const advocacyLetterLimiter = rateLimit({
 });
 
 app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res) => {
+  // Track advocacy letter generation
+  trackEvent('advocacy', req);
+
   try {
     const { location, metrics, authorName, recipientTitle } = req.body;
 
@@ -2200,6 +2521,9 @@ const chatLimiter = rateLimit({
 });
 
 app.post('/api/chat', chatLimiter, async (req, res) => {
+  // Track chat message
+  trackEvent('chat', req);
+
   try {
     const groqKey = process.env.GROQ_API_KEY;
     if (!groqKey) {
@@ -2619,7 +2943,8 @@ honeypots.forEach(path => {
 app.listen(PORT, () => {
   console.log(`\n🚀 SafeStreets API Server`);
   console.log(`✅ Running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health\n`);
+  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`📈 Analytics: http://localhost:${PORT}/admin?key=SECRET\n`);
   console.log(`📡 Available APIs:`);
   console.log(`   ☀️  NASA POWER Temperature: GET /api/nasa-power-temperature`);
   console.log(`   🌫️  OpenAQ Air Quality: GET /api/air-quality ${process.env.OPENAQ_API_KEY ? '(configured)' : '(needs API key)'}`);

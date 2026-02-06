@@ -37,6 +37,16 @@
     <!-- Plausible Analytics - Privacy-friendly, GDPR compliant -->
     <script defer data-domain="safestreets.streetsandcommons.com" src="https://plausible.io/js/script.js"></script>
 
+    <!-- Built-in Analytics Beacon -->
+    <script>
+      fetch('/api/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: 'pageview', referrer: document.referrer }),
+        keepalive: true
+      }).catch(() => {});
+    </script>
+
     <!-- Schema.org Structured Data for FAQPage -->
     <script type="application/ld+json">
     {
