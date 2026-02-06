@@ -128,16 +128,11 @@ export async function sendMagicLinkEmail(email, tier, token, locationName) {
     advocate: {
       name: 'Advocate',
       price: '$19',
-      features: '• Streetmix Integration\n• 3DStreet Visualization\n• Policy Report PDF\n• Budget Analysis\n• International Standards'
+      features: '• Street Redesign\n• 3DStreet Visualization\n• Policy Report PDF\n• Budget Analysis\n• International Standards (WHO, ADA)\n• Advocacy Proposal PDF'
     },
-    professional: {
-      name: 'Professional',
-      price: '$79',
-      features: '• Everything in Advocate\n• 15-Minute City Score\n• Building Density 3D\n• Transit Access Analysis\n• ADA Accessibility Report\n• Street Lighting Safety\n• Custom Branding'
-    }
   };
 
-  const details = tierDetails[tier] || tierDetails.advocate;
+  const details = tierDetails.advocate;
 
   const emailBody = `
 🎉 Welcome to SafeStreets ${details.name} Tier!
@@ -190,8 +185,8 @@ Making cities walkable, one street at a time 🚶
 export async function processPayment(stripeSession) {
   const { id, customer_email, amount_total, metadata } = stripeSession;
 
-  // Determine tier from amount
-  const tier = amount_total === 1900 ? 'advocate' : 'professional'; // $19 or $79
+  // Only advocate tier ($19) is currently offered
+  const tier = 'advocate';
   const email = customer_email;
   const locationName = metadata.locationName || 'Location';
 
