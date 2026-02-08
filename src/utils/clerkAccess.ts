@@ -1,6 +1,6 @@
 /**
- * Clerk-based Premium Access Management
- * Uses Clerk user metadata for tier management
+ * Clerk-based Access Management
+ * All features are free. Premium features require sign-in only (no payment).
  */
 
 // User type from useUser() hook
@@ -24,30 +24,13 @@ export interface AccessInfo {
 }
 
 /**
- * DEV MODE: Automatically enables professional tier on localhost
- * Set localStorage.setItem('dev_premium_tier', 'free') to disable
+ * DEV MODE: Automatically enables advocate tier on localhost
  */
 function getDevTierOverride(): PremiumTier | null {
   if (typeof window === 'undefined') return null;
 
-  // Check if running on localhost (development)
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-  // Check for explicit override in localStorage
-  const override = localStorage.getItem('dev_premium_tier');
-
-  // If explicitly set to 'free', disable dev premium
-  if (override === 'free') {
-    return null;
-  }
-
-  // If explicitly set to a tier, use that
-  if (override === 'advocate') {
-    console.log(`🔓 DEV MODE: Premium tier overridden to "${override}"`);
-    return override;
-  }
-
-  // Auto-enable advocate on localhost for testing
   if (isLocalhost) {
     console.log('🔓 DEV MODE: Auto-enabled advocate tier (localhost)');
     return 'advocate';
@@ -57,10 +40,10 @@ function getDevTierOverride(): PremiumTier | null {
 }
 
 /**
- * Get access info from Clerk user
+ * Get access info from Clerk user.
+ * Any signed-in user gets advocate tier (all features free).
  */
 export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo {
-  // Check for dev mode override first
   const devOverride = getDevTierOverride();
   if (devOverride) {
     return {
@@ -74,11 +57,10 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
     return { tier: 'free', email: null, isValid: false };
   }
 
-  const tier = (user.publicMetadata?.tier as PremiumTier) || 'free';
+  // Signed-in users get full access — no payment required
   const email = user.primaryEmailAddress?.emailAddress || null;
-
   return {
-    tier,
+    tier: 'advocate',
     email,
     isValid: true,
   };
@@ -89,15 +71,13 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
  */
 export function hasAccess(user: User | null | undefined, requiredTier: 'advocate'): boolean {
   const { tier } = getAccessInfoFromUser(user);
-  if (tier === 'free') return false;
   return tier === 'advocate';
 }
 
 /**
- * Get premium status (for backward compatibility with existing components)
+ * Premium = signed in. All features are free with a Google sign-in.
  */
 export function isPremium(user: User | null | undefined): boolean {
   const { tier } = getAccessInfoFromUser(user);
   return tier !== 'free';
 }
-

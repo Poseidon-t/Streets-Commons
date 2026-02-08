@@ -329,21 +329,20 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
             </button>
           </div>
         ) : (
-          <div className="p-4 bg-gradient-to-r from-orange-50 to-blue-50 border-2 border-orange-200 rounded-xl">
+          <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h4 className="font-bold text-gray-800 mb-1">{'\uD83D\uDD12'} PDF Report + Data Export</h4>
+                <h4 className="font-bold text-gray-800 mb-1">{'\uD83D\uDD13'} PDF Report + Data Export</h4>
                 <p className="text-xs text-gray-600 mb-2">
-                  Download professional PDF reports and raw JSON data with the Advocate tier.
+                  Download professional PDF reports and raw JSON data — free with sign-in.
                 </p>
-                <p className="text-lg font-bold text-orange-600">$19 one-time</p>
               </div>
               <button
-                onClick={() => onUnlock ? onUnlock() : setShowPaymentModal(true)}
+                onClick={() => onUnlock?.()}
                 className="px-4 py-2 rounded-xl font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
-                style={{ backgroundColor: COLORS.accent }}
+                style={{ backgroundColor: COLORS.primary }}
               >
-                Unlock {'\u2192'}
+                Sign In {'\u2192'}
               </button>
             </div>
           </div>

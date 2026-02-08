@@ -668,23 +668,23 @@ export default function StreetCrossSection({
         Italic labels (~) indicate estimated values.
       </p>
 
-      {/* Premium upsell for free users */}
+      {/* Sign-in prompt for free users */}
       {!isPremium && (
         <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-xl">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h4 className="font-bold text-gray-800 text-sm mb-1">See the Recommended Redesign</h4>
               <p className="text-xs text-gray-600">
-                Unlock data-driven street redesign recommendations based on your walkability scores.
+                Sign in to unlock data-driven street redesign recommendations — it's free!
               </p>
             </div>
             {onUnlock && (
               <button
                 onClick={onUnlock}
                 className="px-4 py-2 rounded-xl font-semibold text-white text-sm transition-all hover:shadow-lg whitespace-nowrap"
-                style={{ backgroundColor: COLORS.accent }}
+                style={{ backgroundColor: COLORS.primary }}
               >
-                Unlock &rarr;
+                Sign In &rarr;
               </button>
             )}
           </div>

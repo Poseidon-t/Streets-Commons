@@ -69,8 +69,8 @@ function App() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showAllFaqs, setShowAllFaqs] = useState(false);
 
-  // Payment modal state
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  // Sign-in modal state (was payment modal — now all features are free)
+  const [showSignInModal, setShowSignInModal] = useState(false);
   const [showLetterModal, setShowLetterModal] = useState(false);
   const [showMethodology, setShowMethodology] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
@@ -78,7 +78,6 @@ function App() {
   });
 
   // Payment success banner
-  const [paymentSuccess, setPaymentSuccess] = useState<{ tier: string } | null>(null);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -89,29 +88,20 @@ function App() {
     };
   }, []);
 
-  // Handle Stripe payment redirect
+  // Clean up any legacy payment URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const payment = params.get('payment');
-    const tier = params.get('tier');
-
-    if (payment === 'success' && tier) {
-      setPaymentSuccess({ tier });
-
-      // Clean URL params
+    if (params.get('payment')) {
       const url = new URL(window.location.href);
       url.searchParams.delete('payment');
       url.searchParams.delete('tier');
       window.history.replaceState({}, '', url.toString());
-
-      // Auto-dismiss after 8 seconds
-      setTimeout(() => setPaymentSuccess(null), 8000);
     }
 
-    if (payment === 'cancelled') {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('payment');
-      window.history.replaceState({}, '', url.toString());
+    if (params.get('payment') === 'cancelled') {
+      const cancelUrl = new URL(window.location.href);
+      cancelUrl.searchParams.delete('payment');
+      window.history.replaceState({}, '', cancelUrl.toString());
     }
   }, []);
 
@@ -324,10 +314,10 @@ function App() {
       {/* Activation Handler - Processes magic link tokens */}
       <ActivationHandler />
 
-      {/* Payment Modal */}
+      {/* Sign-In Modal */}
       <PaymentModalWithAuth
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
+        isOpen={showSignInModal}
+        onClose={() => setShowSignInModal(false)}
         locationName={location?.displayName || ''}
       />
 
@@ -391,7 +381,7 @@ function App() {
             </div>
           </button>
           <div className="flex items-center gap-6">
-            <button onClick={() => setShowPaymentModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Pricing</button>
+            <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
             <a href="#faq" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <UserButton
               afterSignOutUrl="/"
@@ -406,30 +396,6 @@ function App() {
         </div>
       </header>
 
-      {/* Payment Success Banner */}
-      {paymentSuccess && (
-        <div className="bg-green-50 border-b border-green-200 px-6 py-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">&#x2705;</span>
-              <div>
-                <p className="font-semibold text-green-800">
-                  Payment successful! Advocate tier activated.
-                </p>
-                <p className="text-sm text-green-700">
-                  Your premium features are now unlocked. It may take a moment to reflect — try refreshing if needed.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setPaymentSuccess(null)}
-              className="text-green-600 hover:text-green-800 text-xl leading-none"
-            >
-              &times;
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Hero Section - Light earthy aesthetic */}
       {!compareMode && !location && !isAnalyzing && (
@@ -1117,7 +1083,7 @@ function App() {
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
                   isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                  onUnlock={() => setShowPaymentModal(true)}
+                  onUnlock={() => setShowSignInModal(true)}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -1177,16 +1143,16 @@ function App() {
                     <p className="text-gray-600 text-sm mb-3">
                       Generate professional letters to city officials citing your walkability data, WHO/NACTO standards, and specific recommendations.
                     </p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 mb-3">
-                      Advocate Tier &mdash; $19 one-time
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 mb-3">
+                      Free &mdash; Sign in to unlock
                     </div>
                     <br />
                     <button
-                      onClick={() => setShowPaymentModal(true)}
+                      onClick={() => setShowSignInModal(true)}
                       className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
-                      style={{ backgroundColor: COLORS.accent }}
+                      style={{ backgroundColor: COLORS.primary }}
                     >
-                      Unlock Premium Features
+                      Sign In to Unlock
                     </button>
                   </div>
                 </div>
@@ -1196,7 +1162,7 @@ function App() {
             {/* Street Cross-Section (Current = free, Recommended = premium) */}
             <ErrorBoundary sectionName="Street Cross-Section">
               <Suspense fallback={null}>
-                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowPaymentModal(true)} />
+                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} />
               </Suspense>
             </ErrorBoundary>
 
@@ -1260,7 +1226,7 @@ function App() {
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
                   isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                  onUnlock={() => setShowPaymentModal(true)}
+                  onUnlock={() => setShowSignInModal(true)}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -1654,7 +1620,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The free tier works instantly without any account. For the Advocate tier ($19), payment is processed through Stripe—no separate account needed. Just pay once and access premium features immediately.
+                    No! The basic metrics work instantly without any account. To access premium advocacy tools (PDF reports, AI letter generator, street redesign, budget analysis), just sign in with Google — it's completely free.
                   </p>
                 </div>
               </div>
@@ -1668,7 +1634,7 @@ function App() {
                   aria-controls="faq-5-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Is this a subscription or one-time payment?
+                    Is SafeStreets really free?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 5 ? '−' : '+'}
@@ -1679,7 +1645,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">One-time payment!</strong> Unlike other tools that charge $1,000-10,000/year, SafeStreets charges $19 once and you keep access forever. No recurring fees, no hidden costs.
+                    <strong className="text-green-700">Yes, 100% free!</strong> Unlike other tools that charge $1,000-10,000/year, SafeStreets is completely free. Just sign in with Google to unlock all premium advocacy tools — no payment required, ever.
                   </p>
                 </div>
               </div>
@@ -1693,7 +1659,7 @@ function App() {
                   aria-controls="faq-6-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    What's included in the paid tiers?
+                    What do I get when I sign in?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 6 ? '−' : '+'}
@@ -1704,7 +1670,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">Advocate ($19):</strong> PDF report export, JSON data export, AI advocacy letter generator, unlimited AI chatbot, location comparison, street redesign recommendations, budget analysis, and policy proposal generator.
+                    <strong className="text-gray-900">Sign-in unlocks:</strong> PDF report export, JSON data export, AI advocacy letter generator, unlimited AI chatbot, street redesign recommendations, budget analysis, and policy proposal generator — all free.
                   </p>
                 </div>
               </div>
@@ -1782,7 +1748,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! The free tier can be used for personal or commercial purposes. For advocacy tools and policy reports, the Advocate tier ($19 one-time) is perfect for community advocacy and urban planning.
+                    Yes! SafeStreets is free for personal and commercial use. Sign in with Google to access all advocacy tools and policy reports — perfect for community advocacy and urban planning.
                   </p>
                 </div>
               </div>
@@ -1889,13 +1855,13 @@ function App() {
                 <li className="flex items-start gap-2">
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#5090b0' }}></span>
                   <div>
-                    <span className="font-semibold" style={{ color: '#e0dbd0' }}>Advocate: $19</span>
+                    <span className="font-semibold" style={{ color: '#e0dbd0' }}>Sign In (Free)</span>
                     <p className="text-xs" style={{ color: '#7a8a7a' }}>PDF reports, AI letter, street redesign, budget tools</p>
                   </div>
                 </li>
               </ul>
               <p className="text-xs mt-3 font-medium" style={{ color: '#6aaa5a' }}>
-                One-time payment · No subscription
+                100% free · Sign in with Google
               </p>
             </div>
 

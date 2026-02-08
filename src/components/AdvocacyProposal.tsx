@@ -22,16 +22,16 @@ export default function AdvocacyProposal({ isPremium, location, metrics }: Advoc
     return (
       <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
         <div className="text-center">
-          <div className="text-5xl mb-4">📋</div>
+          <div className="text-5xl mb-4">&#x1F4CB;</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             Street Improvement Proposal
           </h2>
           <p className="text-gray-600 mb-4">
             Generate a professional one-page proposal to present to city officials
           </p>
-          <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 mb-4">
+          <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
             <p className="text-sm text-gray-700">
-              This feature is available with Premium ($19 one-time)
+              Sign in with Google to unlock this feature — it's free!
             </p>
           </div>
         </div>

@@ -347,16 +347,16 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
           {/* Input */}
           {isAtLimit ? (
             <div className="px-3 py-3 border-t border-gray-200 flex-shrink-0">
-              <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-xl">
+              <div className="text-center p-3 bg-green-50 border border-green-200 rounded-xl">
                 <p className="text-sm font-semibold text-gray-800 mb-1">Free messages used ({FREE_MESSAGE_LIMIT}/{FREE_MESSAGE_LIMIT})</p>
-                <p className="text-xs text-gray-600 mb-2">Unlock unlimited advocacy chat, PDF reports, and more.</p>
+                <p className="text-xs text-gray-600 mb-2">Sign in to unlock unlimited advocacy chat and more.</p>
                 {onUnlock && (
                   <button
                     onClick={onUnlock}
                     className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:shadow-md"
-                    style={{ backgroundColor: COLORS.accent }}
+                    style={{ backgroundColor: COLORS.primary }}
                   >
-                    Upgrade &mdash; $19 one-time
+                    Sign In to Unlock
                   </button>
                 )}
               </div>
