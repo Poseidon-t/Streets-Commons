@@ -82,28 +82,3 @@ export async function fetchHeatIsland(
     return null;
   }
 }
-
-/**
- * Score heat island effect for walkability
- * Lower heat island effect = better for pedestrians
- *
- * Scoring:
- * - <2°C (Minimal) = 10 points
- * - 2-5°C (Low) = 8 points
- * - 5-8°C (Moderate) = 6 points
- * - 8-12°C (Significant) = 4 points
- * - >12°C (Severe) = 2 points
- */
-export function scoreHeatIsland(effectCelsius: number): number {
-  if (effectCelsius < 2) {
-    return 10;
-  } else if (effectCelsius < 5) {
-    return 8;
-  } else if (effectCelsius < 8) {
-    return 6;
-  } else if (effectCelsius < 12) {
-    return 4;
-  } else {
-    return 2;
-  }
-}

@@ -1,20 +1,10 @@
 // Analysis parameters
 export const ANALYSIS_RADIUS = 800; // meters
 export const MAX_CROSSING_GAP = 200; // meters
-export const MIN_TREE_CANOPY = 30; // percentage
-export const MAX_SURFACE_TEMP = 38; // celsius
-export const MAX_DETOUR_FACTOR = 1.3; // ratio
-export const MAX_SLOPE = 5; // percentage
-export const MIN_DESTINATION_TYPES = 4; // count
 
 // API endpoints
 export const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
-export const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 export const USER_AGENT = 'SafeStreets/2.0';
-
-// Satellite data (approximate - would need real API in production)
-export const SENTINEL_URL = 'https://services.sentinel-hub.com/ogc/wms';
-export const LANDSAT_URL = 'https://landsatlook.usgs.gov/data';
 
 // Design colors
 export const COLORS = {
@@ -26,27 +16,6 @@ export const COLORS = {
   poor: '#f97316',
   critical: '#ef4444',
   background: '#f8fafc',
-};
-
-// Metric weights for overall score (Safety 55%, Access 10%, Comfort 35%)
-export const METRIC_WEIGHTS = {
-  crossingSafety: 0.15,
-  sidewalkCoverage: 0.15,
-  speedExposure: 0.15,
-  nightSafety: 0.10,
-  destinationAccess: 0.10,
-  slope: 0.10,
-  treeCanopy: 0.10,
-  thermalComfort: 0.15,
-};
-
-// Score labels
-export const SCORE_LABELS = {
-  excellent: { min: 8, max: 10, label: 'Excellent', color: COLORS.excellent },
-  good: { min: 6, max: 7.9, label: 'Good', color: COLORS.good },
-  fair: { min: 4, max: 5.9, label: 'Fair', color: COLORS.fair },
-  poor: { min: 2, max: 3.9, label: 'Poor', color: COLORS.poor },
-  critical: { min: 0, max: 1.9, label: 'Critical', color: COLORS.critical },
 };
 
 export const DEBOUNCE_MS = 400;

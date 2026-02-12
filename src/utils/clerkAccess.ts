@@ -67,14 +67,6 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
 }
 
 /**
- * Check if user has specific tier access
- */
-export function hasAccess(user: User | null | undefined, requiredTier: 'advocate'): boolean {
-  const { tier } = getAccessInfoFromUser(user);
-  return tier === 'advocate';
-}
-
-/**
  * Premium = signed in. All features are free with a Google sign-in.
  */
 export function isPremium(user: User | null | undefined): boolean {

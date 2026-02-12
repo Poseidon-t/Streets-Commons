@@ -87,14 +87,6 @@ export interface WalkabilityScoreV2 {
   legacy: WalkabilityMetrics; // backward compat
 }
 
-export interface Analysis {
-  id: string;
-  location: Location;
-  metrics: WalkabilityMetrics;
-  dataQuality: DataQuality;
-  timestamp: Date;
-}
-
 export interface StreetAttributes {
   name: string;
   highway: 'primary' | 'secondary' | 'tertiary' | 'residential' | 'living_street';
