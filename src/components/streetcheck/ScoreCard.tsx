@@ -1,4 +1,5 @@
 import type { WalkabilityMetrics, CrashData, CountryCrashData, WalkabilityScoreV2 } from '../../types';
+import PlainLanguageSummary from './PlainLanguageSummary';
 
 interface ScoreCardProps {
   metrics: WalkabilityMetrics;
@@ -131,6 +132,9 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
       <div className="flex-1 flex flex-col items-center justify-center">
         <CircularScore score={score} />
       </div>
+
+      {/* Plain Language Summary */}
+      <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
 
       {/* Walker Visualization */}
       <div className="mt-6 pt-6 border-t" style={{ borderColor: '#e0dbd0' }}>

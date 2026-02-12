@@ -65,6 +65,7 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [retryCountdown, setRetryCountdown] = useState(0);
+  const [language, setLanguage] = useState('en');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -137,6 +138,7 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
             locationName: location.displayName,
             metrics,
             dataQuality,
+            language: language !== 'en' ? language : undefined,
           },
         }),
       });
@@ -270,6 +272,23 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
               <span className="font-semibold text-sm">SafeStreets Urbanist</span>
             </div>
             <div className="flex items-center gap-1">
+              {/* Language selector */}
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className="bg-white/15 text-white text-xs rounded px-1 py-0.5 border-none outline-none cursor-pointer"
+                style={{ maxWidth: '58px' }}
+                title="Response language"
+              >
+                <option value="en" className="text-gray-800">EN</option>
+                <option value="es" className="text-gray-800">ES</option>
+                <option value="fr" className="text-gray-800">FR</option>
+                <option value="hi" className="text-gray-800">HI</option>
+                <option value="zh" className="text-gray-800">ZH</option>
+                <option value="ar" className="text-gray-800">AR</option>
+                <option value="pt" className="text-gray-800">PT</option>
+                <option value="th" className="text-gray-800">TH</option>
+              </select>
               {messages.length > 0 && (
                 <button
                   onClick={handleResetChat}

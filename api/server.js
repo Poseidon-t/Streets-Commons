@@ -475,9 +475,10 @@ app.post('/api/overpass', async (req, res) => {
       'https://overpass-api.de/api/interpreter',
       'https://overpass.openstreetmap.ru/cgi/interpreter',
       'https://overpass.openstreetmap.fr/api/interpreter',
+      'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
     ];
 
-    const MIRROR_TIMEOUT = 8000; // 8s per mirror
+    const MIRROR_TIMEOUT = 12000; // 12s per mirror (some are slow)
 
     // Fire all mirrors at once, resolve with first valid JSON result
     const data = await new Promise((resolve, reject) => {
@@ -493,9 +494,9 @@ app.post('/api/overpass', async (req, res) => {
 
         fetch(endpoint, {
           method: 'POST',
-          body: query,
+          body: `data=${encodeURIComponent(query)}`,
           signal: controller.signal,
-          headers: { 'Content-Type': 'text/plain', 'Accept': 'application/json' },
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' },
         })
           .then(async (response) => {
             clearTimeout(timer);
@@ -2839,7 +2840,7 @@ app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res
   trackEvent('advocacy', req);
 
   try {
-    const { location, metrics, authorName, recipientTitle } = req.body;
+    const { location, metrics, authorName, recipientTitle, language } = req.body;
 
     if (!location || !metrics) {
       return res.status(400).json({ error: 'Missing location or metrics data' });
@@ -2893,6 +2894,12 @@ INSTRUCTIONS:
 - Do NOT include placeholder brackets like [Your Name] — write it as a complete letter
 - If an author name is provided, sign with that name; otherwise sign as "A Concerned Resident"
 - Do NOT include a subject line — just the letter body starting with "Dear..."`;
+
+    // Multi-language support
+    const langMap = { es: 'Spanish', fr: 'French', hi: 'Hindi', zh: 'Chinese', ar: 'Arabic', pt: 'Portuguese', th: 'Thai' };
+    if (language && language !== 'en' && langMap[language]) {
+      prompt += `\n\nIMPORTANT: Write the entire letter in ${langMap[language]}. Use culturally appropriate formal conventions for that language.`;
+    }
 
     const letterText = await callAIWithFallback(prompt, groqKey, geminiKey);
     if (!letterText) {
@@ -3151,6 +3158,12 @@ CRITICAL RULES — NEVER BREAK THESE:
       }
       if (context.dataQuality) {
         systemPrompt += `\nData confidence: ${context.dataQuality.confidence}`;
+      }
+
+      // Multi-language support
+      const langMap = { es: 'Spanish', fr: 'French', hi: 'Hindi', zh: 'Chinese', ar: 'Arabic', pt: 'Portuguese', th: 'Thai' };
+      if (context.language && context.language !== 'en' && langMap[context.language]) {
+        systemPrompt += `\n\nIMPORTANT: Respond entirely in ${langMap[context.language]}. Maintain the same expert urbanist voice and style.`;
       }
     }
 

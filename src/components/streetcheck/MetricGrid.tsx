@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore, DemographicData, OSMData } from '../../types';
+import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore, DemographicData, OSMData, CrashData } from '../../types';
 import MetricCard from '../MetricCard';
 import { translateMetrics, type UserFriendlyMetric } from '../../utils/metricTranslations';
 import EconomicContextSection from './EconomicContextSection';
+import EquityContextSection from './EquityContextSection';
+import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
 
 interface MetricGridProps {
   metrics: WalkabilityMetrics;
@@ -13,6 +15,7 @@ interface MetricGridProps {
   demographicData?: DemographicData | null;
   demographicLoading?: boolean;
   osmData?: OSMData | null;
+  crashData?: CrashData | null;
 }
 
 function getScoreColor(score: number): string {
@@ -157,7 +160,7 @@ function buildSections(
   ];
 }
 
-export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore, demographicData, demographicLoading, osmData }: MetricGridProps) {
+export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore, demographicData, demographicLoading, osmData, crashData }: MetricGridProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<number>>(new Set());
   const hasAutoOpened = useRef(false);
@@ -265,6 +268,19 @@ export default function MetricGrid({ metrics, locationName, satelliteLoaded, raw
           );
         })}
       </div>
+
+      {/* Equity Context — correlates walkability with demographics */}
+      {demographicData && (
+        <div className="mt-8">
+          <EquityContextSection
+            demographicData={demographicData}
+            metrics={metrics}
+            crashData={crashData ?? null}
+            compositeScore={compositeScore ?? null}
+            localEconomy={osmData ? analyzeLocalEconomy(osmData) : null}
+          />
+        </div>
+      )}
 
       {/* Local Economy — derived from OSM POI data */}
       {osmData && (
