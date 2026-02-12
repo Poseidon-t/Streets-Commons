@@ -7,17 +7,6 @@ interface ScoreCardProps {
   compositeScore?: WalkabilityScoreV2 | null;
 }
 
-function getGradeColor(grade: string): string {
-  switch (grade) {
-    case 'A': return '#22c55e';
-    case 'B': return '#84cc16';
-    case 'C': return '#eab308';
-    case 'D': return '#f97316';
-    case 'F': return '#ef4444';
-    default: return '#8a9a8a';
-  }
-}
-
 function getScoreColor(score: number): string {
   if (score >= 80) return '#22c55e';
   if (score >= 60) return '#84cc16';
@@ -26,11 +15,12 @@ function getScoreColor(score: number): string {
   return '#ef4444';
 }
 
-function CircularScore({ score, grade }: { score: number; grade: string }) {
+function CircularScore({ score }: { score: number }) {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const progress = (score / 100) * circumference;
-  const color = getGradeColor(grade);
+  const color = getScoreColor(score);
+  const displayScore = (score / 10).toFixed(1);
 
   return (
     <div className="flex flex-col items-center">
@@ -47,9 +37,9 @@ function CircularScore({ score, grade }: { score: number; grade: string }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-4xl sm:text-5xl font-bold" style={{ color }}>{score}</div>
-          <div className="text-lg sm:text-xl font-bold mt-[-2px]" style={{ color }}>
-            {grade}
+          <div className="text-4xl sm:text-5xl font-bold" style={{ color }}>{displayScore}</div>
+          <div className="text-sm mt-[-2px]" style={{ color: '#8a9a8a' }}>
+            out of 10
           </div>
         </div>
       </div>
@@ -59,6 +49,7 @@ function CircularScore({ score, grade }: { score: number; grade: string }) {
 
 function ComponentBar({ label, score, weight }: { label: string; score: number; weight: number }) {
   const color = getScoreColor(score);
+  const displayScore = (score / 10).toFixed(1);
   return (
     <div className="flex items-center gap-3">
       <div className="w-[120px] sm:w-[140px] text-xs text-right flex-shrink-0" style={{ color: '#6b7280' }}>
@@ -71,7 +62,7 @@ function ComponentBar({ label, score, weight }: { label: string; score: number; 
           style={{ width: `${score}%`, backgroundColor: color }}
         />
       </div>
-      <div className="w-8 text-xs font-semibold text-right" style={{ color }}>{score}</div>
+      <div className="w-10 text-xs font-semibold text-right" style={{ color }}>{displayScore}</div>
     </div>
   );
 }
@@ -142,7 +133,6 @@ function CrashSummary({ data }: { data: CrashData }) {
 
 export default function ScoreCard({ metrics, crashData, crashLoading, compositeScore }: ScoreCardProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
-  const grade = compositeScore?.grade ?? (score >= 80 ? 'A' : score >= 60 ? 'B' : score >= 40 ? 'C' : score >= 20 ? 'D' : 'F');
   const filledWalkers = Math.round(score / 10);
   const emptyWalkers = 10 - filledWalkers;
 
@@ -159,7 +149,7 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
         Walkability Score
       </h2>
       <div className="flex-1 flex flex-col items-center justify-center">
-        <CircularScore score={score} grade={grade} />
+        <CircularScore score={score} />
       </div>
 
       {/* Component Breakdown */}

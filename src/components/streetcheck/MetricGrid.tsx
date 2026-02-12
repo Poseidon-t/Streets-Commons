@@ -19,19 +19,30 @@ function getScoreColor(score: number): string {
   return '#ef4444';
 }
 
-function SectionHeader({ component }: { component: ComponentScore }) {
+function SectionHeader({ component, isOpen, onToggle }: { component: ComponentScore; isOpen: boolean; onToggle: () => void }) {
   const color = getScoreColor(component.score);
+  const displayScore = (component.score / 10).toFixed(1);
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{component.label}</h3>
-      <div className="flex items-center gap-2">
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center gap-3 py-3 px-4 rounded-xl hover:bg-white/60 transition-colors cursor-pointer"
+    >
+      <svg
+        className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
+        style={{ color: '#8a9a8a' }}
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+      <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>{component.label}</h3>
+      <div className="flex items-center gap-2 ml-auto">
         <div className="h-2 w-16 rounded-full overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
           <div className="h-full rounded-full" style={{ width: `${component.score}%`, backgroundColor: color }} />
         </div>
-        <span className="text-sm font-semibold" style={{ color }}>{component.score}</span>
+        <span className="text-sm font-semibold" style={{ color }}>{displayScore}</span>
         <span className="text-xs" style={{ color: '#9ca3af' }}>({Math.round(component.weight * 100)}%)</span>
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -144,6 +155,16 @@ function buildSections(
 
 export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore }: MetricGridProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<Set<number>>(new Set());
+
+  const toggleSection = (idx: number) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   const userFriendlyMetrics = translateMetrics(metrics, locationName, rawData);
 
@@ -187,32 +208,39 @@ export default function MetricGrid({ metrics, locationName, satelliteLoaded, raw
       <h2 className="text-2xl font-bold mb-8" style={{ color: '#2a3a2a' }}>
         What This Means For You
       </h2>
-      <div className="space-y-8">
-        {sections.map((section, sIdx) => (
-          <div key={section.component.label}>
-            <SectionHeader component={section.component} />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
-              {section.metrics.map(({ metric, satKey }, mIdx) => {
-                const isLoading = satKey && satelliteLoaded ? !satelliteLoaded.has(satKey) : false;
-                const key = `${sIdx}-${mIdx}`;
-                const isExpanded = expandedKey === key;
-                return (
-                  <div
-                    key={metric.headline}
-                    className={isExpanded ? 'col-span-1 sm:col-span-2 lg:col-span-3' : ''}
-                  >
-                    <MetricCard
-                      {...metric}
-                      isLoading={isLoading}
-                      isExpanded={isExpanded}
-                      onToggle={() => setExpandedKey(isExpanded ? null : key)}
-                    />
+      <div className="space-y-2">
+        {sections.map((section, sIdx) => {
+          const isOpen = openSections.has(sIdx);
+          return (
+            <div key={section.component.label} className="rounded-xl border" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.5)' }}>
+              <SectionHeader component={section.component} isOpen={isOpen} onToggle={() => toggleSection(sIdx)} />
+              {isOpen && (
+                <div className="px-4 pb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                    {section.metrics.map(({ metric, satKey }, mIdx) => {
+                      const isLoading = satKey && satelliteLoaded ? !satelliteLoaded.has(satKey) : false;
+                      const key = `${sIdx}-${mIdx}`;
+                      const isExpanded = expandedKey === key;
+                      return (
+                        <div
+                          key={metric.headline}
+                          className={isExpanded ? 'col-span-1 sm:col-span-2 lg:col-span-3' : ''}
+                        >
+                          <MetricCard
+                            {...metric}
+                            isLoading={isLoading}
+                            isExpanded={isExpanded}
+                            onToggle={() => setExpandedKey(isExpanded ? null : key)}
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
