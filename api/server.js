@@ -1471,10 +1471,13 @@ app.get('/api/heat-island', async (req, res) => {
     const redValues = dataB04Heat[0];
 
     // Calculate brightness temperature (proxy) and separate urban vs vegetation areas
+    // Also compute NDBI (Normalized Difference Built-up Index)
     let urbanTempSum = 0;
     let urbanPixels = 0;
     let vegetationTempSum = 0;
     let vegetationPixels = 0;
+    let ndbiSum = 0;
+    let ndbiCount = 0;
 
     for (let i = 0; i < swir1Values.length; i++) {
       const swir1 = swir1Values[i];
@@ -1489,6 +1492,13 @@ app.get('/api/heat-island', async (req, res) => {
         // Calculate NDVI to distinguish vegetation from urban
         const ndvi = (nir - red) / (nir + red);
 
+        // NDBI: (SWIR - NIR) / (SWIR + NIR) — measures built-up density
+        const ndbiDenom = swir1 + nir;
+        if (ndbiDenom > 0) {
+          ndbiSum += (swir1 - nir) / ndbiDenom;
+          ndbiCount++;
+        }
+
         // Brightness temperature proxy (average of SWIR bands, normalized)
         const brightnessTemp = (swir1 + swir2) / 2;
 
@@ -1502,6 +1512,20 @@ app.get('/api/heat-island', async (req, res) => {
           urbanPixels++;
         }
       }
+    }
+
+    // Building Density via NDBI
+    const avgNdbi = ndbiCount > 0 ? ndbiSum / ndbiCount : null;
+    let buildingDensityScore = 50; // default
+    if (avgNdbi !== null) {
+      // NDBI range: -1 to 1. Higher = more built-up.
+      // Score inverted: less built-up = better for walkability comfort
+      // NDBI > 0.2 = heavily built (score 20), < -0.1 = green (score 100)
+      if (avgNdbi < -0.1) buildingDensityScore = 100;
+      else if (avgNdbi < 0) buildingDensityScore = 85;
+      else if (avgNdbi < 0.1) buildingDensityScore = 65;
+      else if (avgNdbi < 0.2) buildingDensityScore = 40;
+      else buildingDensityScore = 20;
     }
 
     if (urbanPixels === 0 && vegetationPixels === 0) {
@@ -1571,6 +1595,10 @@ app.get('/api/heat-island', async (req, res) => {
         urbanPixels: urbanPixels,
         vegetationPixels: vegetationPixels,
         totalPixels: swir1Values.length,
+        buildingDensity: {
+          ndbi: avgNdbi !== null ? parseFloat(avgNdbi.toFixed(3)) : null,
+          score: buildingDensityScore,
+        },
         imageDate: mostRecentImage.properties.datetime,
         cloudCover: mostRecentImage.properties['eo:cloud_cover'],
         location: { lat: latitude, lon: longitude },
@@ -1584,6 +1612,147 @@ app.get('/api/heat-island', async (req, res) => {
     console.error('❌ Error calculating heat island:', error);
     res.status(500).json({
       error: error.message || 'Failed to calculate heat island effect',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    });
+  }
+});
+
+// ====================
+// POPULATION DENSITY
+// ====================
+
+app.get('/api/population-density', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
+    }
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lon);
+    console.log(`👥 Fetching population density for: ${latitude}, ${longitude}`);
+
+    // Search GHS-POP (Global Human Settlement Population) via Planetary Computer
+    const buffer = 0.005; // ~500m
+    const bbox = [longitude - buffer, latitude - buffer, longitude + buffer, latitude + buffer];
+
+    const stacSearchUrl = 'https://planetarycomputer.microsoft.com/api/stac/v1/search';
+    const searchBody = {
+      collections: ['ghs-pop'],
+      bbox,
+      limit: 1,
+      sortby: [{ field: 'datetime', direction: 'desc' }],
+    };
+
+    const stacResponse = await fetch(stacSearchUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(searchBody),
+    });
+
+    if (!stacResponse.ok) throw new Error(`STAC search failed: ${stacResponse.statusText}`);
+    const stacData = await stacResponse.json();
+
+    if (!stacData.features || stacData.features.length === 0) {
+      console.log('⚠️  No GHS-POP data found, using fallback estimate');
+      return res.json({
+        success: true,
+        data: {
+          populationDensity: null,
+          score: 50,
+          category: 'No Data',
+          dataSource: 'GHS-POP (no coverage)',
+          dataQuality: 'estimated',
+        },
+      });
+    }
+
+    const feature = stacData.features[0];
+    const populationAsset = feature.assets?.population_count || feature.assets?.data;
+    if (!populationAsset) {
+      throw new Error('No population count asset in GHS-POP feature');
+    }
+
+    // Sign URL
+    const signingEndpoint = `https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(populationAsset.href)}`;
+    const signResponse = await fetch(signingEndpoint);
+    if (!signResponse.ok) throw new Error('Failed to sign URL');
+    const signedData = await signResponse.json();
+
+    // Read GeoTIFF
+    const tiff = await fromUrl(signedData.href);
+    const image = await tiff.getImage();
+    const geoBbox = image.getBoundingBox();
+    const [minX, minY, maxX, maxY] = geoBbox;
+    const width = image.getWidth();
+    const height = image.getHeight();
+
+    const pixelX = Math.floor(((longitude - minX) / (maxX - minX)) * width);
+    const pixelY = Math.floor(((maxY - latitude) / (maxY - minY)) * height);
+
+    if (pixelX < 0 || pixelX >= width || pixelY < 0 || pixelY >= height) {
+      return res.json({
+        success: true,
+        data: { populationDensity: null, score: 50, category: 'Out of Bounds', dataQuality: 'estimated' },
+      });
+    }
+
+    // Read a small window around the point
+    const sampleR = 2;
+    const x0 = Math.max(0, pixelX - sampleR);
+    const y0 = Math.max(0, pixelY - sampleR);
+    const x1 = Math.min(width, pixelX + sampleR + 1);
+    const y1 = Math.min(height, pixelY + sampleR + 1);
+
+    const rasterData = await image.readRasters({ window: [x0, y0, x1, y1] });
+    const values = rasterData[0];
+
+    // GHS-POP gives population count per ~100m cell → people/km² ≈ value × 100
+    let sum = 0;
+    let validCount = 0;
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i];
+      if (v > 0 && v < 1e6) { // filter nodata
+        sum += v;
+        validCount++;
+      }
+    }
+
+    // Average population per cell, scaled to per km²
+    // GHS-POP R2023 uses 100m grid → 1 cell = 0.01 km² → density = count / 0.01
+    const avgPopPerCell = validCount > 0 ? sum / validCount : 0;
+    const populationDensity = Math.round(avgPopPerCell / 0.01);
+
+    // Score: higher density = better walkability context
+    let score, category;
+    if (populationDensity > 10000) { score = 100; category = 'Very High Density'; }
+    else if (populationDensity > 5000) { score = 85; category = 'High Density'; }
+    else if (populationDensity > 2000) { score = 65; category = 'Medium Density'; }
+    else if (populationDensity > 500) { score = 40; category = 'Low Density'; }
+    else { score = 20; category = 'Very Low Density'; }
+
+    console.log(`✅ Population Density: ${populationDensity} people/km² (${category})`);
+
+    res.json({
+      success: true,
+      data: {
+        populationDensity,
+        score,
+        category,
+        dataSource: 'GHS-POP R2023 (European Commission JRC)',
+        dataQuality: 'verified',
+        location: { lat: latitude, lon: longitude },
+        timestamp: new Date().toISOString(),
+      },
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching population density:', error);
+    res.status(500).json({
+      error: error.message || 'Failed to fetch population density',
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
     });
   }
@@ -2952,6 +3121,7 @@ app.listen(PORT, () => {
   console.log(`   🏔️  NASADEM Slope: GET /api/slope`);
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
+  console.log(`   👥 Population Density: GET /api/population-density`);
   console.log(`   🚨 Crash Data: GET /api/crash-data (FARS + WHO)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);

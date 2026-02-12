@@ -25,11 +25,13 @@ import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
 import { fetchCrashData } from './services/crashdata';
+import { fetchPopulationDensity } from './services/populationDensity';
+import { calculateCompositeScore } from './utils/compositeScore';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2 } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -49,6 +51,9 @@ function App() {
   const [rawMetricData, setRawMetricData] = useState<RawMetricData>({});
   const [crashData, setCrashData] = useState<CrashData | null>(null);
   const [crashLoading, setCrashLoading] = useState(false);
+  const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
+  const [buildingDensityScore, setBuildingDensityScore] = useState<number | undefined>();
+  const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
 
   // Premium access - Clerk integration
   const { user } = useUser();
@@ -136,6 +141,9 @@ function App() {
     setSatelliteLoaded(new Set());
     setCrashData(null);
     setCrashLoading(true);
+    setCompositeScore(null);
+    setBuildingDensityScore(undefined);
+    setPopulationDensityScore(undefined);
 
     // Cancel any in-flight satellite fetches from previous location
     if (satelliteAbortRef.current) {
@@ -148,18 +156,20 @@ function App() {
     const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
     const satellitePromises = startSatelliteFetches(selectedLocation);
 
-    // Crash data fetch (non-blocking, runs in parallel)
-    fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
+    // Crash data fetch (non-blocking, runs in parallel — also piped into satellite promises)
+    const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
       .then(data => {
         if (!abortController.signal.aborted) {
           setCrashData(data);
           setCrashLoading(false);
         }
+        return data;
       })
       .catch(() => {
         if (!abortController.signal.aborted) {
           setCrashLoading(false);
         }
+        return null;
       });
 
     try {
@@ -178,6 +188,12 @@ function App() {
       setDataQuality(quality);
       setIsAnalyzing(false);
 
+      // Compute initial composite score from OSM data alone
+      setCompositeScore(calculateCompositeScore({
+        legacy: calculatedMetrics,
+        networkGraph: fetchedOsmData.networkGraph,
+      }));
+
       // Update URL with current location (shareable link)
       const url = new URL(window.location.href);
       url.searchParams.set('lat', selectedLocation.lat.toString());
@@ -187,7 +203,7 @@ function App() {
 
       // Progressively update metrics as satellite data arrives
       // (requests were already fired above, now just await results)
-      progressivelyUpdateMetrics(selectedLocation, fetchedOsmData, satellitePromises, abortController);
+      progressivelyUpdateMetrics(selectedLocation, fetchedOsmData, satellitePromises, abortController, crashPromise);
 
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -225,6 +241,8 @@ function App() {
       .catch(() => null),
     heatIsland: fetchHeatIsland(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    populationDensity: fetchPopulationDensity(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
   });
 
   // Progressively update metrics as each satellite result arrives
@@ -232,7 +250,8 @@ function App() {
     selectedLocation: Location,
     currentOsmData: OSMData,
     promises: ReturnType<typeof startSatelliteFetches>,
-    abortController: AbortController
+    abortController: AbortController,
+    crashPromise: Promise<CrashData | null>
   ) => {
     const scores: {
       slope?: number;
@@ -240,6 +259,11 @@ function App() {
       surfaceTemp?: number;
       airQuality?: number;
       heatIsland?: number;
+    } = {};
+    const extra: {
+      buildingDensity?: number;
+      populationDensity?: number;
+      crashData?: CrashData | null;
     } = {};
     const raw: RawMetricData = {
       crossingCount: currentOsmData.crossings?.length,
@@ -249,7 +273,7 @@ function App() {
 
     const recalc = () => {
       if (abortController.signal.aborted) return;
-      setMetrics(calculateMetrics(
+      const updatedMetrics = calculateMetrics(
         currentOsmData,
         selectedLocation.lat,
         selectedLocation.lon,
@@ -258,8 +282,19 @@ function App() {
         scores.surfaceTemp,
         scores.airQuality,
         scores.heatIsland
-      ));
+      );
+      setMetrics(updatedMetrics);
       setRawMetricData({ ...raw });
+
+      // Recompute composite score with latest data
+      const composite = calculateCompositeScore({
+        legacy: updatedMetrics,
+        networkGraph: currentOsmData.networkGraph,
+        buildingDensityScore: extra.buildingDensity,
+        populationDensityScore: extra.populationDensity,
+        crashData: extra.crashData,
+      });
+      setCompositeScore(composite);
     };
 
     const markLoaded = (key: string) => {
@@ -288,7 +323,6 @@ function App() {
         raw.temperature = result.tempCelsius;
         scores.surfaceTemp = result.score;
       }
-      // thermalComfort loads when both surfaceTemp and heatIsland arrive
       if (scores.heatIsland !== undefined) markLoaded('thermalComfort');
       recalc();
     });
@@ -296,15 +330,32 @@ function App() {
       if (result) {
         scores.airQuality = result.score;
       }
-      // airQuality no longer displayed as a metric card, but still passed to calculateMetrics
       recalc();
     });
     promises.heatIsland.then(result => {
       if (result) {
         raw.heatDifference = result.effect ?? undefined;
         scores.heatIsland = result.score;
+        // Extract building density (NDBI) from same response
+        if (result.buildingDensity) {
+          extra.buildingDensity = result.buildingDensity.score;
+          setBuildingDensityScore(result.buildingDensity.score);
+          markLoaded('buildingDensity');
+        }
       }
       if (scores.surfaceTemp !== undefined) markLoaded('thermalComfort');
+      recalc();
+    });
+    promises.populationDensity.then(result => {
+      if (result) {
+        extra.populationDensity = result.score;
+        setPopulationDensityScore(result.score);
+        markLoaded('populationDensity');
+      }
+      recalc();
+    });
+    crashPromise.then(data => {
+      extra.crashData = data;
       recalc();
     });
   };
@@ -1004,7 +1055,7 @@ function App() {
             {/* Row 1: Map + Score side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Map location={location} osmData={osmData} />
-              <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} />
+              <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} compositeScore={compositeScore} />
             </div>
 
             {/* Info bar: Data quality + sources */}
@@ -1047,7 +1098,7 @@ function App() {
             )}
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} />
 
             {/* First-time onboarding card */}
             {showOnboarding && (

@@ -36,6 +36,55 @@ export interface OSMData {
   streets: any[];
   pois: any[];
   nodes: Map<string, { lat: number; lon: number }>;
+  networkGraph?: NetworkGraph;
+}
+
+// --- Network Graph (computed from OSM way topology) ---
+
+export interface IntersectionNode {
+  id: string;
+  lat: number;
+  lon: number;
+  degree: number; // number of ways meeting at this node
+}
+
+export interface NetworkGraph {
+  intersections: IntersectionNode[];
+  deadEnds: IntersectionNode[];
+  totalStreetLengthKm: number;
+  areaKm2: number;
+  averageBlockLengthM: number;
+}
+
+// --- 4-Component Scoring System (0-100 + A-F) ---
+
+export type LetterGrade = 'A' | 'B' | 'C' | 'D' | 'F';
+
+export interface SubMetric {
+  name: string;
+  score: number;       // 0-100
+  rawValue?: string;   // human-readable raw value
+  weight: number;      // 0-1 within the component
+}
+
+export interface ComponentScore {
+  label: string;       // e.g. "Network Design"
+  score: number;       // 0-100
+  weight: number;      // 0-1 (how much it counts toward overall)
+  metrics: SubMetric[];
+}
+
+export interface WalkabilityScoreV2 {
+  overallScore: number;    // 0-100
+  grade: LetterGrade;
+  components: {
+    networkDesign: ComponentScore;
+    environmentalComfort: ComponentScore;
+    safety: ComponentScore;
+    densityContext: ComponentScore;
+  };
+  confidence: number;      // 0-100 confidence
+  legacy: WalkabilityMetrics; // backward compat
 }
 
 export interface Analysis {

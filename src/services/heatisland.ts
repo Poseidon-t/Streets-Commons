@@ -20,6 +20,7 @@ interface HeatIslandResponse {
     vegetationTemp: number;
     urbanPixels: number;
     vegetationPixels: number;
+    buildingDensity?: { ndbi: number | null; score: number }; // NDBI building density
     imageDate: string;
     cloudCover: number;
     location: { lat: number; lon: number };
@@ -38,7 +39,7 @@ interface HeatIslandResponse {
 export async function fetchHeatIsland(
   lat: number,
   lon: number
-): Promise<{ score: number; effect: number | null; category: string | null } | null> {
+): Promise<{ score: number; effect: number | null; category: string | null; buildingDensity?: { ndbi: number | null; score: number } } | null> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/heat-island?lat=${lat}&lon=${lon}`, {
       method: 'GET',
@@ -67,6 +68,7 @@ export async function fetchHeatIsland(
       score: result.data.score,
       effect: result.data.heatIslandEffect,
       category: result.data.category,
+      buildingDensity: result.data.buildingDensity,
     };
   } catch (error) {
     console.error('Failed to fetch heat island data:', error);

@@ -1,5 +1,5 @@
 import { ANALYSIS_RADIUS } from '../constants';
-import type { OSMData, StreetAttributes } from '../types';
+import type { OSMData, StreetAttributes, IntersectionNode, NetworkGraph } from '../types';
 
 // Direct Overpass mirrors (called from browser as fallback)
 const OVERPASS_MIRRORS = [
@@ -59,7 +59,7 @@ async function queryOverpassDirect(query: string): Promise<any> {
 export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const radius = ANALYSIS_RADIUS;
 
-  const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out center;`;
+  const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out body; >; out skel qt;`;
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -100,15 +100,96 @@ export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   }
 }
 
-function processOSMData(data: any): OSMData {
+/** Haversine distance in meters between two lat/lon points */
+function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
-  // Build node lookup map
-  const nodes = new Map();
+const STREET_HIGHWAY_TYPES = [
+  'primary', 'secondary', 'tertiary', 'residential',
+  'living_street', 'pedestrian', 'unclassified', 'service',
+];
+
+function processOSMData(data: any): OSMData {
+  // Build node lookup map (all nodes with coordinates)
+  const nodes = new Map<string, { lat: number; lon: number }>();
   data.elements
-    .filter((e: any) => e.type === 'node')
+    .filter((e: any) => e.type === 'node' && e.lat !== undefined)
     .forEach((node: any) => {
       nodes.set(node.id.toString(), { lat: node.lat, lon: node.lon });
     });
+
+  // Identify street ways for network graph
+  const streetWays = data.elements.filter(
+    (e: any) =>
+      e.type === 'way' &&
+      e.tags?.highway &&
+      STREET_HIGHWAY_TYPES.includes(e.tags.highway) &&
+      e.nodes?.length >= 2
+  );
+
+  // Build node-degree map: count how many street ways pass through each node
+  const nodeDegree = new Map<string, number>();
+  for (const way of streetWays) {
+    for (const nodeId of way.nodes) {
+      const key = nodeId.toString();
+      nodeDegree.set(key, (nodeDegree.get(key) || 0) + 1);
+    }
+    // Endpoint nodes of a single way count as connections too —
+    // but only endpoint-to-endpoint matters for dead-end detection.
+    // The degree count above already handles this: a dead-end cul-de-sac
+    // endpoint appears in exactly 1 way → degree 1.
+  }
+
+  // Identify intersections (degree >= 3) and dead-ends (degree == 1)
+  const intersections: IntersectionNode[] = [];
+  const deadEnds: IntersectionNode[] = [];
+
+  for (const [nodeId, degree] of nodeDegree) {
+    const coords = nodes.get(nodeId);
+    if (!coords) continue;
+
+    if (degree >= 3) {
+      intersections.push({ id: nodeId, lat: coords.lat, lon: coords.lon, degree });
+    } else if (degree === 1) {
+      deadEnds.push({ id: nodeId, lat: coords.lat, lon: coords.lon, degree: 1 });
+    }
+  }
+
+  // Calculate total street length via haversine on way node sequences
+  let totalStreetLengthM = 0;
+  for (const way of streetWays) {
+    for (let i = 0; i < way.nodes.length - 1; i++) {
+      const a = nodes.get(way.nodes[i].toString());
+      const b = nodes.get(way.nodes[i + 1].toString());
+      if (a && b) {
+        totalStreetLengthM += haversineM(a.lat, a.lon, b.lat, b.lon);
+      }
+    }
+  }
+
+  // Analysis area: circle with ANALYSIS_RADIUS (800m)
+  const areaKm2 = Math.PI * (ANALYSIS_RADIUS / 1000) ** 2;
+  const totalStreetLengthKm = totalStreetLengthM / 1000;
+  const averageBlockLengthM =
+    intersections.length > 1
+      ? totalStreetLengthM / intersections.length
+      : totalStreetLengthM;
+
+  const networkGraph: NetworkGraph = {
+    intersections,
+    deadEnds,
+    totalStreetLengthKm,
+    areaKm2,
+    averageBlockLengthM,
+  };
 
   return {
     crossings: data.elements.filter(
@@ -139,6 +220,7 @@ function processOSMData(data: any): OSMData {
         e.tags?.natural === 'tree'
     ),
     nodes,
+    networkGraph,
   };
 }
 
