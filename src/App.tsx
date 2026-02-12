@@ -395,6 +395,9 @@ function App() {
             onClose={() => setShowLetterModal(false)}
             location={location}
             metrics={metrics}
+            compositeScore={compositeScore}
+            crashData={crashData}
+            demographicData={demographicData}
           />
         </Suspense>
       )}
@@ -1113,7 +1116,7 @@ function App() {
             )}
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
 
             {/* First-time onboarding card */}
             {showOnboarding && (
@@ -1243,7 +1246,17 @@ function App() {
             {/* Advocacy Proposal Generator */}
             <ErrorBoundary sectionName="Advocacy Proposal">
               <Suspense fallback={null}>
-                <AdvocacyProposal isPremium={userIsPremium || accessInfo.tier !== 'free'} location={location} metrics={metrics} />
+                <AdvocacyProposal
+                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  location={location}
+                  metrics={metrics}
+                  compositeScore={compositeScore}
+                  crashData={crashData}
+                  demographicData={demographicData}
+                  osmData={osmData}
+                  rawMetricData={rawMetricData}
+                  dataQuality={dataQuality}
+                />
               </Suspense>
             </ErrorBoundary>
 

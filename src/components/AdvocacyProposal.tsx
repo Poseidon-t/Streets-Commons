@@ -6,15 +6,22 @@
 
 import { useState } from 'react';
 import { COLORS } from '../constants';
-import type { Location, WalkabilityMetrics } from '../types';
+import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DemographicData, OSMData, RawMetricData, DataQuality } from '../types';
+import { analyzeLocalEconomy } from '../utils/localEconomicAnalysis';
 
 interface AdvocacyProposalProps {
   isPremium: boolean;
   location?: Location;
   metrics?: WalkabilityMetrics;
+  compositeScore?: WalkabilityScoreV2 | null;
+  crashData?: CrashData | null;
+  demographicData?: DemographicData | null;
+  osmData?: OSMData | null;
+  rawMetricData?: RawMetricData;
+  dataQuality?: DataQuality | null;
 }
 
-export default function AdvocacyProposal({ isPremium, location, metrics }: AdvocacyProposalProps) {
+export default function AdvocacyProposal({ isPremium, location, metrics, compositeScore, crashData, demographicData, osmData, rawMetricData, dataQuality }: AdvocacyProposalProps) {
   const [proposalTitle, setProposalTitle] = useState('');
   const [authorName, setAuthorName] = useState('');
 
@@ -48,6 +55,12 @@ export default function AdvocacyProposal({ isPremium, location, metrics }: Advoc
       metrics,
       proposalTitle: proposalTitle || undefined,
       authorName: authorName || undefined,
+      compositeScore: compositeScore || undefined,
+      crashData: crashData || undefined,
+      demographicData: demographicData || undefined,
+      localEconomy: osmData ? analyzeLocalEconomy(osmData) : undefined,
+      rawMetricData: rawMetricData || undefined,
+      dataQuality: dataQuality || undefined,
     };
 
     sessionStorage.setItem('advocacyProposalData', JSON.stringify(proposalData));
@@ -122,14 +135,15 @@ export default function AdvocacyProposal({ isPremium, location, metrics }: Advoc
       </div>
 
       {/* What's Included */}
-      <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl">
-        <h3 className="font-semibold text-gray-800 mb-2">What's Included:</h3>
-        <ul className="space-y-1 text-sm text-gray-600">
-          <li>✓ Location walkability score with visual indicator</li>
-          <li>✓ Top 3 priority areas for improvement</li>
-          <li>✓ Specific, actionable recommendations</li>
-          <li>✓ Quick wins for immediate impact</li>
-          <li>✓ References to NACTO, GDCI, WHO standards</li>
+      <div className="mb-6 p-4 rounded-xl" style={{ backgroundColor: 'rgba(240,235,224,0.5)', border: '1px solid #e0dbd0' }}>
+        <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>What's Included:</h3>
+        <ul className="space-y-1 text-sm" style={{ color: '#4a5a4a' }}>
+          <li>✓ 4-component walkability score with letter grade</li>
+          <li>✓ Real crash & fatality data for your area</li>
+          <li>✓ Calculated economic impact (property, retail, healthcare)</li>
+          <li>✓ Local economy analysis with business breakdown</li>
+          <li>✓ Data-driven quick wins from lowest-scoring metrics</li>
+          <li>✓ References to NACTO, GDCI, WHO, ADA standards</li>
           <li>✓ Professional call-to-action for officials</li>
         </ul>
       </div>

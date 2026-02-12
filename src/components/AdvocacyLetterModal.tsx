@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import type { Location, WalkabilityMetrics } from '../types';
+import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DemographicData } from '../types';
 import { COLORS } from '../constants';
 
 interface AdvocacyLetterModalProps {
@@ -12,6 +12,9 @@ interface AdvocacyLetterModalProps {
   onClose: () => void;
   location: Location;
   metrics: WalkabilityMetrics;
+  compositeScore?: WalkabilityScoreV2 | null;
+  crashData?: CrashData | null;
+  demographicData?: DemographicData | null;
 }
 
 export default function AdvocacyLetterModal({
@@ -19,6 +22,9 @@ export default function AdvocacyLetterModal({
   onClose,
   location,
   metrics,
+  compositeScore,
+  crashData,
+  demographicData,
 }: AdvocacyLetterModalProps) {
   const [letter, setLetter] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -27,6 +33,7 @@ export default function AdvocacyLetterModal({
   const [recipientTitle, setRecipientTitle] = useState('');
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState<'form' | 'result'>('form');
+  const [language, setLanguage] = useState('en');
 
   if (!isOpen) return null;
 
@@ -46,8 +53,21 @@ export default function AdvocacyLetterModal({
             lon: location.lon,
           },
           metrics,
+          compositeScore: compositeScore ? {
+            overallScore: compositeScore.overallScore,
+            grade: compositeScore.grade,
+            components: Object.fromEntries(
+              Object.entries(compositeScore.components).map(([k, v]) => [k, { label: v.label, score: v.score }])
+            ),
+          } : undefined,
+          crashData: crashData ? (crashData.type === 'local'
+            ? { type: 'local', totalCrashes: crashData.totalCrashes, totalFatalities: crashData.totalFatalities, yearRange: crashData.yearRange }
+            : { type: 'country', deathRatePer100k: crashData.deathRatePer100k, countryName: crashData.countryName, totalDeaths: crashData.totalDeaths }
+          ) : undefined,
+          demographicData: demographicData || undefined,
           authorName: authorName.trim() || undefined,
           recipientTitle: recipientTitle.trim() || undefined,
+          language: language !== 'en' ? language : undefined,
         }),
       });
 
@@ -150,6 +170,26 @@ export default function AdvocacyLetterModal({
                   placeholder="e.g., City Council, Mayor's Office, Department of Transportation"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Letter Language
+                </label>
+                <select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                >
+                  <option value="en">English</option>
+                  <option value="es">Español</option>
+                  <option value="fr">Français</option>
+                  <option value="hi">हिन्दी</option>
+                  <option value="zh">中文</option>
+                  <option value="ar">العربية</option>
+                  <option value="pt">Português</option>
+                  <option value="th">ไทย</option>
+                </select>
               </div>
 
               {error && (
