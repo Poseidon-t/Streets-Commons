@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore, DemographicData } from '../../types';
+import { useState, useEffect, useRef } from 'react';
+import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore, DemographicData, OSMData } from '../../types';
 import MetricCard from '../MetricCard';
 import { translateMetrics, type UserFriendlyMetric } from '../../utils/metricTranslations';
 import EconomicContextSection from './EconomicContextSection';
@@ -12,6 +12,7 @@ interface MetricGridProps {
   compositeScore?: WalkabilityScoreV2 | null;
   demographicData?: DemographicData | null;
   demographicLoading?: boolean;
+  osmData?: OSMData | null;
 }
 
 function getScoreColor(score: number): string {
@@ -43,7 +44,7 @@ function SectionHeader({ component, isOpen, onToggle }: { component: ComponentSc
           <div className="h-full rounded-full" style={{ width: `${component.score}%`, backgroundColor: color }} />
         </div>
         <span className="text-sm font-semibold" style={{ color }}>{displayScore}</span>
-        <span className="text-xs" style={{ color: '#9ca3af' }}>({Math.round(component.weight * 100)}%)</span>
+        <span className="text-xs" style={{ color: '#8a9a8a' }}>({Math.round(component.weight * 100)}%)</span>
       </div>
     </button>
   );
@@ -156,9 +157,28 @@ function buildSections(
   ];
 }
 
-export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore, demographicData, demographicLoading }: MetricGridProps) {
+export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore, demographicData, demographicLoading, osmData }: MetricGridProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<number>>(new Set());
+  const hasAutoOpened = useRef(false);
+
+  // Auto-open the lowest-scoring section when composite score first arrives
+  useEffect(() => {
+    if (!compositeScore || hasAutoOpened.current) return;
+    hasAutoOpened.current = true;
+    const components = [
+      compositeScore.components.networkDesign,
+      compositeScore.components.environmentalComfort,
+      compositeScore.components.safety,
+      compositeScore.components.densityContext,
+    ];
+    let lowestIdx = 0;
+    let lowestScore = components[0].score;
+    components.forEach((c, i) => {
+      if (c.score < lowestScore) { lowestScore = c.score; lowestIdx = i; }
+    });
+    setOpenSections(new Set([lowestIdx]));
+  }, [compositeScore]);
 
   const toggleSection = (idx: number) => {
     setOpenSections(prev => {
@@ -211,15 +231,15 @@ export default function MetricGrid({ metrics, locationName, satelliteLoaded, raw
       <h2 className="text-2xl font-bold mb-8" style={{ color: '#2a3a2a' }}>
         What This Means For You
       </h2>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {sections.map((section, sIdx) => {
           const isOpen = openSections.has(sIdx);
           return (
-            <div key={section.component.label} className="rounded-xl border" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.5)' }}>
+            <div key={section.component.label} className="rounded-xl border" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
               <SectionHeader component={section.component} isOpen={isOpen} onToggle={() => toggleSection(sIdx)} />
               {isOpen && (
-                <div className="px-4 pb-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+                <div className="px-4 pb-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 items-start">
                     {section.metrics.map(({ metric, satKey }, mIdx) => {
                       const isLoading = satKey && satelliteLoaded ? !satelliteLoaded.has(satKey) : false;
                       const key = `${sIdx}-${mIdx}`;
@@ -246,13 +266,13 @@ export default function MetricGrid({ metrics, locationName, satelliteLoaded, raw
         })}
       </div>
 
-      {/* Economic Context — informational, not scored */}
-      {(demographicData || demographicLoading) && (
-        <div className="mt-6">
+      {/* Local Economy — derived from OSM POI data */}
+      {osmData && (
+        <div className="mt-8">
           <EconomicContextSection
+            osmData={osmData}
             demographicData={demographicData ?? null}
             demographicLoading={demographicLoading ?? false}
-            walkabilityScore={compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10)}
           />
         </div>
       )}

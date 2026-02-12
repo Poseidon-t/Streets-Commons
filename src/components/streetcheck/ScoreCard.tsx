@@ -47,26 +47,6 @@ function CircularScore({ score }: { score: number }) {
   );
 }
 
-function ComponentBar({ label, score, weight }: { label: string; score: number; weight: number }) {
-  const color = getScoreColor(score);
-  const displayScore = (score / 10).toFixed(1);
-  return (
-    <div className="flex items-center gap-3">
-      <div className="w-[120px] sm:w-[140px] text-xs text-right flex-shrink-0" style={{ color: '#6b7280' }}>
-        <span className="font-medium" style={{ color: '#2a3a2a' }}>{label}</span>
-        <span className="ml-1 text-[10px]">({Math.round(weight * 100)}%)</span>
-      </div>
-      <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
-        <div
-          className="h-full rounded-full transition-all duration-700 ease-out"
-          style={{ width: `${score}%`, backgroundColor: color }}
-        />
-      </div>
-      <div className="w-10 text-xs font-semibold text-right" style={{ color }}>{displayScore}</div>
-    </div>
-  );
-}
-
 const WHO_GLOBAL_AVG = 15.0;
 
 function CrashSummary({ data }: { data: CrashData }) {
@@ -75,7 +55,7 @@ function CrashSummary({ data }: { data: CrashData }) {
       return (
         <div className="flex items-center gap-2">
           <span className="text-sm" style={{ color: '#16a34a' }}>No fatal crashes within {data.radiusMeters}m</span>
-          <span className="text-[10px]" style={{ color: '#9ca3af' }}>({data.yearRange.from}–{data.yearRange.to})</span>
+          <span className="text-xs" style={{ color: '#8a9a8a' }}>({data.yearRange.from}–{data.yearRange.to})</span>
         </div>
       );
     }
@@ -88,7 +68,7 @@ function CrashSummary({ data }: { data: CrashData }) {
         <span className="text-xs" style={{ color: '#6b7280' }}>
           {data.totalFatalities === 1 ? 'death' : 'deaths'} in {data.totalCrashes} fatal {data.totalCrashes === 1 ? 'crash' : 'crashes'} within {data.radiusMeters}m
         </span>
-        <span className="text-[10px]" style={{ color: '#9ca3af' }}>({data.yearRange.from}–{data.yearRange.to})</span>
+        <span className="text-xs" style={{ color: '#8a9a8a' }}>({data.yearRange.from}–{data.yearRange.to})</span>
       </div>
     );
   }
@@ -110,10 +90,10 @@ function CrashSummary({ data }: { data: CrashData }) {
           road deaths per 100k · {countryData.countryName}
         </span>
       </div>
-      <div className="relative h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
+      <div className="relative h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
         <div
           className="absolute top-0 h-full w-0.5"
-          style={{ left: `${Math.min((WHO_GLOBAL_AVG / 40) * 100, 100)}%`, backgroundColor: '#9ca3af' }}
+          style={{ left: `${Math.min((WHO_GLOBAL_AVG / 40) * 100, 100)}%`, backgroundColor: '#8a9a8a' }}
         />
         <div
           className="h-full rounded-full transition-all duration-500"
@@ -123,7 +103,7 @@ function CrashSummary({ data }: { data: CrashData }) {
           }}
         />
       </div>
-      <div className="flex justify-between text-[10px]" style={{ color: '#9ca3af' }}>
+      <div className="flex justify-between text-xs" style={{ color: '#8a9a8a' }}>
         <span>{isAboveAvg ? `${Math.round(ratio - 100)}% above` : `${Math.round(100 - ratio)}% below`} global avg</span>
         <span>{countryData.year}</span>
       </div>
@@ -144,7 +124,7 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
   };
 
   return (
-    <div className="rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 border-2 flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+    <div className="rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 border flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center" style={{ color: '#2a3a2a' }}>
         Walkability Score
       </h2>
@@ -190,34 +170,10 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
         </div>
       </div>
 
-      {/* Component Breakdown */}
-      {compositeScore && (
-        <div className="mt-6 pt-4 border-t space-y-2" style={{ borderColor: '#e0dbd0' }}>
-          <ComponentBar
-            label={compositeScore.components.networkDesign.label}
-            score={compositeScore.components.networkDesign.score}
-            weight={compositeScore.components.networkDesign.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.environmentalComfort.label}
-            score={compositeScore.components.environmentalComfort.score}
-            weight={compositeScore.components.environmentalComfort.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.safety.label}
-            score={compositeScore.components.safety.score}
-            weight={compositeScore.components.safety.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.densityContext.label}
-            score={compositeScore.components.densityContext.score}
-            weight={compositeScore.components.densityContext.weight}
-          />
-          {compositeScore.confidence < 80 && (
-            <div className="text-[10px] text-center mt-1" style={{ color: '#9ca3af' }}>
-              Confidence: {compositeScore.confidence}% — loading more data...
-            </div>
-          )}
+      {/* Confidence note while still loading */}
+      {compositeScore && compositeScore.confidence < 80 && (
+        <div className="mt-4 text-xs text-center" style={{ color: '#8a9a8a' }}>
+          Loading more data... ({compositeScore.confidence}% confidence)
         </div>
       )}
 

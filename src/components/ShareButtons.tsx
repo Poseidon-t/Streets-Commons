@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
-import type { Location, WalkabilityMetrics, DataQuality } from '../types';
+import type { Location, WalkabilityMetrics, DataQuality, CrossSectionConfig } from '../types';
 import PaymentModal from './PaymentModalWithAuth';
+
+interface CrossSectionSnapshot {
+  currentConfig: CrossSectionConfig;
+  displayConfig: CrossSectionConfig;
+  activeImprovements: string[];
+  streetName: string;
+  highwayType: string;
+}
 
 interface ShareButtonsProps {
   location: Location;
@@ -9,6 +17,7 @@ interface ShareButtonsProps {
   dataQuality?: DataQuality;
   isPremium?: boolean;
   onUnlock?: () => void;
+  crossSectionSnapshot?: CrossSectionSnapshot | null;
 }
 
 // Metric label mapping for human-readable share text
@@ -111,10 +120,11 @@ function pickTemplate(platform: string, scoreRange: string): TemplateFn {
   return templates[idx];
 }
 
-export default function ShareButtons({ location, metrics, dataQuality, isPremium = false, onUnlock }: ShareButtonsProps) {
+export default function ShareButtons({ location, metrics, dataQuality, isPremium = false, onUnlock, crossSectionSnapshot }: ShareButtonsProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [includeCrossSection, setIncludeCrossSection] = useState(true);
 
   // Build shareable URL with location params
   const baseUrl = window.location.origin;
@@ -256,6 +266,7 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
       location,
       metrics,
       dataQuality,
+      crossSection: includeCrossSection ? (crossSectionSnapshot ?? undefined) : undefined,
     };
     sessionStorage.setItem('reportData', JSON.stringify(reportData));
 
@@ -307,6 +318,19 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
             LinkedIn
           </button>
         </div>
+
+        {/* Cross-section opt-in */}
+        {isPremium && crossSectionSnapshot && (
+          <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={includeCrossSection}
+              onChange={(e) => setIncludeCrossSection(e.target.checked)}
+              className="w-4 h-4 rounded accent-[#e07850]"
+            />
+            <span className="text-sm" style={{ color: '#5a6a5a' }}>Include street cross-section in report</span>
+          </label>
+        )}
 
         {/* Export Data */}
         {isPremium ? (

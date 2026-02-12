@@ -76,11 +76,11 @@ export default function MetricCard({
 
   if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 flex flex-col">
+      <div className="rounded-xl border p-5 sm:p-6 flex flex-col" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
           <span className="text-2xl flex-shrink-0">{icon}</span>
-          <h3 className="text-[15px] font-semibold text-gray-900 leading-tight">
+          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#2a3a2a' }}>
             {dataSource?.split(' ')[0] || 'Satellite'} Data
           </h3>
         </div>
@@ -88,15 +88,15 @@ export default function MetricCard({
         {/* Loading shimmer */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-5 h-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-gray-400 font-medium">Loading satellite data...</span>
+            <div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#c5c0b5' }} />
+            <span className="text-sm font-medium" style={{ color: '#8a9a8a' }}>Loading satellite data...</span>
           </div>
-          <div className="w-full rounded-full h-2 overflow-hidden bg-gray-100">
-            <div className="h-full rounded-full bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse" style={{ width: '60%' }} />
+          <div className="w-full rounded-full h-2 overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+            <div className="h-full rounded-full animate-pulse" style={{ width: '60%', background: 'linear-gradient(90deg, #e0dbd0, #f0ebe0, #e0dbd0)' }} />
           </div>
         </div>
 
-        <p className="text-[13.5px] leading-relaxed text-gray-400">
+        <p className="text-xs leading-relaxed" style={{ color: '#8a9a8a' }}>
           Fetching real-time data from {dataSource || 'satellite sources'}...
         </p>
       </div>
@@ -104,16 +104,16 @@ export default function MetricCard({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col">
+    <div className="rounded-xl border hover:shadow-md transition-all duration-200 p-5 sm:p-6 flex flex-col" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-2xl flex-shrink-0">{icon}</span>
-          <h3 className="text-[15px] font-semibold text-gray-900 leading-tight">
+          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#2a3a2a' }}>
             {headline}
           </h3>
         </div>
-        <span className={`${b.bg} ${b.text} ${b.border} border px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide flex-shrink-0`}>
+        <span className={`${b.bg} ${b.text} ${b.border} border px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide flex-shrink-0`}>
           {b.label}
         </span>
       </div>
@@ -121,8 +121,8 @@ export default function MetricCard({
       {/* Score */}
       <div className="mb-4">
         <div className="flex items-baseline gap-1 mb-2">
-          <span className="text-3xl font-bold text-gray-900 tabular-nums">{score}</span>
-          <span className="text-sm font-medium text-gray-400">/10</span>
+          <span className="text-3xl font-bold tabular-nums" style={{ color: '#2a3a2a' }}>{score}</span>
+          <span className="text-sm font-medium" style={{ color: '#8a9a8a' }}>/10</span>
         </div>
         <div className={`w-full rounded-full h-2 overflow-hidden ${getScoreTrack()}`}>
           <div
@@ -130,34 +130,34 @@ export default function MetricCard({
             style={{ width: `${(score / 10) * 100}%` }}
           />
         </div>
-        {/* Raw value */}
         {rawValue && (
-          <p className="text-xs text-gray-500 font-mono mt-1.5">
+          <p className="text-xs font-mono mt-1.5" style={{ color: '#8a9a8a' }}>
             {rawValue}
           </p>
         )}
       </div>
 
       {/* Description */}
-      <p className="text-[13.5px] leading-relaxed text-gray-600 mb-4">
+      <p className="text-xs leading-relaxed mb-4" style={{ color: '#6b7280' }}>
         {description}
       </p>
 
-      {/* Data quality indicator (inline) */}
+      {/* Data quality indicator */}
       {dataQuality && (
         <div className="flex items-center gap-1.5 mb-4">
           <span className={`w-2 h-2 rounded-full ${dataQualityConfig[dataQuality.level].dot}`} />
-          <span className="text-xs text-gray-400 font-medium">{dataQualityConfig[dataQuality.level].label}</span>
+          <span className="text-xs font-medium" style={{ color: '#8a9a8a' }}>{dataQualityConfig[dataQuality.level].label}</span>
         </div>
       )}
 
       {/* Toggle */}
       <button
         onClick={onToggle}
-        className="flex items-center gap-1.5 text-[13px] font-medium text-gray-500 hover:text-gray-700 transition-colors mt-auto group"
+        className="flex items-center gap-1.5 text-xs font-medium transition-colors mt-auto group"
+        style={{ color: '#8a9a8a' }}
       >
         <svg
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''} group-hover:text-gray-700`}
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -169,78 +169,46 @@ export default function MetricCard({
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Left column */}
-            <div className="space-y-4">
-              {/* Why it matters - highlighted */}
-              <div className="bg-gray-50 rounded-lg p-3.5">
-                <h4 className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
-                  Why this matters
-                </h4>
-                <p className="text-[13px] leading-relaxed text-gray-700">
-                  {whyItMatters}
-                </p>
-              </div>
+        <div className="mt-4 pt-4 border-t" style={{ borderColor: '#f0ebe0' }}>
+          {/* Why it matters - the only expanded detail most users need */}
+          <div className="rounded-lg p-3.5" style={{ backgroundColor: '#faf8f5' }}>
+            <h4 className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: '#8a9a8a' }}>
+              Why this matters
+            </h4>
+            <p className="text-xs leading-relaxed" style={{ color: '#4a5a4a' }}>
+              {whyItMatters}
+            </p>
+          </div>
 
-              {/* Example - callout style */}
-              {example && (
-                <div className="border-l-2 border-blue-300 pl-3.5 py-0.5">
-                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Example</p>
-                  <p className="text-[13px] leading-relaxed text-gray-600 italic">
-                    {example}
-                  </p>
-                </div>
-              )}
-
-              {/* Data quality */}
-              {dataQuality && (
-                <div className="border-l-2 border-gray-200 pl-3.5 py-0.5">
-                  <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">
-                    Data quality
-                  </p>
-                  <p className="text-[13px] leading-relaxed text-gray-600">
-                    {dataQuality.explanation}
-                  </p>
-                </div>
-              )}
+          {example && (
+            <div className="mt-3 pl-3.5 py-0.5" style={{ borderLeft: '2px solid #c5d5c5' }}>
+              <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: '#8a9a8a' }}>Example</p>
+              <p className="text-xs leading-relaxed italic" style={{ color: '#6b7280' }}>
+                {example}
+              </p>
             </div>
+          )}
 
-            {/* Right column */}
-            <div className="space-y-4">
-              {/* Technical details - compact */}
-              {(technicalMeasurement || recommendedStandard) && (
-                <div className="bg-gray-50 rounded-lg p-3.5 space-y-3">
-                  {technicalMeasurement && (
-                    <div>
-                      <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">How we measure</p>
-                      <p className="text-[13px] leading-relaxed text-gray-600">{technicalMeasurement}</p>
-                    </div>
-                  )}
-                  {recommendedStandard && (
-                    <div>
-                      <p className="text-[12px] font-bold uppercase tracking-wider text-gray-500 mb-1">Standard</p>
-                      <p className="text-[13px] leading-relaxed text-gray-600">{recommendedStandard}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Additional context */}
-              {additionalContext && (
-                <p className="text-[13px] leading-relaxed text-gray-500 italic">
-                  {additionalContext}
+          {/* Technical details - collapsed behind simpler layout */}
+          {(technicalMeasurement || recommendedStandard || dataSource) && (
+            <div className="mt-3 pt-3 border-t space-y-1.5" style={{ borderColor: '#f0ebe0' }}>
+              {technicalMeasurement && (
+                <p className="text-xs" style={{ color: '#8a9a8a' }}>
+                  <span className="font-semibold">Measurement:</span> {technicalMeasurement}
                 </p>
               )}
-
-              {/* Data source - minimal */}
+              {recommendedStandard && (
+                <p className="text-xs" style={{ color: '#8a9a8a' }}>
+                  <span className="font-semibold">Standard:</span> {recommendedStandard}
+                </p>
+              )}
               {dataSource && (
-                <p className="text-[11px] text-gray-400 pt-1">
+                <p className="text-xs" style={{ color: '#b0a8a0' }}>
                   Source: {dataSource}
                 </p>
               )}
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

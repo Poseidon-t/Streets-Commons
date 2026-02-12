@@ -1,17 +1,111 @@
-import type { DemographicData, EconomicImpact } from '../../types';
-import { calculateEconomicImpact } from '../../utils/economicImpact';
+import type { DemographicData, OSMData } from '../../types';
+import { analyzeLocalEconomy, type LocalEconomicProfile } from '../../utils/localEconomicAnalysis';
+import { ANALYSIS_RADIUS } from '../../constants';
 
 interface EconomicContextProps {
+  osmData: OSMData | null;
   demographicData: DemographicData | null;
   demographicLoading: boolean;
-  walkabilityScore: number;
 }
 
-function formatCurrency(value: number | null, compact?: boolean): string {
+const VITALITY_CONFIG = {
+  thriving: { color: '#16a34a', label: 'Thriving', bg: 'rgba(34,197,94,0.08)' },
+  active: { color: '#65a30d', label: 'Active', bg: 'rgba(101,163,13,0.08)' },
+  moderate: { color: '#ca8a04', label: 'Moderate', bg: 'rgba(202,138,4,0.08)' },
+  developing: { color: '#ea580c', label: 'Developing', bg: 'rgba(234,88,12,0.08)' },
+  limited: { color: '#dc2626', label: 'Limited', bg: 'rgba(220,38,38,0.08)' },
+} as const;
+
+const CATEGORY_LABELS: Record<keyof LocalEconomicProfile['categories'], { icon: string; label: string }> = {
+  retail: { icon: '🛒', label: 'Retail & Shops' },
+  dining: { icon: '🍽️', label: 'Dining & Cafes' },
+  healthcare: { icon: '🏥', label: 'Healthcare' },
+  education: { icon: '🎓', label: 'Education' },
+  financial: { icon: '🏦', label: 'Financial' },
+  transit: { icon: '🚉', label: 'Transit' },
+  recreation: { icon: '🌳', label: 'Recreation' },
+  services: { icon: '🏛️', label: 'Services' },
+};
+
+function CategoryBar({ category, count, maxCount }: { category: keyof LocalEconomicProfile['categories']; count: number; maxCount: number }) {
+  const { icon, label } = CATEGORY_LABELS[category];
+  const width = maxCount > 0 ? Math.max((count / maxCount) * 100, count > 0 ? 8 : 0) : 0;
+
+  return (
+    <div className="flex items-center gap-2 py-1">
+      <span className="text-sm w-5 text-center flex-shrink-0">{icon}</span>
+      <span className="text-xs w-20 flex-shrink-0" style={{ color: count > 0 ? '#2a3a2a' : '#b0a8a0' }}>{label}</span>
+      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+        <div
+          className="h-full rounded-full transition-all duration-500"
+          style={{
+            width: `${width}%`,
+            backgroundColor: count > 0 ? '#8a9a8a' : 'transparent',
+          }}
+        />
+      </div>
+      <span className="text-xs font-semibold w-6 text-right" style={{ color: count > 0 ? '#2a3a2a' : '#c5c0b5' }}>
+        {count}
+      </span>
+    </div>
+  );
+}
+
+function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
+  const v = VITALITY_CONFIG[profile.vitality];
+  const maxCount = Math.max(...Object.values(profile.categories));
+  const radiusM = ANALYSIS_RADIUS;
+
+  return (
+    <div className="space-y-4">
+      {/* Vitality badge + summary */}
+      <div className="flex items-center gap-3">
+        <span
+          className="px-3 py-1 rounded-full text-xs font-bold"
+          style={{ color: v.color, backgroundColor: v.bg }}
+        >
+          {v.label}
+        </span>
+        <span className="text-xs" style={{ color: '#8a9a8a' }}>
+          {profile.totalBusinesses} businesses within {radiusM}m
+        </span>
+      </div>
+
+      {/* Category breakdown */}
+      <div>
+        {(Object.keys(profile.categories) as Array<keyof typeof profile.categories>).map(cat => (
+          <CategoryBar
+            key={cat}
+            category={cat}
+            count={profile.categories[cat]}
+            maxCount={maxCount}
+          />
+        ))}
+      </div>
+
+      {/* Highlights & Gaps */}
+      {(profile.highlights.length > 0 || profile.gaps.length > 0) && (
+        <div className="pt-3 border-t space-y-2" style={{ borderColor: '#f0ebe0' }}>
+          {profile.highlights.map((h, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-xs mt-0.5" style={{ color: '#16a34a' }}>+</span>
+              <span className="text-xs" style={{ color: '#4a5a4a' }}>{h}</span>
+            </div>
+          ))}
+          {profile.gaps.map((g, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <span className="text-xs mt-0.5" style={{ color: '#dc2626' }}>-</span>
+              <span className="text-xs" style={{ color: '#6b7280' }}>{g}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatCurrency(value: number | null): string {
   if (value === null) return '—';
-  if (compact && value >= 1000) {
-    return `$${(value / 1000).toFixed(0)}k`;
-  }
   return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 
@@ -20,134 +114,59 @@ function formatPercent(value: number | null): string {
   return `${value.toFixed(1)}%`;
 }
 
-function StatCard({ icon, label, value, sub }: { icon: string; label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-lg p-3 border" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-base">{icon}</span>
-        <span className="text-xs font-medium" style={{ color: '#6b7280' }}>{label}</span>
-      </div>
-      <div className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{value}</div>
-      {sub && <div className="text-[10px] mt-0.5" style={{ color: '#9ca3af' }}>{sub}</div>}
-    </div>
-  );
-}
+function CensusContext({ data }: { data: DemographicData }) {
+  if (data.type !== 'us') return null;
 
-function ImpactCard({ icon, label, value, note }: { icon: string; label: string; value: string; note: string }) {
   return (
-    <div className="rounded-lg p-3 border" style={{ borderColor: '#d4edda', backgroundColor: 'rgba(34,197,94,0.05)' }}>
-      <div className="flex items-center gap-2 mb-1">
-        <span className="text-base">{icon}</span>
-        <span className="text-xs font-medium" style={{ color: '#6b7280' }}>{label}</span>
+    <div className="pt-4 border-t" style={{ borderColor: '#f0ebe0' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: '#8a9a8a' }}>
+        Census Tract Data
+      </p>
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
+          <div className="text-xs" style={{ color: '#8a9a8a' }}>Median Income</div>
+        </div>
+        <div>
+          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHomeValue)}</div>
+          <div className="text-xs" style={{ color: '#8a9a8a' }}>Home Value</div>
+        </div>
+        <div>
+          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatPercent(data.unemploymentRate)}</div>
+          <div className="text-xs" style={{ color: '#8a9a8a' }}>Unemployment</div>
+        </div>
       </div>
-      <div className="text-lg font-bold" style={{ color: '#16a34a' }}>{value}</div>
-      <div className="text-[10px] mt-0.5" style={{ color: '#9ca3af' }}>{note}</div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="space-y-3 animate-pulse">
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="rounded-lg p-3 border" style={{ borderColor: '#e0dbd0' }}>
-            <div className="h-3 w-20 rounded bg-gray-200 mb-2" />
-            <div className="h-5 w-16 rounded bg-gray-200" />
-          </div>
-        ))}
+      <div className="text-xs mt-2" style={{ color: '#b0a8a0' }}>
+        {data.dataSource} ({data.year})
       </div>
     </div>
   );
 }
 
-function DemographicCards({ data }: { data: DemographicData }) {
-  if (data.type === 'us') {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        <StatCard icon="💰" label="Median Income" value={formatCurrency(data.medianHouseholdIncome)} sub={`Census Tract ${data.tractFips}`} />
-        <StatCard icon="🏠" label="Median Home Value" value={formatCurrency(data.medianHomeValue)} />
-        <StatCard icon="📊" label="Unemployment" value={formatPercent(data.unemploymentRate)} sub={data.povertyRate !== null ? `${data.povertyRate}% poverty rate` : undefined} />
-        <StatCard icon="👤" label="Median Age" value={data.medianAge !== null ? `${data.medianAge}` : '—'} />
-        <StatCard icon="🎓" label="Bachelor's+" value={formatPercent(data.bachelorOrHigherPct)} />
-      </div>
-    );
+export default function EconomicContextSection({ osmData, demographicData, demographicLoading }: EconomicContextProps) {
+  if (!osmData) return null;
+
+  const profile = analyzeLocalEconomy(osmData);
+
+  // Don't show if there's basically nothing (very rural/undeveloped area)
+  if (profile.totalBusinesses === 0 && profile.categories.recreation === 0 && profile.categories.transit === 0) {
+    return null;
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      <StatCard icon="💰" label="GDP per Capita" value={formatCurrency(data.gdpPerCapita)} sub={data.countryName} />
-      <StatCard icon="📊" label="Unemployment" value={formatPercent(data.unemploymentRate)} />
-      <StatCard icon="🏙️" label="Urban Population" value={formatPercent(data.urbanPopulationPct)} />
-    </div>
-  );
-}
+    <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
+      <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>Local Economy</h3>
 
-function EconomicImpactCards({ impact }: { impact: EconomicImpact }) {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {impact.propertyValuePremium !== null && (
-        <ImpactCard
-          icon="🏠"
-          label="Property Value Premium"
-          value={`+${formatCurrency(impact.propertyValuePremium, true)}`}
-          note="Walkability premium estimate"
-        />
+      <LocalEconomyView profile={profile} />
+
+      {/* US Census data as supplementary context */}
+      {demographicData && <CensusContext data={demographicData} />}
+
+      {demographicLoading && (
+        <div className="pt-3 border-t animate-pulse" style={{ borderColor: '#f0ebe0' }}>
+          <div className="h-3 w-32 rounded" style={{ backgroundColor: '#e0dbd0' }} />
+        </div>
       )}
-      <ImpactCard
-        icon="🛍️"
-        label="Retail Uplift"
-        value={`+${impact.retailUpliftPercent}%`}
-        note="Potential foot traffic boost"
-      />
-      <ImpactCard
-        icon="❤️"
-        label="Healthcare Savings"
-        value={`$${impact.healthcareSavingsPerPerson}/yr`}
-        note="Per person, from active transport"
-      />
-      {impact.estimatedJobsPotential !== null && (
-        <ImpactCard
-          icon="👷"
-          label="Jobs Potential"
-          value={`${impact.estimatedJobsPotential}`}
-          note="Jobs per $10M infrastructure"
-        />
-      )}
-    </div>
-  );
-}
-
-export default function EconomicContextSection({ demographicData, demographicLoading, walkabilityScore }: EconomicContextProps) {
-  if (demographicLoading) {
-    return (
-      <div className="rounded-xl border p-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.5)' }}>
-        <h3 className="text-base font-bold mb-3" style={{ color: '#2a3a2a' }}>Economic Context</h3>
-        <LoadingSkeleton />
-      </div>
-    );
-  }
-
-  if (!demographicData) return null;
-
-  const impact = calculateEconomicImpact(demographicData, walkabilityScore);
-
-  return (
-    <div className="rounded-xl border p-4 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.5)' }}>
-      <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>Economic Context</h3>
-
-      <DemographicCards data={demographicData} />
-
-      <div className="pt-3 border-t" style={{ borderColor: '#e0dbd0' }}>
-        <p className="text-xs font-medium mb-3" style={{ color: '#6b7280' }}>
-          Walkability Economic Impact
-        </p>
-        <EconomicImpactCards impact={impact} />
-      </div>
-
-      <div className="text-[10px] text-right" style={{ color: '#9ca3af' }}>
-        {demographicData.dataSource} ({demographicData.year})
-      </div>
     </div>
   );
 }

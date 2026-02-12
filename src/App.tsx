@@ -33,6 +33,7 @@ import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
+import type { CrossSectionSnapshot } from './components/StreetCrossSection';
 
 interface AnalysisData {
   location: Location;
@@ -57,6 +58,7 @@ function App() {
   const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
   const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
   const [demographicLoading, setDemographicLoading] = useState(false);
+  const [crossSectionSnapshot, setCrossSectionSnapshot] = useState<CrossSectionSnapshot | null>(null);
 
   // Premium access - Clerk integration
   const { user } = useUser();
@@ -1073,7 +1075,7 @@ function App() {
 
             {/* Info bar: Data quality + sources */}
             {dataQuality && (
-              <div className="rounded-2xl p-5 sm:p-6 border-2 shadow-lg" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-2xl p-5 sm:p-6 border shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Data Quality</h3>
@@ -1111,7 +1113,7 @@ function App() {
             )}
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} />
 
             {/* First-time onboarding card */}
             {showOnboarding && (
@@ -1148,6 +1150,7 @@ function App() {
                   dataQuality={dataQuality || undefined}
                   isPremium={userIsPremium || accessInfo.tier !== 'free'}
                   onUnlock={() => setShowSignInModal(true)}
+                  crossSectionSnapshot={crossSectionSnapshot}
                 />
               </Suspense>
             </ErrorBoundary>
@@ -1226,7 +1229,7 @@ function App() {
             {/* Street Cross-Section (Current = free, Recommended = premium) */}
             <ErrorBoundary sectionName="Street Cross-Section">
               <Suspense fallback={null}>
-                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} />
+                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
               </Suspense>
             </ErrorBoundary>
 

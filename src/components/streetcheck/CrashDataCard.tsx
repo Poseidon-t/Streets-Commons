@@ -32,7 +32,7 @@ function LocalCrashView({ data }: { data: LocalCrashData }) {
         </span>
       </div>
 
-      <div className="text-xs mt-1" style={{ color: '#9ca3af' }}>
+      <div className="text-xs mt-1" style={{ color: '#8a9a8a' }}>
         {data.yearRange.from}–{data.yearRange.to}
       </div>
 
@@ -64,11 +64,11 @@ function LocalCrashView({ data }: { data: LocalCrashData }) {
                   className="w-full rounded-t"
                   style={{
                     height: `${Math.max((y.crashes / maxCrashesInYear) * 100, y.crashes > 0 ? 15 : 0)}%`,
-                    backgroundColor: y.crashes > 0 ? '#fca5a5' : '#e5e7eb',
+                    backgroundColor: y.crashes > 0 ? '#fca5a5' : '#e0dbd0',
                     minHeight: y.crashes > 0 ? '4px' : '2px',
                   }}
                 />
-                <span className="text-[10px] mt-1" style={{ color: '#9ca3af' }}>{y.year}</span>
+                <span className="text-xs mt-1" style={{ color: '#8a9a8a' }}>{y.year}</span>
               </div>
             ))}
           </div>
@@ -77,7 +77,7 @@ function LocalCrashView({ data }: { data: LocalCrashData }) {
           <div className="flex gap-1">
             {data.yearlyBreakdown.map(y => (
               <div key={y.year} className="flex-1 text-center">
-                <span className="text-[10px] font-medium" style={{ color: y.crashes > 0 ? '#dc2626' : '#9ca3af' }}>
+                <span className="text-xs font-medium" style={{ color: y.crashes > 0 ? '#dc2626' : '#8a9a8a' }}>
                   {y.crashes > 0 ? `${y.fatalities}` : '0'}
                 </span>
               </div>
@@ -121,17 +121,17 @@ function CountryCrashView({ data }: { data: CountryCrashData }) {
 
       {/* Comparison bar */}
       <div className="mt-3 space-y-1">
-        <div className="flex justify-between text-[10px]" style={{ color: '#9ca3af' }}>
+        <div className="flex justify-between text-xs" style={{ color: '#8a9a8a' }}>
           <span>{WHO_BEST.country} ({WHO_BEST.rate})</span>
           <span>Global avg ({WHO_GLOBAL_AVG})</span>
         </div>
-        <div className="relative h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#e5e7eb' }}>
+        <div className="relative h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
           {/* Global average marker */}
           <div
             className="absolute top-0 h-full w-0.5"
             style={{
               left: `${Math.min((WHO_GLOBAL_AVG / 40) * 100, 100)}%`,
-              backgroundColor: '#9ca3af',
+              backgroundColor: '#8a9a8a',
             }}
           />
           {/* Country bar */}
@@ -155,7 +155,7 @@ function CountryCrashView({ data }: { data: CountryCrashData }) {
 
 function LoadingShimmer() {
   return (
-    <div className="rounded-2xl p-4 border-2 animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}>
+    <div className="rounded-2xl p-4 border animate-pulse" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded bg-gray-200" />
         <div className="h-4 w-48 rounded bg-gray-200" />
@@ -172,8 +172,8 @@ export default function CrashDataCard({ crashData, isLoading }: CrashDataCardPro
 
   return (
     <div
-      className="rounded-2xl p-4 border-2"
-      style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderColor: '#e0dbd0' }}
+      className="rounded-2xl p-4 border"
+      style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
     >
       {/* Header */}
       <div className="flex items-center gap-2 mb-3">
@@ -191,7 +191,7 @@ export default function CrashDataCard({ crashData, isLoading }: CrashDataCardPro
         : <CountryCrashView data={crashData} />}
 
       {/* Source */}
-      <div className="mt-3 pt-2 border-t text-[10px]" style={{ borderColor: '#e0dbd0', color: '#9ca3af' }}>
+      <div className="mt-3 pt-2 border-t text-xs" style={{ borderColor: '#e0dbd0', color: '#8a9a8a' }}>
         Source: {crashData.dataSource}
         {crashData.type === 'local' && ' · Fatal crashes only · US locations'}
         {crashData.type === 'country' && ' · Country-level estimate'}
