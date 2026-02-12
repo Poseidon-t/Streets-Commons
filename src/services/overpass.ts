@@ -2,10 +2,11 @@ import { ANALYSIS_RADIUS } from '../constants';
 import type { OSMData, StreetAttributes, IntersectionNode, NetworkGraph } from '../types';
 
 // Direct Overpass mirrors (called from browser as fallback)
+// Note: .fr removed due to frequent CORS blocks from browser
 const OVERPASS_MIRRORS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
-  'https://overpass.openstreetmap.fr/api/interpreter',
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
 ];
 
 /**
@@ -13,7 +14,7 @@ const OVERPASS_MIRRORS = [
  * Returns the first valid JSON response.
  */
 async function queryOverpassDirect(query: string): Promise<any> {
-  const MIRROR_TIMEOUT = 12000;
+  const MIRROR_TIMEOUT = 15000;
 
   return new Promise((resolve, reject) => {
     let pending = OVERPASS_MIRRORS.length;
