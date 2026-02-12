@@ -152,37 +152,6 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
         <CircularScore score={score} />
       </div>
 
-      {/* Component Breakdown */}
-      {compositeScore && (
-        <div className="mt-6 pt-4 border-t space-y-2" style={{ borderColor: '#e0dbd0' }}>
-          <ComponentBar
-            label={compositeScore.components.networkDesign.label}
-            score={compositeScore.components.networkDesign.score}
-            weight={compositeScore.components.networkDesign.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.environmentalComfort.label}
-            score={compositeScore.components.environmentalComfort.score}
-            weight={compositeScore.components.environmentalComfort.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.safety.label}
-            score={compositeScore.components.safety.score}
-            weight={compositeScore.components.safety.weight}
-          />
-          <ComponentBar
-            label={compositeScore.components.densityContext.label}
-            score={compositeScore.components.densityContext.score}
-            weight={compositeScore.components.densityContext.weight}
-          />
-          {compositeScore.confidence < 80 && (
-            <div className="text-[10px] text-center mt-1" style={{ color: '#9ca3af' }}>
-              Confidence: {compositeScore.confidence}% — loading more data...
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Walker Visualization */}
       <div className="mt-6 pt-6 border-t" style={{ borderColor: '#e0dbd0' }}>
         <p className="text-xs text-center mb-3" style={{ color: '#8a9a8a' }}>
@@ -220,6 +189,37 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
           )}
         </div>
       </div>
+
+      {/* Component Breakdown */}
+      {compositeScore && (
+        <div className="mt-6 pt-4 border-t space-y-2" style={{ borderColor: '#e0dbd0' }}>
+          <ComponentBar
+            label={compositeScore.components.networkDesign.label}
+            score={compositeScore.components.networkDesign.score}
+            weight={compositeScore.components.networkDesign.weight}
+          />
+          <ComponentBar
+            label={compositeScore.components.environmentalComfort.label}
+            score={compositeScore.components.environmentalComfort.score}
+            weight={compositeScore.components.environmentalComfort.weight}
+          />
+          <ComponentBar
+            label={compositeScore.components.safety.label}
+            score={compositeScore.components.safety.score}
+            weight={compositeScore.components.safety.weight}
+          />
+          <ComponentBar
+            label={compositeScore.components.densityContext.label}
+            score={compositeScore.components.densityContext.score}
+            weight={compositeScore.components.densityContext.weight}
+          />
+          {compositeScore.confidence < 80 && (
+            <div className="text-[10px] text-center mt-1" style={{ color: '#9ca3af' }}>
+              Confidence: {compositeScore.confidence}% — loading more data...
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Crash Data */}
       {crashLoading && (
