@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore } from '../../types';
+import type { WalkabilityMetrics, RawMetricData, WalkabilityScoreV2, ComponentScore, DemographicData } from '../../types';
 import MetricCard from '../MetricCard';
 import { translateMetrics, type UserFriendlyMetric } from '../../utils/metricTranslations';
+import EconomicContextSection from './EconomicContextSection';
 
 interface MetricGridProps {
   metrics: WalkabilityMetrics;
@@ -9,6 +10,8 @@ interface MetricGridProps {
   satelliteLoaded?: Set<string>;
   rawData?: RawMetricData;
   compositeScore?: WalkabilityScoreV2 | null;
+  demographicData?: DemographicData | null;
+  demographicLoading?: boolean;
 }
 
 function getScoreColor(score: number): string {
@@ -153,7 +156,7 @@ function buildSections(
   ];
 }
 
-export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore }: MetricGridProps) {
+export default function MetricGrid({ metrics, locationName, satelliteLoaded, rawData, compositeScore, demographicData, demographicLoading }: MetricGridProps) {
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState<Set<number>>(new Set());
 
@@ -242,6 +245,17 @@ export default function MetricGrid({ metrics, locationName, satelliteLoaded, raw
           );
         })}
       </div>
+
+      {/* Economic Context — informational, not scored */}
+      {(demographicData || demographicLoading) && (
+        <div className="mt-6">
+          <EconomicContextSection
+            demographicData={demographicData ?? null}
+            demographicLoading={demographicLoading ?? false}
+            walkabilityScore={compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10)}
+          />
+        </div>
+      )}
     </div>
   );
 }

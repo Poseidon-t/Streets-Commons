@@ -176,3 +176,42 @@ export interface RawMetricData {
   // Sidewalk Coverage
   sidewalkPct?: number;       // percentage
 }
+
+// --- Demographic / Economic Data ---
+
+/** US Census ACS tract-level data */
+export interface USCensusData {
+  type: 'us';
+  tractFips: string;
+  medianHouseholdIncome: number | null;
+  medianHomeValue: number | null;
+  unemploymentRate: number | null;
+  povertyRate: number | null;
+  medianAge: number | null;
+  bachelorOrHigherPct: number | null;
+  dataSource: 'US Census Bureau ACS 5-Year';
+  year: number;
+}
+
+/** International World Bank country-level data */
+export interface InternationalDemographicData {
+  type: 'international';
+  countryCode: string;
+  countryName: string;
+  gdpPerCapita: number | null;
+  unemploymentRate: number | null;
+  urbanPopulationPct: number | null;
+  dataSource: 'World Bank Open Data';
+  year: number;
+}
+
+export type DemographicData = USCensusData | InternationalDemographicData;
+
+/** Computed economic impact estimates */
+export interface EconomicImpact {
+  propertyValuePremium: number | null;
+  retailUpliftPercent: number;
+  estimatedJobsPotential: number | null;
+  healthcareSavingsPerPerson: number;
+  walkScore: number;
+}

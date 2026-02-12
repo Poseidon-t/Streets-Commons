@@ -26,12 +26,13 @@ import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
 import { fetchCrashData } from './services/crashdata';
 import { fetchPopulationDensity } from './services/populationDensity';
+import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { COLORS } from './constants';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2 } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -54,6 +55,8 @@ function App() {
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
   const [buildingDensityScore, setBuildingDensityScore] = useState<number | undefined>();
   const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
+  const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
+  const [demographicLoading, setDemographicLoading] = useState(false);
 
   // Premium access - Clerk integration
   const { user } = useUser();
@@ -144,6 +147,8 @@ function App() {
     setCompositeScore(null);
     setBuildingDensityScore(undefined);
     setPopulationDensityScore(undefined);
+    setDemographicData(null);
+    setDemographicLoading(false);
 
     // Cancel any in-flight satellite fetches from previous location
     if (satelliteAbortRef.current) {
@@ -242,6 +247,8 @@ function App() {
     heatIsland: fetchHeatIsland(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
     populationDensity: fetchPopulationDensity(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
+    demographics: fetchDemographicData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
       .catch(() => null),
   });
 
@@ -357,6 +364,12 @@ function App() {
     crashPromise.then(data => {
       extra.crashData = data;
       recalc();
+    });
+    setDemographicLoading(true);
+    promises.demographics.then(result => {
+      setDemographicData(result);
+      setDemographicLoading(false);
+      markLoaded('demographics');
     });
   };
 
@@ -1098,7 +1111,7 @@ function App() {
             )}
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} />
+            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} />
 
             {/* First-time onboarding card */}
             {showOnboarding && (

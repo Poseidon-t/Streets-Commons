@@ -2002,6 +2002,231 @@ app.get('/api/crash-data', async (req, res) => {
 });
 
 // =====================
+// DEMOGRAPHIC / ECONOMIC DATA
+// =====================
+
+// In-memory cache for demographic data (slow-moving: Census annual, World Bank annual)
+const demographicsCache = new Map();
+const DEMOGRAPHICS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+app.get('/api/demographics', async (req, res) => {
+  try {
+    const { lat, lon, countryCode } = req.query;
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
+    }
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+
+    if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    const cc = (countryCode || '').toLowerCase();
+    const isUS = cc === 'us' || cc === 'usa';
+
+    // Check cache
+    const cacheKey = isUS ? `demo:us:${latNum.toFixed(3)},${lonNum.toFixed(3)}` : `demo:${cc}`;
+    const cached = demographicsCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < DEMOGRAPHICS_CACHE_TTL) {
+      console.log(`📦 Demographics cache hit: ${cacheKey}`);
+      return res.json({ success: true, data: cached.data });
+    }
+
+    if (isUS) {
+      // ===== US: Census Bureau ACS tract-level data =====
+      console.log(`📊 Fetching US Census data for: ${latNum}, ${lonNum}`);
+
+      // Step 1: Get FIPS tract from FCC Census API
+      const fccUrl = `https://geo.fcc.gov/api/census/area?lat=${latNum}&lon=${lonNum}&format=json`;
+      const fccResponse = await fetch(fccUrl, {
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': 'SafeStreets/2.0' },
+      });
+
+      if (!fccResponse.ok) throw new Error(`FCC API returned ${fccResponse.status}`);
+      const fccData = await fccResponse.json();
+
+      if (!fccData.results || fccData.results.length === 0) {
+        return res.json({ success: true, data: null });
+      }
+
+      const stateFips = fccData.results[0].state_fips;
+      const countyFips = fccData.results[0].county_fips;
+      const blockFips = fccData.results[0].block_fips || '';
+      // block_fips format: SSCCCTTTTTTBBBB (2 state + 3 county + 6 tract + 4 block)
+      const tractCode = blockFips.substring(5, 11);
+
+      if (!stateFips || !countyFips || !tractCode) {
+        return res.json({ success: true, data: null });
+      }
+
+      console.log(`📍 Census tract: state=${stateFips}, county=${countyFips}, tract=${tractCode}`);
+
+      // Step 2: Query Census ACS 5-Year (single batched request)
+      const variables = [
+        'B19013_001E', // Median household income
+        'B25077_001E', // Median home value
+        'B23025_005E', // Unemployed
+        'B23025_002E', // In labor force
+        'B17001_002E', // Below poverty
+        'B17001_001E', // Total (for poverty rate)
+        'B01002_001E', // Median age
+        'B15003_022E', // Bachelor's degree
+        'B15003_023E', // Master's degree
+        'B15003_024E', // Professional degree
+        'B15003_025E', // Doctorate
+        'B15003_001E', // Total (for education rate)
+      ].join(',');
+
+      let censusUrl = `https://api.census.gov/data/2022/acs/acs5?get=${variables}&for=tract:${tractCode}&in=state:${stateFips}&in=county:${countyFips}`;
+      if (process.env.CENSUS_API_KEY) {
+        censusUrl += `&key=${process.env.CENSUS_API_KEY}`;
+      }
+
+      const censusResponse = await fetch(censusUrl, {
+        signal: AbortSignal.timeout(10000),
+        headers: { 'User-Agent': 'SafeStreets/2.0' },
+      });
+
+      if (!censusResponse.ok) throw new Error(`Census API returned ${censusResponse.status}`);
+      const censusData = await censusResponse.json();
+
+      // Census returns [[header row], [data row]]
+      if (!censusData || censusData.length < 2) {
+        return res.json({ success: true, data: null });
+      }
+
+      const row = censusData[1];
+      const parse = (val) => {
+        const n = parseInt(val, 10);
+        // Census uses -666666666 for suppressed data
+        return (isNaN(n) || n === -666666666) ? null : n;
+      };
+
+      const medianIncome = parse(row[0]);
+      const medianHomeValue = parse(row[1]);
+      const unemployed = parse(row[2]);
+      const laborForce = parse(row[3]);
+      const belowPoverty = parse(row[4]);
+      const totalPoverty = parse(row[5]);
+      const medianAge = row[6] ? parseFloat(row[6]) : null;
+      const bachelors = parse(row[7]);
+      const masters = parse(row[8]);
+      const professional = parse(row[9]);
+      const doctorate = parse(row[10]);
+      const totalEducation = parse(row[11]);
+
+      const unemploymentRate = (unemployed !== null && laborForce !== null && laborForce > 0)
+        ? Math.round((unemployed / laborForce) * 1000) / 10
+        : null;
+
+      const povertyRate = (belowPoverty !== null && totalPoverty !== null && totalPoverty > 0)
+        ? Math.round((belowPoverty / totalPoverty) * 1000) / 10
+        : null;
+
+      const bachelorOrHigherPct = (bachelors !== null && totalEducation !== null && totalEducation > 0)
+        ? Math.round(((bachelors + (masters || 0) + (professional || 0) + (doctorate || 0)) / totalEducation) * 1000) / 10
+        : null;
+
+      const result = {
+        type: 'us',
+        tractFips: `${stateFips}${countyFips}${tractCode}`,
+        medianHouseholdIncome: medianIncome,
+        medianHomeValue: medianHomeValue,
+        unemploymentRate,
+        povertyRate,
+        medianAge: (medianAge && medianAge > 0 && medianAge < 120) ? medianAge : null,
+        bachelorOrHigherPct,
+        dataSource: 'US Census Bureau ACS 5-Year',
+        year: 2022,
+      };
+
+      console.log(`✅ Census data: income=$${medianIncome}, home=$${medianHomeValue}, unemp=${unemploymentRate}%`);
+      demographicsCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return res.json({ success: true, data: result });
+
+    } else {
+      // ===== International: World Bank API =====
+      if (!cc) {
+        return res.json({ success: true, data: null });
+      }
+
+      console.log(`🌍 Fetching World Bank data for country: ${cc}`);
+
+      const indicators = [
+        { id: 'NY.GDP.PCAP.CD', field: 'gdpPerCapita' },
+        { id: 'SL.UEM.TOTL.ZS', field: 'unemploymentRate' },
+        { id: 'SP.URB.TOTL.IN.ZS', field: 'urbanPopulationPct' },
+      ];
+
+      const results = await Promise.allSettled(
+        indicators.map(async ({ id }) => {
+          const url = `https://api.worldbank.org/v2/country/${cc}/indicator/${id}?format=json&date=2019:2024&per_page=6`;
+          const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+          if (!response.ok) return null;
+          const data = await response.json();
+          // World Bank returns [metadata, dataArray] — data at index 1
+          if (!data || !data[1] || !Array.isArray(data[1])) return null;
+          // Find most recent non-null value
+          for (const entry of data[1]) {
+            if (entry.value !== null) {
+              return { value: Math.round(entry.value * 100) / 100, year: parseInt(entry.date) };
+            }
+          }
+          return null;
+        })
+      );
+
+      const getValue = (idx) => results[idx].status === 'fulfilled' && results[idx].value ? results[idx].value : null;
+      const gdpResult = getValue(0);
+      const unempResult = getValue(1);
+      const urbanResult = getValue(2);
+
+      // Determine country name from World Bank metadata
+      let countryName = cc.toUpperCase();
+      try {
+        const metaUrl = `https://api.worldbank.org/v2/country/${cc}?format=json`;
+        const metaResp = await fetch(metaUrl, { signal: AbortSignal.timeout(5000) });
+        if (metaResp.ok) {
+          const metaData = await metaResp.json();
+          if (metaData && metaData[1] && metaData[1][0]) {
+            countryName = metaData[1][0].name;
+          }
+        }
+      } catch { /* use fallback name */ }
+
+      const mostRecentYear = Math.max(
+        gdpResult?.year || 0,
+        unempResult?.year || 0,
+        urbanResult?.year || 0
+      );
+
+      const result = {
+        type: 'international',
+        countryCode: cc.toUpperCase(),
+        countryName,
+        gdpPerCapita: gdpResult?.value || null,
+        unemploymentRate: unempResult?.value || null,
+        urbanPopulationPct: urbanResult?.value || null,
+        dataSource: 'World Bank Open Data',
+        year: mostRecentYear || 2023,
+      };
+
+      console.log(`✅ World Bank: GDP=$${result.gdpPerCapita}, unemp=${result.unemploymentRate}%, urban=${result.urbanPopulationPct}%`);
+      demographicsCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return res.json({ success: true, data: result });
+    }
+
+  } catch (error) {
+    console.error('❌ Error fetching demographics:', error);
+    // Graceful degradation — return null data, not 500
+    res.json({ success: true, data: null });
+  }
+});
+
+// =====================
 // GEMINI AI BUDGET ANALYSIS
 // =====================
 
