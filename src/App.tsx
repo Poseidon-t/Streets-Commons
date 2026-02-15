@@ -196,7 +196,7 @@ function App() {
     } else if (compareMode) {
       document.title = 'Compare Mode — SafeStreets Walkability Analysis';
     } else {
-      document.title = 'SafeStreets — Walkability Score for Any Address | Free Satellite Analysis';
+      document.title = 'SafeStreets — Is Your Street Safe to Walk? | Free Satellite Analysis';
     }
   }, [location, compositeScore, isAnalyzing, compareMode]);
 
@@ -628,13 +628,13 @@ function App() {
         <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
           <div className="relative flex-1 flex flex-col items-center px-6 pt-8 md:pt-12 pb-6 z-10">
             {/* Headline */}
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 tracking-tight text-earth-text-dark">
-              Is Your Neighborhood{' '}
-              <span className="text-terra">Walkable</span>?
-            </h2>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 tracking-tight text-earth-text-dark">
+              Is Your Street{' '}
+              <span className="text-terra">Safe to Walk</span>?
+            </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Analyze any street on Earth with real satellite data.
+              Real satellite data, not estimates. Sidewalks, tree cover, crash history, slope, air quality & more.
               <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
             </p>
 
@@ -648,14 +648,18 @@ function App() {
               </div>
             </div>
 
-            {/* Example & Stats */}
-            <div className="flex items-center gap-4 mb-6">
-              <span className="text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">190+</span> countries covered
+            {/* Trust badges */}
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
+              <span className="text-xs sm:text-sm text-earth-text-light">
+                Powered by <span className="text-earth-green font-semibold">NASA</span> & <span className="text-earth-green font-semibold">Sentinel-2</span>
               </span>
-              <span className="text-earth-text-light">·</span>
-              <span className="text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">8</span> walkability metrics
+              <span className="text-earth-text-light hidden sm:inline">·</span>
+              <span className="text-xs sm:text-sm text-earth-text-light">
+                <span className="text-earth-green font-semibold">190+</span> countries
+              </span>
+              <span className="text-earth-text-light hidden sm:inline">·</span>
+              <span className="text-xs sm:text-sm text-earth-text-light">
+                <span className="text-earth-green font-semibold">8</span> metrics from real data
               </span>
             </div>
 
