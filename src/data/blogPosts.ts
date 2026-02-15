@@ -414,11 +414,32 @@ export const BLOG_POSTS: BlogPost[] = [
 <h2>What the Data Reveals About Street Design</h2>
 <p>When we dig into pedestrian death data, patterns emerge that challenge our assumptions about traffic safety. Most people assume that driver behavior—speeding, drunk driving, distraction—causes most pedestrian deaths. While these factors matter, they're symptoms of a deeper problem: streets designed to prioritize vehicle speed over human life.</p>
 <p>Research from cities that have implemented Vision Zero policies reveals a crucial insight: pedestrian deaths cluster on specific types of streets. Wide arterial roads with multiple lanes, high speed limits, and few safe crossing points account for a disproportionate share of fatalities. In New York City, just 15% of streets account for 70% of pedestrian deaths and severe injuries. These aren't evenly distributed "accidents"—they're predictable outcomes of dangerous design.</p>
-<p>[Chart: Comparison of traffic death rates per 100,000 population across countries—Sweden (2.2), Netherlands (3.8), United States (12.9), India (15.3), Global Average (15.0), Low-income countries (27.5)]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Traffic Death Rates per 100,000 Population</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Sweden</span><div style="height:24px;border-radius:4px;background:#4a8a3c;width:8%" title="2.2"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">2.2</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Netherlands</span><div style="height:24px;border-radius:4px;background:#4a8a3c;width:14%" title="3.8"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">3.8</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">United States</span><div style="height:24px;border-radius:4px;background:#e07850;width:47%" title="12.9"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">12.9</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Global Avg</span><div style="height:24px;border-radius:4px;background:#c0a060;width:55%" title="15.0"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">15.0</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">India</span><div style="height:24px;border-radius:4px;background:#e07850;width:56%" title="15.3"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">15.3</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Low-income</span><div style="height:24px;border-radius:4px;background:#c03030;width:100%" title="27.5"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">27.5</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: WHO Global Status Report on Road Safety</p>
+</div>
 <p>The speed factor is particularly telling. At 20 mph (32 km/h), a pedestrian struck by a vehicle has a 90% chance of survival. At 30 mph (48 km/h), the survival rate drops to 50%. At 40 mph (64 km/h), it plummets to just 10%. Yet many urban arterials are designed for speeds of 35-45 mph or higher, treating pedestrian deaths as acceptable collateral damage for vehicle throughput.</p>
 <p>Cities with the lowest pedestrian death rates share common characteristics: extensive networks of protected bike lanes, frequent safe crossing points, traffic calming measures, lower speed limits, and—crucially—street designs that prioritize walking, cycling, and public transit alongside vehicle movement. They've rejected the false choice between mobility and safety.</p>
 <p>Barcelona's data before and after superblock implementation illustrates this point. In traditional street configurations, vehicles dominated 60% of public space despite making up only 20% of trips. After redesign, vehicle space dropped to 25%, while walking, cycling, and public space expanded. Traffic injuries within superblocks fell by 42% in the first year alone.</p>
-<p>[Chart: Pedestrian deaths as percentage of total traffic deaths—Global (23%), with regional variations highlighting how pedestrian-hostile infrastructure increases this share]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Pedestrian Deaths as % of All Traffic Deaths</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Africa</span><div style="height:24px;border-radius:4px;background:#c03030;width:100%" title="40%"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">40%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">SE Asia</span><div style="height:24px;border-radius:4px;background:#e07850;width:68%" title="27%"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">27%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Global Avg</span><div style="height:24px;border-radius:4px;background:#c0a060;width:58%" title="23%"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">23%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Americas</span><div style="height:24px;border-radius:4px;background:#e07850;width:55%" title="22%"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">22%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Europe</span><div style="height:24px;border-radius:4px;background:#4a8a3c;width:48%" title="19%"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">19%</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: WHO Global Status Report on Road Safety</p>
+</div>
 <p>The economic data is equally compelling. The European Transport Safety Council estimates that each traffic death costs society €1.5 million ($1.6 million) in lost productivity, medical expenses, and quality of life. Multiply that by 273,700 pedestrian deaths annually, and we're looking at over $400 billion in global economic losses—not counting injuries or the immeasurable cost of grief and trauma.</p>
 <h2>Why Our Streets Kill: The Root Causes</h2>
 <p>The problem isn't that we lack the knowledge to build safe streets. The Netherlands, Sweden, and Japan have demonstrated for decades that pedestrian deaths can be driven close to zero through proper design. The problem is that most cities inherited street networks designed in an era when cars were new, speed was exciting, and pedestrian deaths were considered the price of progress.</p>
@@ -432,7 +453,28 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>Barcelona's superblock model offers a blueprint for transformation. The concept is elegantly simple: group nine city blocks together into a "superblock" where through-traffic is restricted to the perimeter. Interior streets remain accessible to residents, deliveries, and emergency vehicles, but design changes—raised crosswalks, reduced speed limits, widened sidewalks, added greenery—make clear that these are spaces for people first.</p>
 <p>The first full superblock launched in Poblenou in 2016. Interior streets were limited to 10 km/h (6 mph). Parking was consolidated. Space once devoted to moving and storing vehicles became playgrounds, parks, and plazas. Skeptics predicted chaos—businesses would fail, emergency response would suffer, traffic would gridlock on surrounding streets.</p>
 <p>None of that happened. Instead, air pollution dropped 25% within the superblock. Noise levels fell by nearly 10 decibels. Surveys showed 70% of residents supported the changes once implemented, up from 40% before. Retail activity increased as pedestrian traffic grew. Children gained safe places to play. Elderly residents could navigate their neighborhoods without fear.</p>
-<p>[Chart: Barcelona superblock outcomes—42% reduction in traffic injuries, 25% reduction in air pollution, 10-decibel noise reduction, 70% resident approval]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Barcelona Superblock Outcomes</p>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#e07850">42%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Fewer traffic injuries</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#4a8a3c">25%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Less air pollution</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#5090b0">10 dB</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Noise reduction</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#4a8a3c">70%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Resident approval</div>
+</div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: Barcelona Urban Ecology Agency</p>
+</div>
 <p>The traffic impacts were equally revealing. Contrary to predictions, congestion on perimeter streets didn't worsen significantly. Some drivers rerouted, others shifted to walking or cycling for short trips, and overall vehicle kilometers traveled declined as people discovered they could meet many needs within their superblock. Emergency response times remained unchanged—vehicles could still access interior streets when needed.</p>
 <p>Barcelona isn't alone in demonstrating what's possible. Groningen, Netherlands, divided its city center into four sectors in the 1970s, making car travel between sectors inconvenient while keeping walking and cycling direct. Today, 60% of trips in Groningen are by bike. Traffic deaths are rare. The city center thrives economically.</p>
 <p>Pontevedra, Spain, pedestrianized most of its historic core in 1999. Traffic deaths dropped to zero for over a decade. Carbon emissions fell 70%. The city's population grew while neighboring cities shrank, as people chose to live where streets felt safe and welcoming.</p>
@@ -481,10 +523,28 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>What's particularly concerning is the trend line. As India's vehicle fleet grows—passenger vehicles increased by 51% between 2015 and 2022—pedestrian infrastructure has failed to keep pace. Cities like Bengaluru, Mumbai, Delhi, Chennai, and Pune are experiencing explosive growth in both population and vehicles, creating a deadly mismatch between road design and actual usage patterns.</p>
 <h3>The Data Behind the Deaths</h3>
 <p>MoRTH data reveals several critical patterns. First, the majority of pedestrian deaths occur in urban areas, where mixed traffic creates chaos. Unlike Western cities with separated infrastructure, Indian streets often see cars, motorcycles, auto-rickshaws, bicycles, pedestrians, and even livestock sharing the same space with minimal separation or protection.</p>
-<p>[Chart: Pedestrian deaths by state (2022) - Bar chart showing Tamil Nadu, Maharashtra, Uttar Pradesh, Karnataka, and Madhya Pradesh as top five states]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Pedestrian Deaths by State (2022)</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Tamil Nadu</span><div style="height:24px;border-radius:4px;background:#c03030;width:100%" title="3,234"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">3,234</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Maharashtra</span><div style="height:24px;border-radius:4px;background:#e07850;width:92%" title="2,987"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">2,987</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Uttar Pradesh</span><div style="height:24px;border-radius:4px;background:#e07850;width:89%" title="2,876"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">2,876</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Karnataka</span><div style="height:24px;border-radius:4px;background:#c0a060;width:62%" title="2,012"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">2,012</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Madhya Pradesh</span><div style="height:24px;border-radius:4px;background:#c0a060;width:55%" title="1,789"></div><span style="font-size:0.8rem;font-weight:600;color:#2a3a2a">1,789</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: MoRTH Road Accidents in India 2022</p>
+</div>
 <p>Second, timing matters. Peak hours—morning and evening commutes—see disproportionate fatalities as pedestrians attempt to cross congested roads without adequate crossing infrastructure. In Chennai, a 2023 study found that 64% of major intersections lacked functional pedestrian signals, forcing people to dart between moving vehicles.</p>
 <p>Third, demographics reveal vulnerability. While MoRTH doesn't break down all pedestrian deaths by age, available data suggests children and elderly citizens are overrepresented. These groups have slower reaction times and less ability to navigate dangerous crossings, yet our streets offer them no additional protection.</p>
-<p>[Chart: Pedestrian deaths as percentage of total road deaths - Comparison between India (19.5%), global average (23%), and Vision Zero countries (15-18%)]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Pedestrian Deaths as % of Total Road Deaths</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Global Average</span><div style="height:28px;border-radius:4px;background:#c0a060;width:100%" title="23%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">23%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">India</span><div style="height:28px;border-radius:4px;background:#e07850;width:85%" title="19.5%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">19.5%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Vision Zero avg</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:70%" title="16%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">15–18%</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: WHO / MoRTH 2022</p>
+</div>
 <p>The economic cost compounds the human tragedy. The World Bank estimates that road crashes cost India approximately 3-5% of GDP annually. Pedestrian deaths contribute significantly to this burden through lost productivity, medical expenses, and long-term impacts on families who lose breadwinners.</p>
 <h2>Why Our Streets Are Killing Pedestrians</h2>
 <p>The conventional narrative blames "reckless drivers" or "careless pedestrians." This explanation is both incomplete and counterproductive. While individual behavior matters, the primary culprit is street design that treats pedestrian death as an acceptable trade-off for vehicle speed.</p>
@@ -511,7 +571,15 @@ export const BLOG_POSTS: BlogPost[] = [
 <li><strong>Continuous footpaths:</strong> Footpaths should be continuous, level, and free of obstructions. Bhopal's Smart City initiatives include footpath redesign with tactile paving for visually impaired citizens.</li>
 <li><strong>Protected intersections:</strong> Extending footpaths into intersections with physical barriers reduces crossing distances and increases visibility. Pilot projects in Surat have shown promising results.</li>
 </ul>
-<p>[Chart: Impact of street design interventions - Before/after data showing pedestrian injury reduction from raised crossings (35% reduction), median refuges (28% reduction), and speed reduction measures (45% reduction)]</p>
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Impact of Street Design Interventions</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Speed reduction</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:100%" title="45%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">45% fewer injuries</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Raised crossings</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:78%" title="35%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">35% fewer injuries</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:130px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Median refuges</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:62%" title="28%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">28% fewer injuries</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: Indian city pilot programs / ITDP research</p>
+</div>
 <h3>Reduce Speeds Systematically</h3>
 <p>Speed reduction is perhaps the single most effective intervention. Cities should implement 30 km/h speed limits in residential areas and near schools, with 40-50 km/h on arterial roads with pedestrian activity. Physical traffic calming—speed humps, chicanes, narrowed lanes—enforces these limits better than signs alone.</p>
 <p>Pune's Kothrud area implemented a 30 km/h zone with traffic calming measures in 2021. Pedestrian injuries dropped by 42% in the first year. The intervention cost a fraction of what the city spends annually on flyovers and grade separators that do nothing for pedestrian safety.</p>
