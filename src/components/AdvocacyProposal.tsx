@@ -41,7 +41,7 @@ export default function AdvocacyProposal({ isPremium, location, metrics, composi
               Advocacy Toolkit — $19 one-time payment
             </p>
             <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>
-              Unlock proposals, AI letters, budget analysis, and more.
+              Unlock proposals, AI letters, street redesign, and more.
             </p>
           </div>
         </div>

@@ -98,7 +98,7 @@ export default function BlogIndex() {
                 >
                   {post.category}
                 </span>
-                <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.date}</span>
+                <span className="text-xs" style={{ color: '#8a9a8a' }}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.readTime}</span>
               </div>
               <h2 className="text-xl font-bold mb-2" style={{ color: '#2a3a2a' }}>

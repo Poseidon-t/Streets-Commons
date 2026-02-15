@@ -12,7 +12,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
 const StreetCrossSection = lazy(() => import('./components/StreetCrossSection'));
-const BudgetAnalysis = lazy(() => import('./components/BudgetAnalysis'));
 const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
@@ -982,9 +981,6 @@ function App() {
               style={{ backgroundColor: COLORS.accent }}
             >
               Compare with Another Location
-              {!userIsPremium && accessInfo.tier !== 'advocate' && (
-                <span className="block text-xs opacity-75 font-normal mt-0.5">Advocacy Toolkit</span>
-              )}
             </button>
             {(userIsPremium || accessInfo.tier === 'advocate') && location && (
               <button
@@ -1756,7 +1752,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Take Action</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Share results on social media, or upgrade to export PDF reports, compare locations, and access AI-powered advocacy tools.
+                        Share results on social media, compare locations side-by-side, or upgrade for the Street Audit Tool, AI advocacy documents, and street redesign mockups.
                       </p>
                     </div>
                   </div>
