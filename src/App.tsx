@@ -282,10 +282,6 @@ function App() {
   };
 
   const handleCompareMode = () => {
-    if (!userIsPremium && accessInfo.tier !== 'advocate') {
-      setShowSignInModal(true);
-      return;
-    }
     setCompareMode(true);
     setLocation(null);
     setMetrics(null);
@@ -1509,52 +1505,43 @@ function App() {
               </Suspense>
             )}
 
-            {/* AI Advocacy Letter (Premium) */}
+            {/* AI Letter + Proposal (unified) */}
             {(userIsPremium || accessInfo.tier !== 'free') ? (
-              <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl">&#x2709;&#xFE0F;</div>
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      Draft Letter to Officials
-                    </h2>
-                    <p className="text-gray-600 text-sm mb-4">
-                      AI generates a professional advocacy letter citing your walkability data, international
-                      safety standards, and specific recommendations — ready to email to your city council.
-                    </p>
+              <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                <div className="px-6 py-6 sm:px-8">
+                  <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Generate Advocacy Documents</h3>
+                  <p className="text-sm mb-5" style={{ color: '#5a6a5a' }}>
+                    AI-powered documents citing your walkability data, safety standards, and specific recommendations.
+                  </p>
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={() => setShowLetterModal(true)}
-                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
-                      style={{ backgroundColor: COLORS.primary }}
+                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
+                      style={{ backgroundColor: '#e07850' }}
                     >
-                      Generate Letter
+                      Draft Letter to Officials
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-100 opacity-90">
-                <div className="flex items-start gap-4">
-                  <div className="text-4xl">&#x1F512;</div>
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      AI Advocacy Letter Generator
-                    </h2>
-                    <p className="text-gray-600 text-sm mb-3">
-                      Generate professional letters to city officials citing your walkability data, WHO/NACTO standards, and specific recommendations.
-                    </p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>
-                      Advocacy Toolkit &mdash; $19 one-time
-                    </div>
-                    <br />
-                    <button
-                      onClick={() => setShowSignInModal(true)}
-                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
-                      style={{ backgroundColor: '#e07850' }}
-                    >
-                      Unlock Advocacy Toolkit
-                    </button>
+              <div className="rounded-2xl border-2 overflow-hidden opacity-90" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                <div className="px-6 py-6 sm:px-8">
+                  <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>AI Advocacy Documents</h3>
+                  <p className="text-sm mb-3" style={{ color: '#5a6a5a' }}>
+                    Generate professional letters and proposals citing your walkability data, WHO/NACTO standards, and specific recommendations.
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>
+                    Advocacy Toolkit &mdash; $19 one-time
                   </div>
+                  <br />
+                  <button
+                    onClick={() => setShowSignInModal(true)}
+                    className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
+                    style={{ backgroundColor: '#e07850' }}
+                  >
+                    Unlock Advocacy Toolkit
+                  </button>
                 </div>
               </div>
             )}
@@ -1619,14 +1606,7 @@ function App() {
               </ErrorBoundary>
             </div>
 
-            {/* Budget Analysis */}
-            <ErrorBoundary sectionName="Investment Guide">
-              <Suspense fallback={null}>
-                <BudgetAnalysis isPremium={userIsPremium || accessInfo.tier !== 'free'} location={location} />
-              </Suspense>
-            </ErrorBoundary>
-
-            {/* Advocacy Proposal Generator */}
+            {/* Advocacy Proposal Generator (merged letter + proposal + budget) */}
             <ErrorBoundary sectionName="Advocacy Proposal">
               <Suspense fallback={null}>
                 <AdvocacyProposal
@@ -2008,7 +1988,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like AI advocacy letters, PDF proposals, budget analysis, and compare mode, the Advocacy Toolkit is available for a one-time $19 payment.
+                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $19 payment.
                   </p>
                 </div>
               </div>
@@ -2083,7 +2063,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The 8 core walkability metrics work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($19 one-time) unlocks advanced features like PDF reports, AI advocacy letters, street redesign mockups, budget analysis, and compare mode.
+                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($19 one-time) unlocks the Street Audit Tool, AI advocacy documents, street redesign mockups, unlimited chatbot, and data export.
                   </p>
                 </div>
               </div>
@@ -2108,7 +2088,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics work without any sign-up. For advanced advocacy tools like AI letters, PDF proposals, budget analysis, and compare mode, the Advocacy Toolkit is available for a one-time $19 payment — no subscription.
+                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $19 payment — no subscription.
                   </p>
                 </div>
               </div>
@@ -2133,7 +2113,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">The Advocacy Toolkit ($19 one-time) unlocks:</strong> unlimited AI chatbot, AI advocacy letter generator, PDF proposal reports, budget analysis, compare mode, street redesign mockups, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
+                    <strong className="text-gray-900">The Advocacy Toolkit ($19 one-time) unlocks:</strong> Street Audit Tool, AI advocacy document generator, street redesign mockups, unlimited AI chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
                   </p>
                 </div>
               </div>
@@ -2211,7 +2191,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($19 one-time) unlocks advanced features like AI letters, PDF proposals, budget analysis, compare mode, and more. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
+                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($19 one-time) unlocks advanced features like the Street Audit Tool, AI advocacy documents, street redesign mockups, and unlimited chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
                   </p>
                 </div>
               </div>
@@ -2319,7 +2299,7 @@ function App() {
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#e07850' }}></span>
                   <div>
                     <span className="font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $19</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>PDF reports, AI letter, street redesign, budget tools</p>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Street audit, AI documents, redesign mockups, unlimited chatbot</p>
                   </div>
                 </li>
               </ul>
