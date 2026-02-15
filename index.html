@@ -6,22 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
-    <title>SafeStreets - How Walkable Is Your Street? Free Analysis With Satellite Data</title>
-    <meta name="title" content="SafeStreets - How Walkable Is Your Street? Free Analysis With Satellite Data" />
-    <meta name="description" content="Score any address on 8 walkability metrics — sidewalks, tree cover, crash data, slope, air quality & more. Powered by NASA, OpenStreetMap & WHO data. 100% free." />
+    <title>SafeStreets — Walkability Score for Any Address | Free Satellite Analysis</title>
+    <meta name="title" content="SafeStreets — Walkability Score for Any Address | Free Satellite Analysis" />
+    <meta name="description" content="Get a walkability score for any address worldwide. Analyze sidewalks, tree cover, crash data, slope, air quality & more using NASA, Sentinel-2 & OpenStreetMap satellite data. Free core analysis." />
+    <meta name="keywords" content="walkability score, walk score, walkable streets, pedestrian safety, street analysis, sidewalk coverage, tree canopy, walkability map, 15 minute city, urban planning tool, street safety, ADA compliance, walkability index" />
+    <meta name="author" content="Streets & Commons" />
+    <link rel="canonical" href="https://safestreets.streetsandcommons.com/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://safestreets.streetsandcommons.com/" />
-    <meta property="og:title" content="How Walkable Is Your Street?" />
-    <meta property="og:description" content="Score any address on 8 walkability metrics — sidewalks, tree cover, crash data, slope, air quality & more. Powered by NASA, OpenStreetMap & WHO data. 100% free." />
+    <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
+    <meta property="og:title" content="How Walkable Is Your Street? Free Satellite-Powered Analysis" />
+    <meta property="og:description" content="Score any address on 8 walkability metrics — sidewalks, tree cover, crash data, slope, air quality & more. Powered by NASA, Sentinel-2 & OpenStreetMap satellite data." />
     <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://safestreets.streetsandcommons.com/" />
-    <meta property="twitter:title" content="How Walkable Is Your Street?" />
-    <meta property="twitter:description" content="Score any address on 8 walkability metrics — sidewalks, tree cover, crash data, slope, air quality & more. Powered by NASA, OpenStreetMap & WHO data. 100% free." />
+    <meta property="twitter:title" content="How Walkable Is Your Street? Free Satellite-Powered Analysis" />
+    <meta property="twitter:description" content="Score any address on 8 walkability metrics — sidewalks, tree cover, crash data, slope, air quality & more. Powered by NASA, Sentinel-2 & OpenStreetMap satellite data." />
     <meta property="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
     <!-- Google Fonts - preconnect + load -->
@@ -55,26 +62,90 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Is it really free?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! All 8 core metrics are completely free with no sign-up required. We use 100% free data sources (NASA, ESA, OpenStreetMap, OpenAQ), so our data costs are $0/year. The free tier has unlimited searches and works globally."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "How is this different from WalkScore?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "SafeStreets uses real satellite data (terrain slope, tree canopy, temperature) and real-time air quality—features WalkScore doesn't offer. We also provide professional tools like 15-minute city analysis and ADA compliance reports. Plus, our free tier is actually free (WalkScore API costs $1,000-10,000/year)."
-          }
-        },
-        {
-          "@type": "Question",
           "name": "Is SafeStreets really free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, 100% free! Basic metrics work without an account. Sign in with Google to unlock all premium advocacy tools — PDF reports, AI letter generator, street redesign, budget analysis, and more. No payment required."
+            "text": "Yes! All 8 core walkability metrics are completely free with no sign-up required. We use free data sources (NASA POWER, Sentinel-2, OpenStreetMap), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced advocacy tools like AI letters, PDF proposals, and budget analysis, the Advocacy Toolkit is available for a one-time $19 payment."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How is SafeStreets different from WalkScore?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SafeStreets uses real satellite data from Sentinel-2 (tree canopy coverage), NASADEM elevation data (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure. We focus on the actual physical environment that makes walking comfortable and safe, including 15-minute city analysis and equity insights. Plus, our core analysis is free (WalkScore API costs $1,000-10,000/year)."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the refund policy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We offer a 30-day money-back guarantee. If you're not satisfied with your Advocacy Toolkit purchase for any reason, we'll provide a full refund—no questions asked. You can request a refund directly from your Stripe receipt email."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Do I need to create an account?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No! The 8 core walkability metrics work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($19 one-time) unlocks advanced features like PDF reports, AI advocacy letters, street redesign mockups, budget analysis, and compare mode."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What do I get with the Advocacy Toolkit?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Advocacy Toolkit ($19 one-time, no subscription) includes: unlimited AI chatbot, AI advocacy letter generator, PDF proposal reports, budget analysis, compare mode for two locations, street redesign mockups, PDF and JSON data export, and the ability to save up to 10 addresses."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How accurate is the satellite data?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "We use research-grade data sources: OpenStreetMap (community-verified street infrastructure), Sentinel-2 satellite imagery (10m resolution vegetation and heat data), NASADEM (1-arc-second global elevation), NASA POWER (surface temperature), NHTSA FARS (US fatal crash locations), and WHO Global Health Observatory (international road traffic death rates). This is the same data used by governments and research institutions worldwide."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SafeStreets work in my city or country?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! SafeStreets works globally with coverage in 190+ countries. Satellite data is available worldwide, though analysis quality depends on OpenStreetMap data completeness in your area. Major cities in the US, Europe, Japan, and Australia have excellent coverage."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use SafeStreets for commercial projects?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The core walkability analysis is free for everyone—no sign-up needed. The Advocacy Toolkit ($19 one-time) unlocks advanced features for individual advocates. For municipalities and organizations needing custom multi-location analysis, contact us for tailored solutions."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What design standards does SafeStreets follow?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SafeStreets follows the Global Street Design Guide (GSDG), developed by NACTO and the Global Designing Cities Initiative, used by 500+ cities worldwide. Our metrics align with GSDG recommendations for sidewalk widths, pedestrian crossing distances, green infrastructure, and universal accessibility."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the Traffic Fatalities card?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "For US addresses, we show real fatal crash data within 800 meters from the NHTSA Fatality Analysis Reporting System (FARS), covering 2018-2022. For international addresses, we show your country's road traffic death rate from the WHO Global Health Observatory. This data is informational context and does not affect the walkability score."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the 15-Minute City analysis?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The 15-Minute City analysis evaluates whether essential daily services—grocery stores, schools, healthcare, parks, transit, restaurants—are reachable within a 15-minute walk from your address. It scores each category and provides an overall 15-minute city rating, helping you understand the walkable accessibility of your neighborhood."
           }
         }
       ]
@@ -88,15 +159,45 @@
       "@type": "SoftwareApplication",
       "name": "SafeStreets",
       "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web",
+      "url": "https://safestreets.streetsandcommons.com",
       "offers": [
         {
           "@type": "Offer",
           "price": "0",
           "priceCurrency": "USD",
-          "name": "Free - All Features"
+          "name": "Free Tier",
+          "description": "8 walkability metrics, 15-minute city analysis, equity insights, AI chatbot (6 messages)"
+        },
+        {
+          "@type": "Offer",
+          "price": "19",
+          "priceCurrency": "USD",
+          "name": "Advocacy Toolkit",
+          "description": "One-time payment. AI advocacy letters, PDF proposals, budget analysis, compare mode, street redesign, data export, save addresses."
         }
       ],
-      "description": "Professional walkability analysis using real satellite data from NASA and ESA. Analyze any address worldwide with 8 free metrics including terrain slope, tree canopy, air quality, and more."
+      "description": "Professional walkability analysis using real satellite data from NASA and Sentinel-2. Analyze any address worldwide with 8 metrics including terrain slope, tree canopy, air quality, crash data, and more.",
+      "creator": {
+        "@type": "Organization",
+        "name": "Streets & Commons",
+        "url": "https://streetsandcommons.com"
+      }
+    }
+    </script>
+
+    <!-- Schema.org for WebSite with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "SafeStreets",
+      "url": "https://safestreets.streetsandcommons.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://safestreets.streetsandcommons.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
   </head>

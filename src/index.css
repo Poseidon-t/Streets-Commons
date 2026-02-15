@@ -13,3 +13,18 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Blog prose styles */
+.prose h2 { font-size: 1.5rem; font-weight: 700; color: #2a3a2a; margin-top: 2rem; margin-bottom: 0.75rem; }
+.prose h3 { font-size: 1.25rem; font-weight: 700; color: #2a3a2a; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.prose p { margin-bottom: 1rem; }
+.prose ul, .prose ol { margin-bottom: 1rem; padding-left: 1.5rem; }
+.prose li { margin-bottom: 0.35rem; }
+.prose a { color: #e07850; text-decoration: underline; }
+.prose a:hover { color: #c06040; }
+.prose strong { color: #2a3a2a; }
+.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.875rem; }
+.prose thead { background-color: #f8f6f1; }
+.prose th { padding: 0.75rem; text-align: left; font-weight: 600; color: #2a3a2a; border-bottom: 2px solid #e0dbd0; }
+.prose td { padding: 0.75rem; border-bottom: 1px solid #f0ebe0; }
+.prose tr:nth-child(even) { background-color: #faf9f7; }

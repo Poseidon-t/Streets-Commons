@@ -155,6 +155,10 @@ export default function EquityContextSection({
         </span>
       </div>
 
+      <p className="text-xs leading-relaxed" style={{ color: '#6b7280' }}>
+        This analysis connects your walkability score with local demographic data to identify potential equity concerns. Low walkability in economically disadvantaged areas compounds transportation burdens on residents who can least afford alternatives.
+      </p>
+
       <div className="space-y-3">
         {analysis.insights.map((insight, i) => (
           <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: config.bg }}>

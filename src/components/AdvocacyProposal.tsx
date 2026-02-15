@@ -36,9 +36,12 @@ export default function AdvocacyProposal({ isPremium, location, metrics, composi
           <p className="text-gray-600 mb-4">
             Generate a professional one-page proposal to present to city officials
           </p>
-          <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-4">
-            <p className="text-sm text-gray-700">
-              Sign in with Google to unlock this feature — it's free!
+          <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '2px solid rgba(224,120,80,0.2)' }}>
+            <p className="text-sm font-semibold" style={{ color: '#e07850' }}>
+              Advocacy Toolkit — $19 one-time payment
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>
+              Unlock proposals, AI letters, budget analysis, and more.
             </p>
           </div>
         </div>

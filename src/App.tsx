@@ -5,6 +5,7 @@ import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import ActivationHandler from './components/ActivationHandler';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
+import ContactFormModal from './components/ContactFormModal';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-load heavy components (only loaded when needed)
@@ -16,6 +17,8 @@ const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
+const TierComparisonCard = lazy(() => import('./components/TierComparisonCard'));
+const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
@@ -31,6 +34,7 @@ import { calculateCompositeScore } from './utils/compositeScore';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
+import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
 import type { CrossSectionSnapshot } from './components/StreetCrossSection';
@@ -40,6 +44,8 @@ interface AnalysisData {
   metrics: WalkabilityMetrics;
   quality: DataQuality;
   osmData: OSMData;
+  compositeScore?: WalkabilityScoreV2 | null;
+  crashData?: CrashData | null;
 }
 
 function App() {
@@ -61,7 +67,7 @@ function App() {
   const [crossSectionSnapshot, setCrossSectionSnapshot] = useState<CrossSectionSnapshot | null>(null);
 
   // Premium access - Clerk integration
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
   const userIsPremium = isPremium(user);
 
   // Backward compatibility with magic link system
@@ -87,7 +93,13 @@ function App() {
     try { return !localStorage.getItem('safestreets_seen_onboarding'); } catch { return true; }
   });
 
-  // Payment success banner
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
+  const [paymentPollingFailed, setPaymentPollingFailed] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
+  const [showSavedDropdown, setShowSavedDropdown] = useState(false);
+  const [showReportCard, setShowReportCard] = useState(false);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -98,22 +110,54 @@ function App() {
     };
   }, []);
 
-  // Clean up any legacy payment URL params
+  // Payment return flow: detect ?payment=success, poll for confirmation, reload
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('payment')) {
+    const paymentStatus = params.get('payment');
+
+    // Clean URL params regardless of outcome
+    const cleanUrl = () => {
       const url = new URL(window.location.href);
       url.searchParams.delete('payment');
       url.searchParams.delete('tier');
       window.history.replaceState({}, '', url.toString());
-    }
+    };
 
-    if (params.get('payment') === 'cancelled') {
-      const cancelUrl = new URL(window.location.href);
-      cancelUrl.searchParams.delete('payment');
-      window.history.replaceState({}, '', cancelUrl.toString());
+    if (paymentStatus === 'success' && user?.id) {
+      setShowPaymentSuccess(true);
+      cleanUrl();
+
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      let attempts = 0;
+      const maxAttempts = 10; // 10 × 2s = 20s
+
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`);
+          if (!res.ok) return; // Server error — keep polling
+          const data = await res.json();
+          if (data.tier === 'advocate') {
+            clearInterval(poll);
+            // Reload to pick up fresh Clerk user object with updated metadata
+            window.location.reload();
+          }
+        } catch {
+          // Network error — keep polling
+        }
+        if (attempts >= maxAttempts) {
+          clearInterval(poll);
+          setPaymentPollingFailed(true);
+        }
+      }, 2000);
+
+      return () => clearInterval(poll);
+    } else if (paymentStatus === 'cancelled') {
+      cleanUrl();
+    } else if (paymentStatus) {
+      cleanUrl();
     }
-  }, []);
+  }, [user?.id]);
 
   // Load from URL on mount
   useEffect(() => {
@@ -137,6 +181,22 @@ function App() {
       }
     }
   }, []);
+
+  // Dynamic page title — updates when analysis loads
+  useEffect(() => {
+    if (location && compositeScore) {
+      const shortName = location.displayName.split(',').slice(0, 2).join(',').trim();
+      const grade = compositeScore.grade || '';
+      const score = compositeScore.overallScore ? (compositeScore.overallScore / 10).toFixed(1) : '';
+      document.title = `${shortName} — Walkability Score ${score}/10 (${grade}) | SafeStreets`;
+    } else if (isAnalyzing && location) {
+      document.title = `Analyzing ${location.displayName.split(',')[0]}... | SafeStreets`;
+    } else if (compareMode) {
+      document.title = 'Compare Mode — SafeStreets Walkability Analysis';
+    } else {
+      document.title = 'SafeStreets — Walkability Score for Any Address | Free Satellite Analysis';
+    }
+  }, [location, compositeScore, isAnalyzing, compareMode]);
 
   const handleLocationSelect = async (selectedLocation: Location) => {
     // Single location mode only (compare mode has inline handlers)
@@ -220,6 +280,10 @@ function App() {
   };
 
   const handleCompareMode = () => {
+    if (!userIsPremium && accessInfo.tier !== 'advocate') {
+      setShowSignInModal(true);
+      return;
+    }
     setCompareMode(true);
     setLocation(null);
     setMetrics(null);
@@ -387,6 +451,25 @@ function App() {
         locationName={location?.displayName || ''}
       />
 
+      {/* Contact Form Modal */}
+      <ContactFormModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+      />
+
+      {/* Shareable Report Card Modal */}
+      {location && metrics && (
+        <Suspense fallback={null}>
+          <ShareableReportCard
+            isOpen={showReportCard}
+            onClose={() => setShowReportCard(false)}
+            location={location}
+            metrics={metrics}
+            compositeScore={compositeScore}
+          />
+        </Suspense>
+      )}
+
       {/* AI Advocacy Letter Modal */}
       {location && metrics && (
         <Suspense fallback={null}>
@@ -449,9 +532,21 @@ function App() {
               <p className="text-xs tracking-wider uppercase font-mono text-earth-text-mid">Walkability Analysis</p>
             </div>
           </button>
-          <div className="flex items-center gap-6">
-            <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
+          <div className="flex items-center gap-4">
+            {!isSignedIn && (
+              <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
+            )}
+            {isSignedIn && !userIsPremium && accessInfo.tier !== 'advocate' && (
+              <button
+                onClick={() => setShowSignInModal(true)}
+                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md hidden sm:block"
+                style={{ backgroundColor: '#e07850', color: 'white' }}
+              >
+                Upgrade
+              </button>
+            )}
             <a href="#faq" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
+            <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -461,10 +556,73 @@ function App() {
                 },
               }}
             />
+            {/* Mobile hamburger menu */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="sm:hidden p-2 rounded-lg transition-colors"
+              style={{ color: '#5a6a5a' }}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-earth-border bg-earth-cream px-6 py-3 space-y-2">
+            <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+            <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            {!isSignedIn && (
+              <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
+            )}
+            {isSignedIn && !userIsPremium && accessInfo.tier !== 'advocate' && (
+              <button
+                onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }}
+                className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left"
+                style={{ backgroundColor: '#e07850', color: 'white' }}
+              >
+                Upgrade
+              </button>
+            )}
+          </div>
+        )}
       </header>
 
+      {/* Payment success banner */}
+      {showPaymentSuccess && (
+        <div className="bg-green-50 border-b border-green-200 px-4 py-3">
+          <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="text-sm font-medium text-green-800">
+                {paymentPollingFailed
+                  ? 'Payment received! Please refresh the page to activate your Advocacy Toolkit.'
+                  : 'Payment successful! Activating your Advocacy Toolkit...'}
+              </span>
+            </div>
+            {paymentPollingFailed ? (
+              <button
+                onClick={() => window.location.reload()}
+                className="text-sm font-bold text-green-700 hover:text-green-900 underline"
+              >
+                Refresh now
+              </button>
+            ) : (
+              <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Hero Section - Light earthy aesthetic */}
       {!compareMode && !location && !isAnalyzing && (
@@ -804,7 +962,8 @@ function App() {
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Mode Toggle */}
         {!compareMode && location && metrics && (
-          <div className="mb-6 flex flex-col sm:flex-row justify-center gap-3 px-4 sm:px-0">
+          <div className="mb-6 flex flex-col items-center gap-3 px-4 sm:px-0">
+          <div className="flex flex-col sm:flex-row justify-center gap-3">
             <button
               onClick={() => {
                 setLocation(null);
@@ -825,7 +984,88 @@ function App() {
               style={{ backgroundColor: COLORS.accent }}
             >
               Compare with Another Location
+              {!userIsPremium && accessInfo.tier !== 'advocate' && (
+                <span className="block text-xs opacity-75 font-normal mt-0.5">Advocacy Toolkit</span>
+              )}
             </button>
+            {(userIsPremium || accessInfo.tier === 'advocate') && location && (
+              <button
+                onClick={() => {
+                  if (!location || !metrics) return;
+                  const result = saveAddress({
+                    displayName: location.displayName,
+                    lat: location.lat,
+                    lon: location.lon,
+                    overallScore: metrics.overallScore,
+                  });
+                  if (result) {
+                    setSavedAddressList(getSavedAddresses());
+                  }
+                }}
+                disabled={savedAddressList.length >= MAX_ADDRESSES || savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)}
+                className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base disabled:opacity-40"
+                style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+              >
+                {savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)
+                  ? 'Saved'
+                  : `Save (${savedAddressList.length}/${MAX_ADDRESSES})`}
+              </button>
+            )}
+          </div>
+          {/* Saved Addresses Dropdown */}
+          {(userIsPremium || accessInfo.tier === 'advocate') && savedAddressList.length > 0 && (
+            <div className="flex justify-center">
+              <div className="relative">
+                <button
+                  onClick={() => setShowSavedDropdown(!showSavedDropdown)}
+                  className="text-sm font-medium px-4 py-2 rounded-lg border transition-all hover:shadow-sm"
+                  style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+                >
+                  Saved Addresses ({savedAddressList.length}) {showSavedDropdown ? '\u25B2' : '\u25BC'}
+                </button>
+                {showSavedDropdown && (
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-white rounded-xl shadow-xl border z-30 overflow-hidden" style={{ borderColor: '#e0dbd0' }}>
+                    {savedAddressList.map((addr) => (
+                      <div key={addr.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 border-b last:border-0" style={{ borderColor: '#f0ebe0' }}>
+                        <button
+                          className="flex-1 text-left text-sm truncate mr-2"
+                          style={{ color: '#2a3a2a' }}
+                          onClick={() => {
+                            setShowSavedDropdown(false);
+                            const savedLoc: Location = {
+                              lat: addr.lat,
+                              lon: addr.lon,
+                              displayName: addr.displayName,
+                            };
+                            handleLocationSelect(savedLoc);
+                          }}
+                        >
+                          <span className="font-medium">{addr.displayName.split(',')[0]}</span>
+                          {addr.overallScore !== undefined && (
+                            <span className="text-xs ml-1" style={{ color: '#8a9a8a' }}>
+                              ({addr.overallScore.toFixed(1)}/10)
+                            </span>
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeAddress(addr.id);
+                            setSavedAddressList(getSavedAddresses());
+                          }}
+                          className="text-xs px-1.5 py-0.5 rounded hover:bg-red-50"
+                          style={{ color: '#b0a8a0' }}
+                          title="Remove"
+                        >
+                          &#x2715;
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           </div>
         )}
 
@@ -872,9 +1112,10 @@ function App() {
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(1);
                         try {
-                          // Fire OSM and satellite requests simultaneously
+                          // Fire OSM, satellite, and crash requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
                           const satellitePromises = startSatelliteFetches(selectedLocation);
+                          const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode).catch(() => null);
 
                           const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
@@ -885,15 +1126,23 @@ function App() {
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
+                          // Compute initial composite from OSM data
+                          const initialComposite = calculateCompositeScore({
+                            legacy: calculatedMetrics,
+                            networkGraph: fetchedOsmData.networkGraph,
+                          });
+
                           setLocation1({
                             location: selectedLocation,
                             metrics: calculatedMetrics,
                             quality,
                             osmData: fetchedOsmData,
+                            compositeScore: initialComposite,
                           });
 
-                          // Progressively update metrics as satellite data arrives
+                          // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
+                          const extra: { buildingDensity?: number; populationDensity?: number; crashData?: CrashData | null } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -902,13 +1151,22 @@ function App() {
                               scores.slope, scores.ndvi, scores.surfaceTemp,
                               scores.airQuality, scores.heatIsland
                             );
-                            setLocation1(prev => prev ? { ...prev, metrics: updated } : prev);
+                            const composite = calculateCompositeScore({
+                              legacy: updated,
+                              networkGraph: fetchedOsmData.networkGraph,
+                              buildingDensityScore: extra.buildingDensity,
+                              populationDensityScore: extra.populationDensity,
+                              crashData: extra.crashData,
+                            });
+                            setLocation1(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
                           satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
                           satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
-                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
+                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; if (v.buildingDensity) extra.buildingDensity = v.buildingDensity.score; recalc(); } });
+                          satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
+                          crashPromise.then(data => { extra.crashData = data; setLocation1(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 1:', error);
                           alert('Failed to analyze location 1. Please try again.');
@@ -935,9 +1193,10 @@ function App() {
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(2);
                         try {
-                          // Fire OSM and satellite requests simultaneously
+                          // Fire OSM, satellite, and crash requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
                           const satellitePromises = startSatelliteFetches(selectedLocation);
+                          const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode).catch(() => null);
 
                           const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
@@ -948,15 +1207,23 @@ function App() {
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
+                          // Compute initial composite from OSM data
+                          const initialComposite = calculateCompositeScore({
+                            legacy: calculatedMetrics,
+                            networkGraph: fetchedOsmData.networkGraph,
+                          });
+
                           setLocation2({
                             location: selectedLocation,
                             metrics: calculatedMetrics,
                             quality,
                             osmData: fetchedOsmData,
+                            compositeScore: initialComposite,
                           });
 
-                          // Progressively update metrics as satellite data arrives
+                          // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
+                          const extra: { buildingDensity?: number; populationDensity?: number; crashData?: CrashData | null } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -965,13 +1232,22 @@ function App() {
                               scores.slope, scores.ndvi, scores.surfaceTemp,
                               scores.airQuality, scores.heatIsland
                             );
-                            setLocation2(prev => prev ? { ...prev, metrics: updated } : prev);
+                            const composite = calculateCompositeScore({
+                              legacy: updated,
+                              networkGraph: fetchedOsmData.networkGraph,
+                              buildingDensityScore: extra.buildingDensity,
+                              populationDensityScore: extra.populationDensity,
+                              crashData: extra.crashData,
+                            });
+                            setLocation2(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
                           satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
                           satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
-                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
+                          satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; if (v.buildingDensity) extra.buildingDensity = v.buildingDensity.score; recalc(); } });
+                          satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
+                          crashPromise.then(data => { extra.crashData = data; setLocation2(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 2:', error);
                           alert('Failed to analyze location 2. Please try again.');
@@ -1015,7 +1291,7 @@ function App() {
                         alert('Geolocation is not supported by your browser.');
                       }
                     }}
-                    className="px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg md:hidden flex items-center justify-center gap-2"
+                    className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2"
                     style={{ backgroundColor: COLORS.primary }}
                     aria-label="Use my current location"
                   >
@@ -1045,9 +1321,13 @@ function App() {
               location1={location1.location}
               metrics1={location1.metrics}
               quality1={location1.quality}
+              compositeScore1={location1.compositeScore}
+              crashData1={location1.crashData}
               location2={location2.location}
               metrics2={location2.metrics}
               quality2={location2.quality}
+              compositeScore2={location2.compositeScore}
+              crashData2={location2.crashData}
             />
           </Suspense>
           </ErrorBoundary>
@@ -1070,8 +1350,32 @@ function App() {
               {location.displayName}
             </h2>
 
+            {/* Section Navigation */}
+            <nav className="sticky top-0 z-10 -mx-6 px-6 py-2 backdrop-blur-md" style={{ backgroundColor: 'rgba(248,246,241,0.85)' }}>
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                {[
+                  { id: 'score', label: 'Score' },
+                  { id: 'metrics', label: 'Metrics' },
+                  { id: 'cross-section', label: 'Cross-Section' },
+                  { id: 'neighborhood', label: 'Neighborhood' },
+                  { id: 'advocacy', label: 'Advocacy' },
+                  { id: 'methodology', label: 'Methodology' },
+                ].map(s => (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                    className="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80"
+                    style={{ backgroundColor: '#e0dbd0', color: '#2a3a2a' }}
+                  >
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            </nav>
+
             {/* Row 1: Map + Score side by side */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16">
               <Map location={location} osmData={osmData} />
               <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} compositeScore={compositeScore} />
             </div>
@@ -1116,7 +1420,9 @@ function App() {
             )}
 
             {/* Metrics Grid */}
-            <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
+            <div id="metrics" className="scroll-mt-16">
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
+            </div>
 
             {/* First-time onboarding card */}
             {showOnboarding && (
@@ -1144,7 +1450,19 @@ function App() {
               </div>
             )}
 
-            {/* Share Buttons — early for engagement */}
+            {/* Share Report Card + Share Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-2">
+              <button
+                onClick={() => setShowReportCard(true)}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg"
+                style={{ backgroundColor: '#e07850' }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Share Report Card
+              </button>
+            </div>
             <ErrorBoundary sectionName="Share Buttons">
               <Suspense fallback={null}>
                 <ShareButtons
@@ -1159,7 +1477,7 @@ function App() {
             </ErrorBoundary>
 
             {/* --- Tier 2: Understand & Act --- */}
-            <div className="flex items-center gap-3 pt-4">
+            <div id="neighborhood" className="flex items-center gap-3 pt-4 scroll-mt-16">
               <div className="h-px flex-1 bg-gray-200" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Understand Your Neighborhood</span>
               <div className="h-px flex-1 bg-gray-200" />
@@ -1173,11 +1491,21 @@ function App() {
             </ErrorBoundary>
 
             {/* --- Tier 3: Professional Advocacy Tools (Premium) --- */}
-            <div className="flex items-center gap-3 pt-4">
+            <div id="advocacy" className="flex items-center gap-3 pt-4 scroll-mt-16">
               <div className="h-px flex-1 bg-gray-200" />
               <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Professional Advocacy Tools</span>
               <div className="h-px flex-1 bg-gray-200" />
             </div>
+
+            {/* Tier Comparison Card — shown to free users */}
+            {!userIsPremium && accessInfo.tier === 'free' && (
+              <Suspense fallback={null}>
+                <TierComparisonCard
+                  onUpgrade={() => setShowSignInModal(true)}
+                  onContact={() => setShowContactModal(true)}
+                />
+              </Suspense>
+            )}
 
             {/* AI Advocacy Letter (Premium) */}
             {(userIsPremium || accessInfo.tier !== 'free') ? (
@@ -1213,16 +1541,16 @@ function App() {
                     <p className="text-gray-600 text-sm mb-3">
                       Generate professional letters to city officials citing your walkability data, WHO/NACTO standards, and specific recommendations.
                     </p>
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 mb-3">
-                      Free &mdash; Sign in to unlock
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>
+                      Advocacy Toolkit &mdash; $19 one-time
                     </div>
                     <br />
                     <button
                       onClick={() => setShowSignInModal(true)}
                       className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg"
-                      style={{ backgroundColor: COLORS.primary }}
+                      style={{ backgroundColor: '#e07850' }}
                     >
-                      Sign In to Unlock
+                      Unlock Advocacy Toolkit
                     </button>
                   </div>
                 </div>
@@ -1230,11 +1558,13 @@ function App() {
             )}
 
             {/* Street Cross-Section (Current = free, Recommended = premium) */}
-            <ErrorBoundary sectionName="Street Cross-Section">
-              <Suspense fallback={null}>
-                <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
-              </Suspense>
-            </ErrorBoundary>
+            <div id="cross-section" className="scroll-mt-16">
+              <ErrorBoundary sectionName="Street Cross-Section">
+                <Suspense fallback={null}>
+                  <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
 
             {/* Budget Analysis */}
             <ErrorBoundary sectionName="Investment Guide">
@@ -1261,7 +1591,7 @@ function App() {
             </ErrorBoundary>
 
             {/* --- Tier 4: Reference --- */}
-            <div className="rounded-2xl border-2 overflow-hidden" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>
+            <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>
               <button
                 onClick={() => setShowMethodology(!showMethodology)}
                 className="w-full flex items-center justify-between px-8 py-5 transition hover:opacity-80"
@@ -1625,7 +1955,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally.
+                    Yes! All 8 key walkability metrics are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like AI advocacy letters, PDF proposals, budget analysis, and compare mode, the Advocacy Toolkit is available for a one-time $19 payment.
                   </p>
                 </div>
               </div>
@@ -1700,7 +2030,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The basic metrics work instantly without any account. To access premium advocacy tools (PDF reports, AI letter generator, street redesign, budget analysis), just sign in with Google — it's completely free.
+                    No! The 8 core walkability metrics work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($19 one-time) unlocks advanced features like PDF reports, AI advocacy letters, street redesign mockups, budget analysis, and compare mode.
                   </p>
                 </div>
               </div>
@@ -1714,7 +2044,7 @@ function App() {
                   aria-controls="faq-5-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Is SafeStreets really free?
+                    What's free vs. paid?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 5 ? '−' : '+'}
@@ -1725,7 +2055,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">Yes, 100% free!</strong> Unlike other tools that charge $1,000-10,000/year, SafeStreets is completely free. Just sign in with Google to unlock all premium advocacy tools — no payment required, ever.
+                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics work without any sign-up. For advanced advocacy tools like AI letters, PDF proposals, budget analysis, and compare mode, the Advocacy Toolkit is available for a one-time $19 payment — no subscription.
                   </p>
                 </div>
               </div>
@@ -1739,7 +2069,7 @@ function App() {
                   aria-controls="faq-6-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    What do I get when I sign in?
+                    What do I get with the Advocacy Toolkit?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 6 ? '−' : '+'}
@@ -1750,7 +2080,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">Sign-in unlocks:</strong> PDF report export, JSON data export, AI advocacy letter generator, unlimited AI chatbot, street redesign recommendations, budget analysis, and policy proposal generator — all free.
+                    <strong className="text-gray-900">The Advocacy Toolkit ($19 one-time) unlocks:</strong> unlimited AI chatbot, AI advocacy letter generator, PDF proposal reports, budget analysis, compare mode, street redesign mockups, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
                   </p>
                 </div>
               </div>
@@ -1828,7 +2158,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! SafeStreets is free for personal and commercial use. Sign in with Google to access all advocacy tools and policy reports — perfect for community advocacy and urban planning.
+                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($19 one-time) unlocks advanced features like AI letters, PDF proposals, budget analysis, compare mode, and more. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
                   </p>
                 </div>
               </div>
@@ -1933,15 +2263,15 @@ function App() {
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#5090b0' }}></span>
+                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#e07850' }}></span>
                   <div>
-                    <span className="font-semibold" style={{ color: '#e0dbd0' }}>Sign In (Free)</span>
+                    <span className="font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $19</span>
                     <p className="text-xs" style={{ color: '#7a8a7a' }}>PDF reports, AI letter, street redesign, budget tools</p>
                   </div>
                 </li>
               </ul>
               <p className="text-xs mt-3 font-medium" style={{ color: '#6aaa5a' }}>
-                100% free · Sign in with Google
+                Core analysis free · No sign-up required
               </p>
             </div>
 
@@ -2008,8 +2338,8 @@ function App() {
                 Built for walkable cities, inspired by Jane Jacobs
               </p>
               <div className="flex items-center gap-4">
-                <a href="#" className="transition" style={{ color: '#7a8a7a' }}>Privacy</a>
-                <a href="#" className="transition" style={{ color: '#7a8a7a' }}>Terms</a>
+                <a href="/blog" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Blog</a>
+                <a href="#faq" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>FAQ</a>
               </div>
             </div>
           </div>

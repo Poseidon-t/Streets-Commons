@@ -1,6 +1,7 @@
 /**
  * Clerk-based Access Management
- * All features are free. Premium features require sign-in only (no payment).
+ * Free tier = default. Advocate tier = $19 one-time payment (stored in Clerk publicMetadata).
+ * Dev mode (localhost) auto-enables advocate tier for testing.
  */
 
 // User type from useUser() hook
@@ -41,7 +42,7 @@ function getDevTierOverride(): PremiumTier | null {
 
 /**
  * Get access info from Clerk user.
- * Any signed-in user gets advocate tier (all features free).
+ * Checks publicMetadata.tier set by Stripe webhook after payment.
  */
 export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo {
   const devOverride = getDevTierOverride();
@@ -57,19 +58,28 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
     return { tier: 'free', email: null, isValid: false };
   }
 
-  // Signed-in users get full access — no payment required
+  // Check Clerk publicMetadata for paid tier (set by Stripe webhook)
   const email = user.primaryEmailAddress?.emailAddress || null;
+  const metadataTier = user.publicMetadata?.tier as PremiumTier | undefined;
+
   return {
-    tier: 'advocate',
+    tier: metadataTier === 'advocate' ? 'advocate' : 'free',
     email,
     isValid: true,
   };
 }
 
 /**
- * Premium = signed in. All features are free with a Google sign-in.
+ * Premium = paid advocate tier (not just signed in).
  */
 export function isPremium(user: User | null | undefined): boolean {
   const { tier } = getAccessInfoFromUser(user);
-  return tier !== 'free';
+  return tier === 'advocate';
+}
+
+/**
+ * Check if user is signed in (regardless of payment status).
+ */
+export function isSignedIn(user: User | null | undefined): boolean {
+  return !!user;
 }

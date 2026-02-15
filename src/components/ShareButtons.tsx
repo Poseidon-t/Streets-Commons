@@ -353,20 +353,21 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
             </button>
           </div>
         ) : (
-          <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-xl">
+          <div className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '2px solid rgba(224,120,80,0.2)' }}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <h4 className="font-bold text-gray-800 mb-1">{'\uD83D\uDD13'} PDF Report + Data Export</h4>
-                <p className="text-xs text-gray-600 mb-2">
-                  Download professional PDF reports and raw JSON data — free with sign-in.
+                <h4 className="font-bold mb-1" style={{ color: '#2a3a2a' }}>PDF Report + Data Export</h4>
+                <p className="text-xs mb-1" style={{ color: '#8a9a8a' }}>
+                  Download professional PDF reports and raw JSON data.
                 </p>
+                <p className="text-xs font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $19 one-time</p>
               </div>
               <button
                 onClick={() => onUnlock?.()}
                 className="px-4 py-2 rounded-xl font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
-                style={{ backgroundColor: COLORS.primary }}
+                style={{ backgroundColor: '#e07850' }}
               >
-                Sign In {'\u2192'}
+                Unlock
               </button>
             </div>
           </div>

@@ -6,6 +6,10 @@ import './index.css'
 import App from './App.tsx'
 import ReportView from './components/ReportView.tsx'
 import AdvocacyProposalView from './components/AdvocacyProposalView.tsx'
+import CityPage from './components/CityPage.tsx'
+import CityIndex from './components/CityIndex.tsx'
+import BlogIndex from './components/BlogIndex.tsx'
+import BlogPost from './components/BlogPost.tsx'
 // Reports
 import { FifteenMinuteCityReport } from './components/reports'
 
@@ -28,6 +32,12 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/" element={<App />} />
           <Route path="/report" element={<ReportView />} />
           <Route path="/proposal" element={<AdvocacyProposalView />} />
+          {/* Programmatic SEO city pages */}
+          <Route path="/walkability" element={<CityIndex />} />
+          <Route path="/walkability/:citySlug" element={<CityPage />} />
+          {/* Blog */}
+          <Route path="/blog" element={<BlogIndex />} />
+          <Route path="/blog/:postSlug" element={<BlogPost />} />
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
           <Route path="*" element={

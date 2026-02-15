@@ -5,7 +5,6 @@
  */
 
 import { useState, useEffect, useMemo } from 'react';
-import { COLORS } from '../constants';
 import { fetchNearestStreetDetails } from '../services/overpass';
 import CrossSectionSVG from './CrossSectionSVG';
 import StreetDesignStandards from './StreetDesignStandards';
@@ -635,16 +634,17 @@ export default function StreetCrossSection({
               <div>
                 <h4 className="font-bold text-sm mb-1" style={{ color: '#2a3a2a' }}>Explore Street Redesign</h4>
                 <p className="text-xs" style={{ color: '#8a9a8a' }}>
-                  Sign in to toggle improvements like bike lanes, wider sidewalks, and street trees — free!
+                  Toggle improvements like bike lanes, wider sidewalks, and street trees.
                 </p>
+                <p className="text-xs font-semibold mt-1" style={{ color: '#e07850' }}>Advocacy Toolkit — $19 one-time</p>
               </div>
               {onUnlock && (
                 <button
                   onClick={onUnlock}
                   className="px-4 py-2 rounded-xl font-semibold text-white text-sm whitespace-nowrap"
-                  style={{ backgroundColor: COLORS.primary }}
+                  style={{ backgroundColor: '#e07850' }}
                 >
-                  Sign In
+                  Unlock
                 </button>
               )}
             </div>

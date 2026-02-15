@@ -2827,6 +2827,87 @@ app.get('/api/verify-token', async (req, res) => {
   }
 });
 
+// ─── Contact Inquiry (Tier 3: Custom Analysis) ──────────────────────────────
+
+const contactInquiryLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 inquiries per hour per IP
+  message: { error: 'Too many inquiries. Please try again later.' },
+});
+
+app.post('/api/contact-inquiry', contactInquiryLimiter, async (req, res) => {
+  const { name, email, location, projectType, description, timeline } = req.body;
+
+  if (!name || !email || !projectType || !description) {
+    return res.status(400).json({ error: 'Missing required fields: name, email, projectType, description' });
+  }
+
+  // Basic email validation
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+
+  const inquiry = {
+    name,
+    email,
+    location: location || 'Not specified',
+    projectType,
+    description,
+    timeline: timeline || 'Not specified',
+    submittedAt: new Date().toISOString(),
+    ip: req.ip,
+  };
+
+  console.log('📬 New contact inquiry:', JSON.stringify(inquiry, null, 2));
+
+  // Send email if SMTP is configured
+  const smtpHost = process.env.SMTP_HOST;
+  const contactEmail = process.env.CONTACT_EMAIL;
+
+  if (smtpHost && contactEmail) {
+    try {
+      const nodemailer = await import('nodemailer');
+      const transporter = nodemailer.default.createTransport({
+        host: smtpHost,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_PORT === '465',
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.SMTP_USER || 'noreply@safestreets.com',
+        to: contactEmail,
+        replyTo: email,
+        subject: `SafeStreets Inquiry: ${projectType} — ${name}`,
+        text: [
+          `New Custom Analysis Inquiry`,
+          ``,
+          `Name: ${name}`,
+          `Email: ${email}`,
+          `Location: ${inquiry.location}`,
+          `Project Type: ${projectType}`,
+          `Timeline: ${inquiry.timeline}`,
+          ``,
+          `Description:`,
+          description,
+          ``,
+          `Submitted: ${inquiry.submittedAt}`,
+        ].join('\n'),
+      });
+
+      console.log('📧 Inquiry email sent to', contactEmail);
+    } catch (emailErr) {
+      console.error('📧 Failed to send inquiry email:', emailErr.message);
+      // Don't fail the request — inquiry is logged
+    }
+  }
+
+  res.json({ success: true });
+});
+
 // ─── Advocacy Letter Generator (Claude AI) ───────────────────────────────────
 
 const advocacyLetterLimiter = rateLimit({
@@ -3364,5 +3445,6 @@ app.listen(PORT, () => {
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);
   console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);
-  console.log(`   🪝 Stripe Webhook: POST /api/stripe-webhook ${process.env.STRIPE_WEBHOOK_SECRET ? '(configured)' : '(needs STRIPE_WEBHOOK_SECRET)'}\n`);
+  console.log(`   🪝 Stripe Webhook: POST /api/stripe-webhook ${process.env.STRIPE_WEBHOOK_SECRET ? '(configured)' : '(needs STRIPE_WEBHOOK_SECRET)'}`);
+  console.log(`   📬 Contact Inquiry: POST /api/contact-inquiry ${process.env.SMTP_HOST ? '(email configured)' : '(console-only)'}\n`);
 });

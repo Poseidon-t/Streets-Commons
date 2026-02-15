@@ -366,16 +366,16 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
           {/* Input */}
           {isAtLimit ? (
             <div className="px-3 py-3 border-t border-gray-200 flex-shrink-0">
-              <div className="text-center p-3 bg-green-50 border border-green-200 rounded-xl">
-                <p className="text-sm font-semibold text-gray-800 mb-1">Free messages used ({FREE_MESSAGE_LIMIT}/{FREE_MESSAGE_LIMIT})</p>
-                <p className="text-xs text-gray-600 mb-2">Sign in to unlock unlimited advocacy chat and more.</p>
+              <div className="text-center p-3 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '1px solid rgba(224,120,80,0.2)' }}>
+                <p className="text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>Free messages used ({FREE_MESSAGE_LIMIT}/{FREE_MESSAGE_LIMIT})</p>
+                <p className="text-xs mb-2" style={{ color: '#8a9a8a' }}>Unlock unlimited chat with the Advocacy Toolkit — $19 one-time.</p>
                 {onUnlock && (
                   <button
                     onClick={onUnlock}
                     className="px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all hover:shadow-md"
-                    style={{ backgroundColor: COLORS.primary }}
+                    style={{ backgroundColor: '#e07850' }}
                   >
-                    Sign In to Unlock
+                    Unlock Advocacy Toolkit
                   </button>
                 )}
               </div>
