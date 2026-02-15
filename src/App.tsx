@@ -19,6 +19,7 @@ const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
 const TierComparisonCard = lazy(() => import('./components/TierComparisonCard'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
+const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
@@ -100,6 +101,7 @@ function App() {
   const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
+  const [showAuditTool, setShowAuditTool] = useState(false);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -1555,6 +1557,57 @@ function App() {
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Street Audit Tool CTA */}
+            <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.04)' }}>
+              <div className="px-6 py-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#e07850' }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                      <path d="M9 14l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Walk & Audit Your Street</h3>
+                    <p className="text-sm" style={{ color: '#5a6a5a' }}>
+                      Take a structured checklist to your street. Document real conditions with photos and notes, then download a proposal-ready report.
+                    </p>
+                  </div>
+                </div>
+                {(userIsPremium || accessInfo.tier !== 'free') ? (
+                  <button
+                    onClick={() => setShowAuditTool(true)}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:shadow-lg cursor-pointer border-none flex-shrink-0"
+                    style={{ backgroundColor: '#e07850' }}
+                  >
+                    Start Audit
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowSignInModal(true)}
+                    className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer border-2 flex-shrink-0"
+                    style={{ borderColor: '#e07850', color: '#e07850', backgroundColor: 'transparent' }}
+                  >
+                    Unlock Advocacy Toolkit
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Street Audit Tool Overlay */}
+            {showAuditTool && location && (
+              <Suspense fallback={null}>
+                <StreetAuditTool
+                  address={location.displayName}
+                  metrics={metrics}
+                  compositeScore={compositeScore}
+                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  onClose={() => setShowAuditTool(false)}
+                />
+              </Suspense>
             )}
 
             {/* Street Cross-Section (Current = free, Recommended = premium) */}
