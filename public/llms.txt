@@ -4,7 +4,7 @@
 
 ## What SafeStreets Does
 
-SafeStreets analyzes the walkability of any address worldwide using real satellite and open data sources. Users enter an address and receive scores across 8 walkability metrics:
+SafeStreets analyzes the walkability of any address worldwide using satellite and open data sources. Users enter an address and receive scores across 8 walkability metrics:
 
 1. **Sidewalk Coverage** — Percentage of streets with sidewalks within 400m (OpenStreetMap)
 2. **Tree Canopy** — Vegetation and shade coverage via Sentinel-2 NDVI satellite imagery

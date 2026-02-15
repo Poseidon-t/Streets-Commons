@@ -634,7 +634,7 @@ function App() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Real satellite data, not estimates. Sidewalks, tree cover, crash history, slope, air quality & more.
+              Satellite data for any address. Tree cover, crash history, slope, air quality & more.
               <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
             </p>
 
@@ -659,7 +659,7 @@ function App() {
               </span>
               <span className="text-earth-text-light hidden sm:inline">·</span>
               <span className="text-xs sm:text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">8</span> metrics from real data
+                <span className="text-earth-green font-semibold">8</span> data-driven metrics
               </span>
             </div>
 
