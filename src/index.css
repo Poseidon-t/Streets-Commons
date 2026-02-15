@@ -28,3 +28,5 @@ body {
 .prose th { padding: 0.75rem; text-align: left; font-weight: 600; color: #2a3a2a; border-bottom: 2px solid #e0dbd0; }
 .prose td { padding: 0.75rem; border-bottom: 1px solid #f0ebe0; }
 .prose tr:nth-child(even) { background-color: #faf9f7; }
+.prose blockquote { border-left: 4px solid #e07850; padding-left: 1rem; margin: 1.5rem 0; font-style: italic; color: #5a6a5a; }
+.prose table { display: block; overflow-x: auto; }

@@ -69,7 +69,7 @@ export default function BlogIndex() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className="text-sm px-4 py-1.5 rounded-full font-medium transition-all cursor-pointer border-none"
+              className="text-sm px-4 py-2.5 rounded-full font-medium transition-all cursor-pointer border-none"
               style={{
                 backgroundColor: activeCategory === cat ? '#e07850' : '#f0ebe0',
                 color: activeCategory === cat ? 'white' : '#5a6a5a',

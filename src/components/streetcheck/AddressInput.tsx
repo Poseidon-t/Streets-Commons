@@ -14,6 +14,7 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
   const [results, setResults] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSelected, setHasSelected] = useState(false);
+  const [searchedOnce, setSearchedOnce] = useState(false);
   const debounceTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
       try {
         const locations = await searchAddress(query);
         setResults(locations);
+        setSearchedOnce(true);
       } catch (error) {
         console.error('Search failed:', error);
         setResults([]);
@@ -67,6 +69,7 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
         onChange={(e) => {
           setQuery(e.target.value);
           if (hasSelected) setHasSelected(false);
+          setSearchedOnce(false);
         }}
         placeholder={placeholder || "Enter any address..."}
         className="w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-orange-500 transition-colors shadow-sm"
@@ -88,6 +91,12 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
               <div className="text-sm text-gray-800">{location.displayName}</div>
             </button>
           ))}
+        </div>
+      )}
+
+      {results.length === 0 && searchedOnce && query.trim().length > 2 && !isLoading && !hasSelected && (
+        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl p-4 text-center text-sm" style={{ color: '#8a9a8a' }}>
+          No results found. Try a more specific address.
         </div>
       )}
     </div>

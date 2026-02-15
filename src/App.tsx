@@ -101,6 +101,7 @@ function App() {
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -203,6 +204,7 @@ function App() {
     // Single location mode only (compare mode has inline handlers)
     setLocation(selectedLocation);
     setIsAnalyzing(true);
+    setAnalysisError(null);
     setMetrics(null);
     setSatelliteLoaded(new Set());
     setCrashData(null);
@@ -275,7 +277,7 @@ function App() {
 
     } catch (error) {
       console.error('Analysis failed:', error);
-      alert('Failed to analyze location. Please try again.');
+      setAnalysisError('Failed to analyze location. Please try again.');
       setIsAnalyzing(false);
     }
   };
@@ -542,7 +544,7 @@ function App() {
                 Upgrade
               </button>
             )}
-            <a href="#faq" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
+            <a href="#faq" onClick={(e) => { if (location || compareMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <UserButton
               afterSignOutUrl="/"
@@ -1336,6 +1338,20 @@ function App() {
           </div>
         )}
 
+        {/* Analysis Error */}
+        {analysisError && !isAnalyzing && (
+          <div className="max-w-md mx-auto rounded-xl p-6 text-center border" style={{ backgroundColor: 'rgba(255,255,255,0.9)', borderColor: '#e0dbd0' }}>
+            <p className="text-sm font-medium mb-3" style={{ color: '#c03030' }}>{analysisError}</p>
+            <button
+              onClick={() => setAnalysisError(null)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+              style={{ backgroundColor: '#e07850' }}
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
           <div className="space-y-8">
@@ -1359,7 +1375,7 @@ function App() {
                     key={s.id}
                     href={`#${s.id}`}
                     onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                    className="px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80"
+                    className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80"
                     style={{ backgroundColor: '#e0dbd0', color: '#2a3a2a' }}
                   >
                     {s.label}
@@ -2288,7 +2304,7 @@ function App() {
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#7a8a7a' }}></span>
                   <div>
                     <span className="font-semibold" style={{ color: '#e0dbd0' }}>Free Tier</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, 15-min city score, social sharing</p>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, compare mode, 15-min city, cross-section</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">

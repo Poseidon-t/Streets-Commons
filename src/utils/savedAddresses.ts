@@ -39,13 +39,21 @@ export function saveAddress(address: Omit<SavedAddress, 'id' | 'savedAt'>): Save
   };
 
   addresses.unshift(newAddress);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
+  } catch {
+    return null;
+  }
   return newAddress;
 }
 
 export function removeAddress(id: string): void {
   const addresses = getSavedAddresses().filter((a) => a.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(addresses));
+  } catch {
+    // Storage full or unavailable
+  }
 }
 
 export { MAX_ADDRESSES };

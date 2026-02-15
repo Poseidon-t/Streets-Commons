@@ -170,7 +170,7 @@ export default function BlogPost() {
         {relatedPosts.length > 0 && (
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-6" style={{ color: '#2a3a2a' }}>More from the Blog</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {relatedPosts.map(related => (
                 <Link
                   key={related.slug}
