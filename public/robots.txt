@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /report
+Disallow: /proposal
+
+Sitemap: https://safestreets.streetsandcommons.com/sitemap.xml

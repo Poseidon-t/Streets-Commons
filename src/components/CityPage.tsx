@@ -43,9 +43,50 @@ export default function CityPage() {
       <title>{city.metaTitle}</title>
       <meta name="description" content={city.metaDescription} />
       <link rel="canonical" href={`https://safestreets.streetsandcommons.com/walkability/${city.slug}`} />
+
+      {/* Open Graph */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={`https://safestreets.streetsandcommons.com/walkability/${city.slug}`} />
+      <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
       <meta property="og:title" content={city.metaTitle} />
       <meta property="og:description" content={city.metaDescription} />
-      <meta property="og:url" content={`https://safestreets.streetsandcommons.com/walkability/${city.slug}`} />
+      <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={city.metaTitle} />
+      <meta name="twitter:description" content={city.metaDescription} />
+      <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* JSON-LD WebPage + City + BreadcrumbList */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": `${city.name}, ${city.stateCode} Walkability Score`,
+        "description": city.metaDescription,
+        "url": `https://safestreets.streetsandcommons.com/walkability/${city.slug}`,
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "SafeStreets",
+          "url": "https://safestreets.streetsandcommons.com"
+        },
+        "about": {
+          "@type": "City",
+          "name": city.name,
+          "containedInPlace": {
+            "@type": "State",
+            "name": city.state
+          }
+        },
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://safestreets.streetsandcommons.com" },
+            { "@type": "ListItem", "position": 2, "name": "Walkability by City", "item": "https://safestreets.streetsandcommons.com/walkability" },
+            { "@type": "ListItem", "position": 3, "name": `${city.name}, ${city.stateCode}` }
+          ]
+        }
+      }) }} />
 
       {/* Header */}
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>

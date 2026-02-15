@@ -1,0 +1,48 @@
+# SafeStreets by Streets & Commons
+
+> Free satellite-powered walkability analysis for any address worldwide. Score streets on 8 metrics using NASA, Sentinel-2, and OpenStreetMap data.
+
+## What SafeStreets Does
+
+SafeStreets analyzes the walkability of any address worldwide using real satellite and open data sources. Users enter an address and receive scores across 8 walkability metrics:
+
+1. **Sidewalk Coverage** — Percentage of streets with sidewalks within 400m (OpenStreetMap)
+2. **Tree Canopy** — Vegetation and shade coverage via Sentinel-2 NDVI satellite imagery
+3. **Pedestrian Crossings** — Crossing density and safety infrastructure (OpenStreetMap)
+4. **Street Lighting** — Lit street coverage for nighttime safety (OpenStreetMap)
+5. **Terrain Slope** — ADA accessibility via NASADEM elevation data
+6. **Air Quality** — Real-time PM2.5 and pollution monitoring (OpenAQ)
+7. **Traffic Safety** — Fatal crash data within 800m (NHTSA FARS for US, WHO for international)
+8. **15-Minute City** — Whether daily services (grocery, schools, parks, transit) are within a 15-min walk
+
+## Key Features
+
+- **Free core analysis**: All 8 walkability metrics, composite score, grade, equity insights, 15-minute city analysis, street cross-section, and compare mode — no sign-up required
+- **Advocacy Toolkit** ($19 one-time): Street audit tool, AI advocacy documents, street redesign mockups, unlimited AI chatbot, PDF/JSON export, save up to 10 addresses
+- **Global coverage**: Works in 190+ countries using satellite data
+- **City pages**: Pre-built walkability guides for 20+ major US cities
+
+## Data Sources
+
+- NASA POWER (surface temperature)
+- Sentinel-2 (10m resolution vegetation imagery)
+- NASADEM (1-arc-second global elevation)
+- OpenStreetMap (community-verified street infrastructure)
+- NHTSA FARS (US fatal crash locations, 2018-2022)
+- WHO Global Health Observatory (international road traffic death rates)
+- OpenAQ (real-time air quality)
+
+## URLs
+
+- Homepage: https://safestreets.streetsandcommons.com/
+- Blog: https://safestreets.streetsandcommons.com/blog
+- City Index: https://safestreets.streetsandcommons.com/walkability
+- Sitemap: https://safestreets.streetsandcommons.com/sitemap.xml
+
+## Blog Topics
+
+The SafeStreets blog covers walkability analysis, pedestrian safety data, urban planning, 15-minute city concepts, and street advocacy guides. Articles are data-driven and reference primary sources (NHTSA, WHO, NACTO Global Street Design Guide).
+
+## Contact
+
+Built by Streets & Commons — https://streetsandcommons.com

@@ -30,6 +30,43 @@ export default function BlogIndex() {
       <meta name="description" content="Articles on walkability, urban planning, pedestrian safety, and street advocacy. Learn how satellite data is changing how we understand and improve our streets." />
       <link rel="canonical" href="https://safestreets.streetsandcommons.com/blog" />
 
+      {/* Open Graph */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://safestreets.streetsandcommons.com/blog" />
+      <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
+      <meta property="og:title" content="SafeStreets Blog — Walkability Analysis, Urban Planning & Advocacy" />
+      <meta property="og:description" content="Articles on walkability, urban planning, pedestrian safety, and street advocacy. Learn how satellite data is changing how we understand and improve our streets." />
+      <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="SafeStreets Blog — Walkability Analysis & Urban Planning" />
+      <meta name="twitter:description" content="Articles on walkability, pedestrian safety, and street advocacy. Powered by satellite data." />
+      <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* JSON-LD CollectionPage */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "SafeStreets Blog",
+        "description": "Articles on walkability, urban planning, pedestrian safety, and street advocacy.",
+        "url": "https://safestreets.streetsandcommons.com/blog",
+        "publisher": {
+          "@type": "Organization",
+          "name": "SafeStreets",
+          "url": "https://safestreets.streetsandcommons.com"
+        },
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": BLOG_POSTS.map((post, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "url": `https://safestreets.streetsandcommons.com/blog/${post.slug}`,
+            "name": post.title
+          }))
+        }
+      }) }} />
+
       {/* Header */}
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">

@@ -23,6 +23,36 @@ export default function CityIndex() {
       <meta name="description" content="Get free walkability scores for major US cities. Analyze sidewalks, tree cover, crash data, air quality & more using NASA satellite data. No sign-up required." />
       <link rel="canonical" href="https://safestreets.streetsandcommons.com/walkability" />
 
+      {/* Open Graph */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content="https://safestreets.streetsandcommons.com/walkability" />
+      <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
+      <meta property="og:title" content="Walkability Scores by City — Free Analysis for 20+ US Cities" />
+      <meta property="og:description" content="Get free walkability scores for major US cities. Analyze sidewalks, tree cover, crash data & more using NASA satellite data." />
+      <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="Walkability Scores by City — 20+ US Cities | SafeStreets" />
+      <meta name="twitter:description" content="Free satellite-powered walkability analysis for major US cities. No sign-up required." />
+      <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* JSON-LD ItemList */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        "name": "Walkability Scores by City",
+        "description": "Free satellite-powered walkability analysis for major US cities",
+        "url": "https://safestreets.streetsandcommons.com/walkability",
+        "numberOfItems": CITIES.length,
+        "itemListElement": CITIES.map((city, i) => ({
+          "@type": "ListItem",
+          "position": i + 1,
+          "url": `https://safestreets.streetsandcommons.com/walkability/${city.slug}`,
+          "name": `${city.name}, ${city.stateCode} Walkability Score`
+        }))
+      }) }} />
+
       {/* Header */}
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">

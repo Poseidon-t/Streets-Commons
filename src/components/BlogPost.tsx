@@ -40,21 +40,33 @@ export default function BlogPost() {
       <title>{post.metaTitle}</title>
       <meta name="description" content={post.metaDescription} />
       <link rel="canonical" href={`https://safestreets.streetsandcommons.com/blog/${post.slug}`} />
-      <meta property="og:title" content={post.metaTitle} />
-      <meta property="og:description" content={post.metaDescription} />
+
+      {/* Open Graph */}
       <meta property="og:type" content="article" />
       <meta property="og:url" content={`https://safestreets.streetsandcommons.com/blog/${post.slug}`} />
+      <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
+      <meta property="og:title" content={post.metaTitle} />
+      <meta property="og:description" content={post.metaDescription} />
+      <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
       <meta property="article:published_time" content={post.date} />
       <meta property="article:author" content={post.author} />
+      <meta property="article:section" content={post.category} />
+      <meta property="article:tag" content={post.tags[0]} />
 
-      {/* JSON-LD Structured Data */}
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={post.metaTitle} />
+      <meta name="twitter:description" content={post.metaDescription} />
+      <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
+
+      {/* JSON-LD Article */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Article",
         "headline": post.title,
         "description": post.metaDescription,
         "datePublished": post.date,
-        "author": { "@type": "Organization", "name": "SafeStreets" },
+        "author": { "@type": "Organization", "name": "Streets & Commons" },
         "publisher": {
           "@type": "Organization",
           "name": "SafeStreets",
@@ -66,6 +78,17 @@ export default function BlogPost() {
         },
         "articleSection": post.category,
         "keywords": post.tags.join(', ')
+      }) }} />
+
+      {/* JSON-LD BreadcrumbList */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://safestreets.streetsandcommons.com" },
+          { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://safestreets.streetsandcommons.com/blog" },
+          { "@type": "ListItem", "position": 3, "name": post.title }
+        ]
       }) }} />
 
       {/* Header */}
