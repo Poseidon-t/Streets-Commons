@@ -545,12 +545,11 @@ export default function StreetCrossSection({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold" style={{ color: '#2a3a2a' }}>
-            Street Cross-Section
+            {streetAttrs?.name || 'Nearest Street'}
+            <span className="text-base font-normal ml-2 capitalize" style={{ color: '#8a9a8a' }}>{currentConfig?.highwayType?.replace('_', ' ')}</span>
           </h2>
-          <p className="text-sm mt-0.5" style={{ color: '#8a9a8a' }}>
-            {streetAttrs?.name || 'Nearest street'}
-            <span className="mx-1.5" style={{ color: '#c5c0b5' }}>|</span>
-            <span className="capitalize">{currentConfig?.highwayType?.replace('_', ' ')}</span>
+          <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
+            Side view of your street — showing lanes, sidewalks, and other features based on OpenStreetMap data.
           </p>
         </div>
         {hasChanges && (
