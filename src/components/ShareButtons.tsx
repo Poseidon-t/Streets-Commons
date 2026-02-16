@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
 import type { Location, WalkabilityMetrics, DataQuality, CrossSectionConfig } from '../types';
-import PaymentModal from './PaymentModalWithAuth';
 
 interface CrossSectionSnapshot {
   currentConfig: CrossSectionConfig;
@@ -16,7 +15,6 @@ interface ShareButtonsProps {
   metrics: WalkabilityMetrics;
   dataQuality?: DataQuality;
   isPremium?: boolean;
-  onUnlock?: () => void;
   crossSectionSnapshot?: CrossSectionSnapshot | null;
 }
 
@@ -120,8 +118,7 @@ function pickTemplate(platform: string, scoreRange: string): TemplateFn {
   return templates[idx];
 }
 
-export default function ShareButtons({ location, metrics, dataQuality, isPremium = false, onUnlock, crossSectionSnapshot }: ShareButtonsProps) {
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+export default function ShareButtons({ location, metrics, dataQuality, isPremium = false, crossSectionSnapshot }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [includeCrossSection, setIncludeCrossSection] = useState(true);
@@ -275,115 +272,89 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 border-2 border-gray-100 shadow-lg">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Share Results</h3>
+    <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
+      <h3 className="text-base font-bold mb-3" style={{ color: '#2a3a2a' }}>Share Results</h3>
 
-      <div className="space-y-4">
-        {/* Copy Link */}
-        <button
-          onClick={handleCopyLink}
-          className={`w-full px-4 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${copied ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-        >
-          <span>{copied ? '\u2713' : '\uD83D\uDD17'}</span>
-          <span>{copied ? 'Copied!' : 'Copy Link'}</span>
-        </button>
-
-        {/* Copy Share Text */}
-        <button
-          onClick={handleCopyShareText}
-          className={`w-full px-4 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 border ${copiedText ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border-gray-200'}`}
-        >
-          <span>{copiedText ? '\u2713' : '\uD83D\uDCCB'}</span>
-          <span>{copiedText ? 'Copied!' : 'Copy Share Text'}</span>
-        </button>
+      <div className="space-y-3">
+        {/* Copy buttons */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={handleCopyLink}
+            className="px-3 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            style={copied ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#2a3a2a' }}
+          >
+            <span className="text-xs">{copied ? '\u2713' : '\uD83D\uDD17'}</span>
+            <span>{copied ? 'Copied!' : 'Copy Link'}</span>
+          </button>
+          <button
+            onClick={handleCopyShareText}
+            className="px-3 py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2"
+            style={copiedText ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#2a3a2a' }}
+          >
+            <span className="text-xs">{copiedText ? '\u2713' : '\uD83D\uDCCB'}</span>
+            <span>{copiedText ? 'Copied!' : 'Share Text'}</span>
+          </button>
+        </div>
 
         {/* Social Media Shares */}
         <div className="grid grid-cols-3 gap-2">
           <button
             onClick={handleShareTwitter}
-            className="px-4 py-3 rounded-xl font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-all text-sm"
+            className="px-3 py-2.5 rounded-lg font-semibold bg-neutral-900 text-white hover:bg-neutral-800 transition-all text-sm"
           >
             X
           </button>
           <button
             onClick={handleShareFacebook}
-            className="px-4 py-3 rounded-xl font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm"
+            className="px-3 py-2.5 rounded-lg font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-all text-sm"
           >
             Facebook
           </button>
           <button
             onClick={handleShareLinkedIn}
-            className="px-4 py-3 rounded-xl font-semibold bg-blue-700 text-white hover:bg-blue-800 transition-all text-sm"
+            className="px-3 py-2.5 rounded-lg font-semibold bg-blue-700 text-white hover:bg-blue-800 transition-all text-sm"
           >
             LinkedIn
           </button>
         </div>
 
-        {/* Cross-section opt-in */}
-        {isPremium && crossSectionSnapshot && (
-          <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={includeCrossSection}
-              onChange={(e) => setIncludeCrossSection(e.target.checked)}
-              className="w-4 h-4 rounded accent-[#e07850]"
-            />
-            <span className="text-sm" style={{ color: '#5a6a5a' }}>Include street cross-section in report</span>
-          </label>
-        )}
-
-        {/* Export Data */}
-        {isPremium ? (
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={handleExportJSON}
-              className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2"
-              style={{ backgroundColor: COLORS.accent }}
-            >
-              <span>{'\uD83D\uDCE5'}</span>
-              <span>JSON</span>
-            </button>
-            <button
-              onClick={handleGeneratePDF}
-              className="px-4 py-3 rounded-xl font-semibold text-white hover:shadow-lg transition-all flex items-center justify-center gap-2"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              <span>{'\uD83D\uDCC4'}</span>
-              <span>PDF Report</span>
-            </button>
-          </div>
-        ) : (
-          <div className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '2px solid rgba(224,120,80,0.2)' }}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h4 className="font-bold mb-1" style={{ color: '#2a3a2a' }}>PDF Report + Data Export</h4>
-                <p className="text-xs mb-1" style={{ color: '#8a9a8a' }}>
-                  Download professional PDF reports and raw JSON data.
-                </p>
-                <p className="text-xs font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $49 one-time</p>
-              </div>
+        {/* Export — premium only */}
+        {isPremium && (
+          <>
+            {crossSectionSnapshot && (
+              <label className="flex items-center gap-2 px-1 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeCrossSection}
+                  onChange={(e) => setIncludeCrossSection(e.target.checked)}
+                  className="w-4 h-4 rounded accent-[#e07850]"
+                />
+                <span className="text-xs" style={{ color: '#5a6a5a' }}>Include cross-section in report</span>
+              </label>
+            )}
+            <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => onUnlock?.()}
-                className="px-4 py-2 rounded-xl font-semibold text-white transition-all hover:shadow-lg whitespace-nowrap"
-                style={{ backgroundColor: '#e07850' }}
+                onClick={handleExportJSON}
+                className="px-3 py-2.5 rounded-lg font-semibold text-white hover:shadow-md transition-all flex items-center justify-center gap-2 text-sm"
+                style={{ backgroundColor: COLORS.accent }}
               >
-                Unlock
+                JSON
+              </button>
+              <button
+                onClick={handleGeneratePDF}
+                className="px-3 py-2.5 rounded-lg font-semibold text-white hover:shadow-md transition-all flex items-center justify-center gap-2 text-sm"
+                style={{ backgroundColor: COLORS.primary }}
+              >
+                PDF Report
               </button>
             </div>
-          </div>
+          </>
         )}
 
-        <p className="text-xs text-gray-500 text-center mt-4">
-          Evidence-based sharing. Every post references real data and global standards.
+        <p className="text-[10px] text-center" style={{ color: '#b0a8a0' }}>
+          Every post references real data and global standards.
         </p>
       </div>
-
-      {/* Payment Modal */}
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        locationName={location.displayName}
-      />
     </div>
   );
 }

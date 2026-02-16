@@ -1468,7 +1468,6 @@ function App() {
                     metrics={metrics}
                     dataQuality={dataQuality || undefined}
                     isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                    onUnlock={() => setShowSignInModal(true)}
                     crossSectionSnapshot={crossSectionSnapshot}
                   />
                 </Suspense>
