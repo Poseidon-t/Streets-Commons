@@ -1,15 +1,66 @@
 /**
- * Individual blog post page
+ * Individual blog post page (fetched from API)
  */
 
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getBlogPostBySlug, BLOG_POSTS } from '../data/blogPosts';
+import { getBlogPostBySlug, BLOG_POSTS, type BlogPost as BlogPostType } from '../data/blogPosts';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+interface PostMeta {
+  slug: string;
+  title: string;
+  category: string;
+  readTime: string;
+}
 
 export default function BlogPost() {
   const { postSlug } = useParams<{ postSlug: string }>();
-  const post = postSlug ? getBlogPostBySlug(postSlug) : undefined;
+  const [post, setPost] = useState<BlogPostType | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<PostMeta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!post) {
+  useEffect(() => {
+    if (!postSlug) { setNotFound(true); setLoading(false); return; }
+
+    // Fetch post from API, fall back to static data
+    fetch(`${API_URL}/api/blog/posts/${postSlug}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Not found');
+        return res.json();
+      })
+      .then(data => setPost(data))
+      .catch(() => {
+        const staticPost = getBlogPostBySlug(postSlug);
+        if (staticPost) setPost(staticPost);
+        else setNotFound(true);
+      })
+      .finally(() => setLoading(false));
+
+    // Fetch related posts list
+    fetch(`${API_URL}/api/blog/posts`)
+      .then(res => res.ok ? res.json() : [])
+      .then(posts => setRelatedPosts(posts.filter((p: PostMeta) => p.slug !== postSlug).slice(0, 3)))
+      .catch(() => {
+        setRelatedPosts(
+          BLOG_POSTS.filter(p => p.slug !== postSlug)
+            .slice(0, 3)
+            .map(({ slug, title, category, readTime }) => ({ slug, title, category, readTime }))
+        );
+      });
+  }, [postSlug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
+        <div className="text-gray-400">Loading post...</div>
+      </div>
+    );
+  }
+
+  if (notFound || !post) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
         <div className="text-center px-6">
@@ -23,16 +74,12 @@ export default function BlogPost() {
     );
   }
 
-  // Get related posts — prefer same category, then most recent
-  const relatedPosts = BLOG_POSTS
-    .filter(p => p.slug !== post.slug)
-    .sort((a, b) => {
-      const aMatch = a.category === post.category ? 1 : 0;
-      const bMatch = b.category === post.category ? 1 : 0;
-      if (aMatch !== bMatch) return bMatch - aMatch;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    })
-    .slice(0, 3);
+  // Sort related posts — prefer same category
+  const sortedRelated = [...relatedPosts].sort((a, b) => {
+    const aMatch = a.category === post.category ? 1 : 0;
+    const bMatch = b.category === post.category ? 1 : 0;
+    return bMatch - aMatch;
+  }).slice(0, 3);
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
@@ -190,11 +237,11 @@ export default function BlogPost() {
         </div>
 
         {/* Related Posts */}
-        {relatedPosts.length > 0 && (
+        {sortedRelated.length > 0 && (
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-6" style={{ color: '#2a3a2a' }}>More from the Blog</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {relatedPosts.map(related => (
+              {sortedRelated.map(related => (
                 <Link
                   key={related.slug}
                   to={`/blog/${related.slug}`}

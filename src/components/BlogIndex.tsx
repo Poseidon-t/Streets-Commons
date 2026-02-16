@@ -1,28 +1,54 @@
 /**
- * Blog index page — lists all blog posts
+ * Blog index page — lists all blog posts (fetched from API)
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { BLOG_POSTS } from '../data/blogPosts';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+interface PostMeta {
+  slug: string;
+  title: string;
+  metaTitle: string;
+  metaDescription: string;
+  date: string;
+  author: string;
+  category: string;
+  readTime: string;
+  excerpt: string;
+  tags: string[];
+}
+
 export default function BlogIndex() {
+  const [posts, setPosts] = useState<PostMeta[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('All');
 
-  // Get unique categories
-  const categories = useMemo(() => {
-    const cats = Array.from(new Set(BLOG_POSTS.map(p => p.category)));
-    return ['All', ...cats];
+  useEffect(() => {
+    fetch(`${API_URL}/api/blog/posts`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => setPosts(data))
+      .catch(() => {
+        // Fallback to static data
+        setPosts(BLOG_POSTS.map(({ content, ...meta }) => meta));
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  // Sort newest first and filter by category
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(posts.map(p => p.category)));
+    return ['All', ...cats];
+  }, [posts]);
+
   const filteredPosts = useMemo(() => {
-    const sorted = [...BLOG_POSTS].sort(
+    const sorted = [...posts].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
     if (activeCategory === 'All') return sorted;
     return sorted.filter(p => p.category === activeCategory);
-  }, [activeCategory]);
+  }, [posts, activeCategory]);
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
@@ -45,27 +71,29 @@ export default function BlogIndex() {
       <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
       {/* JSON-LD CollectionPage */}
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        "name": "SafeStreets Blog",
-        "description": "Articles on walkability, urban planning, pedestrian safety, and street advocacy.",
-        "url": "https://safestreets.streetsandcommons.com/blog",
-        "publisher": {
-          "@type": "Organization",
-          "name": "SafeStreets",
-          "url": "https://safestreets.streetsandcommons.com"
-        },
-        "mainEntity": {
-          "@type": "ItemList",
-          "itemListElement": BLOG_POSTS.map((post, i) => ({
-            "@type": "ListItem",
-            "position": i + 1,
-            "url": `https://safestreets.streetsandcommons.com/blog/${post.slug}`,
-            "name": post.title
-          }))
-        }
-      }) }} />
+      {posts.length > 0 && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "SafeStreets Blog",
+          "description": "Articles on walkability, urban planning, pedestrian safety, and street advocacy.",
+          "url": "https://safestreets.streetsandcommons.com/blog",
+          "publisher": {
+            "@type": "Organization",
+            "name": "SafeStreets",
+            "url": "https://safestreets.streetsandcommons.com"
+          },
+          "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": posts.map((post, i) => ({
+              "@type": "ListItem",
+              "position": i + 1,
+              "url": `https://safestreets.streetsandcommons.com/blog/${post.slug}`,
+              "name": post.title
+            }))
+          }
+        }) }} />
+      )}
 
       {/* Header */}
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
@@ -100,60 +128,66 @@ export default function BlogIndex() {
       </section>
 
       {/* Category Filter */}
-      <section className="max-w-3xl mx-auto px-6 pb-8">
-        <div className="flex flex-wrap gap-2 justify-center">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className="text-sm px-4 py-2.5 rounded-full font-medium transition-all cursor-pointer border-none"
-              style={{
-                backgroundColor: activeCategory === cat ? '#e07850' : '#f0ebe0',
-                color: activeCategory === cat ? 'white' : '#5a6a5a',
-              }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </section>
+      {!loading && (
+        <section className="max-w-3xl mx-auto px-6 pb-8">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {categories.map(cat => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className="text-sm px-4 py-2.5 rounded-full font-medium transition-all cursor-pointer border-none"
+                style={{
+                  backgroundColor: activeCategory === cat ? '#e07850' : '#f0ebe0',
+                  color: activeCategory === cat ? 'white' : '#5a6a5a',
+                }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Post List */}
       <section className="max-w-3xl mx-auto px-6 pb-16">
-        <div className="space-y-6">
-          {filteredPosts.map(post => (
-            <Link
-              key={post.slug}
-              to={`/blog/${post.slug}`}
-              className="block rounded-xl p-6 border transition-all hover:shadow-md"
-              style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <span
-                  className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
-                  style={{ backgroundColor: '#e07850', color: 'white' }}
-                >
-                  {post.category}
-                </span>
-                <span className="text-xs" style={{ color: '#8a9a8a' }}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.readTime}</span>
-              </div>
-              <h2 className="text-xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
-                {post.title}
-              </h2>
-              <p className="text-sm" style={{ color: '#5a6a5a' }}>
-                {post.excerpt}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {post.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: '#f0ebe0', color: '#8a9a8a' }}>
-                    {tag}
+        {loading ? (
+          <div className="text-center py-12 text-gray-400">Loading posts...</div>
+        ) : (
+          <div className="space-y-6">
+            {filteredPosts.map(post => (
+              <Link
+                key={post.slug}
+                to={`/blog/${post.slug}`}
+                className="block rounded-xl p-6 border transition-all hover:shadow-md"
+                style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <span
+                    className="text-xs font-semibold px-2.5 py-0.5 rounded-full"
+                    style={{ backgroundColor: '#e07850', color: 'white' }}
+                  >
+                    {post.category}
                   </span>
-                ))}
-              </div>
-            </Link>
-          ))}
-        </div>
+                  <span className="text-xs" style={{ color: '#8a9a8a' }}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.readTime}</span>
+                </div>
+                <h2 className="text-xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+                  {post.title}
+                </h2>
+                <p className="text-sm" style={{ color: '#5a6a5a' }}>
+                  {post.excerpt}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {post.tags.slice(0, 3).map(tag => (
+                    <span key={tag} className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: '#f0ebe0', color: '#8a9a8a' }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA */}

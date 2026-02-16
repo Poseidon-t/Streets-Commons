@@ -17,7 +17,10 @@ const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
+const EmailCaptureBanner = lazy(() => import('./components/EmailCaptureBanner'));
 
+import { captureUTMParams } from './utils/utm';
+import { trackEvent } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchSlope, scoreSlopeFromDegrees } from './services/elevation';
@@ -102,6 +105,9 @@ function App() {
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
+
+  // Capture UTM params on mount
+  useEffect(() => { captureUTMParams(); }, []);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -278,6 +284,11 @@ function App() {
       setMetrics(calculatedMetrics);
       setDataQuality(quality);
       setIsAnalyzing(false);
+
+      // Track analysis completion
+      trackEvent('analysis_complete', {
+        location: { displayName: selectedLocation.displayName, lat: selectedLocation.lat, lon: selectedLocation.lon },
+      });
 
       // Compute initial composite score from OSM data alone
       setCompositeScore(calculateCompositeScore({
@@ -1481,6 +1492,17 @@ function App() {
             <div id="metrics" className="scroll-mt-16">
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
             </div>
+
+            {/* Email capture banner */}
+            <Suspense fallback={null}>
+              <EmailCaptureBanner
+                locationName={location.displayName}
+                score={compositeScore ? (compositeScore.overallScore / 10).toFixed(1) : ''}
+                lat={location.lat}
+                lon={location.lon}
+                userEmail={user?.primaryEmailAddress?.emailAddress}
+              />
+            </Suspense>
 
             {/* 15-Minute City Score (free for all users) */}
             <div id="neighborhood" className="scroll-mt-16"></div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
+import { trackEvent } from '../utils/analytics';
 import type { Location, WalkabilityMetrics, DataQuality, CrossSectionConfig } from '../types';
 
 interface CrossSectionSnapshot {
@@ -127,7 +128,9 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   // Build shareable URL with location params
   const baseUrl = window.location.origin;
   const shareUrl = `${baseUrl}/?lat=${location.lat}&lon=${location.lon}&name=${encodeURIComponent(location.displayName)}`;
-  const prodUrl = `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}`;
+  const buildShareUrl = (platform: string) =>
+    `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}&utm_source=${platform}&utm_medium=social&utm_campaign=share`;
+  const prodUrl = buildShareUrl('organic');
   const shortName = location.city || location.displayName.split(',')[0] || 'This area';
   const score = metrics.overallScore.toFixed(1);
   const scoreRange = getRange(metrics.overallScore);
@@ -149,14 +152,16 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
 
   const shareData: ShareData = { shortName, score, prodUrl, weakest };
 
-  // Build platform-specific text
+  // Build platform-specific text with UTM-tagged URL
   const buildText = (platform: string): string => {
-    return pickTemplate(platform, scoreRange)(shareData);
+    const data = { ...shareData, prodUrl: buildShareUrl(platform) };
+    return pickTemplate(platform, scoreRange)(data);
   };
 
   const handleCopyLink = async () => {
+    trackEvent('share_click', { platform: 'copy_link' });
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(buildShareUrl('link'));
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
@@ -177,6 +182,7 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   };
 
   const handleShareTwitter = async () => {
+    trackEvent('share_click', { platform: 'twitter' });
     const tweetText = buildText('twitter');
     const popup = window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`, '_blank', 'width=550,height=420');
 
@@ -191,7 +197,9 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   };
 
   const handleShareFacebook = async () => {
-    const popup = window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(prodUrl)}`, '_blank', 'width=550,height=420');
+    trackEvent('share_click', { platform: 'facebook' });
+    const fbUrl = buildShareUrl('facebook');
+    const popup = window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fbUrl)}`, '_blank', 'width=550,height=420');
 
     if (!popup || popup.closed) {
       try {
@@ -204,7 +212,9 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   };
 
   const handleShareLinkedIn = async () => {
-    const popup = window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(prodUrl)}`, '_blank', 'width=550,height=420');
+    trackEvent('share_click', { platform: 'linkedin' });
+    const liUrl = buildShareUrl('linkedin');
+    const popup = window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(liUrl)}`, '_blank', 'width=550,height=420');
 
     if (!popup || popup.closed) {
       try {

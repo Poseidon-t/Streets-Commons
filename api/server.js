@@ -100,6 +100,15 @@ import fs from 'fs';
 const ANALYTICS_FILE = process.env.ANALYTICS_FILE || '/data/analytics.json';
 const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
 
+function requireAdminKey(req, res) {
+  const key = req.query.key || req.headers['x-admin-key'];
+  if (key !== ANALYTICS_SECRET) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return false;
+  }
+  return true;
+}
+
 // In-memory analytics store
 const analyticsStore = {
   daily: {},  // { "2026-02-05": { pageViews: 0, ... } }
@@ -158,6 +167,12 @@ function ensureTodayExists() {
       payments: 0,
       topCountries: {},
       topReferrers: {},
+      utmSources: {},
+      utmMediums: {},
+      utmCampaigns: {},
+      shareClicks: 0,
+      sharePlatforms: {},
+      emailsCaptured: 0,
     };
   }
   // Reset visitor tracking at midnight
@@ -198,6 +213,22 @@ function getReferrerDomain(referrer) {
 function trackEvent(eventType, req, extra = {}) {
   const today = ensureTodayExists();
 
+  // Track UTM attribution if present (applies to any event type)
+  if (extra.utm) {
+    if (extra.utm.utm_source) {
+      today.utmSources = today.utmSources || {};
+      today.utmSources[extra.utm.utm_source] = (today.utmSources[extra.utm.utm_source] || 0) + 1;
+    }
+    if (extra.utm.utm_medium) {
+      today.utmMediums = today.utmMediums || {};
+      today.utmMediums[extra.utm.utm_medium] = (today.utmMediums[extra.utm.utm_medium] || 0) + 1;
+    }
+    if (extra.utm.utm_campaign) {
+      today.utmCampaigns = today.utmCampaigns || {};
+      today.utmCampaigns[extra.utm.utm_campaign] = (today.utmCampaigns[extra.utm.utm_campaign] || 0) + 1;
+    }
+  }
+
   switch (eventType) {
     case 'pageview': {
       today.pageViews++;
@@ -223,6 +254,20 @@ function trackEvent(eventType, req, extra = {}) {
     case 'analysis':
       today.analyses++;
       analyticsStore.allTime.analyses++;
+      break;
+    case 'analysis_complete':
+      today.analyses++;
+      analyticsStore.allTime.analyses++;
+      break;
+    case 'share_click':
+      today.shareClicks = (today.shareClicks || 0) + 1;
+      if (extra.platform) {
+        today.sharePlatforms = today.sharePlatforms || {};
+        today.sharePlatforms[extra.platform] = (today.sharePlatforms[extra.platform] || 0) + 1;
+      }
+      break;
+    case 'email_captured':
+      today.emailsCaptured = (today.emailsCaptured || 0) + 1;
       break;
     case 'chat':
       today.chatMessages++;
@@ -300,155 +345,691 @@ app.get('/health', (req, res) => {
 
 // ─── Analytics Endpoints ─────────────────────────────────────────────────────
 
-// Frontend beacon — track page views
+// Frontend beacon — track events with UTM attribution
 app.post('/api/track', (req, res) => {
-  const { event, referrer } = req.body || {};
-  if (event === 'pageview') {
-    trackEvent('pageview', req, { referrer });
+  const { event, referrer, utm, platform } = req.body || {};
+  switch (event) {
+    case 'pageview':
+      trackEvent('pageview', req, { referrer, utm });
+      break;
+    case 'analysis_complete':
+      trackEvent('analysis_complete', req, { utm });
+      break;
+    case 'share_click':
+      trackEvent('share_click', req, { platform, utm });
+      break;
   }
   res.status(204).end();
 });
 
-// JSON stats API (password-protected)
-app.get('/api/admin/stats', (req, res) => {
-  if (req.query.key !== ANALYTICS_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
+// ─── Email Capture ──────────────────────────────────────────────────────────
+
+const EMAILS_FILE = process.env.EMAILS_FILE || '/data/emails.json';
+
+function loadEmails() {
+  try {
+    if (fs.existsSync(EMAILS_FILE)) {
+      return JSON.parse(fs.readFileSync(EMAILS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load emails:', err.message);
   }
+  return { emails: [], count: 0 };
+}
+
+function saveEmails(data) {
+  try {
+    const dir = path.dirname(EMAILS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(EMAILS_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Could not save emails:', err.message);
+    }
+  }
+}
+
+// ─── Editorial Calendar Storage ─────────────────────────────────────────────
+const EDITORIAL_CALENDAR_FILE = process.env.EDITORIAL_CALENDAR_FILE || '/data/editorial-calendar.json';
+
+function loadEditorialCalendar() {
+  try {
+    if (fs.existsSync(EDITORIAL_CALENDAR_FILE)) {
+      return JSON.parse(fs.readFileSync(EDITORIAL_CALENDAR_FILE, 'utf-8'));
+    }
+    // Try local dev path (relative to server.js -> parent/data/)
+    const localPath = path.join(__dirname, '..', 'data', 'editorial-calendar.json');
+    if (fs.existsSync(localPath)) {
+      return JSON.parse(fs.readFileSync(localPath, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load editorial calendar:', err.message);
+  }
+  return { posts: [], metadata: {}, tracking: {} };
+}
+
+function saveEditorialCalendar(calendar) {
+  try {
+    const dir = path.dirname(EDITORIAL_CALENDAR_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(EDITORIAL_CALENDAR_FILE, JSON.stringify(calendar, null, 2));
+  } catch (err) {
+    // Try local dev path (relative to server.js -> parent/data/)
+    try {
+      const localPath = path.join(__dirname, '..', 'data', 'editorial-calendar.json');
+      fs.writeFileSync(localPath, JSON.stringify(calendar, null, 2));
+    } catch (e) {
+      console.warn('Could not save editorial calendar:', e.message);
+    }
+  }
+}
+
+// ─── Blog Post Storage ──────────────────────────────────────────────────────
+const BLOG_POSTS_FILE = process.env.BLOG_POSTS_FILE || '/data/blog-posts.json';
+
+function loadBlogPosts() {
+  try {
+    if (fs.existsSync(BLOG_POSTS_FILE)) {
+      return JSON.parse(fs.readFileSync(BLOG_POSTS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load blog posts:', err.message);
+  }
+  return [];
+}
+
+function saveBlogPosts(posts) {
+  try {
+    const dir = path.dirname(BLOG_POSTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(BLOG_POSTS_FILE, JSON.stringify(posts, null, 2));
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Could not save blog posts:', err.message);
+    }
+  }
+}
+
+function calculateReadTime(htmlContent) {
+  const text = htmlContent.replace(/<[^>]*>/g, '');
+  const words = text.trim().split(/\s+/).length;
+  const minutes = Math.max(1, Math.ceil(words / 200));
+  return `${minutes} min read`;
+}
+
+function generateSlug(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+}
+
+const emailCaptureLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+
+app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
+  const { email, source, locationAnalyzed, lat, lon, score, utm } = req.body || {};
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address.' });
+  }
+
+  const ipHash = hashIP(req.ip || req.headers['x-forwarded-for']);
+  const country = guessCountry(req);
+
+  const entry = {
+    email: email.toLowerCase().trim(),
+    source: source || 'unknown',
+    locationAnalyzed: locationAnalyzed || null,
+    coordinates: lat && lon ? { lat, lon } : null,
+    score: score || null,
+    utm: utm && Object.keys(utm).length > 0 ? utm : null,
+    country,
+    ipHash,
+    capturedAt: new Date().toISOString(),
+    locations: locationAnalyzed ? [locationAnalyzed] : [],
+    analysisCount: 1,
+  };
+
+  const emailDB = loadEmails();
+  const existing = emailDB.emails.find(e => e.email === entry.email);
+
+  if (existing) {
+    existing.lastSeen = entry.capturedAt;
+    existing.analysisCount = (existing.analysisCount || 1) + 1;
+    if (entry.locationAnalyzed) {
+      existing.locations = existing.locations || [];
+      if (!existing.locations.includes(entry.locationAnalyzed)) {
+        existing.locations.push(entry.locationAnalyzed);
+      }
+    }
+  } else {
+    emailDB.emails.push(entry);
+    emailDB.count = emailDB.emails.length;
+  }
+
+  saveEmails(emailDB);
+  trackEvent('email_captured', req, { source });
+
+  console.log(`📧 Email captured: ${entry.email} (${entry.source}) — ${entry.locationAnalyzed || 'no location'}`);
+
+  const reportUrl = lat && lon
+    ? `https://safestreets.streetsandcommons.com/?lat=${lat}&lon=${lon}&name=${encodeURIComponent(locationAnalyzed || '')}`
+    : 'https://safestreets.streetsandcommons.com/';
+
+  res.json({ success: true, reportUrl });
+});
+
+// ─── Public Blog API ────────────────────────────────────────────────────────
+
+app.get('/api/blog/posts', (req, res) => {
+  const posts = loadBlogPosts();
+  const published = posts
+    .filter(p => p.status === 'published')
+    .map(({ content, ...meta }) => meta)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  res.json(published);
+});
+
+app.get('/api/blog/posts/:slug', (req, res) => {
+  const posts = loadBlogPosts();
+  const post = posts.find(p => p.slug === req.params.slug && p.status === 'published');
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  res.json(post);
+});
+
+// ─── Admin API ──────────────────────────────────────────────────────────────
+
+app.get('/api/admin/stats', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
   ensureTodayExists();
   res.json(analyticsStore);
 });
 
-// HTML Dashboard (password-protected)
-app.get('/admin', (req, res) => {
-  if (req.query.key !== ANALYTICS_SECRET) {
-    return res.status(401).send('Unauthorized. Add ?key=YOUR_SECRET to access.');
+app.get('/api/admin/emails', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  try {
+    const emailData = loadEmails();
+    res.json(emailData);
+  } catch {
+    res.json({ emails: [], count: 0 });
   }
-
-  ensureTodayExists();
-  const today = analyticsStore.daily[getToday()] || {};
-  const allTime = analyticsStore.allTime;
-
-  // Get last 7 days for chart
-  const last7Days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().split('T')[0];
-    const day = analyticsStore.daily[key] || {};
-    last7Days.push({ date: key.slice(5), views: day.pageViews || 0, analyses: day.analyses || 0 });
-  }
-
-  // Sort top items
-  const topCountries = Object.entries(today.topCountries || {})
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-  const topReferrers = Object.entries(today.topReferrers || {})
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
-  const maxViews = Math.max(...last7Days.map(d => d.views), 1);
-
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SafeStreets Analytics</title>
-  <meta http-equiv="refresh" content="30">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; color: #333; }
-    .container { max-width: 900px; margin: 0 auto; }
-    h1 { font-size: 24px; margin-bottom: 20px; color: #1e3a5f; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .card h2 { font-size: 14px; color: #666; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat { font-size: 36px; font-weight: 700; color: #1e3a5f; }
-    .stat-small { font-size: 24px; }
-    .label { font-size: 12px; color: #888; margin-top: 4px; }
-    .chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-top: 16px; }
-    .bar { flex: 1; background: #e8f4f8; border-radius: 4px 4px 0 0; position: relative; min-height: 4px; }
-    .bar-fill { position: absolute; bottom: 0; left: 0; right: 0; background: #1e3a5f; border-radius: 4px 4px 0 0; }
-    .bar-label { font-size: 10px; text-align: center; color: #666; margin-top: 4px; }
-    .list { font-size: 14px; }
-    .list-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
-    .list-item:last-child { border: none; }
-    .footer { text-align: center; font-size: 12px; color: #888; margin-top: 24px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>SafeStreets Analytics</h1>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Today</h2>
-        <div class="stat">${today.uniqueVisitors || 0}</div>
-        <div class="label">unique visitors</div>
-        <div class="stat-small" style="margin-top:12px">${today.pageViews || 0}</div>
-        <div class="label">page views</div>
-      </div>
-      <div class="card">
-        <h2>Analyses Today</h2>
-        <div class="stat">${today.analyses || 0}</div>
-        <div class="label">walkability analyses</div>
-        <div class="stat-small" style="margin-top:12px">${today.chatMessages || 0}</div>
-        <div class="label">AI chat messages</div>
-      </div>
-      <div class="card">
-        <h2>All Time</h2>
-        <div class="stat">${allTime.pageViews || 0}</div>
-        <div class="label">total page views</div>
-        <div class="stat-small" style="margin-top:12px">${allTime.analyses || 0}</div>
-        <div class="label">total analyses</div>
-      </div>
-      <div class="card">
-        <h2>Other Today</h2>
-        <div class="list">
-          <div class="list-item"><span>PDF uploads</span><span>${today.pdfUploads || 0}</span></div>
-          <div class="list-item"><span>Advocacy letters</span><span>${today.advocacyLetters || 0}</span></div>
-          <div class="list-item"><span>Payment attempts</span><span>${today.payments || 0}</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Last 7 Days (Page Views)</h2>
-        <div class="chart">
-          ${last7Days.map(d => `
-            <div style="flex:1">
-              <div class="bar" style="height:100px">
-                <div class="bar-fill" style="height:${(d.views / maxViews) * 100}%"></div>
-              </div>
-              <div class="bar-label">${d.date}</div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-      <div class="card">
-        <h2>Top Referrers (Today)</h2>
-        <div class="list">
-          ${topReferrers.length ? topReferrers.map(([r, c]) => `<div class="list-item"><span>${r}</span><span>${c}</span></div>`).join('') : '<div class="list-item"><span>No data yet</span></div>'}
-        </div>
-      </div>
-      <div class="card">
-        <h2>Top Countries (Today)</h2>
-        <div class="list">
-          ${topCountries.length ? topCountries.map(([c, n]) => `<div class="list-item"><span>${c}</span><span>${n}</span></div>`).join('') : '<div class="list-item"><span>No data yet</span></div>'}
-        </div>
-      </div>
-    </div>
-
-    <div class="footer">
-      Auto-refreshes every 30 seconds · Since ${allTime.firstSeen || 'today'}
-    </div>
-  </div>
-</body>
-</html>`;
-
-  res.type('html').send(html);
 });
+
+app.get('/api/admin/blog/posts', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const posts = loadBlogPosts();
+  const list = posts
+    .map(({ content, ...meta }) => meta)
+    .sort((a, b) => new Date(b.updatedAt || b.date).getTime() - new Date(a.updatedAt || a.date).getTime());
+  res.json(list);
+});
+
+app.get('/api/admin/blog/posts/:slug', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const posts = loadBlogPosts();
+  const post = posts.find(p => p.slug === req.params.slug);
+  if (!post) return res.status(404).json({ error: 'Post not found' });
+  res.json(post);
+});
+
+app.post('/api/admin/blog/posts', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const posts = loadBlogPosts();
+  const { title, content, category, tags, metaTitle, metaDescription, excerpt, author, date, status } = req.body || {};
+
+  if (!title || !content) return res.status(400).json({ error: 'Title and content are required' });
+
+  const slug = req.body.slug || generateSlug(title);
+  if (posts.find(p => p.slug === slug)) {
+    return res.status(409).json({ error: 'A post with this slug already exists' });
+  }
+
+  const now = new Date().toISOString();
+  const post = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    slug,
+    title,
+    metaTitle: metaTitle || title,
+    metaDescription: metaDescription || excerpt || '',
+    date: date || now.split('T')[0],
+    author: author || 'Streets & Commons',
+    category: category || 'General',
+    readTime: calculateReadTime(content),
+    excerpt: excerpt || '',
+    content,
+    tags: Array.isArray(tags) ? tags : [],
+    status: status || 'draft',
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  posts.push(post);
+  saveBlogPosts(posts);
+  console.log(`📝 Blog post created: "${post.title}" [${post.status}]`);
+  res.status(201).json(post);
+});
+
+app.put('/api/admin/blog/posts/:slug', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const posts = loadBlogPosts();
+  const index = posts.findIndex(p => p.slug === req.params.slug);
+  if (index === -1) return res.status(404).json({ error: 'Post not found' });
+
+  const existing = posts[index];
+  const updates = req.body || {};
+
+  if (updates.slug && updates.slug !== existing.slug) {
+    if (posts.find(p => p.slug === updates.slug)) {
+      return res.status(409).json({ error: 'A post with this slug already exists' });
+    }
+  }
+
+  const updated = {
+    ...existing,
+    ...updates,
+    id: existing.id,
+    createdAt: existing.createdAt,
+    readTime: updates.content ? calculateReadTime(updates.content) : existing.readTime,
+    updatedAt: new Date().toISOString(),
+  };
+
+  posts[index] = updated;
+  saveBlogPosts(posts);
+  console.log(`📝 Blog post updated: "${updated.title}" [${updated.status}]`);
+  res.json(updated);
+});
+
+app.delete('/api/admin/blog/posts/:slug', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const posts = loadBlogPosts();
+  const index = posts.findIndex(p => p.slug === req.params.slug);
+  if (index === -1) return res.status(404).json({ error: 'Post not found' });
+
+  const removed = posts.splice(index, 1)[0];
+  saveBlogPosts(posts);
+  console.log(`🗑️ Blog post deleted: "${removed.title}"`);
+  res.status(204).end();
+});
+
+// ═══════════════════════════════════════════════
+// AI Blog Post Generation (uses Anthropic Claude)
+// ═══════════════════════════════════════════════
+
+// Curated Unsplash image bank — categorized by topic, all verified CDN URLs
+const BLOG_IMAGE_BANK = {
+  pedestrian: [
+    { url: 'https://images.unsplash.com/photo-1533826418470-0cef7eb8bdaa?w=1200&q=80&fit=crop', alt: 'Pedestrians crossing a busy urban crosswalk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1465815367149-ca149851a3a9?w=1200&q=80&fit=crop', alt: 'People waiting at a pedestrian crossing', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1571754947519-10e7388da6ff?w=1200&q=80&fit=crop', alt: 'Crowds crossing at a busy city intersection', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1717339701000-990a1682f200?w=1200&q=80&fit=crop', alt: 'City street with painted crosswalk markings', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1730033145458-e185f1cd5e0b?w=1200&q=80&fit=crop', alt: 'Residential crosswalk in a quiet neighborhood', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1646438578231-5d8558ae2ba8?w=1200&q=80&fit=crop', alt: 'Person walking across a street crosswalk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1495549014838-6a652bd8e06b?w=1200&q=80&fit=crop', alt: 'Pedestrian navigating a city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1736083821029-665b513718f9?w=1200&q=80&fit=crop', alt: 'Group of people walking across a crosswalk', credit: 'Unsplash' },
+  ],
+  cycling: [
+    { url: 'https://images.unsplash.com/photo-1485381771061-e2cbd5317d9c?w=1200&q=80&fit=crop', alt: 'Protected bicycle lane in a city', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1700730025710-58ff304c1c8b?w=1200&q=80&fit=crop', alt: 'Cyclist riding on a city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1652348588909-e3c66c7e95f7?w=1200&q=80&fit=crop', alt: 'Bicycle commuter on a busy urban road', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1567158753851-2407cc0f6e2f?w=1200&q=80&fit=crop', alt: 'People biking on a dedicated cycling path', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1767556247327-46007f652a74?w=1200&q=80&fit=crop', alt: 'Cyclists riding down a tree-lined street', credit: 'Unsplash' },
+  ],
+  india: [
+    { url: 'https://images.unsplash.com/photo-1640558817252-f6139cbd2853?w=1200&q=80&fit=crop', alt: 'Busy city street with traffic at night in India', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1679022586098-766dbfecf22c?w=1200&q=80&fit=crop', alt: 'Busy Indian city street filled with traffic', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1754808881154-a4708f947004?w=1200&q=80&fit=crop', alt: 'Street scene with people and vehicles in India', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1522726832281-362409683a2d?w=1200&q=80&fit=crop', alt: 'Aerial view of an Indian city', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1753805122914-6366c65a4877?w=1200&q=80&fit=crop', alt: 'Vehicles driving on a busy Indian city road', credit: 'Unsplash' },
+  ],
+  urban: [
+    { url: 'https://images.unsplash.com/photo-1504494645474-cc4e25299579?w=1200&q=80&fit=crop', alt: 'Aerial view of a green urban neighborhood', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1721081411182-fb841e477468?w=1200&q=80&fit=crop', alt: 'City skyline viewed from a park', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1630381962702-4fbde321a0fb?w=1200&q=80&fit=crop', alt: 'People walking in an urban park with water views', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1731451163974-639ea494d81d?w=1200&q=80&fit=crop', alt: 'Aerial view of a city park surrounded by buildings', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1625235521692-e2d9bfba6234?w=1200&q=80&fit=crop', alt: 'People enjoying a walkable city park', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1715303927070-ba14c412d6df?w=1200&q=80&fit=crop', alt: 'City park with tall buildings in background', credit: 'Unsplash' },
+  ],
+  traffic: [
+    { url: 'https://images.unsplash.com/photo-1738200984864-cfe24df27e36?w=1200&q=80&fit=crop', alt: 'City street at night with traffic lights', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1669820509947-ecaf3cf52a59?w=1200&q=80&fit=crop', alt: 'Cars waiting in traffic on a city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1472070153210-15e27d938957?w=1200&q=80&fit=crop', alt: 'Red traffic light signaling stop', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1622032432572-7943ed0340a6?w=1200&q=80&fit=crop', alt: 'Street light and road infrastructure', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1760278357611-0c06ab1ded5b?w=1200&q=80&fit=crop', alt: 'Suburban street illuminated at night', credit: 'Unsplash' },
+  ],
+};
+
+// Select relevant images based on content topic, category, and region
+function selectBlogImages(category, keywords, region, count = 3) {
+  const keywordStr = (keywords || []).join(' ').toLowerCase();
+  const cat = (category || '').toLowerCase();
+  const reg = (region || '').toLowerCase();
+
+  // Determine which image pools to use based on content
+  const pools = [];
+
+  // Region-specific pool
+  if (reg === 'india' || keywordStr.includes('india') || keywordStr.includes('mumbai') || keywordStr.includes('delhi')) {
+    pools.push(...BLOG_IMAGE_BANK.india);
+  }
+
+  // Topic-based pools
+  if (keywordStr.includes('cycl') || keywordStr.includes('bike') || keywordStr.includes('bicycle')) {
+    pools.push(...BLOG_IMAGE_BANK.cycling);
+  }
+  if (keywordStr.includes('pedestrian') || keywordStr.includes('crosswalk') || keywordStr.includes('walking') || cat === 'safety') {
+    pools.push(...BLOG_IMAGE_BANK.pedestrian);
+  }
+  if (keywordStr.includes('urban') || keywordStr.includes('city') || keywordStr.includes('park') || keywordStr.includes('walkab') || cat === 'urban design') {
+    pools.push(...BLOG_IMAGE_BANK.urban);
+  }
+  if (keywordStr.includes('traffic') || keywordStr.includes('speed') || keywordStr.includes('road') || keywordStr.includes('crash') || keywordStr.includes('accident')) {
+    pools.push(...BLOG_IMAGE_BANK.traffic);
+  }
+
+  // If no specific match, use a mix of all
+  if (pools.length === 0) {
+    pools.push(...BLOG_IMAGE_BANK.pedestrian, ...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.traffic);
+  }
+
+  // Shuffle and pick unique images
+  const shuffled = pools.sort(() => Math.random() - 0.5);
+  const unique = [];
+  const seen = new Set();
+  for (const img of shuffled) {
+    if (!seen.has(img.url) && unique.length < count) {
+      seen.add(img.url);
+      unique.push(img);
+    }
+  }
+  return unique;
+}
+
+// Inject images into generated HTML content after <h2> sections
+function injectBlogImages(html, category, keywords, region) {
+  const images = selectBlogImages(category, keywords, region, 3);
+  if (images.length === 0) return html;
+
+  // Find all <h2> positions
+  const h2Regex = /<h2[^>]*>/gi;
+  const h2Positions = [];
+  let match;
+  while ((match = h2Regex.exec(html)) !== null) {
+    h2Positions.push(match.index);
+  }
+
+  if (h2Positions.length < 2) {
+    // Not enough sections — inject one image at the start
+    const figureHtml = `<figure class="blog-image"><img src="${images[0].url}" alt="${images[0].alt}" loading="lazy" /><figcaption>${images[0].alt} — Photo: ${images[0].credit}</figcaption></figure>`;
+    return figureHtml + html;
+  }
+
+  // Inject images after every 2nd <h2> section (before the next <h2>)
+  let result = '';
+  let lastIdx = 0;
+  let imgIdx = 0;
+
+  // Place images at strategic positions (after 1st, 3rd, 5th h2)
+  const insertAfter = [0, 2, 4].filter(i => i < h2Positions.length);
+
+  for (let i = 0; i < h2Positions.length && imgIdx < images.length; i++) {
+    if (insertAfter.includes(i) && i + 1 < h2Positions.length) {
+      // Find end of current section (start of next h2)
+      const sectionEnd = h2Positions[i + 1];
+      // Find last </p> before next h2
+      const sectionHtml = html.substring(h2Positions[i], sectionEnd);
+      const lastP = sectionHtml.lastIndexOf('</p>');
+      if (lastP !== -1) {
+        const insertPos = h2Positions[i] + lastP + 4; // after </p>
+        result += html.substring(lastIdx, insertPos);
+        const img = images[imgIdx++];
+        result += `\n<figure class="blog-image"><img src="${img.url}" alt="${img.alt}" loading="lazy" /><figcaption>${img.alt} — Photo: ${img.credit}</figcaption></figure>\n`;
+        lastIdx = insertPos;
+      }
+    }
+  }
+  result += html.substring(lastIdx);
+  return result;
+}
+
+const BLOG_CONTENT_SYSTEM_PROMPT = `You are the content engine for SafeStreets — a walkability analysis platform. You write SEO-optimized, data-driven blog posts about pedestrian safety, walkability, urban planning, and street advocacy.
+
+VOICE & STYLE:
+- Passionate but not preachy. Data-driven but narrative. Urgent but hopeful. Accessible but not condescending.
+- Reading level: Grade 9-10 (Flesch Reading Ease 60-70)
+- Active voice 80%+. Average sentence length 15-20 words. Paragraphs 2-4 sentences.
+- Use "pedestrian deaths" not "accidents". Use "traffic violence" not "accidents". Use "street design" not just "infrastructure".
+- Never use "jaywalking" (victim-blaming) or "pedestrian error" (system design is the issue).
+
+CONTENT REQUIREMENTS:
+- Every statistic MUST have a credible source cited inline (e.g. "according to NHTSA FARS data" or "WHO reports that...")
+- Include at least 5 specific statistics with sources
+- Include comparison data (across countries, cities, or time periods)
+- Present evidence-based solutions with real-world success stories
+- End with concrete, actionable steps readers can take
+- Include 2-3 compelling pull quotes as <blockquote> elements
+- Use data tables with <table> where comparing interventions or cities
+
+DATA SOURCES TO REFERENCE:
+- NHTSA FARS (US crash data), FHWA (Federal Highway Administration)
+- WHO Global Status Report on Road Safety
+- MoRTH India (Ministry of Road Transport & Highways)
+- NACTO (National Association of City Transportation Officials)
+- Smart Growth America "Dangerous by Design"
+- Vision Zero Network
+- Brookings Institution (walkability & property values)
+- CDC pedestrian injury data
+
+OUTPUT FORMAT:
+Return ONLY a JSON object (no markdown, no code fences) with these fields:
+{
+  "title": "Post title (under 60 characters)",
+  "metaTitle": "SEO meta title (50-60 characters) — Primary Keyword | SafeStreets Blog",
+  "metaDescription": "SEO meta description (150-160 characters, include primary keyword and CTA)",
+  "excerpt": "2-3 sentence summary for the blog index (50-75 words)",
+  "category": "One of: Safety, Real Estate, Guide, Advocacy, Technology, Urban Design",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "content": "<h2>...</h2><p>...</p>... (full HTML content, 2000-2500 words)"
+}
+
+HTML STRUCTURE FOR content:
+- Use <h2> for main sections, <h3> for subsections
+- Use <p> for paragraphs, <strong> for key terms
+- Use <blockquote> for pull quotes (2-3 per post)
+- Use <ul>/<ol> for lists
+- Use <table><thead><tr><th>...</th></tr></thead><tbody>... for data tables
+- Use <a href="URL"> for external source links
+- Do NOT include <h1> (the title is rendered separately)
+- Do NOT include <img> tags (images are injected automatically after generation)
+
+VISUAL ELEMENTS (use these to make posts visually engaging):
+- Use <div class="stat-highlight"><span class="stat-number">NUMBER</span><span class="stat-label">DESCRIPTION</span><span class="stat-source">Source: SOURCE</span></div> for big standout statistics (use 2-3 per post)
+- Use <div class="key-takeaway"><strong>Key Takeaway:</strong> TEXT</div> for important callout boxes
+- Use <div class="info-box"><strong>INFO_TITLE</strong><p>TEXT</p></div> for tips or context boxes
+- Use <div class="comparison-box"><div class="compare-item bad"><strong>Before</strong><p>TEXT</p></div><div class="compare-item good"><strong>After</strong><p>TEXT</p></div></div> for before/after comparisons
+- Use at least 2 stat-highlight elements and 1 key-takeaway per post`;
+
+const POST_TYPE_PROMPTS = {
+  standard: `Write a STANDARD BLOG POST with this structure:
+1. Hook (100-150 words) — compelling opening statistic or story
+2. Problem Statement (300-400 words) — core issue with key statistics
+3. Data Deep Dive (500-700 words) — analysis from multiple angles with trends
+4. Root Causes (400-500 words) — systemic reasons, go beyond surface
+5. Solutions (500-700 words) — evidence-based interventions, success stories, data tables
+6. Call to Action (100-200 words) — concrete steps readers can take
+
+Tone: Informed advocate.`,
+
+  data_report: `Write a DATA-DRIVEN ANALYSIS REPORT with this structure:
+1. Key Findings (150-200 words) — bullet-point executive summary
+2. Methodology (200-250 words) — data sources, time period, limitations
+3. Detailed Findings (800-1000 words) — 4-6 major findings each with data
+4. Comparative Analysis (400-500 words) — compare across regions/demographics
+5. Policy Implications (300-400 words) — what findings mean for policy
+6. Recommendations (200-300 words) — specific, numbered, data-driven
+
+Tone: Analytical. Heavier on data tables and statistics. Minimize narrative.`,
+
+  case_study: `Write a CASE STUDY with this structure:
+1. Introduction (150-200 words) — what and why it matters
+2. Background / The Situation Before (300-400 words) — baseline data, key problems
+3. Intervention / What They Did (400-500 words) — timeline, actions, budget, challenges
+4. Results (500-700 words) — before/after data, quantitative + qualitative outcomes
+5. Why It Worked (300-400 words) — critical success factors
+6. Lessons for Other Cities (300-400 words) — what's replicable vs context-specific
+7. Conclusion (100-150 words) — main takeaway
+
+Tone: Hopeful. Narrative-driven with before/after emphasis. Use quotes where applicable.`,
+
+  explainer: `Write an EXPLAINER / EDUCATIONAL POST with this structure:
+1. What Is [Concept]? (300-400 words) — plain language definition, address misconceptions
+2. Why It Matters (400-500 words) — real-world impact with data, who is affected
+3. How It Works (500-700 words) — use analogies, break down complexity, step-by-step
+4. Examples in Practice (500-600 words) — 3-5 concrete real-world examples
+5. Common Questions (300-400 words) — FAQ format addressing objections
+6. Taking Action (100-200 words) — how readers can engage
+
+Tone: Educational. Use analogies. Progressive complexity (start simple, add detail).`,
+};
+
+app.post('/api/admin/blog/generate', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    return res.status(503).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  }
+
+  const {
+    topic,
+    keywords = [],
+    postType = 'standard',
+    tone = 'informed_advocate',
+    region = 'global',
+  } = req.body;
+
+  if (!topic || !topic.trim()) {
+    return res.status(400).json({ error: 'Topic is required' });
+  }
+
+  const typePrompt = POST_TYPE_PROMPTS[postType] || POST_TYPE_PROMPTS.standard;
+
+  const userPrompt = `${typePrompt}
+
+TOPIC: ${topic}
+${keywords.length ? `TARGET SEO KEYWORDS: ${keywords.join(', ')}` : ''}
+GEOGRAPHIC FOCUS: ${region}
+TONE: ${tone.replace(/_/g, ' ')}
+
+Write the complete blog post now. Remember: output ONLY a valid JSON object, no markdown code fences.`;
+
+  try {
+    console.log(`🤖 Generating blog post: "${topic}" (${postType}, ${region})`);
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 8000,
+        temperature: 0.7,
+        system: BLOG_CONTENT_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('Anthropic API error:', response.status, errBody);
+      return res.status(502).json({ error: `AI generation failed (${response.status})` });
+    }
+
+    const result = await response.json();
+    const text = result.content?.[0]?.text || '';
+
+    // Parse the JSON from Claude's response
+    let parsed;
+    try {
+      // Try direct parse first
+      parsed = JSON.parse(text);
+    } catch {
+      // Try extracting JSON from potential markdown code fences
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsed = JSON.parse(jsonMatch[0]);
+      } else {
+        console.error('Failed to parse AI response as JSON:', text.slice(0, 500));
+        return res.status(500).json({ error: 'AI returned invalid format. Please try again.' });
+      }
+    }
+
+    // Validate required fields
+    if (!parsed.title || !parsed.content) {
+      return res.status(500).json({ error: 'AI response missing required fields. Please try again.' });
+    }
+
+    // Inject curated Unsplash images into the content
+    const enrichedContent = injectBlogImages(parsed.content, parsed.category, keywords, region);
+    console.log(`✅ Blog post generated: "${parsed.title}" (${enrichedContent.length} chars, images injected)`);
+
+    res.json({
+      title: parsed.title,
+      metaTitle: parsed.metaTitle || parsed.title,
+      metaDescription: parsed.metaDescription || '',
+      excerpt: parsed.excerpt || '',
+      category: parsed.category || 'General',
+      tags: parsed.tags || keywords,
+      content: enrichedContent,
+    });
+  } catch (err) {
+    console.error('Blog generation error:', err);
+    res.status(500).json({ error: 'Failed to generate blog post. Please try again.' });
+  }
+});
+
+// ─── Content Queue (Editorial Calendar) ─────────────────────────────────────
+
+// GET /api/admin/content-queue — list all planned posts
+app.get('/api/admin/content-queue', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const calendar = loadEditorialCalendar();
+  res.json(calendar);
+});
+
+// PUT /api/admin/content-queue/:id — update a single calendar post status
+app.put('/api/admin/content-queue/:id', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const id = parseInt(req.params.id, 10);
+  const calendar = loadEditorialCalendar();
+  const post = calendar.posts.find(p => p.id === id);
+  if (!post) return res.status(404).json({ error: 'Calendar post not found' });
+
+  const { status, generatedSlug } = req.body;
+  if (status) post.status = status;
+  if (generatedSlug) post.generatedSlug = generatedSlug;
+  post.updatedAt = new Date().toISOString();
+
+  // Update tracking
+  if (status === 'generated' || status === 'published') {
+    calendar.tracking.lastGeneratedDate = new Date().toISOString();
+    calendar.tracking.lastGeneratedPostId = id;
+    calendar.tracking.totalGenerated = calendar.posts.filter(p => p.status === 'generated' || p.status === 'published').length;
+    calendar.tracking.totalPublished = calendar.posts.filter(p => p.status === 'published').length;
+  }
+
+  saveEditorialCalendar(calendar);
+  res.json(post);
+});
+
+// ═══════════════════════════════════════════════
 
 // Overpass API proxy with caching
 app.post('/api/overpass', async (req, res) => {
@@ -3409,7 +3990,6 @@ const honeypots = [
   '/api/keys',
   '/api/config',
   '/.git/config',
-  '/admin',
   '/wp-admin',
   '/phpMyAdmin',
   '/config.json',

@@ -12,6 +12,10 @@ COPY . .
 # Pass Vite env vars as build args (Railway injects env vars as build args automatically)
 ARG VITE_CLERK_PUBLISHABLE_KEY
 ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
+ARG VITE_ADMIN_USER_ID
+ENV VITE_ADMIN_USER_ID=$VITE_ADMIN_USER_ID
+ARG VITE_ADMIN_KEY
+ENV VITE_ADMIN_KEY=$VITE_ADMIN_KEY
 
 # Build the frontend (creates dist/)
 RUN npm run build

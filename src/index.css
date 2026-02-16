@@ -31,6 +31,165 @@ body {
 .prose blockquote { border-left: 4px solid #e07850; padding-left: 1rem; margin: 1.5rem 0; font-style: italic; color: #5a6a5a; }
 .prose table { display: block; overflow-x: auto; }
 
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  min-height: 400px;
+  padding: 1.5rem;
+  outline: none;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #3a4a3a;
+}
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+.tiptap-editor .ProseMirror h2 { font-size: 1.5rem; font-weight: 700; color: #2a3a2a; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+.tiptap-editor .ProseMirror h3 { font-size: 1.25rem; font-weight: 700; color: #2a3a2a; margin-top: 1rem; margin-bottom: 0.5rem; }
+.tiptap-editor .ProseMirror p { margin-bottom: 0.75rem; }
+.tiptap-editor .ProseMirror ul, .tiptap-editor .ProseMirror ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+.tiptap-editor .ProseMirror li { margin-bottom: 0.25rem; }
+.tiptap-editor .ProseMirror blockquote { border-left: 4px solid #e07850; padding-left: 1rem; margin: 1rem 0; font-style: italic; color: #5a6a5a; }
+.tiptap-editor .ProseMirror a { color: #e07850; text-decoration: underline; }
+.tiptap-editor .ProseMirror img { max-width: 100%; height: auto; border-radius: 8px; margin: 1rem 0; }
+.tiptap-editor .ProseMirror code { background: #f0ebe0; padding: 0.15rem 0.3rem; border-radius: 3px; font-size: 0.85em; }
+.tiptap-editor .ProseMirror pre { background: #2a3a2a; color: #e0dbd0; padding: 1rem; border-radius: 8px; margin: 1rem 0; overflow-x: auto; }
+.tiptap-editor .ProseMirror pre code { background: none; padding: 0; color: inherit; }
+.tiptap-editor .ProseMirror hr { border: none; border-top: 2px solid #e0dbd0; margin: 1.5rem 0; }
+
+/* Blog visual elements — stat highlights, callouts, images */
+.blog-image {
+  margin: 2rem 0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.blog-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 500px;
+  object-fit: cover;
+}
+.blog-image figcaption {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #8a9a8a;
+  background: #f8f6f1;
+  text-align: center;
+}
+
+.stat-highlight {
+  background: linear-gradient(135deg, #2a3a2a 0%, #3a5a3a 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  text-align: center;
+}
+.stat-highlight .stat-number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #e07850;
+  line-height: 1.2;
+}
+.stat-highlight .stat-label {
+  display: block;
+  font-size: 1rem;
+  margin-top: 0.25rem;
+  color: rgba(255,255,255,0.9);
+}
+.stat-highlight .stat-source {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  color: rgba(255,255,255,0.5);
+}
+
+.key-takeaway {
+  background: #fff3ed;
+  border-left: 4px solid #e07850;
+  padding: 1rem 1.5rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1.5rem 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #3a4a3a;
+}
+.key-takeaway strong {
+  color: #e07850;
+}
+
+.info-box {
+  background: #eef5f0;
+  border: 1px solid #c8dcc8;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  margin: 1.5rem 0;
+  color: #2a3a2a;
+}
+.info-box strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #2a5a2a;
+  font-size: 0.95rem;
+}
+.info-box p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.comparison-box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+.compare-item {
+  padding: 1.25rem;
+  border-radius: 10px;
+}
+.compare-item.bad {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+}
+.compare-item.bad strong {
+  color: #dc2626;
+}
+.compare-item.good {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+.compare-item.good strong {
+  color: #16a34a;
+}
+.compare-item strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.compare-item p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .comparison-box {
+    grid-template-columns: 1fr;
+  }
+  .stat-highlight .stat-number {
+    font-size: 2rem;
+  }
+}
+
 /* Chat peek teaser animation */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }

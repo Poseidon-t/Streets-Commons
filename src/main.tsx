@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
@@ -12,6 +12,14 @@ import BlogIndex from './components/BlogIndex.tsx'
 import BlogPost from './components/BlogPost.tsx'
 // Reports
 import { FifteenMinuteCityReport } from './components/reports'
+
+// Admin panel (lazy-loaded, code-split)
+const AdminLayout = lazy(() => import('./admin/AdminLayout'))
+const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
+const BlogManager = lazy(() => import('./admin/BlogManager'))
+const BlogEditor = lazy(() => import('./admin/BlogEditor'))
+const ContentQueue = lazy(() => import('./admin/ContentQueue'))
+const EmailCaptures = lazy(() => import('./admin/EmailCaptures'))
 
 // Import Clerk publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -40,6 +48,19 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/blog/:postSlug" element={<BlogPost />} />
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
+          {/* Admin panel */}
+          <Route path="/admin" element={
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-gray-400">Loading admin...</div></div>}>
+              <AdminLayout />
+            </Suspense>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="content-queue" element={<ContentQueue />} />
+            <Route path="blog" element={<BlogManager />} />
+            <Route path="blog/new" element={<BlogEditor />} />
+            <Route path="blog/edit/:slug" element={<BlogEditor />} />
+            <Route path="emails" element={<EmailCaptures />} />
+          </Route>
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
               <div className="text-center px-6">

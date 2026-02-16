@@ -1,0 +1,1825 @@
+{
+  "posts": [
+    {
+      "id": 1,
+      "title": "Why Vision Zero Works: Lessons from Sweden's Success",
+      "region": "global",
+      "targetDate": "2026-03-01",
+      "keywords": [
+        "Vision Zero",
+        "Sweden",
+        "pedestrian safety",
+        "road safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "Swedish Transport Administration"
+      ],
+      "primaryMessage": "Sweden's Vision Zero approach has cut road deaths by 70% since the 1990s—proving zero is achievable.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 2,
+      "title": "Barcelona's Superblocks: How One City Reclaimed Streets From Cars",
+      "region": "global",
+      "targetDate": "2026-03-08",
+      "keywords": [
+        "superblocks",
+        "Barcelona",
+        "urban design",
+        "traffic calming"
+      ],
+      "dataSources": [
+        "Barcelona municipal data",
+        "WHO"
+      ],
+      "primaryMessage": "Barcelona's superblocks have reduced traffic deaths, improved air quality, and revitalized neighborhoods.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 3,
+      "title": "The Netherlands' Secret: How Dutch Infrastructure Protects Pedestrians",
+      "region": "global",
+      "targetDate": "2026-03-15",
+      "keywords": [
+        "Netherlands",
+        "cycling infrastructure",
+        "traffic safety",
+        "urban design"
+      ],
+      "dataSources": [
+        "WHO",
+        "Dutch government statistics"
+      ],
+      "primaryMessage": "The Netherlands has among the world's lowest pedestrian death rates—here's how they did it.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 4,
+      "title": "Why Cars Are Getting Deadlier: The SUV and Pickup Truck Problem",
+      "region": "global",
+      "targetDate": "2026-03-22",
+      "keywords": [
+        "SUV safety",
+        "pedestrian deaths",
+        "vehicle design",
+        "blind spots"
+      ],
+      "dataSources": [
+        "IIHS",
+        "WHO",
+        "global vehicle sales data"
+      ],
+      "primaryMessage": "Larger vehicles with higher front ends are killing pedestrians at alarming rates worldwide.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 5,
+      "title": "Oslo's Car-Free City Center: A Vision Zero Success Story",
+      "region": "global",
+      "targetDate": "2026-03-29",
+      "keywords": [
+        "Oslo",
+        "car-free",
+        "Vision Zero",
+        "pedestrian zones"
+      ],
+      "dataSources": [
+        "Oslo municipal data",
+        "WHO"
+      ],
+      "primaryMessage": "Oslo eliminated traffic deaths in its city center by removing cars—and the sky didn't fall.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 6,
+      "title": "The 20 MPH Revolution: How Speed Limits Save Lives",
+      "region": "global",
+      "targetDate": "2026-04-05",
+      "keywords": [
+        "speed limits",
+        "20 mph zones",
+        "30 km/h",
+        "traffic safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "multiple city data"
+      ],
+      "primaryMessage": "Reducing urban speed limits to 20 mph (30 km/h) cuts pedestrian deaths by 60-80%.",
+      "tone": "informed_advocate",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 7,
+      "title": "Paris's 15-Minute City: Putting People Before Cars",
+      "region": "global",
+      "targetDate": "2026-04-12",
+      "keywords": [
+        "15-minute city",
+        "Paris",
+        "urban planning",
+        "walkability"
+      ],
+      "dataSources": [
+        "Paris municipal data",
+        "WHO"
+      ],
+      "primaryMessage": "Paris is transforming into a 15-minute city where residents can walk to everything they need.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 8,
+      "title": "Why 'Accidents' Don't Exist: Understanding Traffic Violence",
+      "region": "global",
+      "targetDate": "2026-04-19",
+      "keywords": [
+        "traffic violence",
+        "Vision Zero",
+        "systemic design",
+        "road safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "Vision Zero Network"
+      ],
+      "primaryMessage": "Calling crashes 'accidents' obscures the systemic design choices that kill pedestrians.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending",
+      "updatedAt": "2026-02-16T16:49:45.874Z",
+      "generatedSlug": "why-accidents-don-t-exist-understanding-traffic-violence"
+    },
+    {
+      "id": 9,
+      "title": "Tokyo's Pedestrian Safety: What the World's Largest City Gets Right",
+      "region": "global",
+      "targetDate": "2026-04-26",
+      "keywords": [
+        "Tokyo",
+        "Japan",
+        "pedestrian safety",
+        "urban design"
+      ],
+      "dataSources": [
+        "WHO",
+        "Japanese government statistics"
+      ],
+      "primaryMessage": "Tokyo's low pedestrian death rate proves high-density cities can be safe.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 10,
+      "title": "The Deadly Legacy of Robert Moses: How One Man Designed Death Into American Streets",
+      "region": "global",
+      "targetDate": "2026-05-03",
+      "keywords": [
+        "Robert Moses",
+        "urban planning history",
+        "pedestrian safety",
+        "car-centric design"
+      ],
+      "dataSources": [
+        "historical analysis",
+        "WHO"
+      ],
+      "primaryMessage": "Robert Moses's car-centric designs continue to kill pedestrians 50 years later.",
+      "tone": "analytical",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 11,
+      "title": "Vision Zero Cities: A Global Progress Report",
+      "region": "global",
+      "targetDate": "2026-05-10",
+      "keywords": [
+        "Vision Zero",
+        "global comparison",
+        "traffic safety",
+        "best practices"
+      ],
+      "dataSources": [
+        "WHO",
+        "Vision Zero Network",
+        "multiple cities"
+      ],
+      "primaryMessage": "Which cities are succeeding at Vision Zero, and which are falling behind?",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 12,
+      "title": "London's Ultra Low Emission Zone: Public Health Meets Traffic Safety",
+      "region": "global",
+      "targetDate": "2026-05-17",
+      "keywords": [
+        "ULEZ",
+        "London",
+        "air quality",
+        "traffic reduction"
+      ],
+      "dataSources": [
+        "London Transport Authority",
+        "WHO"
+      ],
+      "primaryMessage": "London's ULEZ has reduced traffic, improved air quality, and made streets safer.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 13,
+      "title": "Bogotá's Ciclovía: How Closing Roads Opens Cities",
+      "region": "global",
+      "targetDate": "2026-05-24",
+      "keywords": [
+        "Bogotá",
+        "Ciclovía",
+        "car-free streets",
+        "pedestrian events"
+      ],
+      "dataSources": [
+        "WHO",
+        "Bogotá municipal data"
+      ],
+      "primaryMessage": "Bogotá's weekly car-free event proves cities work better when streets belong to people.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 14,
+      "title": "The School Zone Crisis: Why Children Die Walking to School",
+      "region": "global",
+      "targetDate": "2026-05-31",
+      "keywords": [
+        "school zones",
+        "child pedestrian safety",
+        "safe routes to school"
+      ],
+      "dataSources": [
+        "WHO",
+        "UNICEF"
+      ],
+      "primaryMessage": "Children are dying on the walk to school because cities refuse to invest in safe routes.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 15,
+      "title": "How Singapore Tamed Traffic: Lessons from a City-State",
+      "region": "global",
+      "targetDate": "2026-06-07",
+      "keywords": [
+        "Singapore",
+        "congestion pricing",
+        "traffic management",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "Singapore Land Transport Authority"
+      ],
+      "primaryMessage": "Singapore's congestion pricing and transit investment created one of Asia's safest pedestrian environments.",
+      "tone": "informed_advocate",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 16,
+      "title": "The Global Sidewalk Gap: 1 Billion People Walk Without Footpaths",
+      "region": "global",
+      "targetDate": "2026-06-14",
+      "keywords": [
+        "sidewalks",
+        "pedestrian infrastructure",
+        "global south",
+        "urbanization"
+      ],
+      "dataSources": [
+        "WHO",
+        "World Bank"
+      ],
+      "primaryMessage": "Over a billion people worldwide lack basic sidewalks—a solvable infrastructure crisis.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 17,
+      "title": "Dark Streets, Deadly Streets: How Lighting Saves Pedestrian Lives",
+      "region": "global",
+      "targetDate": "2026-06-21",
+      "keywords": [
+        "street lighting",
+        "pedestrian safety",
+        "nighttime deaths",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "WHO",
+        "multiple city data"
+      ],
+      "primaryMessage": "Better street lighting reduces pedestrian deaths by 50%—one of the cheapest interventions available.",
+      "tone": "informed_advocate",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 18,
+      "title": "Copenhagen's Pedestrian Paradise: 60 Years of Car-Free Success",
+      "region": "global",
+      "targetDate": "2026-06-28",
+      "keywords": [
+        "Copenhagen",
+        "Strøget",
+        "car-free",
+        "pedestrian streets"
+      ],
+      "dataSources": [
+        "WHO",
+        "Copenhagen municipal data"
+      ],
+      "primaryMessage": "Copenhagen's Strøget pedestrian street, created in 1962, proves car-free works long-term.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 19,
+      "title": "The Crosswalk Illusion: Why Painted Lines Don't Protect Pedestrians",
+      "region": "global",
+      "targetDate": "2026-07-05",
+      "keywords": [
+        "crosswalks",
+        "pedestrian safety",
+        "traffic engineering",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "WHO",
+        "traffic engineering research"
+      ],
+      "primaryMessage": "Painted crosswalks without physical protection create a dangerous illusion of safety.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 20,
+      "title": "The Cost of Car Dependency: Economic Analysis of Pedestrian Deaths",
+      "region": "global",
+      "targetDate": "2026-07-12",
+      "keywords": [
+        "economic impact",
+        "traffic deaths",
+        "cost analysis",
+        "public health"
+      ],
+      "dataSources": [
+        "WHO",
+        "World Bank",
+        "economic research"
+      ],
+      "primaryMessage": "Pedestrian deaths cost the global economy billions—prevention is cheaper than the status quo.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 21,
+      "title": "Melbourne's 20-Minute Neighborhoods: Walkability by Design",
+      "region": "global",
+      "targetDate": "2026-07-19",
+      "keywords": [
+        "Melbourne",
+        "20-minute neighborhood",
+        "walkability",
+        "urban planning"
+      ],
+      "dataSources": [
+        "WHO",
+        "Melbourne city data"
+      ],
+      "primaryMessage": "Melbourne's 20-minute neighborhood plan shows how walkability can be designed into existing cities.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 22,
+      "title": "The Right Turn on Red Problem: How a Simple Rule Kills Pedestrians",
+      "region": "global",
+      "targetDate": "2026-07-26",
+      "keywords": [
+        "right turn on red",
+        "pedestrian safety",
+        "traffic signals",
+        "intersection design"
+      ],
+      "dataSources": [
+        "WHO",
+        "traffic safety research"
+      ],
+      "primaryMessage": "Right turn on red was designed for cars, not people—and it kills pedestrians worldwide.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 23,
+      "title": "Curitiba's Bus Rapid Transit: How Public Transport Saves Pedestrians",
+      "region": "global",
+      "targetDate": "2026-08-02",
+      "keywords": [
+        "Curitiba",
+        "BRT",
+        "bus rapid transit",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "Curitiba transit data"
+      ],
+      "primaryMessage": "Curitiba's BRT system reduced car dependency and made streets dramatically safer for pedestrians.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "generating",
+      "updatedAt": "2026-02-16T17:38:01.496Z"
+    },
+    {
+      "id": 24,
+      "title": "Climate Change and Pedestrian Safety: The Heat Death Connection",
+      "region": "global",
+      "targetDate": "2026-08-09",
+      "keywords": [
+        "climate change",
+        "heat",
+        "pedestrian deaths",
+        "shade infrastructure"
+      ],
+      "dataSources": [
+        "WHO",
+        "climate research"
+      ],
+      "primaryMessage": "Rising temperatures are creating a new pedestrian safety crisis—heat exposure kills walkers in car-dependent cities.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 25,
+      "title": "The Elderly Pedestrian Crisis: Why Older Adults Die on Our Streets",
+      "region": "global",
+      "targetDate": "2026-08-16",
+      "keywords": [
+        "elderly pedestrians",
+        "aging population",
+        "pedestrian safety",
+        "accessible design"
+      ],
+      "dataSources": [
+        "WHO",
+        "global aging data"
+      ],
+      "primaryMessage": "Older adults are disproportionately killed as pedestrians—streets must be designed for all ages.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 26,
+      "title": "Medellín's Urban Escalators: Innovation for Pedestrian Access",
+      "region": "global",
+      "targetDate": "2026-08-23",
+      "keywords": [
+        "Medellín",
+        "urban escalators",
+        "pedestrian infrastructure",
+        "equity"
+      ],
+      "dataSources": [
+        "WHO",
+        "Medellín municipal data"
+      ],
+      "primaryMessage": "Medellín's outdoor escalators transformed deadly hillside streets into safe pedestrian corridors.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 27,
+      "title": "Autonomous Vehicles Won't Save Pedestrians: The Tech Industry's False Promise",
+      "region": "global",
+      "targetDate": "2026-08-30",
+      "keywords": [
+        "autonomous vehicles",
+        "self-driving cars",
+        "pedestrian safety",
+        "technology"
+      ],
+      "dataSources": [
+        "WHO",
+        "AV incident data"
+      ],
+      "primaryMessage": "Self-driving cars are not the solution to pedestrian deaths—infrastructure is.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 28,
+      "title": "The Gender Gap in Pedestrian Safety: Why Women Walk Differently",
+      "region": "global",
+      "targetDate": "2026-09-06",
+      "keywords": [
+        "gender",
+        "pedestrian safety",
+        "women",
+        "urban design"
+      ],
+      "dataSources": [
+        "WHO",
+        "gender-focused urban studies"
+      ],
+      "primaryMessage": "Women face unique pedestrian safety challenges—from harassment to infrastructure designed by and for men.",
+      "tone": "informed_advocate",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 29,
+      "title": "Addis Ababa's Pedestrian Crisis: Africa's Growing Traffic Death Epidemic",
+      "region": "global",
+      "targetDate": "2026-09-13",
+      "keywords": [
+        "Africa",
+        "Addis Ababa",
+        "pedestrian deaths",
+        "urbanization"
+      ],
+      "dataSources": [
+        "WHO",
+        "African Development Bank"
+      ],
+      "primaryMessage": "Africa's rapid urbanization without pedestrian infrastructure is creating a continent-wide death toll.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 30,
+      "title": "The Roundabout Revolution: How Traffic Circles Save Pedestrian Lives",
+      "region": "global",
+      "targetDate": "2026-09-20",
+      "keywords": [
+        "roundabouts",
+        "traffic circles",
+        "intersection design",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "IIHS"
+      ],
+      "primaryMessage": "Roundabouts reduce pedestrian fatalities by 90% compared to traditional intersections.",
+      "tone": "informed_advocate",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 31,
+      "title": "Seoul's Cheonggyecheon: Tearing Down a Highway to Build a Park",
+      "region": "global",
+      "targetDate": "2026-09-27",
+      "keywords": [
+        "Seoul",
+        "Cheonggyecheon",
+        "highway removal",
+        "urban renewal"
+      ],
+      "dataSources": [
+        "WHO",
+        "Seoul metropolitan data"
+      ],
+      "primaryMessage": "Seoul demolished a highway and built a park—property values rose and pedestrian deaths dropped.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 32,
+      "title": "The Phone Distraction Myth: Why Blaming Pedestrian Smartphones Is Wrong",
+      "region": "global",
+      "targetDate": "2026-10-04",
+      "keywords": [
+        "distracted walking",
+        "smartphone",
+        "victim blaming",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "distraction research"
+      ],
+      "primaryMessage": "Blaming phone-distracted pedestrians ignores the real cause: streets designed to kill at any lapse of attention.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 33,
+      "title": "How Taipei Halved Pedestrian Deaths in a Decade",
+      "region": "global",
+      "targetDate": "2026-10-11",
+      "keywords": [
+        "Taipei",
+        "Taiwan",
+        "pedestrian safety",
+        "traffic reform"
+      ],
+      "dataSources": [
+        "WHO",
+        "Taipei city data"
+      ],
+      "primaryMessage": "Taipei's aggressive traffic calming and enforcement overhaul cut pedestrian deaths by 50%.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 34,
+      "title": "Speed Kills: The Physics of Why Faster Cars Mean More Deaths",
+      "region": "global",
+      "targetDate": "2026-10-18",
+      "keywords": [
+        "speed",
+        "kinetic energy",
+        "pedestrian fatality",
+        "physics"
+      ],
+      "dataSources": [
+        "WHO",
+        "physics research"
+      ],
+      "primaryMessage": "A pedestrian hit at 40 mph is 8x more likely to die than one hit at 20 mph—physics doesn't negotiate.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 35,
+      "title": "Shared Space Streets: Do They Work or Kill?",
+      "region": "global",
+      "targetDate": "2026-10-25",
+      "keywords": [
+        "shared space",
+        "woonerf",
+        "traffic calming",
+        "urban design"
+      ],
+      "dataSources": [
+        "WHO",
+        "European shared space data"
+      ],
+      "primaryMessage": "Shared space streets can work when done right—but get it wrong and vulnerable pedestrians suffer.",
+      "tone": "analytical",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 36,
+      "title": "Nairobi's Walkability Fight: Grassroots Movements for Pedestrian Rights",
+      "region": "global",
+      "targetDate": "2026-11-01",
+      "keywords": [
+        "Nairobi",
+        "Kenya",
+        "pedestrian rights",
+        "grassroots activism"
+      ],
+      "dataSources": [
+        "WHO",
+        "Nairobi municipal data"
+      ],
+      "primaryMessage": "Nairobi activists are demanding pedestrian rights in a city where walking is the most common—and deadliest—transport mode.",
+      "tone": "hopeful",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 37,
+      "title": "The Disability Divide: How Streets Exclude People With Disabilities",
+      "region": "global",
+      "targetDate": "2026-11-08",
+      "keywords": [
+        "disability",
+        "accessibility",
+        "ADA",
+        "pedestrian infrastructure"
+      ],
+      "dataSources": [
+        "WHO",
+        "disability rights research"
+      ],
+      "primaryMessage": "Streets designed without accessibility in mind exclude and endanger millions of people with disabilities.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 38,
+      "title": "Helsinki's Zero Pedestrian Deaths: How Finland's Capital Achieved the Impossible",
+      "region": "global",
+      "targetDate": "2026-11-15",
+      "keywords": [
+        "Helsinki",
+        "Finland",
+        "Vision Zero",
+        "zero deaths"
+      ],
+      "dataSources": [
+        "WHO",
+        "Helsinki city data"
+      ],
+      "primaryMessage": "Helsinki achieved zero pedestrian deaths in multiple recent years—proving it's possible.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 39,
+      "title": "The Parking Lot Problem: How Free Parking Creates Dangerous Streets",
+      "region": "global",
+      "targetDate": "2026-11-22",
+      "keywords": [
+        "parking",
+        "land use",
+        "car dependency",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "urban planning research"
+      ],
+      "primaryMessage": "Free parking subsidizes driving and creates vast hostile zones where pedestrians die.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 40,
+      "title": "Electric Scooters and Pedestrians: The New Sidewalk Conflict",
+      "region": "global",
+      "targetDate": "2026-11-29",
+      "keywords": [
+        "e-scooters",
+        "micromobility",
+        "sidewalk safety",
+        "pedestrian conflict"
+      ],
+      "dataSources": [
+        "WHO",
+        "micromobility data"
+      ],
+      "primaryMessage": "E-scooters on sidewalks are injuring pedestrians—cities need dedicated micromobility infrastructure.",
+      "tone": "informed_advocate",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 41,
+      "title": "Manila's Traffic Nightmare: Pedestrian Deaths in the Philippines' Capital",
+      "region": "global",
+      "targetDate": "2026-12-06",
+      "keywords": [
+        "Manila",
+        "Philippines",
+        "traffic",
+        "pedestrian deaths"
+      ],
+      "dataSources": [
+        "WHO",
+        "Philippine data"
+      ],
+      "primaryMessage": "Manila's extreme traffic congestion makes it one of Asia's deadliest cities for pedestrians.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 42,
+      "title": "How Vienna Became Europe's Most Livable City Through Walkability",
+      "region": "global",
+      "targetDate": "2026-12-13",
+      "keywords": [
+        "Vienna",
+        "livability",
+        "walkability",
+        "urban planning"
+      ],
+      "dataSources": [
+        "WHO",
+        "Vienna city data"
+      ],
+      "primaryMessage": "Vienna's consistent investment in walking infrastructure helped make it the world's most livable city.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 43,
+      "title": "Traffic Violence and Mental Health: The Hidden Psychological Toll",
+      "region": "global",
+      "targetDate": "2026-12-20",
+      "keywords": [
+        "mental health",
+        "traffic trauma",
+        "PTSD",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "mental health research"
+      ],
+      "primaryMessage": "Beyond deaths and injuries, traffic violence causes lasting psychological trauma in communities.",
+      "tone": "informed_advocate",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 44,
+      "title": "Jakarta's Pedestrian Revolution: How Indonesia's Capital Is Changing",
+      "region": "global",
+      "targetDate": "2027-01-03",
+      "keywords": [
+        "Jakarta",
+        "Indonesia",
+        "pedestrian infrastructure",
+        "urban reform"
+      ],
+      "dataSources": [
+        "WHO",
+        "Jakarta city data"
+      ],
+      "primaryMessage": "Jakarta is investing billions in pedestrian infrastructure after decades of car-centric development.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 45,
+      "title": "The Induced Demand Trap: Why Wider Roads Mean More Pedestrian Deaths",
+      "region": "global",
+      "targetDate": "2027-01-10",
+      "keywords": [
+        "induced demand",
+        "road widening",
+        "traffic engineering",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "WHO",
+        "transport research"
+      ],
+      "primaryMessage": "Building wider roads generates more traffic and more pedestrian deaths—a cycle we must break.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 46,
+      "title": "WHO Global Status Report on Road Safety: Key Findings for Pedestrians",
+      "region": "global",
+      "targetDate": "2027-01-17",
+      "keywords": [
+        "WHO",
+        "global road safety",
+        "pedestrian deaths",
+        "data analysis"
+      ],
+      "dataSources": [
+        "WHO Global Status Report"
+      ],
+      "primaryMessage": "The WHO's latest report shows pedestrian deaths declining in some regions but rising in others.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 47,
+      "title": "Berlin's Superblock Experiment: Germany Learns from Barcelona",
+      "region": "global",
+      "targetDate": "2027-01-24",
+      "keywords": [
+        "Berlin",
+        "superblocks",
+        "Germany",
+        "traffic calming"
+      ],
+      "dataSources": [
+        "WHO",
+        "Berlin city data"
+      ],
+      "primaryMessage": "Berlin is adapting Barcelona's superblock model for German cities—with promising early results.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 48,
+      "title": "The Night Shift: Why 75% of Pedestrian Deaths Happen After Dark",
+      "region": "global",
+      "targetDate": "2027-01-31",
+      "keywords": [
+        "nighttime pedestrian deaths",
+        "visibility",
+        "lighting",
+        "driver impairment"
+      ],
+      "dataSources": [
+        "WHO",
+        "global crash data"
+      ],
+      "primaryMessage": "Three-quarters of pedestrian fatalities occur at night—a design failure, not an inevitability.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 49,
+      "title": "Zurich's Traffic Calming Success: The Swiss Model",
+      "region": "global",
+      "targetDate": "2027-02-07",
+      "keywords": [
+        "Zurich",
+        "Switzerland",
+        "traffic calming",
+        "30 km/h zones"
+      ],
+      "dataSources": [
+        "WHO",
+        "Zurich city data"
+      ],
+      "primaryMessage": "Zurich's comprehensive traffic calming program has made it one of Europe's safest cities for walking.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 50,
+      "title": "India's Road Death Crisis: 29,000 Pedestrians Die Each Year",
+      "region": "india",
+      "targetDate": "2026-03-05",
+      "keywords": [
+        "India road safety",
+        "pedestrian deaths India",
+        "MoRTH data",
+        "traffic accidents"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "WHO"
+      ],
+      "primaryMessage": "India loses 29,000 pedestrians annually—a preventable crisis demanding urgent action.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 51,
+      "title": "Bangalore's Street Redesign Experiments: Hope for Indian Cities",
+      "region": "india",
+      "targetDate": "2026-03-19",
+      "keywords": [
+        "Bangalore",
+        "street redesign",
+        "pedestrian infrastructure",
+        "India urban planning"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Bangalore municipal data"
+      ],
+      "primaryMessage": "Bangalore is piloting pedestrian-friendly street designs that other Indian cities should replicate.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 52,
+      "title": "Mumbai's Deadly Streets: Why India's Financial Capital Fails Pedestrians",
+      "region": "india",
+      "targetDate": "2026-04-02",
+      "keywords": [
+        "Mumbai",
+        "pedestrian safety",
+        "India traffic",
+        "urban design"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Mumbai police data"
+      ],
+      "primaryMessage": "Mumbai's streets kill hundreds of pedestrians annually—infrastructure must change.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 53,
+      "title": "The Footpath Crisis: Why Indian Cities Can't Provide Basic Pedestrian Infrastructure",
+      "region": "india",
+      "targetDate": "2026-04-16",
+      "keywords": [
+        "footpaths India",
+        "sidewalks",
+        "pedestrian infrastructure",
+        "urban planning"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "urban planning studies"
+      ],
+      "primaryMessage": "Most Indian cities lack basic footpaths—encroachment and poor design make walking dangerous.",
+      "tone": "informed_advocate",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 54,
+      "title": "Delhi's Road Safety Plan: Ambitious Goals, Slow Progress",
+      "region": "india",
+      "targetDate": "2026-04-30",
+      "keywords": [
+        "Delhi",
+        "road safety plan",
+        "pedestrian safety",
+        "India policy"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Delhi government data"
+      ],
+      "primaryMessage": "Delhi has a road safety plan, but implementation lags—pedestrians keep dying.",
+      "tone": "analytical",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 55,
+      "title": "Auto-Rickshaws vs. Pedestrians: Understanding Mixed Traffic in Indian Cities",
+      "region": "india",
+      "targetDate": "2026-05-14",
+      "keywords": [
+        "auto-rickshaws",
+        "mixed traffic",
+        "India urban transport",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "transport studies"
+      ],
+      "primaryMessage": "India's unique mixed traffic requires context-appropriate pedestrian safety solutions.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 56,
+      "title": "Chennai's Pedestrian Deaths: Data Analysis Reveals Dangerous Corridors",
+      "region": "india",
+      "targetDate": "2026-05-28",
+      "keywords": [
+        "Chennai",
+        "pedestrian deaths",
+        "data analysis",
+        "dangerous roads"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Chennai police data"
+      ],
+      "primaryMessage": "Data reveals Chennai's most dangerous roads for pedestrians—targeted interventions can save lives.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 57,
+      "title": "The Pune Model: How One Indian City Is Prioritizing Pedestrians",
+      "region": "india",
+      "targetDate": "2026-06-11",
+      "keywords": [
+        "Pune",
+        "pedestrian infrastructure",
+        "India success story",
+        "urban design"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Pune municipal data"
+      ],
+      "primaryMessage": "Pune's pedestrian infrastructure improvements show Indian cities can prioritize walkers.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 58,
+      "title": "National Highway Deaths: Why India's Highways Are Pedestrian Death Traps",
+      "region": "india",
+      "targetDate": "2026-06-25",
+      "keywords": [
+        "national highways",
+        "India",
+        "pedestrian deaths",
+        "highway design"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "NHAI data"
+      ],
+      "primaryMessage": "India's national highways pass through populated areas without pedestrian infrastructure—killing thousands.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 59,
+      "title": "Kolkata's Tramway: How India's Last Tram System Supports Pedestrians",
+      "region": "india",
+      "targetDate": "2026-07-09",
+      "keywords": [
+        "Kolkata",
+        "tram",
+        "public transport",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Kolkata transit data"
+      ],
+      "primaryMessage": "Kolkata's tramway corridors are among the city's safest streets for pedestrians.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 60,
+      "title": "India's Motor Vehicles Amendment Act: Promise vs. Reality",
+      "region": "india",
+      "targetDate": "2026-07-23",
+      "keywords": [
+        "Motor Vehicles Act",
+        "India legislation",
+        "road safety law",
+        "enforcement"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "legal analysis"
+      ],
+      "primaryMessage": "India's landmark road safety law promised transformative change—but implementation has been uneven.",
+      "tone": "analytical",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 61,
+      "title": "Hyderabad's Pedestrian Bridges: Band-Aid Solutions That Don't Work",
+      "region": "india",
+      "targetDate": "2026-08-06",
+      "keywords": [
+        "Hyderabad",
+        "pedestrian bridges",
+        "foot overbridge",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Hyderabad municipal data"
+      ],
+      "primaryMessage": "Pedestrian overpasses prioritize car flow over pedestrian convenience—and most people don't use them.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 62,
+      "title": "India's School Bus Crisis: When Children Walk Because Transport Fails",
+      "region": "india",
+      "targetDate": "2026-08-20",
+      "keywords": [
+        "school transport",
+        "children pedestrians",
+        "India road safety",
+        "school zones"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "education ministry data"
+      ],
+      "primaryMessage": "Millions of Indian children walk on dangerous roads because safe school transport doesn't exist.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 63,
+      "title": "Ahmedabad's BRT and Pedestrian Safety: A Mixed Success Story",
+      "region": "india",
+      "targetDate": "2026-09-03",
+      "keywords": [
+        "Ahmedabad",
+        "BRT",
+        "Janmarg",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Ahmedabad municipal data"
+      ],
+      "primaryMessage": "Ahmedabad's BRT improved some corridors but created new dangers for pedestrians at stations.",
+      "tone": "analytical",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 64,
+      "title": "The Truck Menace: How Overloaded Trucks Kill Indian Pedestrians",
+      "region": "india",
+      "targetDate": "2026-09-17",
+      "keywords": [
+        "trucks",
+        "overloading",
+        "India traffic",
+        "pedestrian deaths"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "transport industry data"
+      ],
+      "primaryMessage": "Overloaded trucks with poor brakes are a leading killer of pedestrians on Indian roads.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 65,
+      "title": "India's Road Safety Laws: Strong on Paper, Weak in Enforcement",
+      "region": "india",
+      "targetDate": "2026-10-01",
+      "keywords": [
+        "India road safety laws",
+        "Motor Vehicles Act",
+        "enforcement",
+        "policy"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "legal analysis"
+      ],
+      "primaryMessage": "India's road safety laws are comprehensive—but enforcement failures let pedestrians die.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 66,
+      "title": "Chandigarh's Grid Design: Le Corbusier's Pedestrian-Friendly Vision, 70 Years Later",
+      "region": "india",
+      "targetDate": "2026-10-15",
+      "keywords": [
+        "Chandigarh",
+        "Le Corbusier",
+        "city planning",
+        "pedestrian infrastructure"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Chandigarh urban data"
+      ],
+      "primaryMessage": "Chandigarh's planned grid layout offers India a rare example of pedestrian-considerate urban design.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 67,
+      "title": "India's Smart Cities Mission: Where Are the Pedestrians?",
+      "region": "india",
+      "targetDate": "2026-10-29",
+      "keywords": [
+        "Smart Cities Mission",
+        "India urban development",
+        "pedestrian infrastructure",
+        "technology"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Smart Cities Mission data"
+      ],
+      "primaryMessage": "India's Smart Cities Mission invested billions but largely ignored pedestrian safety.",
+      "tone": "informed_advocate",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 68,
+      "title": "Women Walking in Indian Cities: Safety, Harassment, and Infrastructure",
+      "region": "india",
+      "targetDate": "2026-11-12",
+      "keywords": [
+        "women safety India",
+        "harassment",
+        "pedestrian safety",
+        "gender"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "women's safety surveys"
+      ],
+      "primaryMessage": "Indian women face a dual threat while walking—traffic danger and street harassment—both solvable with better design.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 69,
+      "title": "Jaipur's Walled City: Lessons from India's First Planned City for Modern Pedestrians",
+      "region": "india",
+      "targetDate": "2026-11-26",
+      "keywords": [
+        "Jaipur",
+        "walled city",
+        "heritage",
+        "pedestrian zones"
+      ],
+      "dataSources": [
+        "MoRTH",
+        "Jaipur heritage data"
+      ],
+      "primaryMessage": "Jaipur's historic walled city shows that walkable Indian urbanism existed centuries before cars.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 100,
+      "title": "The Deadly Myth of 'Pedestrian Error': Why Victim-Blaming Must Stop",
+      "region": "us",
+      "targetDate": "2026-03-12",
+      "keywords": [
+        "pedestrian safety",
+        "victim blaming",
+        "traffic engineering",
+        "US traffic deaths"
+      ],
+      "dataSources": [
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "Blaming pedestrians for their own deaths ignores the systemic design failures that kill.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 101,
+      "title": "America's Pedestrian Death Crisis: 7,500 Lives Lost in 2023",
+      "region": "us",
+      "targetDate": "2026-03-26",
+      "keywords": [
+        "pedestrian deaths US",
+        "NHTSA",
+        "traffic safety",
+        "Vision Zero"
+      ],
+      "dataSources": [
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "US pedestrian deaths are at a 40-year high—this is a policy choice, not an accident.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 102,
+      "title": "NYC's Vision Zero: Progress, Setbacks, and Lessons Learned",
+      "region": "us",
+      "targetDate": "2026-04-09",
+      "keywords": [
+        "New York City",
+        "Vision Zero",
+        "pedestrian safety",
+        "traffic calming"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "NYC DOT data"
+      ],
+      "primaryMessage": "NYC's Vision Zero has reduced deaths by 30%—but progress stalled. What went wrong?",
+      "tone": "analytical",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 103,
+      "title": "The Stroad: America's Most Dangerous Invention",
+      "region": "us",
+      "targetDate": "2026-04-23",
+      "keywords": [
+        "stroads",
+        "suburban design",
+        "pedestrian deaths",
+        "urban planning"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "Strong Towns"
+      ],
+      "primaryMessage": "Stroads—hybrid street-roads—are killing pedestrians across America.",
+      "tone": "informed_advocate",
+      "postType": "explainer",
+      "status": "pending"
+    },
+    {
+      "id": 104,
+      "title": "Seattle's 20 MPH Success: How Lower Speed Limits Save Lives",
+      "region": "us",
+      "targetDate": "2026-05-07",
+      "keywords": [
+        "Seattle",
+        "speed limits",
+        "20 mph",
+        "traffic safety"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Seattle DOT data"
+      ],
+      "primaryMessage": "Seattle's 20 mph residential speed limits have reduced pedestrian injuries by 27%.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 105,
+      "title": "SUVs Are Killing American Pedestrians: The Data Is Clear",
+      "region": "us",
+      "targetDate": "2026-05-21",
+      "keywords": [
+        "SUV safety",
+        "pedestrian deaths",
+        "vehicle design",
+        "IIHS"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "IIHS"
+      ],
+      "primaryMessage": "SUVs and pickups are 2-3x more likely to kill pedestrians than sedans—and they're everywhere.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 106,
+      "title": "The Racial Geography of Pedestrian Deaths: Environmental Justice and Traffic Safety",
+      "region": "us",
+      "targetDate": "2026-06-04",
+      "keywords": [
+        "environmental justice",
+        "pedestrian deaths",
+        "racial disparities",
+        "equity"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "Governors Highway Safety Association"
+      ],
+      "primaryMessage": "Black and Hispanic Americans die as pedestrians at disproportionately high rates—systemic design failures kill.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 107,
+      "title": "Cambridge's Protected Bike Lanes: How One City Prioritizes People",
+      "region": "us",
+      "targetDate": "2026-06-18",
+      "keywords": [
+        "Cambridge MA",
+        "protected bike lanes",
+        "pedestrian safety",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Cambridge city data"
+      ],
+      "primaryMessage": "Cambridge's aggressive protected bike lane network has made streets safer for everyone.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 108,
+      "title": "Florida's Deadly Streets: Why the Sunshine State Leads in Pedestrian Deaths",
+      "region": "us",
+      "targetDate": "2026-07-02",
+      "keywords": [
+        "Florida",
+        "pedestrian deaths",
+        "dangerous cities",
+        "urban design"
+      ],
+      "dataSources": [
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "Florida has the nation's highest pedestrian death rate—sprawling stroads and car-centric design are to blame.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 109,
+      "title": "Portland's Vision Zero Setback: What Went Wrong?",
+      "region": "us",
+      "targetDate": "2026-07-16",
+      "keywords": [
+        "Portland",
+        "Vision Zero",
+        "traffic deaths",
+        "policy analysis"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Portland Bureau of Transportation"
+      ],
+      "primaryMessage": "Portland's Vision Zero plan promised zero deaths—but fatalities are rising. Here's why.",
+      "tone": "analytical",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 110,
+      "title": "Chicago's Complete Streets Initiative: Progress and Pitfalls",
+      "region": "us",
+      "targetDate": "2026-07-30",
+      "keywords": [
+        "Chicago",
+        "complete streets",
+        "pedestrian safety",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Chicago DOT data"
+      ],
+      "primaryMessage": "Chicago's complete streets policy shows promise but implementation remains uneven across neighborhoods.",
+      "tone": "analytical",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 111,
+      "title": "Hoboken's Vision Zero Miracle: Zero Pedestrian Deaths for 7 Years",
+      "region": "us",
+      "targetDate": "2026-08-13",
+      "keywords": [
+        "Hoboken",
+        "Vision Zero",
+        "zero deaths",
+        "traffic calming"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Hoboken city data"
+      ],
+      "primaryMessage": "Hoboken hasn't had a traffic death since 2019—proving Vision Zero works even in dense American cities.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 112,
+      "title": "The Rural Pedestrian Crisis: America's Forgotten Victims",
+      "region": "us",
+      "targetDate": "2026-08-27",
+      "keywords": [
+        "rural pedestrians",
+        "highway deaths",
+        "rural America",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "Rural Americans die as pedestrians at higher rates than urban residents—high speeds and no sidewalks are to blame.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 113,
+      "title": "Austin's Failed Pedestrian Infrastructure: When Growth Outpaces Safety",
+      "region": "us",
+      "targetDate": "2026-09-10",
+      "keywords": [
+        "Austin",
+        "growth",
+        "pedestrian deaths",
+        "infrastructure gap"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Austin city data"
+      ],
+      "primaryMessage": "Austin's explosive growth has outpaced pedestrian infrastructure—and people are dying.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 114,
+      "title": "How San Francisco's Tenderloin Became a Pedestrian Safety Lab",
+      "region": "us",
+      "targetDate": "2026-09-24",
+      "keywords": [
+        "San Francisco",
+        "Tenderloin",
+        "slow streets",
+        "traffic calming"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "SF MTA data"
+      ],
+      "primaryMessage": "San Francisco's Tenderloin neighborhood shows how targeted interventions can save pedestrian lives in dense urban areas.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 115,
+      "title": "The Federal Highway Administration's Pedestrian Safety Crisis: Policy Failures at the National Level",
+      "region": "us",
+      "targetDate": "2026-10-08",
+      "keywords": [
+        "FHWA",
+        "federal policy",
+        "pedestrian safety",
+        "infrastructure"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "policy analysis"
+      ],
+      "primaryMessage": "Federal highway policy continues to prioritize cars over pedestrians—Congress must act.",
+      "tone": "urgent",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 116,
+      "title": "The School Walk Audit: How American Schools Are Fighting for Safe Routes",
+      "region": "us",
+      "targetDate": "2026-10-22",
+      "keywords": [
+        "safe routes to school",
+        "walk audit",
+        "school zones",
+        "child safety"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Safe Routes Partnership"
+      ],
+      "primaryMessage": "School walk audits are revealing how dangerous American streets are for children—and driving change.",
+      "tone": "hopeful",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 117,
+      "title": "Detroit's Pedestrian Death Epidemic: The Motor City's Deadly Irony",
+      "region": "us",
+      "targetDate": "2026-11-05",
+      "keywords": [
+        "Detroit",
+        "pedestrian deaths",
+        "car culture",
+        "urban decline"
+      ],
+      "dataSources": [
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "Detroit—the city that built America's car culture—now has among the highest pedestrian death rates.",
+      "tone": "urgent",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 118,
+      "title": "Minneapolis's Bold Street Redesign: Before and After",
+      "region": "us",
+      "targetDate": "2026-11-19",
+      "keywords": [
+        "Minneapolis",
+        "street redesign",
+        "bike lanes",
+        "pedestrian safety"
+      ],
+      "dataSources": [
+        "NHTSA",
+        "Minneapolis city data"
+      ],
+      "primaryMessage": "Minneapolis's street redesigns cut pedestrian injuries by 40%—with data to prove it.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 119,
+      "title": "The Insurance Industry and Pedestrian Deaths: Following the Money",
+      "region": "us",
+      "targetDate": "2026-12-03",
+      "keywords": [
+        "insurance",
+        "pedestrian deaths",
+        "economic incentives",
+        "policy"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "insurance industry data"
+      ],
+      "primaryMessage": "Auto insurance premiums incentivize speed over safety—the financial system enables pedestrian deaths.",
+      "tone": "analytical",
+      "postType": "standard",
+      "status": "pending"
+    },
+    {
+      "id": 120,
+      "title": "2026 in Review: America's Pedestrian Safety Report Card",
+      "region": "us",
+      "targetDate": "2026-12-17",
+      "keywords": [
+        "year in review",
+        "pedestrian deaths",
+        "2026",
+        "progress report"
+      ],
+      "dataSources": [
+        "NHTSA FARS",
+        "multiple city data"
+      ],
+      "primaryMessage": "How did America perform on pedestrian safety in 2026? A data-driven year-end assessment.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    }
+  ],
+  "metadata": {
+    "totalPosts": 120,
+    "targetDistribution": {
+      "global": "55-60%",
+      "india": "15-20%",
+      "us": "25%"
+    },
+    "publishFrequency": {
+      "postsPerWeek": 3.5,
+      "typicalDays": [
+        "Monday",
+        "Wednesday",
+        "Friday"
+      ]
+    }
+  },
+  "tracking": {
+    "lastGeneratedDate": "2026-02-16T16:48:39.132Z",
+    "lastGeneratedPostId": 8,
+    "totalGenerated": 1,
+    "totalPublished": 0
+  }
+}

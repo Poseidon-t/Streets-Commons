@@ -46,12 +46,24 @@
 
     <!-- Built-in Analytics Beacon -->
     <script>
-      fetch('/api/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ event: 'pageview', referrer: document.referrer }),
-        keepalive: true
-      }).catch(() => {});
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var utm = {};
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach(function(k) {
+          var v = params.get(k);
+          if (v) utm[k] = v;
+        });
+        fetch('/api/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'pageview',
+            referrer: document.referrer,
+            utm: Object.keys(utm).length > 0 ? utm : undefined
+          }),
+          keepalive: true
+        }).catch(function() {});
+      })();
     </script>
 
     <!-- Schema.org Structured Data for FAQPage -->
