@@ -12,11 +12,9 @@ import ErrorBoundary from './components/ErrorBoundary';
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
 const StreetCrossSection = lazy(() => import('./components/StreetCrossSection'));
-const AdvocacyProposal = lazy(() => import('./components/AdvocacyProposal'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
-const TierComparisonCard = lazy(() => import('./components/TierComparisonCard'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 
@@ -36,6 +34,7 @@ import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
+import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
 import type { CrossSectionSnapshot } from './components/StreetCrossSection';
 
@@ -1370,10 +1369,10 @@ function App() {
                 {[
                   { id: 'score', label: 'Score' },
                   { id: 'metrics', label: 'Metrics' },
-                  { id: 'cross-section', label: 'Cross-Section' },
                   { id: 'neighborhood', label: 'Neighborhood' },
-                  { id: 'advocacy', label: 'Advocacy' },
-                  { id: 'methodology', label: 'Methodology' },
+                  { id: 'cross-section', label: 'Street' },
+                  { id: 'tools', label: 'Tools' },
+                  { id: 'methodology', label: 'About' },
                 ].map(s => (
                   <a
                     key={s.id}
@@ -1433,6 +1432,23 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
             </div>
 
+            {/* 15-Minute City Score (free for all users) */}
+            <div id="neighborhood" className="scroll-mt-16"></div>
+            <ErrorBoundary sectionName="15-Minute City">
+              <Suspense fallback={null}>
+                <FifteenMinuteCity location={location} />
+              </Suspense>
+            </ErrorBoundary>
+
+            {/* Street Cross-Section (Current = free, Recommended = premium) */}
+            <div id="cross-section" className="scroll-mt-16">
+              <ErrorBoundary sectionName="Street Cross-Section">
+                <Suspense fallback={null}>
+                  <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onConfigChange={setCrossSectionSnapshot} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+
             {/* Share + Export */}
             <div className="flex flex-wrap items-center justify-center gap-3">
               <button
@@ -1459,104 +1475,132 @@ function App() {
               </ErrorBoundary>
             </div>
 
-            {/* 15-Minute City Score (free for all users) */}
-            <div id="neighborhood" className="scroll-mt-16"></div>
-            <ErrorBoundary sectionName="15-Minute City">
-              <Suspense fallback={null}>
-                <FifteenMinuteCity location={location} />
-              </Suspense>
-            </ErrorBoundary>
-
-            {/* Advocacy Tools */}
-            <div id="advocacy" className="scroll-mt-16"></div>
-
-            {/* Tier Comparison Card — shown to free users */}
-            {!userIsPremium && accessInfo.tier === 'free' && (
-              <Suspense fallback={null}>
-                <TierComparisonCard
-                  onUpgrade={() => setShowSignInModal(true)}
-                  onContact={() => setShowContactModal(true)}
-                />
-              </Suspense>
-            )}
-
-            {/* AI Letter + Proposal (unified) */}
-            {(userIsPremium || accessInfo.tier !== 'free') ? (
-              <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
-                <div className="px-6 py-6 sm:px-8">
-                  <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Generate Advocacy Documents</h3>
-                  <p className="text-sm mb-5" style={{ color: '#5a6a5a' }}>
-                    AI-powered documents citing your walkability data, safety standards, and specific recommendations.
-                  </p>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      onClick={() => setShowLetterModal(true)}
-                      className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
-                      style={{ backgroundColor: '#e07850' }}
-                    >
-                      Draft Letter to Officials
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="rounded-2xl border-2 overflow-hidden opacity-90" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
-                <div className="px-6 py-6 sm:px-8">
-                  <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>AI Advocacy Documents</h3>
-                  <p className="text-sm mb-3" style={{ color: '#5a6a5a' }}>
-                    Generate professional letters and proposals citing your walkability data, WHO/NACTO standards, and specific recommendations.
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>
-                    Advocacy Toolkit &mdash; $49 one-time
-                  </div>
-                  <br />
-                  <button
-                    onClick={() => setShowSignInModal(true)}
-                    className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
-                    style={{ backgroundColor: '#e07850' }}
-                  >
-                    Unlock Advocacy Toolkit
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Street Audit Tool CTA */}
-            <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.04)' }}>
-              <div className="px-6 py-6 sm:px-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#e07850' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                      <path d="M9 14l2 2 4-4" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Walk & Audit Your Street</h3>
-                    <p className="text-sm" style={{ color: '#5a6a5a' }}>
-                      Take a structured checklist to your street. Document real conditions with photos and notes, then download a proposal-ready report.
+            {/* Advocacy Tools — Consolidated Section */}
+            <div id="tools" className="scroll-mt-16">
+              {(userIsPremium || accessInfo.tier !== 'free') ? (
+                /* Paid users: tool grid */
+                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                  <div className="px-6 py-6 sm:px-8">
+                    <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Advocacy Tools</h3>
+                    <p className="text-sm mb-5" style={{ color: '#5a6a5a' }}>
+                      Professional tools to advocate for safer, more walkable streets.
                     </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {/* AI Letter */}
+                      <button
+                        onClick={() => setShowLetterModal(true)}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
+                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                      >
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>AI Letter</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Draft letters to officials</span>
+                        </div>
+                      </button>
+
+                      {/* Proposal */}
+                      <button
+                        onClick={() => {
+                          const proposalData = {
+                            location, metrics,
+                            compositeScore: compositeScore || undefined,
+                            crashData: crashData || undefined,
+                            demographicData: demographicData || undefined,
+                            localEconomy: osmData ? analyzeLocalEconomy(osmData) : undefined,
+                            rawMetricData: rawMetricData || undefined,
+                            dataQuality: dataQuality || undefined,
+                          };
+                          sessionStorage.setItem('advocacyProposalData', JSON.stringify(proposalData));
+                          window.open('/proposal', '_blank');
+                        }}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
+                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                      >
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Proposal</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Formal proposal for officials</span>
+                        </div>
+                      </button>
+
+                      {/* Street Audit */}
+                      <button
+                        onClick={() => setShowAuditTool(true)}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
+                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                      >
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 11l3 3L22 4" />
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Street Audit</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Walk & document your street</span>
+                        </div>
+                      </button>
+                    </div>
                   </div>
                 </div>
-                {(userIsPremium || accessInfo.tier !== 'free') ? (
-                  <button
-                    onClick={() => setShowAuditTool(true)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl text-white font-semibold text-sm transition-all hover:shadow-lg cursor-pointer border-none flex-shrink-0"
-                    style={{ backgroundColor: '#e07850' }}
-                  >
-                    Start Audit
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowSignInModal(true)}
-                    className="w-full sm:w-auto px-6 py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer border-2 flex-shrink-0"
-                    style={{ borderColor: '#e07850', color: '#e07850', backgroundColor: 'transparent' }}
-                  >
-                    Unlock Advocacy Toolkit
-                  </button>
-                )}
-              </div>
+              ) : (
+                /* Free users: compact upgrade banner */
+                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}>
+                  <div className="px-6 py-6 sm:px-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                      <div>
+                        <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Advocacy Toolkit</h3>
+                        <p className="text-sm mt-0.5" style={{ color: '#8a9a8a' }}>One-time payment, no subscription</p>
+                      </div>
+                      <div className="text-2xl font-bold" style={{ color: '#e07850' }}>$49</div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mb-5">
+                      {[
+                        'AI letters to officials',
+                        'Street redesign mockups',
+                        'Formal proposals',
+                        'PDF & JSON export',
+                        'Street audit tool',
+                        'Save 10 addresses',
+                      ].map((feature) => (
+                        <div key={feature} className="flex items-center gap-2 text-xs" style={{ color: '#2a3a2a' }}>
+                          <span style={{ color: '#22c55e' }}>&#x2713;</span>
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        onClick={() => setShowSignInModal(true)}
+                        className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
+                        style={{ backgroundColor: '#e07850' }}
+                      >
+                        Unlock Advocacy Toolkit
+                      </button>
+                      <button
+                        onClick={() => setShowContactModal(true)}
+                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md cursor-pointer border-2"
+                        style={{ borderColor: '#e0dbd0', color: '#5a6a5a', backgroundColor: 'transparent' }}
+                      >
+                        Contact for Custom
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Street Audit Tool Overlay */}
@@ -1571,32 +1615,6 @@ function App() {
                 />
               </Suspense>
             )}
-
-            {/* Street Cross-Section (Current = free, Recommended = premium) */}
-            <div id="cross-section" className="scroll-mt-16">
-              <ErrorBoundary sectionName="Street Cross-Section">
-                <Suspense fallback={null}>
-                  <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onUnlock={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
-
-            {/* Advocacy Proposal Generator (merged letter + proposal + budget) */}
-            <ErrorBoundary sectionName="Advocacy Proposal">
-              <Suspense fallback={null}>
-                <AdvocacyProposal
-                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                  location={location}
-                  metrics={metrics}
-                  compositeScore={compositeScore}
-                  crashData={crashData}
-                  demographicData={demographicData}
-                  osmData={osmData}
-                  rawMetricData={rawMetricData}
-                  dataQuality={dataQuality}
-                />
-              </Suspense>
-            </ErrorBoundary>
 
             {/* --- Tier 4: Reference --- */}
             <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>

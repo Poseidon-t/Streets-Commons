@@ -428,7 +428,6 @@ interface StreetCrossSectionProps {
   location: Location;
   metrics: WalkabilityMetrics;
   isPremium?: boolean;
-  onUnlock?: () => void;
   onConfigChange?: (snapshot: CrossSectionSnapshot | null) => void;
 }
 
@@ -436,7 +435,6 @@ export default function StreetCrossSection({
   location,
   metrics,
   isPremium = false,
-  onUnlock,
   onConfigChange,
 }: StreetCrossSectionProps) {
   const [streetAttrs, setStreetAttrs] = useState<StreetAttributes | null>(null);
@@ -627,27 +625,10 @@ export default function StreetCrossSection({
           )}
         </>
       ) : (
-        <div className="border-t pt-5" style={{ borderColor: '#e0dbd0' }}>
-          <div className="rounded-xl p-4" style={{ backgroundColor: '#faf8f5', border: '1px solid #e0dbd0' }}>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h4 className="font-bold text-sm mb-1" style={{ color: '#2a3a2a' }}>Explore Street Redesign</h4>
-                <p className="text-xs" style={{ color: '#8a9a8a' }}>
-                  Toggle improvements like bike lanes, wider sidewalks, and street trees.
-                </p>
-                <p className="text-xs font-semibold mt-1" style={{ color: '#e07850' }}>Advocacy Toolkit — $49 one-time</p>
-              </div>
-              {onUnlock && (
-                <button
-                  onClick={onUnlock}
-                  className="px-4 py-2 rounded-xl font-semibold text-white text-sm whitespace-nowrap"
-                  style={{ backgroundColor: '#e07850' }}
-                >
-                  Unlock
-                </button>
-              )}
-            </div>
-          </div>
+        <div className="border-t pt-4" style={{ borderColor: '#e0dbd0' }}>
+          <p className="text-xs text-center" style={{ color: '#8a9a8a' }}>
+            Upgrade to the Advocacy Toolkit to explore street redesign options like bike lanes, wider sidewalks, and trees.
+          </p>
         </div>
       )}
 

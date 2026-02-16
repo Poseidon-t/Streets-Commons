@@ -17,6 +17,112 @@ interface EquityInsight {
   detail: string;
 }
 
+interface DemographicStat {
+  label: string;
+  value: string;
+  context?: string; // e.g. "below national average"
+  contextColor?: string;
+}
+
+function buildDemographicStats(demographics: DemographicData, crashData: CrashData | null): DemographicStat[] {
+  const stats: DemographicStat[] = [];
+
+  if (demographics.type === 'us') {
+    if (demographics.medianHouseholdIncome !== null) {
+      const income = demographics.medianHouseholdIncome;
+      stats.push({
+        label: 'Median Income',
+        value: `$${income.toLocaleString()}`,
+        context: income < 40000 ? 'Below national median ($75k)' : income < 75000 ? 'Below national median ($75k)' : undefined,
+        contextColor: income < 40000 ? '#dc2626' : income < 75000 ? '#ca8a04' : undefined,
+      });
+    }
+    if (demographics.povertyRate !== null) {
+      const rate = demographics.povertyRate;
+      stats.push({
+        label: 'Poverty Rate',
+        value: `${rate.toFixed(1)}%`,
+        context: rate > 20 ? 'High — national avg is 12.4%' : rate > 15 ? 'Above national avg (12.4%)' : undefined,
+        contextColor: rate > 20 ? '#dc2626' : rate > 15 ? '#ca8a04' : undefined,
+      });
+    }
+    if (demographics.unemploymentRate !== null) {
+      const rate = demographics.unemploymentRate;
+      stats.push({
+        label: 'Unemployment',
+        value: `${rate.toFixed(1)}%`,
+        context: rate > 8 ? 'Above national avg' : undefined,
+        contextColor: rate > 8 ? '#ca8a04' : undefined,
+      });
+    }
+    if (demographics.medianHomeValue !== null) {
+      stats.push({
+        label: 'Median Home Value',
+        value: `$${demographics.medianHomeValue.toLocaleString()}`,
+      });
+    }
+    if (demographics.medianAge !== null) {
+      stats.push({
+        label: 'Median Age',
+        value: `${demographics.medianAge.toFixed(0)}`,
+      });
+    }
+    if (demographics.bachelorOrHigherPct !== null) {
+      stats.push({
+        label: 'College Educated',
+        value: `${demographics.bachelorOrHigherPct.toFixed(0)}%`,
+      });
+    }
+  } else if (demographics.type === 'international') {
+    if (demographics.gdpPerCapita !== null) {
+      const gdp = demographics.gdpPerCapita;
+      stats.push({
+        label: 'GDP per Capita',
+        value: `$${gdp.toLocaleString()}`,
+        context: gdp < 5000 ? 'Low-income country' : gdp < 15000 ? 'Middle-income country' : 'Upper-income country',
+        contextColor: gdp < 5000 ? '#dc2626' : gdp < 15000 ? '#ca8a04' : '#65a30d',
+      });
+    }
+    if (demographics.unemploymentRate !== null) {
+      const rate = demographics.unemploymentRate;
+      stats.push({
+        label: 'Unemployment',
+        value: `${rate.toFixed(1)}%`,
+        context: rate > 10 ? 'Above global avg' : undefined,
+        contextColor: rate > 10 ? '#ca8a04' : undefined,
+      });
+    }
+    if (demographics.urbanPopulationPct !== null) {
+      stats.push({
+        label: 'Urban Population',
+        value: `${demographics.urbanPopulationPct.toFixed(0)}%`,
+      });
+    }
+  }
+
+  // Add crash context as a stat
+  if (crashData) {
+    if (crashData.type === 'local') {
+      stats.push({
+        label: 'Fatal Crashes Nearby',
+        value: `${crashData.totalFatalities}`,
+        context: crashData.totalFatalities > 0 ? `Within 800m (${crashData.dataSource})` : 'None within 800m',
+        contextColor: crashData.totalFatalities > 2 ? '#dc2626' : crashData.totalFatalities > 0 ? '#ca8a04' : '#65a30d',
+      });
+    } else if (crashData.type === 'country') {
+      const rate = crashData.deathRatePer100k;
+      stats.push({
+        label: 'Road Deaths',
+        value: `${rate.toFixed(1)}/100k`,
+        context: rate > 20 ? 'Well above global avg (15.0)' : rate > 15 ? 'Above global avg (15.0)' : 'Below global avg (15.0)',
+        contextColor: rate > 20 ? '#dc2626' : rate > 15 ? '#ca8a04' : '#65a30d',
+      });
+    }
+  }
+
+  return stats;
+}
+
 function computeEquityAnalysis(
   demographics: DemographicData | null,
   metrics: WalkabilityMetrics,
@@ -56,6 +162,16 @@ function computeEquityAnalysis(
         detail: `Low access to daily needs (${metrics.destinationAccess.toFixed(1)}/10) in a low-income area. Residents likely spend 25-30% of income on transportation vs. the 15% national average.`,
       });
     }
+
+    // High unemployment compounds walkability gap
+    if (demographics.unemploymentRate !== null && demographics.unemploymentRate > 10 && score < 60) {
+      concernPoints += 1;
+      insights.push({
+        icon: '📉',
+        label: 'Economic vulnerability',
+        detail: `${demographics.unemploymentRate.toFixed(1)}% unemployment paired with limited walkability. Job access depends heavily on transportation — poor pedestrian infrastructure limits economic opportunity.`,
+      });
+    }
   } else if (demographics.type === 'international') {
     const { gdpPerCapita } = demographics;
     if (score < 50 && gdpPerCapita !== null && gdpPerCapita < 5000) {
@@ -64,6 +180,16 @@ function computeEquityAnalysis(
         icon: '🏚️',
         label: 'Infrastructure gap',
         detail: `Walkability score of ${(score / 10).toFixed(1)}/10 in a country with $${gdpPerCapita.toLocaleString()} GDP per capita. Walking is not a lifestyle choice here — it is a necessity, and the infrastructure doesn't support it.`,
+      });
+    }
+
+    // Urbanization pressure
+    if (demographics.urbanPopulationPct !== null && demographics.urbanPopulationPct > 70 && score < 50) {
+      concernPoints += 1;
+      insights.push({
+        icon: '🏙️',
+        label: 'Urbanization pressure',
+        detail: `${demographics.urbanPopulationPct.toFixed(0)}% urban population means high pedestrian demand, but infrastructure scores suggest streets aren't keeping pace with urbanization.`,
       });
     }
   }
@@ -81,12 +207,18 @@ function computeEquityAnalysis(
         label: 'Disproportionate safety burden',
         detail: `${crashData.totalFatalities} fatal crash${crashData.totalFatalities > 1 ? 'es' : ''} near a low-income area. Research shows pedestrian fatality rates are 2x higher in underinvested neighborhoods (Smart Growth America).`,
       });
-    } else if (crashData.type === 'country' && crashData.deathRatePer100k > 15 && isLowIncome) {
-      concernPoints += 1;
+    } else if (crashData.type === 'country' && crashData.deathRatePer100k > 15) {
+      concernPoints += isLowIncome ? 1 : 0;
       insights.push({
         icon: '⚠️',
         label: 'Elevated road safety risk',
-        detail: `${crashData.countryName}'s road death rate of ${crashData.deathRatePer100k.toFixed(1)}/100k is above the global average. Lower-income countries bear 90% of the world's road traffic deaths (WHO).`,
+        detail: `${crashData.countryName}'s road death rate of ${crashData.deathRatePer100k.toFixed(1)}/100k is above the global average of 15.0. ${isLowIncome ? 'Lower-income countries bear 90% of the world\'s road traffic deaths (WHO).' : 'Pedestrians and cyclists are disproportionately affected.'}`,
+      });
+    } else if (crashData.type === 'local' && crashData.totalFatalities > 0) {
+      insights.push({
+        icon: '⚠️',
+        label: 'Road safety concern',
+        detail: `${crashData.totalFatalities} fatal crash${crashData.totalFatalities > 1 ? 'es' : ''} recorded within 800m (NHTSA FARS, 2018-2022).`,
       });
     }
   }
@@ -112,15 +244,13 @@ function computeEquityAnalysis(
     }
   }
 
-  if (insights.length === 0) return null;
-
   const level: ConcernLevel = concernPoints >= 4 ? 'high' : concernPoints >= 2 ? 'moderate' : 'low';
 
   const context = level === 'high'
     ? 'This area shows multiple markers of transportation inequity. Walkability investment here would disproportionately benefit vulnerable residents.'
     : level === 'moderate'
     ? 'Some equity concerns are present. Improving walkability here would benefit residents who depend most on pedestrian infrastructure.'
-    : 'Mild equity indicators detected. Even modest improvements would benefit underserved community members.';
+    : 'Walkability improvements in this area would benefit the broader community. The data below provides context for local conditions.';
 
   return { level, insights, context };
 }
@@ -138,47 +268,76 @@ export default function EquityContextSection({
   compositeScore,
   localEconomy,
 }: EquityContextProps) {
-  const analysis = computeEquityAnalysis(demographicData, metrics, crashData, compositeScore, localEconomy);
-  if (!analysis) return null;
+  if (!demographicData) return null;
 
-  const config = LEVEL_CONFIG[analysis.level];
+  const analysis = computeEquityAnalysis(demographicData, metrics, crashData, compositeScore, localEconomy);
+  const stats = buildDemographicStats(demographicData, crashData);
+  const config = analysis ? LEVEL_CONFIG[analysis.level] : LEVEL_CONFIG.low;
+
+  const sourceLabel = demographicData.type === 'us'
+    ? `US Census ACS ${demographicData.year}, Tract ${demographicData.tractFips}`
+    : `World Bank ${demographicData.year}, ${demographicData.countryName}`;
 
   return (
     <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>Equity Context</h3>
-        <span
-          className="px-3 py-1 rounded-full text-xs font-bold"
-          style={{ color: config.color, backgroundColor: config.bg }}
-        >
-          {config.label}
-        </span>
+        {analysis && (
+          <span
+            className="px-3 py-1 rounded-full text-xs font-bold"
+            style={{ color: config.color, backgroundColor: config.bg }}
+          >
+            {config.label}
+          </span>
+        )}
       </div>
 
-      <p className="text-xs leading-relaxed" style={{ color: '#6b7280' }}>
-        This analysis connects your walkability score with local demographic data to identify potential equity concerns. Low walkability in economically disadvantaged areas compounds transportation burdens on residents who can least afford alternatives.
-      </p>
-
-      <div className="space-y-3">
-        {analysis.insights.map((insight, i) => (
-          <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: config.bg }}>
-            <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
-            <div>
-              <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{insight.label}</div>
-              <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#4a5a4a' }}>{insight.detail}</div>
+      {/* Demographic Data Snapshot */}
+      {stats.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {stats.map((stat) => (
+            <div key={stat.label} className="p-2.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
+              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#8a9a8a' }}>
+                {stat.label}
+              </div>
+              <div className="text-sm font-bold" style={{ color: '#2a3a2a' }}>
+                {stat.value}
+              </div>
+              {stat.context && (
+                <div className="text-[10px] mt-0.5" style={{ color: stat.contextColor || '#8a9a8a' }}>
+                  {stat.context}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Why this matters */}
+      {/* Equity Insights */}
+      {analysis && analysis.insights.length > 0 && (
+        <div className="space-y-2">
+          {analysis.insights.map((insight, i) => (
+            <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: config.bg }}>
+              <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
+              <div>
+                <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{insight.label}</div>
+                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#4a5a4a' }}>{insight.detail}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Context + Sources */}
       <div className="pt-3 border-t" style={{ borderColor: '#f0ebe0' }}>
-        <p className="text-xs leading-relaxed" style={{ color: '#6b7280' }}>
-          <span className="font-semibold" style={{ color: '#4a5a4a' }}>Why this matters:</span>{' '}
-          {analysis.context}
-        </p>
-        <p className="text-xs mt-2" style={{ color: '#b0a8a0' }}>
-          Sources: US Census ACS, World Bank, Smart Growth America, WHO Global Status Report on Road Safety
+        {analysis && (
+          <p className="text-xs leading-relaxed mb-2" style={{ color: '#6b7280' }}>
+            <span className="font-semibold" style={{ color: '#4a5a4a' }}>Why this matters:</span>{' '}
+            {analysis.context}
+          </p>
+        )}
+        <p className="text-xs" style={{ color: '#b0a8a0' }}>
+          {sourceLabel}{crashData ? ` · ${crashData.dataSource}` : ''} · Smart Growth America
         </p>
       </div>
     </div>
