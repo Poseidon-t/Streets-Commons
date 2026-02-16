@@ -1358,7 +1358,7 @@ function App() {
 
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {/* Location name */}
             <h2 className="text-2xl font-bold text-center" style={{ color: '#2a3a2a' }}>
               {location.displayName}
@@ -1394,42 +1394,37 @@ function App() {
               <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} compositeScore={compositeScore} />
             </div>
 
-            {/* Info bar: Data quality + sources */}
+            {/* Compact data quality badge */}
             {dataQuality && (
-              <div className="rounded-2xl p-5 sm:p-6 border shadow-sm" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Data Quality</h3>
-                    <span className={`px-3 py-1.5 rounded-lg font-bold text-sm ${
-                      dataQuality.confidence === 'high' ? 'bg-green-100 text-green-800' :
-                      dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {dataQuality.confidence.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="text-xs" style={{ color: '#8a9a8a' }}>
-                    OSM · Sentinel-2 · NASA POWER{crashData ? ' · ' + crashData.dataSource : ''}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t" style={{ borderColor: '#e0dbd0' }}>
-                  <div className="text-center py-2">
-                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.streetCount}</div>
-                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Streets</div>
-                  </div>
-                  <div className="text-center py-2">
-                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.sidewalkCount}</div>
-                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Sidewalks</div>
-                  </div>
-                  <div className="text-center py-2">
-                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.crossingCount}</div>
-                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>Crossings</div>
-                  </div>
-                  <div className="text-center py-2">
-                    <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>{dataQuality.poiCount}</div>
-                    <div className="text-sm mt-1" style={{ color: '#8a9a8a' }}>POIs</div>
-                  </div>
-                </div>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs" style={{ color: '#8a9a8a' }}>
+                <span className="flex items-center gap-1.5">
+                  Data Quality:
+                  <span className={`px-2 py-0.5 rounded font-bold ${
+                    dataQuality.confidence === 'high' ? 'bg-green-100 text-green-700' :
+                    dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                    'bg-red-100 text-red-700'
+                  }`}>
+                    {dataQuality.confidence.toUpperCase()}
+                  </span>
+                </span>
+                <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings · {dataQuality.poiCount} POIs</span>
+                <span className="hidden sm:inline">OSM · Sentinel-2 · NASA{crashData ? ' · ' + crashData.dataSource : ''}</span>
+              </div>
+            )}
+
+            {/* First-time onboarding tip */}
+            {showOnboarding && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-gray-600">
+                <span>Scores are 0&ndash;10 (10 = best). Green = strengths, red = needs attention. Scroll down for more.</span>
+                <button
+                  onClick={() => {
+                    setShowOnboarding(false);
+                    try { localStorage.setItem('safestreets_seen_onboarding', '1'); } catch {}
+                  }}
+                  className="font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap px-2 py-1 rounded hover:bg-blue-100"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
 
@@ -1438,78 +1433,42 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
             </div>
 
-            {/* First-time onboarding card */}
-            {showOnboarding && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex justify-between items-start gap-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-800 text-sm mb-2">How to read your results</h3>
-                    <ul className="text-xs text-gray-600 space-y-1">
-                      <li>Scores are 0&ndash;10 (10 = best). Below 5 needs attention.</li>
-                      <li>Green metrics = strengths. Red/orange = improvement opportunities.</li>
-                      <li>Scroll down for your street cross-section and 15-minute city score.</li>
-                      <li>Use the chat button (bottom-right) to ask questions about your data.</li>
-                    </ul>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setShowOnboarding(false);
-                      try { localStorage.setItem('safestreets_seen_onboarding', '1'); } catch {}
-                    }}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap px-3 py-1 rounded-lg hover:bg-blue-100 transition-colors"
-                  >
-                    Got it
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Share Report Card + Share Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-2">
+            {/* Share + Export */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <button
                 onClick={() => setShowReportCard(true)}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg"
-                style={{ backgroundColor: '#e07850' }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm border transition-all hover:shadow-sm"
+                style={{ borderColor: '#e0dbd0', color: '#2a3a2a' }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Share Report Card
+                Share Report
               </button>
-            </div>
-            <ErrorBoundary sectionName="Share Buttons">
-              <Suspense fallback={null}>
-                <ShareButtons
-                  location={location}
-                  metrics={metrics}
-                  dataQuality={dataQuality || undefined}
-                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                  onUnlock={() => setShowSignInModal(true)}
-                  crossSectionSnapshot={crossSectionSnapshot}
-                />
-              </Suspense>
-            </ErrorBoundary>
-
-            {/* --- Tier 2: Understand & Act --- */}
-            <div id="neighborhood" className="flex items-center gap-3 pt-4 scroll-mt-16">
-              <div className="h-px flex-1 bg-gray-200" />
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Understand Your Neighborhood</span>
-              <div className="h-px flex-1 bg-gray-200" />
+              <ErrorBoundary sectionName="Share Buttons">
+                <Suspense fallback={null}>
+                  <ShareButtons
+                    location={location}
+                    metrics={metrics}
+                    dataQuality={dataQuality || undefined}
+                    isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                    onUnlock={() => setShowSignInModal(true)}
+                    crossSectionSnapshot={crossSectionSnapshot}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </div>
 
             {/* 15-Minute City Score (free for all users) */}
+            <div id="neighborhood" className="scroll-mt-16"></div>
             <ErrorBoundary sectionName="15-Minute City">
               <Suspense fallback={null}>
                 <FifteenMinuteCity location={location} />
               </Suspense>
             </ErrorBoundary>
 
-            {/* --- Tier 3: Professional Advocacy Tools (Premium) --- */}
-            <div id="advocacy" className="flex items-center gap-3 pt-4 scroll-mt-16">
-              <div className="h-px flex-1 bg-gray-200" />
-              <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Professional Advocacy Tools</span>
-              <div className="h-px flex-1 bg-gray-200" />
-            </div>
+            {/* Advocacy Tools */}
+            <div id="advocacy" className="scroll-mt-16"></div>
 
             {/* Tier Comparison Card — shown to free users */}
             {!userIsPremium && accessInfo.tier === 'free' && (
