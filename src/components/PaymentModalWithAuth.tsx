@@ -101,7 +101,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
                 Sign In to Continue
               </h2>
               <p className="text-sm" style={{ color: '#6b7280' }}>
-                Sign in first, then unlock the Advocacy Toolkit for a one-time $19 payment.
+                Sign in first, then unlock the Advocacy Toolkit for a one-time $49 payment.
               </p>
             </div>
             <div className="flex flex-col items-center">
@@ -137,7 +137,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
               <div className="grid grid-cols-3 text-center text-xs font-bold py-3 border-b" style={{ borderColor: '#e0dbd0', backgroundColor: '#f8f6f1' }}>
                 <div style={{ color: '#8a9a8a' }}>Feature</div>
                 <div style={{ color: '#8a9a8a' }}>Free</div>
-                <div style={{ color: '#e07850' }}>Toolkit $19</div>
+                <div style={{ color: '#e07850' }}>Toolkit $49</div>
               </div>
 
               {/* Feature rows */}
@@ -182,7 +182,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
               className="w-full py-4 rounded-xl font-bold text-white text-lg transition-all hover:shadow-lg disabled:opacity-60"
               style={{ backgroundColor: '#e07850' }}
             >
-              {loading ? 'Redirecting to checkout...' : 'Unlock for $19'}
+              {loading ? 'Redirecting to checkout...' : 'Unlock for $49'}
             </button>
 
             <div className="mt-4 flex items-center justify-center gap-4 text-xs" style={{ color: '#8a9a8a' }}>

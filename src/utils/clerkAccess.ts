@@ -1,6 +1,6 @@
 /**
  * Clerk-based Access Management
- * Free tier = default. Advocate tier = $19 one-time payment (stored in Clerk publicMetadata).
+ * Free tier = default. Advocate tier = $49 one-time payment (stored in Clerk publicMetadata).
  * Dev mode (localhost) auto-enables advocate tier for testing.
  */
 

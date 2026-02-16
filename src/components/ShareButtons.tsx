@@ -360,7 +360,7 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
                 <p className="text-xs mb-1" style={{ color: '#8a9a8a' }}>
                   Download professional PDF reports and raw JSON data.
                 </p>
-                <p className="text-xs font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $19 one-time</p>
+                <p className="text-xs font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $49 one-time</p>
               </div>
               <button
                 onClick={() => onUnlock?.()}

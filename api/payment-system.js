@@ -127,7 +127,7 @@ export async function sendMagicLinkEmail(email, tier, token, locationName) {
   const tierDetails = {
     advocate: {
       name: 'Advocate',
-      price: '$19',
+      price: '$49',
       features: '• Street Redesign\n• 3DStreet Visualization\n• Policy Report PDF\n• Budget Analysis\n• International Standards (WHO, ADA)\n• Advocacy Proposal PDF'
     },
   };
@@ -185,7 +185,7 @@ Making cities walkable, one street at a time 🚶
 export async function processPayment(stripeSession) {
   const { id, customer_email, amount_total, metadata } = stripeSession;
 
-  // Only advocate tier ($19) is currently offered
+  // Only advocate tier ($49) is currently offered
   const tier = 'advocate';
   const email = customer_email;
   const locationName = metadata.locationName || 'Location';

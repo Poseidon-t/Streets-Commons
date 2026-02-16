@@ -368,7 +368,7 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
             <div className="px-3 py-3 border-t border-gray-200 flex-shrink-0">
               <div className="text-center p-3 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '1px solid rgba(224,120,80,0.2)' }}>
                 <p className="text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>Free messages used ({FREE_MESSAGE_LIMIT}/{FREE_MESSAGE_LIMIT})</p>
-                <p className="text-xs mb-2" style={{ color: '#8a9a8a' }}>Unlock unlimited chat with the Advocacy Toolkit — $19 one-time.</p>
+                <p className="text-xs mb-2" style={{ color: '#8a9a8a' }}>Unlock unlimited chat with the Advocacy Toolkit — $49 one-time.</p>
                 {onUnlock && (
                   <button
                     onClick={onUnlock}

@@ -636,7 +636,7 @@ export default function StreetCrossSection({
                 <p className="text-xs" style={{ color: '#8a9a8a' }}>
                   Toggle improvements like bike lanes, wider sidewalks, and street trees.
                 </p>
-                <p className="text-xs font-semibold mt-1" style={{ color: '#e07850' }}>Advocacy Toolkit — $19 one-time</p>
+                <p className="text-xs font-semibold mt-1" style={{ color: '#e07850' }}>Advocacy Toolkit — $49 one-time</p>
               </div>
               {onUnlock && (
                 <button

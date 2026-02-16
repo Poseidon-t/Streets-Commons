@@ -2652,7 +2652,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     // Define pricing
     const pricing = {
       advocate: {
-        amount: 1900, // $19 in cents
+        amount: 4900, // $49 in cents
         name: 'SafeStreets Advocate',
         description: 'Streetmix, 3DStreet, Policy Reports, Budget Analysis',
       },

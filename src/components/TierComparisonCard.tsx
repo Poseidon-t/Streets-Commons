@@ -25,7 +25,7 @@ const TIERS = [
   },
   {
     name: 'Advocacy Toolkit',
-    price: '$19',
+    price: '$49',
     subtitle: 'One-time payment',
     color: '#e07850',
     features: [
@@ -116,7 +116,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
                 className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg"
                 style={{ backgroundColor: '#e07850' }}
               >
-                Unlock for $19
+                Unlock for $49
               </button>
             )}
             {tier.name === 'Custom Analysis' && (

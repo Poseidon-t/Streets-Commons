@@ -1548,7 +1548,7 @@ function App() {
                     Generate professional letters and proposals citing your walkability data, WHO/NACTO standards, and specific recommendations.
                   </p>
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>
-                    Advocacy Toolkit &mdash; $19 one-time
+                    Advocacy Toolkit &mdash; $49 one-time
                   </div>
                   <br />
                   <button
@@ -2004,7 +2004,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $19 payment.
+                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
                   </p>
                 </div>
               </div>
@@ -2079,7 +2079,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($19 one-time) unlocks the Street Audit Tool, AI advocacy documents, street redesign mockups, unlimited chatbot, and data export.
+                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, AI advocacy documents, street redesign mockups, unlimited chatbot, and data export.
                   </p>
                 </div>
               </div>
@@ -2104,7 +2104,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $19 payment — no subscription.
+                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
                   </p>
                 </div>
               </div>
@@ -2129,7 +2129,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">The Advocacy Toolkit ($19 one-time) unlocks:</strong> Street Audit Tool, AI advocacy document generator, street redesign mockups, unlimited AI chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
+                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, AI advocacy document generator, street redesign mockups, unlimited AI chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
                   </p>
                 </div>
               </div>
@@ -2207,7 +2207,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($19 one-time) unlocks advanced features like the Street Audit Tool, AI advocacy documents, street redesign mockups, and unlimited chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
+                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($49 one-time) unlocks advanced features like the Street Audit Tool, AI advocacy documents, street redesign mockups, and unlimited chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
                   </p>
                 </div>
               </div>
@@ -2314,7 +2314,7 @@ function App() {
                 <li className="flex items-start gap-2">
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#e07850' }}></span>
                   <div>
-                    <span className="font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $19</span>
+                    <span className="font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $49</span>
                     <p className="text-xs" style={{ color: '#7a8a7a' }}>Street audit, AI documents, redesign mockups, unlimited chatbot</p>
                   </div>
                 </li>
