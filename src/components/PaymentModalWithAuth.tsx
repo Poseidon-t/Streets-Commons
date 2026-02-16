@@ -19,13 +19,13 @@ const FEATURES = [
   { name: 'Walkability Analysis (8 metrics)', free: true, paid: true },
   { name: 'Equity Insights + Local Economy', free: true, paid: true },
   { name: '15-Minute City Analysis', free: true, paid: true },
-  { name: 'Street Cross-Section (current)', free: true, paid: true },
+  { name: 'Street Cross-Section', free: true, paid: true },
   { name: 'Compare Mode', free: true, paid: true },
-  { name: 'AI Chatbot', free: '6 msgs', paid: 'Unlimited' },
-  { name: 'Street Audit Tool', free: false, paid: true },
-  { name: 'AI Advocacy Documents', free: false, paid: true },
-  { name: 'Street Redesign Mockup', free: false, paid: true },
-  { name: 'PDF / JSON Export', free: false, paid: true },
+  { name: 'Meridian Chatbot', free: '6 msgs', paid: 'Unlimited', desc: 'Trained on NACTO, WHO & urban planning standards' },
+  { name: 'Street Audit Tool', free: false, paid: true, desc: 'Walk & document street issues with photos' },
+  { name: 'Advocacy Letters & Proposals', free: false, paid: true, desc: 'Data-backed letters and formal PDF proposals' },
+  { name: 'Street Redesign Mockup', free: false, paid: true, desc: 'Visualize bike lanes, wider sidewalks, trees' },
+  { name: 'PDF / JSON Export', free: false, paid: true, desc: 'Professional reports and raw data download' },
   { name: 'Save Up To 10 Addresses', free: false, paid: true },
 ];
 
@@ -147,7 +147,10 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
                   className="grid grid-cols-3 text-center items-center py-2 px-2 text-xs border-b last:border-0"
                   style={{ borderColor: '#f0ebe0', backgroundColor: i % 2 === 0 ? 'white' : '#faf9f7' }}
                 >
-                  <div className="text-left font-medium" style={{ color: '#2a3a2a' }}>{f.name}</div>
+                  <div className="text-left">
+                    <span className="font-medium" style={{ color: '#2a3a2a' }}>{f.name}</span>
+                    {'desc' in f && f.desc && <span className="block text-[10px] leading-tight mt-0.5" style={{ color: '#b0a8a0' }}>{f.desc}</span>}
+                  </div>
                   <div>
                     {f.free === true ? (
                       <span style={{ color: '#22c55e' }}>&#x2713;</span>

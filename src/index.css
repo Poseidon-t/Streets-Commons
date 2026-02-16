@@ -30,3 +30,9 @@ body {
 .prose tr:nth-child(even) { background-color: #faf9f7; }
 .prose blockquote { border-left: 4px solid #e07850; padding-left: 1rem; margin: 1.5rem 0; font-style: italic; color: #5a6a5a; }
 .prose table { display: block; overflow-x: auto; }
+
+/* Chat peek teaser animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

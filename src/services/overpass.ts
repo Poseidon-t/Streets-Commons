@@ -235,7 +235,8 @@ const HIGHWAY_PRIORITY: Record<string, number> = {
 
 function mapToStreetAttributes(tags: any, osmId?: number): StreetAttributes {
   return {
-    name: tags.name || 'Unnamed Street',
+    name: tags['name:en'] || tags.name || 'Unnamed Street',
+    nameEn: tags['name:en'] || undefined,
     highway: tags.highway,
     lanes: tags.lanes ? parseInt(tags.lanes, 10) : undefined,
     width: tags.width ? parseFloat(tags.width) : undefined,

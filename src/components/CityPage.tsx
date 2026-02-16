@@ -173,7 +173,7 @@ export default function CityPage() {
           {[
             { step: '1', title: 'Enter an Address', desc: `Type any address in ${city.name}, ${city.stateCode} into the search bar.` },
             { step: '2', title: 'Get Your Score', desc: 'We analyze 8+ walkability metrics using satellite data from NASA, Sentinel-2, and OpenStreetMap.' },
-            { step: '3', title: 'Take Action', desc: 'Use your analysis for advocacy, planning, or real estate decisions. Export as PDF or generate AI advocacy letters.' },
+            { step: '3', title: 'Take Action', desc: 'Use your analysis for advocacy, planning, or real estate decisions. Export as PDF or draft advocacy letters to local officials.' },
           ].map(item => (
             <div key={item.step} className="text-center">
               <div

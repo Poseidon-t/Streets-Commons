@@ -59,6 +59,13 @@ const QUICK_PROMPTS = [
   'Who is being failed by this street design?',
 ];
 
+const PEEK_TEASERS = [
+  'What would Jane Jacobs say about this street?',
+  'Who is being failed by this street design?',
+  'How does this compare to global standards?',
+  'What tactical urbanism could work here?',
+];
+
 export default function AdvocacyChatbot({ location, metrics, dataQuality, isPremium = false, onUnlock }: AdvocacyChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(loadPersistedMessages);
@@ -66,6 +73,9 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
   const [isStreaming, setIsStreaming] = useState(false);
   const [retryCountdown, setRetryCountdown] = useState(0);
   const [language, setLanguage] = useState('en');
+  const [peekVisible, setPeekVisible] = useState(false);
+  const [peekDismissed, setPeekDismissed] = useState(false);
+  const peekIndex = useRef(Math.floor(Math.random() * PEEK_TEASERS.length));
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -94,6 +104,20 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
     const timer = setTimeout(() => setRetryCountdown(retryCountdown - 1), 1000);
     return () => clearTimeout(timer);
   }, [retryCountdown]);
+
+  // Show peek teaser after 4 seconds for first-time users
+  useEffect(() => {
+    if (isOpen || peekDismissed || persistedCount.current > 0) return;
+    const timer = setTimeout(() => setPeekVisible(true), 4000);
+    return () => clearTimeout(timer);
+  }, [isOpen, peekDismissed]);
+
+  // Auto-hide peek after 8 seconds
+  useEffect(() => {
+    if (!peekVisible) return;
+    const timer = setTimeout(() => setPeekVisible(false), 8000);
+    return () => clearTimeout(timer);
+  }, [peekVisible]);
 
   // Count user messages (use persisted count as floor)
   const userMessageCount = Math.max(
@@ -239,22 +263,52 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button + peek teaser */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 active:scale-95"
-          style={{ backgroundColor: COLORS.primary }}
-          aria-label="Open urbanist advocate"
-        >
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          {/* Notification dot for first-time users */}
-          {messages.length === 0 && persistedCount.current === 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" />
+        <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex flex-col items-end gap-2">
+          {/* Peek teaser bubble */}
+          {peekVisible && (
+            <div
+              className="relative bg-white rounded-xl shadow-lg border px-4 py-3 max-w-[260px] animate-[fadeInUp_0.3s_ease-out]"
+              style={{ borderColor: '#e0dbd0' }}
+            >
+              <button
+                onClick={(e) => { e.stopPropagation(); setPeekDismissed(true); setPeekVisible(false); }}
+                className="absolute top-1 right-1.5 text-gray-300 hover:text-gray-500 text-sm leading-none"
+                aria-label="Dismiss"
+              >&times;</button>
+              <p className="text-xs font-medium pr-4" style={{ color: '#2a3a2a' }}>
+                &ldquo;{PEEK_TEASERS[peekIndex.current]}&rdquo;
+              </p>
+              <p className="text-[10px] mt-1" style={{ color: '#8a9a8a' }}>
+                Ask Meridian — trained on Jacobs, Gehl, Speck & NACTO standards
+              </p>
+              {/* Triangle pointer */}
+              <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-white border-b border-r rotate-45" style={{ borderColor: '#e0dbd0' }} />
+            </div>
           )}
-        </button>
+
+          {/* Button + label */}
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={() => { setIsOpen(true); setPeekVisible(false); setPeekDismissed(true); }}
+              className="w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-white transition-transform hover:scale-110 active:scale-95"
+              style={{ backgroundColor: COLORS.primary }}
+              aria-label="Open urbanist advocate"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+              {/* Notification dot for first-time users */}
+              {messages.length === 0 && persistedCount.current === 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white" />
+              )}
+            </button>
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full shadow-sm bg-white" style={{ color: '#2a3a2a' }}>
+              Meridian
+            </span>
+          </div>
+        </div>
       )}
 
       {/* Chat panel */}
@@ -269,7 +323,10 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
-              <span className="font-semibold text-sm">SafeStreets Urbanist</span>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm leading-tight">Meridian</span>
+                <span className="text-[10px] text-white/60 leading-tight">Trained on NACTO, WHO & urban planning standards</span>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               {/* Language selector */}
@@ -319,9 +376,16 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
                   <div className="text-3xl mb-2">&#x1f6b6;</div>
                   <p className="text-sm font-semibold text-gray-800">Streets belong to people.</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    I'm your urbanist advocate for{' '}
-                    <strong>{location.displayName.split(',')[0]}</strong>. Ask me about your data, global standards, or how to push for change.
+                    I'm <strong>Meridian</strong> — your urbanism advocate for{' '}
+                    <strong>{location.displayName.split(',')[0]}</strong>. I think like Jane Jacobs, argue like Jeff Speck, and design like Jan Gehl — grounded in real data and global standards.
                   </p>
+                  <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3">
+                    {['NACTO GSDG', 'WHO', 'Jane Jacobs', 'Jan Gehl', 'Jeff Speck'].map((tag) => (
+                      <span key={tag} className="px-2 py-0.5 rounded-full text-[10px] font-medium" style={{ backgroundColor: '#f0ebe0', color: '#5a6a5a' }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
                 {/* Quick prompts */}
                 <div className="space-y-2">

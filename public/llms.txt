@@ -18,7 +18,7 @@ SafeStreets analyzes the walkability of any address worldwide using satellite an
 ## Key Features
 
 - **Free core analysis**: All 8 walkability metrics, composite score, grade, equity insights, 15-minute city analysis, street cross-section, and compare mode — no sign-up required
-- **Advocacy Toolkit** ($49 one-time): Street audit tool, AI advocacy documents, street redesign mockups, unlimited AI chatbot, PDF/JSON export, save up to 10 addresses
+- **Advocacy Toolkit** ($49 one-time): Street audit tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF/JSON export, save up to 10 addresses
 - **Global coverage**: Works in 190+ countries using satellite data
 - **City pages**: Pre-built walkability guides for 20+ major US cities
 

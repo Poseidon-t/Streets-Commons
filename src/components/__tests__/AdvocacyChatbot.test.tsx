@@ -120,7 +120,7 @@ describe('AdvocacyChatbot', () => {
         <AdvocacyChatbot location={mockLocation} metrics={mockMetrics} dataQuality={mockDataQuality} />
       );
       fireEvent.click(screen.getByLabelText('Open urbanist advocate'));
-      expect(screen.getByText('SafeStreets Urbanist')).toBeInTheDocument();
+      expect(screen.getByText('Meridian')).toBeInTheDocument();
     });
 
     it('should close the chat panel when close button is clicked', () => {
@@ -128,10 +128,10 @@ describe('AdvocacyChatbot', () => {
         <AdvocacyChatbot location={mockLocation} metrics={mockMetrics} dataQuality={mockDataQuality} />
       );
       fireEvent.click(screen.getByLabelText('Open urbanist advocate'));
-      expect(screen.getByText('SafeStreets Urbanist')).toBeInTheDocument();
+      expect(screen.getByText('Meridian')).toBeInTheDocument();
 
       fireEvent.click(screen.getByLabelText('Close chat'));
-      expect(screen.queryByText('SafeStreets Urbanist')).not.toBeInTheDocument();
+      expect(screen.queryByText('Meridian')).not.toBeInTheDocument();
     });
   });
 

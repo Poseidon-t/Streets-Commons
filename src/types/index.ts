@@ -89,6 +89,7 @@ export interface WalkabilityScoreV2 {
 
 export interface StreetAttributes {
   name: string;
+  nameEn?: string;
   highway: 'primary' | 'secondary' | 'tertiary' | 'residential' | 'living_street';
   lanes?: number;
   width?: number;

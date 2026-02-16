@@ -164,7 +164,7 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
               Advocacy Toolkit — $49 one-time payment
             </p>
             <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>
-              Unlock budget analysis, AI letters, proposals, and more.
+              Unlock budget analysis, advocacy letters, proposals, and more.
             </p>
           </div>
         </div>

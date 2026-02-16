@@ -542,12 +542,20 @@ export default function StreetCrossSection({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold" style={{ color: '#2a3a2a' }}>
-            {streetAttrs?.name || 'Nearest Street'}
-            <span className="text-base font-normal ml-2 capitalize" style={{ color: '#8a9a8a' }}>{currentConfig?.highwayType?.replace('_', ' ')}</span>
+          <h2 className="text-base font-bold" style={{ color: '#2a3a2a' }}>
+            Street Cross-Section
           </h2>
-          <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
-            Side view of your street — showing lanes, sidewalks, and other features based on OpenStreetMap data.
+          <p className="text-sm mt-1" style={{ color: '#5a6a5a' }}>
+            {streetAttrs?.name || 'Nearest street'}
+            {' '}&mdash; {(() => {
+              const hw = currentConfig?.highwayType;
+              if (hw === 'primary') return 'major road';
+              if (hw === 'secondary') return 'collector road';
+              if (hw === 'tertiary') return 'local connector';
+              if (hw === 'living_street') return 'shared street';
+              return 'local street';
+            })()}{currentConfig ? `, ~${currentConfig.totalWidth.toFixed(0)}m wide` : ''}.
+            {' '}Approximate layout based on OpenStreetMap data — dimensions may be estimated where detailed tags are missing.
           </p>
         </div>
         {hasChanges && (

@@ -101,6 +101,7 @@ function App() {
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {
@@ -110,6 +111,27 @@ function App() {
       }
     };
   }, []);
+
+  // Meridian philosophy quote — show when analysis completes
+  const MERIDIAN_QUOTES = useRef([
+    // Score-agnostic (always relevant)
+    { text: 'Cities have the capability of providing something for everybody, only because, and only when, they are created by everybody.', author: 'Jane Jacobs' },
+    { text: 'First life, then spaces, then buildings — the other way around never works.', author: 'Jan Gehl' },
+    { text: 'The city is not a problem. The city is a solution.', author: 'Jaime Lerner' },
+    { text: 'A good city is like a good party — people stay longer than really necessary, because they are enjoying themselves.', author: 'Jan Gehl' },
+    { text: 'Walkable places are the foundations on which productive cities and healthy communities are built.', author: 'Jeff Speck' },
+    { text: 'The street is the river of life of the city.', author: 'William H. Whyte' },
+    { text: 'There is no logic that can be superimposed on the city; people make it, and it is to them, not buildings, that we must fit our plans.', author: 'Jane Jacobs' },
+    { text: 'A city built for speed is a city built for nobody.', author: 'Jeff Speck' },
+  ]).current;
+
+  useEffect(() => {
+    if (!metrics) { setMeridianQuote(null); return; }
+    const quote = MERIDIAN_QUOTES[Math.floor(Math.random() * MERIDIAN_QUOTES.length)];
+    setMeridianQuote(quote);
+    const timer = setTimeout(() => setMeridianQuote(null), 12000);
+    return () => clearTimeout(timer);
+  }, [metrics, MERIDIAN_QUOTES]);
 
   // Payment return flow: detect ?payment=success, poll for confirmation, reload
   useEffect(() => {
@@ -1411,6 +1433,34 @@ function App() {
               </div>
             )}
 
+            {/* Meridian philosophy quote */}
+            {meridianQuote && (
+              <div
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border animate-[fadeInUp_0.4s_ease-out]"
+                style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs italic" style={{ color: '#5a6a5a' }}>
+                    &ldquo;{meridianQuote.text}&rdquo;
+                  </p>
+                  <p className="text-[10px] mt-0.5 flex items-center gap-2" style={{ color: '#8a9a8a' }}>
+                    <span>&mdash; {meridianQuote.author}</span>
+                    <span className="inline-flex items-center gap-1 font-medium" style={{ color: '#2a3a2a' }}>
+                      via Meridian
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    </span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMeridianQuote(null)}
+                  className="text-gray-300 hover:text-gray-500 text-sm flex-shrink-0"
+                  aria-label="Dismiss quote"
+                >&times;</button>
+              </div>
+            )}
+
             {/* First-time onboarding tip */}
             {showOnboarding && (
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-gray-600">
@@ -1440,6 +1490,29 @@ function App() {
               </Suspense>
             </ErrorBoundary>
 
+            {/* Mid-page upgrade nudge (free users only) */}
+            {!(userIsPremium || accessInfo.tier !== 'free') && (
+              <div
+                className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 rounded-xl border"
+                style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}
+              >
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-lg">&#x1F4DD;</span>
+                  <span style={{ color: '#2a3a2a' }}>
+                    <strong>Turn this data into action</strong>
+                    <span style={{ color: '#5a6a5a' }}> — advocacy letters, street redesign mockups, PDF proposals & more</span>
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowSignInModal(true)}
+                  className="px-4 py-2 rounded-lg font-semibold text-xs text-white transition-all hover:shadow-md whitespace-nowrap flex-shrink-0"
+                  style={{ backgroundColor: '#e07850' }}
+                >
+                  See Advocacy Toolkit — $49
+                </button>
+              </div>
+            )}
+
             {/* Street Cross-Section (Current = free, Recommended = premium) */}
             <div id="cross-section" className="scroll-mt-16">
               <ErrorBoundary sectionName="Street Cross-Section">
@@ -1450,29 +1523,18 @@ function App() {
             </div>
 
             {/* Share + Export */}
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <button
-                onClick={() => setShowReportCard(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm border transition-all hover:shadow-sm"
-                style={{ borderColor: '#e0dbd0', color: '#2a3a2a' }}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Share Report
-              </button>
-              <ErrorBoundary sectionName="Share Buttons">
-                <Suspense fallback={null}>
-                  <ShareButtons
-                    location={location}
-                    metrics={metrics}
-                    dataQuality={dataQuality || undefined}
-                    isPremium={userIsPremium || accessInfo.tier !== 'free'}
-                    crossSectionSnapshot={crossSectionSnapshot}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
+            <ErrorBoundary sectionName="Share Buttons">
+              <Suspense fallback={null}>
+                <ShareButtons
+                  location={location}
+                  metrics={metrics}
+                  dataQuality={dataQuality || undefined}
+                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  crossSectionSnapshot={crossSectionSnapshot}
+                  onShareReport={() => setShowReportCard(true)}
+                />
+              </Suspense>
+            </ErrorBoundary>
 
             {/* Advocacy Tools — Consolidated Section */}
             <div id="tools" className="scroll-mt-16">
@@ -1485,7 +1547,7 @@ function App() {
                       Professional tools to advocate for safer, more walkable streets.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {/* AI Letter */}
+                      {/* Advocacy Letter */}
                       <button
                         onClick={() => setShowLetterModal(true)}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
@@ -1500,8 +1562,8 @@ function App() {
                           </svg>
                         </div>
                         <div>
-                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>AI Letter</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Draft letters to officials</span>
+                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Advocacy Letter</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Draft data-backed letters to city council or local officials</span>
                         </div>
                       </button>
 
@@ -1531,7 +1593,7 @@ function App() {
                         </div>
                         <div>
                           <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Proposal</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Formal proposal for officials</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Professional PDF with scores, equity data & recommendations</span>
                         </div>
                       </button>
 
@@ -1549,7 +1611,7 @@ function App() {
                         </div>
                         <div>
                           <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Street Audit</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Walk & document your street</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Walk & document issues — missing crosswalks, broken sidewalks, poor lighting</span>
                         </div>
                       </button>
                     </div>
@@ -1566,18 +1628,21 @@ function App() {
                       </div>
                       <div className="text-2xl font-bold" style={{ color: '#e07850' }}>$49</div>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mb-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
                       {[
-                        'AI letters to officials',
-                        'Street redesign mockups',
-                        'Formal proposals',
-                        'PDF & JSON export',
-                        'Street audit tool',
-                        'Save 10 addresses',
-                      ].map((feature) => (
-                        <div key={feature} className="flex items-center gap-2 text-xs" style={{ color: '#2a3a2a' }}>
-                          <span style={{ color: '#22c55e' }}>&#x2713;</span>
-                          <span>{feature}</span>
+                        { name: 'Advocacy Letters', desc: 'Draft data-backed letters to city council, DOT, or local officials using your walkability analysis.' },
+                        { name: 'Street Redesign', desc: 'Visualize how your street could look with bike lanes, wider sidewalks, or added trees.' },
+                        { name: 'Formal Proposals', desc: 'Generate professional PDF proposals with scores, equity data, and improvement recommendations.' },
+                        { name: 'Street Audit', desc: 'Walk your street and document issues — missing crosswalks, broken sidewalks, poor lighting.' },
+                        { name: 'Meridian Chatbot', desc: 'Urbanism assistant trained on NACTO, WHO, and global street design standards. Unlimited messages.' },
+                        { name: 'Export & Save', desc: 'Download PDF reports and raw JSON data. Save up to 10 addresses for tracking.' },
+                      ].map((f) => (
+                        <div key={f.name} className="flex items-start gap-2.5 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
+                          <span className="mt-0.5 flex-shrink-0" style={{ color: '#22c55e' }}>&#x2713;</span>
+                          <div>
+                            <span className="text-xs font-semibold block" style={{ color: '#2a3a2a' }}>{f.name}</span>
+                            <span className="text-[11px] leading-snug block mt-0.5" style={{ color: '#8a9a8a' }}>{f.desc}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1748,7 +1813,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Take Action</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Share results on social media, compare locations side-by-side, or upgrade for the Street Audit Tool, AI advocacy documents, and street redesign mockups.
+                        Share results on social media, compare locations side-by-side, or upgrade for the Street Audit Tool, advocacy letters & proposals, and street redesign mockups.
                       </p>
                     </div>
                   </div>
@@ -1980,7 +2045,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
+                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
                   </p>
                 </div>
               </div>
@@ -2055,7 +2120,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the AI chatbot (6 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, AI advocacy documents, street redesign mockups, unlimited chatbot, and data export.
+                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the Meridian chatbot (6 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, and data export.
                   </p>
                 </div>
               </div>
@@ -2080,7 +2145,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, AI advocacy documents, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
+                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
                   </p>
                 </div>
               </div>
@@ -2105,7 +2170,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, AI advocacy document generator, street redesign mockups, unlimited AI chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
+                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
                   </p>
                 </div>
               </div>
@@ -2183,7 +2248,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($49 one-time) unlocks advanced features like the Street Audit Tool, AI advocacy documents, street redesign mockups, and unlimited chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
+                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($49 one-time) unlocks advanced features like the Street Audit Tool, advocacy letters & proposals, street redesign mockups, and unlimited Meridian chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
                   </p>
                 </div>
               </div>
