@@ -10,8 +10,21 @@ import CityPage from './components/CityPage.tsx'
 import CityIndex from './components/CityIndex.tsx'
 import BlogIndex from './components/BlogIndex.tsx'
 import BlogPost from './components/BlogPost.tsx'
+import LearnIndex from './components/LearnIndex.tsx'
 // Reports
 import { FifteenMinuteCityReport } from './components/reports'
+
+// Enterprise marketing pages (lazy-loaded)
+const EnterpriseLayout = lazy(() => import('./enterprise/EnterpriseLayout'))
+const EnterpriseHome = lazy(() => import('./enterprise/EnterpriseHome'))
+const ForGovernments = lazy(() => import('./enterprise/ForGovernments'))
+const ForRealEstate = lazy(() => import('./enterprise/ForRealEstate'))
+const ForMobility = lazy(() => import('./enterprise/ForMobility'))
+const ForResearch = lazy(() => import('./enterprise/ForResearch'))
+const HowItWorks = lazy(() => import('./enterprise/HowItWorks'))
+const EnterpriseMetrics = lazy(() => import('./enterprise/Metrics'))
+const EnterprisePricing = lazy(() => import('./enterprise/Pricing'))
+const EnterpriseContact = lazy(() => import('./enterprise/Contact'))
 
 // Admin panel (lazy-loaded, code-split)
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
@@ -46,8 +59,26 @@ createRoot(document.getElementById('root')!).render(
           {/* Blog */}
           <Route path="/blog" element={<BlogIndex />} />
           <Route path="/blog/:postSlug" element={<BlogPost />} />
+          {/* Learn — educational resources */}
+          <Route path="/learn" element={<LearnIndex />} />
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
+          {/* Enterprise marketing pages */}
+          <Route path="/enterprise" element={
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-gray-400">Loading...</div></div>}>
+              <EnterpriseLayout />
+            </Suspense>
+          }>
+            <Route index element={<EnterpriseHome />} />
+            <Route path="governments" element={<ForGovernments />} />
+            <Route path="real-estate" element={<ForRealEstate />} />
+            <Route path="mobility" element={<ForMobility />} />
+            <Route path="research" element={<ForResearch />} />
+            <Route path="how-it-works" element={<HowItWorks />} />
+            <Route path="metrics" element={<EnterpriseMetrics />} />
+            <Route path="pricing" element={<EnterprisePricing />} />
+            <Route path="contact" element={<EnterpriseContact />} />
+          </Route>
           {/* Admin panel */}
           <Route path="/admin" element={
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><div className="text-gray-400">Loading admin...</div></div>}>

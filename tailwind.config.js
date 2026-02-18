@@ -24,6 +24,16 @@ export default {
         terra: {
           DEFAULT: '#e07850',
         },
+        enterprise: {
+          navy: '#1E40AF',
+          'navy-light': '#2563EB',
+          'navy-dark': '#1E3A8A',
+          green: '#10B981',
+          'green-light': '#34D399',
+          slate: '#0F172A',
+          'slate-mid': '#1E293B',
+          gray: '#F8FAFC',
+        },
       },
       fontFamily: {
         sans: ["'DM Sans'", 'system-ui', 'sans-serif'],
