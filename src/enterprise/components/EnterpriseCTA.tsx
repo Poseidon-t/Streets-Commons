@@ -11,8 +11,8 @@ interface EnterpriseCTAProps {
 }
 
 export default function EnterpriseCTA({
-  title = 'Ready to understand your walkability?',
-  description = 'Get a comprehensive walkability intelligence report tailored to your project needs.',
+  title = 'Ready to understand your pedestrian environment?',
+  description = 'Get a comprehensive pedestrian safety & infrastructure report tailored to your project needs.',
   primaryLabel = 'Contact Sales',
   primaryHref = '/enterprise/contact',
   secondaryLabel = 'View Pricing',

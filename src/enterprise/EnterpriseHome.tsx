@@ -15,7 +15,7 @@ const VERTICALS = [
   },
   {
     title: 'Real Estate',
-    description: 'Site selection insights, walkability premium analysis, and risk assessment for developments.',
+    description: 'Site selection insights, pedestrian infrastructure analysis, and risk assessment for developments.',
     href: '/enterprise/real-estate',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -46,7 +46,7 @@ const VERTICALS = [
 ];
 
 const STATS = [
-  { value: '12', label: 'Walkability Metrics' },
+  { value: '12', label: 'Safety & Infrastructure Metrics' },
   { value: '150+', label: 'Page Reports' },
   { value: '4', label: 'Analysis Categories' },
   { value: '5-Day', label: 'Field Audits' },
@@ -54,9 +54,9 @@ const STATS = [
 
 export default function EnterpriseHome() {
   useEffect(() => {
-    document.title = 'SafeStreets Intelligence — Walkability Reports for Better Decisions';
+    document.title = 'SafeStreets Intelligence — Pedestrian Safety & Infrastructure Reports';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Comprehensive walkability intelligence reports for governments, real estate developers, mobility companies, and research institutions. Data-driven insights starting at $50K.');
+    if (desc) desc.setAttribute('content', 'Comprehensive pedestrian safety and infrastructure intelligence reports for governments, real estate developers, mobility companies, and research institutions. Starting at $50K.');
   }, []);
 
   return (
@@ -64,12 +64,12 @@ export default function EnterpriseHome() {
       {/* Hero */}
       <section className="bg-enterprise-gray py-24 md:py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-green font-semibold text-sm uppercase tracking-wider mb-4">Walkability Intelligence</p>
+          <p className="text-enterprise-green font-semibold text-sm uppercase tracking-wider mb-4">Pedestrian Safety & Infrastructure Intelligence</p>
           <h1 className="text-4xl md:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Data-Driven Walkability<br />for Better Decisions
+            Data-Driven Pedestrian<br />Intelligence for Better Decisions
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-            Comprehensive walkability intelligence reports that combine field audits, data analysis, and actionable strategy for governments, developers, and urban planners.
+            Comprehensive pedestrian safety and infrastructure reports that combine field audits, data analysis, and actionable strategy for governments, developers, and urban planners.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -107,7 +107,7 @@ export default function EnterpriseHome() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Intelligence for Every Stakeholder</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Tailored walkability analysis for your specific use case and decision-making needs.</p>
+            <p className="text-gray-600 max-w-xl mx-auto">Tailored pedestrian safety analysis for your specific use case and decision-making needs.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {VERTICALS.map((v) => (
@@ -165,13 +165,13 @@ export default function EnterpriseHome() {
             <p className="text-gray-600 max-w-xl mx-auto">Choose the depth of analysis that matches your project scope.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Walkability Intelligence */}
+            {/* Pedestrian Safety Intelligence */}
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-2">Walkability Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-2">Pedestrian Safety Intelligence</p>
               <p className="text-4xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">
-                {['8 core walkability metrics', '80-page comprehensive report', '3-day field audit', '6-week delivery', 'Data appendix & methodology'].map((f) => (
+                {['8 core safety & infrastructure metrics', '80-page comprehensive report', '3-day field audit', '6-week delivery', 'Data appendix & methodology'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -194,7 +194,7 @@ export default function EnterpriseHome() {
               <p className="text-4xl font-bold mb-1">$100K</p>
               <p className="text-sm text-gray-400 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">
-                {['All 12 walkability metrics', '150-page detailed report', '5-day field audit', '8-week delivery', 'Strategic action plan', 'Ongoing advisory support'].map((f) => (
+                {['All 12 safety & infrastructure metrics', '150-page detailed report', '5-day field audit', '8-week delivery', 'Strategic action plan', 'Ongoing advisory support'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
                     <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

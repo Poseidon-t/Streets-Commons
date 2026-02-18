@@ -34,7 +34,7 @@ const PHASES = [
     number: '03',
     title: 'Analysis & Modeling',
     duration: 'Week 3-5',
-    description: 'Field observations are combined with municipal data, census demographics, transit schedules, and crash databases into a multi-source walkability model.',
+    description: 'Field observations are combined with municipal data, census demographics, transit schedules, and crash databases into a multi-source pedestrian safety model.',
     details: [
       'Field data digitization and quality review',
       'GIS integration with municipal datasets',
@@ -147,7 +147,7 @@ export default function HowItWorks() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Data Sources</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">We integrate multiple data sources for a comprehensive, validated picture of walkability conditions.</p>
+            <p className="text-gray-600 max-w-xl mx-auto">We integrate multiple data sources for a comprehensive, validated picture of pedestrian conditions.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {DATA_SOURCES.map((ds) => (
@@ -168,7 +168,7 @@ export default function HowItWorks() {
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Walkability Intelligence — $50K</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Pedestrian Safety Intelligence — $50K</p>
               <ul className="space-y-3">
                 {[
                   '80+ page professionally designed report',
@@ -190,7 +190,7 @@ export default function HowItWorks() {
             </div>
             <div className="bg-enterprise-slate rounded-2xl p-8 text-white">
               <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Complete Intelligence — $100K</p>
-              <p className="text-xs text-gray-400 mb-4">Everything in Walkability Intelligence, plus:</p>
+              <p className="text-xs text-gray-400 mb-4">Everything in Pedestrian Safety Intelligence, plus:</p>
               <ul className="space-y-3">
                 {[
                   '150+ page comprehensive report',
@@ -221,7 +221,7 @@ export default function HowItWorks() {
 
       <EnterpriseCTA
         dark
-        title="Ready to start your walkability assessment?"
+        title="Ready to start your pedestrian safety assessment?"
         description="Tell us about your project and we'll scope a custom engagement for you."
       />
     </>

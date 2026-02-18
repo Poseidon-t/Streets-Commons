@@ -10,7 +10,7 @@ const PROJECT_TYPES = [
 ];
 
 const BUDGET_RANGES = [
-  '$50K — Walkability Intelligence',
+  '$50K — Pedestrian Safety Intelligence',
   '$100K — Complete Intelligence',
   'Not sure yet',
 ];
@@ -30,7 +30,7 @@ export default function Contact() {
   useEffect(() => {
     document.title = 'Contact Sales | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a walkability report consultation for your project.');
+    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a pedestrian safety report consultation for your project.');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,7 +103,7 @@ export default function Contact() {
               <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Contact Sales</p>
               <h1 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-4">Let's discuss your project</h1>
               <p className="text-gray-600 mb-10 leading-relaxed">
-                Tell us about your walkability intelligence needs and we'll put together a tailored proposal for your project.
+                Tell us about your pedestrian safety intelligence needs and we'll put together a tailored proposal for your project.
               </p>
 
               <div className="space-y-6">
@@ -195,7 +195,7 @@ export default function Contact() {
                     name="message"
                     required
                     rows={4}
-                    placeholder="What are your walkability analysis needs? What decisions will this inform?"
+                    placeholder="What are your pedestrian safety analysis needs? What decisions will this inform?"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy resize-none"
                   />
                 </div>

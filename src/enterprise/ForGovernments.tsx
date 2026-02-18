@@ -3,11 +3,11 @@ import VerticalPage from './components/VerticalPage';
 export default function ForGovernments() {
   return (
     <VerticalPage
-      metaTitle="Walkability Intelligence for Governments"
-      metaDescription="ADA compliance audits, Vision Zero planning, and infrastructure investment prioritization. Data-driven walkability reports for municipal governments."
-      title="Walkability Intelligence for Governments"
+      metaTitle="Pedestrian Safety Intelligence for Governments"
+      metaDescription="ADA compliance audits, Vision Zero planning, and infrastructure investment prioritization. Data-driven pedestrian safety reports for municipal governments."
+      title="Pedestrian Safety Intelligence for Governments"
       subtitle="For Municipal & Regional Governments"
-      heroDescription="Make evidence-based infrastructure decisions with comprehensive walkability data. From ADA compliance to Vision Zero planning, our reports give you the data to prioritize investments and serve your community."
+      heroDescription="Make evidence-based infrastructure decisions with comprehensive pedestrian safety data. From ADA compliance to Vision Zero planning, our reports give you the data to prioritize investments and serve your community."
       challenges={[
         {
           title: 'ADA Compliance Gaps',
@@ -19,11 +19,11 @@ export default function ForGovernments() {
         },
         {
           title: 'Infrastructure Prioritization',
-          description: 'Limited budgets require evidence-based prioritization. Without walkability data, investments may not target the areas of greatest need or impact.',
+          description: 'Limited budgets require evidence-based prioritization. Without pedestrian infrastructure data, investments may not target the areas of greatest need or impact.',
         },
       ]}
       solutionTitle="Evidence-Based Planning"
-      solutionDescription="Our walkability intelligence reports provide the granular, field-verified data your planning department needs to make defensible investment decisions and meet federal compliance requirements."
+      solutionDescription="Our pedestrian safety intelligence reports provide the granular, field-verified data your planning department needs to make defensible investment decisions and meet federal compliance requirements."
       solutionPoints={[
         'Block-by-block ADA compliance inventory with photo documentation',
         'Crossing safety scoring at every intersection in the study area',
@@ -47,7 +47,7 @@ export default function ForGovernments() {
         },
         {
           title: 'Complete Streets Implementation',
-          description: 'Baseline walkability assessment to measure the effectiveness of Complete Streets policies and track improvement over time.',
+          description: 'Baseline pedestrian infrastructure assessment to measure the effectiveness of Complete Streets policies and track improvement over time.',
         },
       ]}
       metrics={[
@@ -58,8 +58,8 @@ export default function ForGovernments() {
         { name: 'Crash History', category: 'Safety' },
         { name: 'Network Connectivity', category: 'Access' },
       ]}
-      ctaTitle="Ready to build your walkability baseline?"
-      ctaDescription="Contact our team to scope a walkability assessment for your municipality."
+      ctaTitle="Ready to build your pedestrian safety baseline?"
+      ctaDescription="Contact our team to scope a pedestrian infrastructure assessment for your municipality."
     />
   );
 }

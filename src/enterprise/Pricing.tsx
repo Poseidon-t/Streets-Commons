@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import EnterpriseCTA from './components/EnterpriseCTA';
 
 const FEATURES = [
-  { name: 'Walkability metrics assessed', core: '8 core metrics', complete: 'All 12 metrics' },
+  { name: 'Safety & infrastructure metrics', core: '8 core metrics', complete: 'All 12 metrics' },
   { name: 'Report length', core: '80+ pages', complete: '150+ pages' },
   { name: 'Field audit duration', core: '3-day audit', complete: '5-day audit' },
   { name: 'Delivery timeline', core: '6 weeks', complete: '8 weeks' },
@@ -37,7 +37,7 @@ const FAQS = [
   },
   {
     q: 'Can I customize which metrics are included?',
-    a: 'The Walkability Intelligence package includes 8 core metrics, and the Complete Intelligence package includes all 12. Within each tier, all metrics in that package are included. If you need a custom combination, contact us to discuss your specific needs.',
+    a: 'The Pedestrian Safety Intelligence package includes 8 core metrics, and the Complete Intelligence package includes all 12. Within each tier, all metrics in that package are included. If you need a custom combination, contact us to discuss your specific needs.',
   },
   {
     q: 'What data sources do you use beyond field audits?',
@@ -53,7 +53,7 @@ const FAQS = [
   },
   {
     q: 'Is there ongoing support after delivery?',
-    a: 'The Complete Intelligence package includes 3 months of advisory support for implementation questions. The Walkability Intelligence package includes a post-delivery Q&A session. Extended advisory engagements are available separately.',
+    a: 'The Complete Intelligence package includes 3 months of advisory support for implementation questions. The Pedestrian Safety Intelligence package includes a post-delivery Q&A session. Extended advisory engagements are available separately.',
   },
 ];
 
@@ -63,7 +63,7 @@ export default function Pricing() {
   useEffect(() => {
     document.title = 'Pricing | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence pricing. Walkability Intelligence reports starting at $50K. Complete Intelligence System starting at $100K.');
+    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence pricing. Pedestrian safety & infrastructure reports starting at $50K. Complete Intelligence System starting at $100K.');
   }, []);
 
   return (
@@ -72,9 +72,9 @@ export default function Pricing() {
       <section className="bg-enterprise-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Pricing</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Invest in Walkability Intelligence</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Invest in Pedestrian Intelligence</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Two tiers designed for different project scopes. Both deliver rigorous, actionable walkability analysis.
+            Two tiers designed for different project scopes. Both deliver rigorous, actionable pedestrian safety analysis.
           </p>
         </div>
       </section>
@@ -85,7 +85,7 @@ export default function Pricing() {
           <div className="grid md:grid-cols-2 gap-8 mb-20">
             {/* Core */}
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8 md:p-10">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Walkability Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Pedestrian Safety Intelligence</p>
               <p className="text-5xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-2">Starting price</p>
               <p className="text-sm text-gray-600 mb-8">8 core metrics, 80-page report, 3-day field audit. Ideal for focused corridor or neighborhood analysis.</p>
@@ -117,7 +117,7 @@ export default function Pricing() {
             <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
               <div className="grid grid-cols-3 bg-enterprise-gray px-6 py-4 border-b border-gray-100">
                 <div className="text-sm font-semibold text-gray-500">Feature</div>
-                <div className="text-sm font-semibold text-enterprise-navy text-center">Walkability Intelligence</div>
+                <div className="text-sm font-semibold text-enterprise-navy text-center">Pedestrian Safety Intelligence</div>
                 <div className="text-sm font-semibold text-enterprise-green text-center">Complete Intelligence</div>
               </div>
               {FEATURES.map((f, i) => (

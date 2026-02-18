@@ -183,7 +183,7 @@ export default function EnterpriseLayout() {
                 <span className="text-lg font-semibold">SafeStreets Intelligence</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed">
-                Data-driven walkability intelligence for governments, developers, and urban planners.
+                Data-driven pedestrian safety and infrastructure intelligence for governments, developers, and urban planners.
               </p>
             </div>
 
@@ -213,7 +213,7 @@ export default function EnterpriseLayout() {
             <div>
               <h4 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">Resources</h4>
               <ul className="space-y-2.5">
-                <li><Link to="/" className="text-sm text-gray-300 hover:text-white transition">Free Walkability Tool</Link></li>
+                <li><Link to="/" className="text-sm text-gray-300 hover:text-white transition">Free Street Safety Tool</Link></li>
                 <li><Link to="/blog" className="text-sm text-gray-300 hover:text-white transition">Blog</Link></li>
                 <li><Link to="/learn" className="text-sm text-gray-300 hover:text-white transition">Learn</Link></li>
               </ul>

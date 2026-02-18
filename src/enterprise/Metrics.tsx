@@ -157,9 +157,9 @@ const CATEGORIES = [
 
 export default function Metrics() {
   useEffect(() => {
-    document.title = 'Walkability Metrics | SafeStreets Intelligence';
+    document.title = 'Pedestrian Safety Metrics | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence measures 12 walkability metrics across 4 categories: Infrastructure, Environment, Access, and Safety.');
+    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence measures 12 pedestrian safety and infrastructure metrics across 4 categories: Infrastructure, Environment, Access, and Safety.');
   }, []);
 
   return (
@@ -168,7 +168,7 @@ export default function Metrics() {
       <section className="bg-enterprise-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">12 Metrics That Define Walkability</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Every SafeStreets report is built on a rigorous framework of 12 metrics across 4 categories, each measured through field audit and data analysis.
           </p>
@@ -180,7 +180,7 @@ export default function Metrics() {
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-enterprise-navy">$50K+</span>
-            <span className="text-sm text-gray-600">Included in Walkability Intelligence</span>
+            <span className="text-sm text-gray-600">Included in Pedestrian Safety Intelligence</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-enterprise-green">$100K</span>
@@ -213,7 +213,7 @@ export default function Metrics() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-enterprise-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
-            The Walkability Intelligence package ($50K) covers 8 core metrics across Infrastructure, Environment, and Access.
+            The Pedestrian Safety Intelligence package ($50K) covers 8 core metrics across Infrastructure, Environment, and Access.
             The Complete Intelligence package ($100K) adds all 4 Safety metrics plus Network Connectivity for full coverage.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

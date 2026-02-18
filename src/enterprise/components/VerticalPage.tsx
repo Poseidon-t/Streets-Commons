@@ -84,7 +84,7 @@ export default function VerticalPage({
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">The Challenge</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Critical walkability gaps that affect your decisions</p>
+            <p className="text-gray-600 max-w-xl mx-auto">Critical pedestrian infrastructure gaps that affect your decisions</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
             {challenges.map((c, i) => (
