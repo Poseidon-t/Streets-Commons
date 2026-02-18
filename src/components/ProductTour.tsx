@@ -39,7 +39,7 @@ const STEPS: TourStep[] = [
     description: 'Generate AI-powered letters to officials, formal proposals, and conduct structured street audits — all from your walkability data.',
   },
   {
-    targetSelector: '[aria-label="Open chat"]',
+    targetSelector: '[aria-label="Open urbanist advocate"]',
     title: 'Meet Meridian',
     description: 'Your AI urban planning advisor, trained on NACTO and WHO standards. Ask anything about walkability, safety, or street design.',
   },
@@ -52,6 +52,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
   const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const observerRef = useRef<ResizeObserver | null>(null);
+  const tooltipRef = useRef<HTMLDivElement | null>(null);
 
   const step = STEPS[currentStep];
 
@@ -64,18 +65,27 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     }
   }, [step]);
 
-  // Scroll to target and position spotlight
+  // Scroll to target and position spotlight — skip missing targets
   useEffect(() => {
     if (!isActive || !step) return;
 
     const el = document.querySelector(step.targetSelector);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Wait for scroll to finish, then measure
       const timer = setTimeout(updateSpotlight, 500);
       return () => clearTimeout(timer);
+    } else {
+      // Target not found — skip to next step
+      const timer = setTimeout(() => {
+        if (currentStep < STEPS.length - 1) {
+          setCurrentStep(currentStep + 1);
+        } else {
+          onComplete();
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [isActive, currentStep, step, updateSpotlight]);
+  }, [isActive, currentStep, step, updateSpotlight, onComplete]);
 
   // Reposition on resize
   useEffect(() => {
@@ -135,6 +145,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     }
 
     const tooltipWidth = 340;
+    const tooltipHeight = tooltipRef.current?.offsetHeight || 220;
     const margin = 16;
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
@@ -144,9 +155,12 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     let left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
 
     // If below goes off-screen, position above
-    if (top + 200 > vpHeight) {
-      top = spotlightRect.top - PADDING - margin - 200;
+    if (top + tooltipHeight > vpHeight) {
+      top = spotlightRect.top - PADDING - margin - tooltipHeight;
     }
+
+    // If still off-screen (above), clamp to top
+    if (top < margin) top = margin;
 
     // Keep within horizontal bounds
     if (left < margin) left = margin;
@@ -163,10 +177,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
 
   return (
     <div className="fixed inset-0 z-[60]" onClick={onSkip}>
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/60" />
-
-      {/* Spotlight hole */}
+      {/* Spotlight hole (box-shadow creates the dark overlay — no separate bg needed) */}
       <div
         className="absolute rounded-xl"
         style={{
@@ -182,6 +193,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
 
       {/* Tooltip */}
       <div
+        ref={tooltipRef}
         style={getTooltipStyle()}
         className={`bg-white ${isMobile ? 'rounded-t-2xl p-6 pb-8' : 'rounded-xl p-5'} shadow-2xl`}
         onClick={(e) => e.stopPropagation()}
