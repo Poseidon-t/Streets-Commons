@@ -11,8 +11,8 @@ const PROJECT_TYPES = [
 ];
 
 const BUDGET_RANGES = [
-  '$50K — Pedestrian Safety Intelligence',
-  '$100K — Complete Intelligence',
+  '$50K — Street Intelligence',
+  '$100K — Complete Street Intelligence',
   'Not sure yet',
 ];
 
@@ -29,9 +29,9 @@ export default function Contact() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = 'Contact Sales | SafeStreets Intelligence';
+    document.title = 'Contact Sales | Walkability & Street Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a consultation for dashboards, field audits, and citizen advocacy for your project.');
+    if (desc) desc.setAttribute('content', 'Get in touch with Walkability & Street Intelligence. Request a consultation for dashboards, field audits, and citizen advocacy for your project.');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -88,7 +88,7 @@ export default function Contact() {
           </div>
           <h1 className="text-3xl font-bold text-enterprise-slate mb-3">Thank you</h1>
           <p className="text-gray-600 mb-8">We've received your inquiry and will be in touch within 1-2 business days to discuss your project.</p>
-          <Link to="/enterprise" className="text-enterprise-navy font-medium hover:underline">&larr; Back to SafeStreets Intelligence</Link>
+          <Link to="/enterprise" className="text-enterprise-navy font-medium hover:underline">&larr; Back to Walkability & Street Intelligence</Link>
         </div>
       </section>
     );

@@ -49,7 +49,7 @@ export default function VerticalPage({
   metaDescription,
 }: VerticalPageProps) {
   useEffect(() => {
-    document.title = `${metaTitle} | SafeStreets Intelligence`;
+    document.title = `${metaTitle} | Walkability & Street Intelligence`;
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', metaDescription);
   }, [metaTitle, metaDescription]);

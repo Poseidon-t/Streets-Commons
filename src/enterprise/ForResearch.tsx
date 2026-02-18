@@ -3,9 +3,9 @@ import VerticalPage from './components/VerticalPage';
 export default function ForResearch() {
   return (
     <VerticalPage
-      metaTitle="Pedestrian Safety Intelligence for Research"
-      metaDescription="Peer-reviewed methodology, comprehensive datasets, and academic partnership opportunities. Pedestrian safety data for researchers and academic institutions."
-      title="Pedestrian Safety Intelligence for Research"
+      metaTitle="Walkability & Street Intelligence for Research"
+      metaDescription="Peer-reviewed methodology, comprehensive datasets, and academic partnership opportunities. Walkability and street safety data for researchers and academic institutions."
+      title="Walkability & Street Intelligence for Research"
       subtitle="For Researchers & Academic Institutions"
       heroDescription="Access comprehensive, field-verified pedestrian safety data built on transparent methodology. Our platform provides interactive dashboards, raw datasets, and citizen perception data your research requires."
       challenges={[

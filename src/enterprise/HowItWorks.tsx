@@ -87,9 +87,9 @@ const DATA_SOURCES = [
 
 export default function HowItWorks() {
   useEffect(() => {
-    document.title = 'How It Works | SafeStreets Intelligence';
+    document.title = 'How It Works | Walkability & Street Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence follows a rigorous 5-phase process: Scope & Planning, In-Depth Field Audit, Citizen Engagement, Analysis & Modeling, and Dashboard & Deliverables.');
+    if (desc) desc.setAttribute('content', 'Walkability & Street Intelligence follows a rigorous 5-phase process: Scope & Planning, In-Depth Field Audit, Citizen Engagement, Analysis & Modeling, and Dashboard & Deliverables.');
   }, []);
 
   return (
@@ -183,7 +183,7 @@ export default function HowItWorks() {
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Pedestrian Safety Intelligence — $50K</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Street Intelligence — $50K</p>
               <ul className="space-y-3">
                 {[
                   'Interactive dashboard with core metrics',
@@ -205,8 +205,8 @@ export default function HowItWorks() {
               </ul>
             </div>
             <div className="bg-enterprise-slate rounded-2xl p-8 text-white">
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Complete Intelligence — $100K</p>
-              <p className="text-xs text-gray-400 mb-4">Everything in Pedestrian Safety Intelligence, plus:</p>
+              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Complete Street Intelligence — $100K</p>
+              <p className="text-xs text-gray-400 mb-4">Everything in Street Intelligence, plus:</p>
               <ul className="space-y-3">
                 {[
                   'Full 12-metric interactive dashboard',

@@ -54,7 +54,7 @@ const STATS = [
 
 export default function EnterpriseHome() {
   useEffect(() => {
-    document.title = 'SafeStreets Intelligence — Pedestrian Safety & Infrastructure Platform';
+    document.title = 'Walkability & Street Intelligence — SafeStreets Enterprise';
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', 'Interactive dashboards, in-depth field audits, and citizen advocacy intelligence for governments, real estate developers, mobility companies, and research institutions. Starting at $50K.');
   }, []);
@@ -64,9 +64,9 @@ export default function EnterpriseHome() {
       {/* Hero */}
       <section className="bg-enterprise-gray py-24 md:py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">Pedestrian Safety & Infrastructure Intelligence</p>
+          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">Walkability & Street Intelligence</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Data-Driven Pedestrian Intelligence for Better Decisions
+            Data-Driven Street Intelligence for Better Decisions
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
             An intelligence platform combining interactive dashboards, in-depth field audits, and citizen advocacy to transform pedestrian safety data into action for governments, developers, and urban planners.
@@ -166,9 +166,9 @@ export default function EnterpriseHome() {
             <p className="text-gray-600 max-w-xl mx-auto">Choose the depth of analysis that matches your project scope.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
-            {/* Pedestrian Safety Intelligence */}
+            {/* Street Intelligence */}
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-2">Pedestrian Safety Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-2">Street Intelligence</p>
               <p className="text-4xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">
@@ -186,12 +186,12 @@ export default function EnterpriseHome() {
               </Link>
             </div>
 
-            {/* Complete Intelligence */}
+            {/* Complete Street Intelligence */}
             <div className="bg-enterprise-slate rounded-2xl p-8 text-white relative overflow-hidden">
               <div className="absolute top-4 right-4 px-3 py-1 bg-enterprise-green/20 text-enterprise-green-light text-xs font-semibold rounded-full">
                 Most Comprehensive
               </div>
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-2">Complete Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-2">Complete Street Intelligence</p>
               <p className="text-4xl font-bold mb-1">$100K</p>
               <p className="text-sm text-gray-400 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">

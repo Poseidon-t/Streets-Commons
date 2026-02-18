@@ -3,9 +3,9 @@ import VerticalPage from './components/VerticalPage';
 export default function ForGovernments() {
   return (
     <VerticalPage
-      metaTitle="Pedestrian Safety Intelligence for Governments"
-      metaDescription="ADA compliance audits, Vision Zero planning, and infrastructure investment prioritization. Data-driven pedestrian safety reports for municipal governments."
-      title="Pedestrian Safety Intelligence for Governments"
+      metaTitle="Walkability & Street Intelligence for Governments"
+      metaDescription="ADA compliance audits, Vision Zero planning, and infrastructure investment prioritization. Data-driven walkability and street safety reports for municipal governments."
+      title="Walkability & Street Intelligence for Governments"
       subtitle="For Municipal & Regional Governments"
       heroDescription="Make evidence-based infrastructure decisions with comprehensive pedestrian safety data. From ADA compliance to Vision Zero planning, our platform gives you the dashboard, field data, and citizen voices to prioritize investments and serve your community."
       challenges={[

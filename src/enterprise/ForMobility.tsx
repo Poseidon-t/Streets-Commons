@@ -3,9 +3,9 @@ import VerticalPage from './components/VerticalPage';
 export default function ForMobility() {
   return (
     <VerticalPage
-      metaTitle="Pedestrian Safety Intelligence for Mobility"
-      metaDescription="Transit integration analysis, micromobility planning, and last-mile connectivity mapping. Pedestrian safety reports for mobility companies and transit agencies."
-      title="Pedestrian Safety Intelligence for Mobility"
+      metaTitle="Walkability & Street Intelligence for Mobility"
+      metaDescription="Transit integration analysis, micromobility planning, and last-mile connectivity mapping. Walkability and street safety reports for mobility companies and transit agencies."
+      title="Walkability & Street Intelligence for Mobility"
       subtitle="For Transit & Mobility Companies"
       heroDescription="Every trip begins and ends with walking. Our platform maps the pedestrian environment around transit stops, micromobility hubs, and mobility corridors with interactive dashboards, field audits, and rider voice data to improve first/last-mile connectivity."
       challenges={[

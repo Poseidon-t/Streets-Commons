@@ -3,9 +3,9 @@ import VerticalPage from './components/VerticalPage';
 export default function ForRealEstate() {
   return (
     <VerticalPage
-      metaTitle="Pedestrian Infrastructure Intelligence for Real Estate"
-      metaDescription="Site selection insights, pedestrian environment analysis, and development risk assessment. Data-driven reports for real estate developers and investors."
-      title="Pedestrian Infrastructure Intelligence for Real Estate"
+      metaTitle="Walkability & Street Intelligence for Real Estate"
+      metaDescription="Site selection insights, pedestrian environment analysis, and development risk assessment. Data-driven walkability reports for real estate developers and investors."
+      title="Walkability & Street Intelligence for Real Estate"
       subtitle="For Developers & Investors"
       heroDescription="Pedestrian infrastructure drives property values. Our platform quantifies street-level conditions with interactive dashboards, field audits, and community sentiment data to inform site selection, assess risk, and identify value-creation opportunities."
       challenges={[

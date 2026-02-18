@@ -2139,10 +2139,10 @@ function App() {
                     For Governments, Developers & Organizations
                   </p>
                   <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Need In-Depth Pedestrian Safety Intelligence?
+                    Need Walkability & Street Intelligence?
                   </h3>
                   <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
-                    Interactive dashboards, field audits, citizen advocacy, and 12-metric analysis. Comprehensive pedestrian safety intelligence starting at $50K.
+                    Interactive dashboards, field audits, citizen advocacy, and 12-metric analysis. Comprehensive street intelligence starting at $50K.
                   </p>
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">

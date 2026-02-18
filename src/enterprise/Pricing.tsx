@@ -56,7 +56,7 @@ const FAQS = [
   },
   {
     q: 'Can I customize which metrics are included?',
-    a: 'The Pedestrian Safety Intelligence package includes 8 core metrics, and the Complete Intelligence package includes all 12. Within each tier, all metrics in that package are included. If you need a custom combination, contact us to discuss your specific needs.',
+    a: 'The Street Intelligence package includes 8 core metrics, and the Complete Street Intelligence package includes all 12. Within each tier, all metrics in that package are included. If you need a custom combination, contact us to discuss your specific needs.',
   },
   {
     q: 'What data sources do you use beyond field audits?',
@@ -64,7 +64,7 @@ const FAQS = [
   },
   {
     q: 'Do you work outside the United States?',
-    a: 'Currently, our field audit capabilities are focused on US cities. We can discuss international projects on a case-by-case basis — the methodology is applicable globally, though data availability may vary.',
+    a: 'Yes — our methodology is applicable globally and we work with cities and organizations worldwide. Data availability may vary by region, but our field audit protocols and analytics platform are designed to operate internationally.',
   },
   {
     q: 'What do I actually get access to?',
@@ -72,7 +72,7 @@ const FAQS = [
   },
   {
     q: 'How does the interactive dashboard work?',
-    a: 'The dashboard is a secure web-based platform where your team can explore metrics, view heat maps, filter by area, and track conditions. The Pedestrian Safety Intelligence tier provides core metric views and basic maps. The Complete Intelligence tier unlocks advanced analytics, trend tracking, and detailed hotspot analysis.',
+    a: 'The dashboard is a secure web-based platform where your team can explore metrics, view heat maps, filter by area, and track conditions. The Street Intelligence tier provides core metric views and basic maps. The Complete Street Intelligence tier unlocks advanced analytics, trend tracking, and detailed hotspot analysis.',
   },
   {
     q: 'What is the Citizen Advocacy Module?',
@@ -84,7 +84,7 @@ const FAQS = [
   },
   {
     q: 'Is there ongoing support after delivery?',
-    a: 'The Complete Intelligence package includes 3 months of advisory support for implementation questions. The Pedestrian Safety Intelligence package includes a post-delivery Q&A session. Extended advisory engagements are available separately.',
+    a: 'The Complete Street Intelligence package includes 3 months of advisory support for implementation questions. The Street Intelligence package includes a post-delivery Q&A session. Extended advisory engagements are available separately.',
   },
 ];
 
@@ -92,9 +92,9 @@ export default function Pricing() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    document.title = 'Pricing | SafeStreets Intelligence';
+    document.title = 'Pricing | Walkability & Street Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence pricing. Interactive dashboards, field audits, and citizen advocacy starting at $50K. Complete Intelligence platform starting at $100K.');
+    if (desc) desc.setAttribute('content', 'Walkability & Street Intelligence pricing. Interactive dashboards, field audits, and citizen advocacy starting at $50K. Complete Street Intelligence platform starting at $100K.');
   }, []);
 
   return (
@@ -103,7 +103,7 @@ export default function Pricing() {
       <section className="bg-enterprise-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Pricing</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Invest in Pedestrian Intelligence</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Invest in Street Intelligence</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Two tiers designed for different project scopes. Both include dashboard access, in-depth field audits, and citizen advocacy.
           </p>
@@ -116,10 +116,10 @@ export default function Pricing() {
           <div className="grid md:grid-cols-2 gap-8 mb-20">
             {/* Core */}
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8 md:p-10">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Pedestrian Safety Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Street Intelligence</p>
               <p className="text-5xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-2">Starting price</p>
-              <p className="text-sm text-gray-600 mb-8">Interactive dashboard, 3-day field audit across 8 core metrics, community voice collection, and 80+ page downloadable report.</p>
+              <p className="text-sm text-gray-600 mb-8">Interactive dashboard, field audit across 8 core metrics, community voice collection, and 80+ page downloadable report.</p>
               <Link to="/enterprise/contact" className="block text-center py-3.5 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition mb-6">
                 Request Proposal
               </Link>
@@ -131,10 +131,10 @@ export default function Pricing() {
               <div className="absolute top-6 right-6 px-3 py-1 bg-enterprise-green/20 text-enterprise-green-light text-xs font-semibold rounded-full">
                 Most Comprehensive
               </div>
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-3">Complete Intelligence</p>
+              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-3">Complete Street Intelligence</p>
               <p className="text-5xl font-bold mb-1">$100K</p>
               <p className="text-sm text-gray-400 mb-2">Starting price</p>
-              <p className="text-sm text-gray-300 mb-8">Full 12-metric dashboard with advanced analytics, 5-day field audit, complete citizen advocacy module, 150+ page report, and ongoing advisory.</p>
+              <p className="text-sm text-gray-300 mb-8">Full 12-metric dashboard with advanced analytics, field audit, complete citizen advocacy module, 150+ page report, and ongoing advisory.</p>
               <Link to="/enterprise/contact" className="block text-center py-3.5 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition mb-6">
                 Contact Sales
               </Link>
@@ -149,8 +149,8 @@ export default function Pricing() {
               <div className="min-w-[600px]">
               <div className="grid grid-cols-3 bg-enterprise-gray px-6 py-4 border-b border-gray-100">
                 <div className="text-sm font-semibold text-gray-500">Feature</div>
-                <div className="text-sm font-semibold text-enterprise-navy text-center">Pedestrian Safety Intelligence</div>
-                <div className="text-sm font-semibold text-enterprise-green text-center">Complete Intelligence</div>
+                <div className="text-sm font-semibold text-enterprise-navy text-center">Street Intelligence</div>
+                <div className="text-sm font-semibold text-enterprise-green text-center">Complete Street Intelligence</div>
               </div>
               {FEATURES.map((f, i) => (
                 <div key={i} className={`grid grid-cols-3 px-6 py-3.5 items-center ${i % 2 === 0 ? '' : 'bg-gray-50/50'}`}>

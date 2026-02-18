@@ -157,9 +157,9 @@ const CATEGORIES = [
 
 export default function Metrics() {
   useEffect(() => {
-    document.title = 'Pedestrian Safety Metrics | SafeStreets Intelligence';
+    document.title = 'Walkability & Street Metrics | Walkability & Street Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence measures 12 pedestrian safety and infrastructure metrics across 4 categories: Infrastructure, Environment, Access, and Safety.');
+    if (desc) desc.setAttribute('content', 'Walkability & Street Intelligence measures 12 pedestrian safety and infrastructure metrics across 4 categories: Infrastructure, Environment, Access, and Safety.');
   }, []);
 
   return (
@@ -180,11 +180,11 @@ export default function Metrics() {
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-enterprise-navy">$50K+</span>
-            <span className="text-sm text-gray-600">Included in Pedestrian Safety Intelligence</span>
+            <span className="text-sm text-gray-600">Included in Street Intelligence</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-enterprise-green">$100K</span>
-            <span className="text-sm text-gray-600">Complete Intelligence only</span>
+            <span className="text-sm text-gray-600">Complete Street Intelligence only</span>
           </div>
         </div>
       </section>
@@ -213,8 +213,8 @@ export default function Metrics() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-enterprise-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
-            The Pedestrian Safety Intelligence package ($50K) covers 8 core metrics accessible through your interactive dashboard.
-            The Complete Intelligence package ($100K) unlocks all 12 metrics with advanced analytics, trend tracking, and full citizen advocacy integration.
+            The Street Intelligence package ($50K) covers 8 core metrics accessible through your interactive dashboard.
+            The Complete Street Intelligence package ($100K) unlocks all 12 metrics with advanced analytics, trend tracking, and full citizen advocacy integration.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/enterprise/pricing" className="px-6 py-3 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition">
