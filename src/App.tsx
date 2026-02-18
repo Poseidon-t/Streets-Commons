@@ -2384,9 +2384,13 @@ function App() {
                   </div>
                 </li>
               </ul>
-              <p className="text-xs mt-3 font-medium" style={{ color: '#6aaa5a' }}>
-                Core analysis free · No sign-up required
-              </p>
+              <li className="flex items-start gap-2 mt-3">
+                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#1E40AF' }}></span>
+                  <div>
+                    <a href="/enterprise" className="font-semibold transition hover:text-white" style={{ color: '#93c5fd' }}>Enterprise Intelligence</a>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Custom walkability reports from $50K</p>
+                  </div>
+                </li>
             </div>
 
             {/* Features Column */}
@@ -2452,6 +2456,7 @@ function App() {
                 Built for walkable cities, inspired by Jane Jacobs
               </p>
               <div className="flex items-center gap-4">
+                <a href="/enterprise" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Enterprise</a>
                 <a href="/blog" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Blog</a>
                 <a href="#faq" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>FAQ</a>
               </div>

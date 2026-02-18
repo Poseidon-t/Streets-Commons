@@ -120,13 +120,13 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
               </button>
             )}
             {tier.name === 'Custom Analysis' && (
-              <button
-                onClick={onContact}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all hover:shadow-md border-2"
-                style={{ borderColor: '#5090b0', color: '#5090b0', backgroundColor: 'white' }}
+              <a
+                href="/enterprise"
+                className="block w-full py-3 rounded-xl font-bold text-sm text-center transition-all hover:shadow-md border-2"
+                style={{ borderColor: '#1E40AF', color: '#1E40AF', backgroundColor: 'white' }}
               >
-                Contact Us
-              </button>
+                Learn More &rarr;
+              </a>
             )}
           </div>
         ))}
