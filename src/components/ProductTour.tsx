@@ -13,35 +13,37 @@ interface ProductTourProps {
 }
 
 const STEPS: TourStep[] = [
+  // --- Free features ---
   {
     targetSelector: '#score',
     title: 'Your Walkability Score',
-    description: 'See your overall walkability score and letter grade, powered by satellite imagery, OpenStreetMap data, and crash databases.',
+    description: 'Overall score and letter grade, powered by satellite imagery, OpenStreetMap, and crash databases.',
   },
   {
     targetSelector: '#metrics',
     title: '8 Walkability Metrics',
-    description: 'Every dimension analyzed — from crossing safety and sidewalk coverage to tree canopy and thermal comfort.',
+    description: 'Crossing safety, sidewalk coverage, tree canopy, thermal comfort, and more — every dimension analyzed.',
   },
   {
     targetSelector: '#neighborhood',
     title: '15-Minute City Analysis',
-    description: 'See what grocery stores, healthcare, transit, and other essentials are within walking distance.',
+    description: 'Grocery stores, healthcare, transit, and essentials within walking distance.',
   },
+  // --- Premium features ---
   {
     targetSelector: '#cross-section',
-    title: 'Street Redesign Tool',
-    description: 'Visualize your street\'s cross-section and explore improvements like bike lanes, wider sidewalks, and trees.',
+    title: 'Street Redesign Tool ✦',
+    description: 'See your street\'s cross-section and redesign it — add bike lanes, widen sidewalks, plant trees. Premium feature.',
   },
   {
     targetSelector: '#tools',
-    title: 'Advocacy Toolkit',
-    description: 'Generate AI-powered letters to officials, formal proposals, and conduct structured street audits — all from your walkability data.',
+    title: 'Advocacy Toolkit ✦',
+    description: 'Draft letters to officials, generate formal PDF proposals, and run structured street audits — all data-backed.',
   },
   {
     targetSelector: '[aria-label="Open urbanist advocate"]',
-    title: 'Meet Meridian',
-    description: 'Your AI urban planning advisor, trained on NACTO and WHO standards. Ask anything about walkability, safety, or street design.',
+    title: 'Meridian AI Advisor ✦',
+    description: 'Your urban planning assistant trained on NACTO & WHO standards. Free tier gets 6 messages — premium unlocks unlimited.',
   },
 ];
 
@@ -216,7 +218,12 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
         </div>
 
         {/* Content */}
-        <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="text-lg font-bold text-gray-900">{step.title.replace(' ✦', '')}</h3>
+          {step.title.includes('✦') && (
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-terra/10 text-terra uppercase tracking-wide">Premium</span>
+          )}
+        </div>
         <p className="text-sm text-gray-600 leading-relaxed mb-5">{step.description}</p>
 
         {/* Navigation */}
