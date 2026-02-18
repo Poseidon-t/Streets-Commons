@@ -365,11 +365,8 @@ function App() {
     setSatelliteLoaded(new Set(DEMO_SATELLITE_SOURCES));
     setIsAnalyzing(false);
 
-    // Auto-start tour after render settles (unless already seen)
-    const tourSeen = localStorage.getItem('safestreets_tour_completed');
-    if (!tourSeen) {
-      setTimeout(() => setShowTour(true), 800);
-    }
+    // Always start tour in demo mode — users clicking "Watch Demo" expect the guided walkthrough
+    setTimeout(() => setShowTour(true), 800);
   };
 
   const exitDemoMode = () => {
@@ -748,9 +745,10 @@ function App() {
 
             <button
               onClick={activateDemoMode}
-              className="text-sm font-medium text-terra hover:underline mb-4"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-terra/30 text-terra font-semibold text-sm rounded-xl hover:bg-terra/10 hover:border-terra/50 transition-all mb-4"
             >
-              or try a demo &rarr;
+              <span className="text-base">&#9654;</span>
+              Watch Demo &mdash; Portland, OR
             </button>
 
             {/* Trust badges */}
