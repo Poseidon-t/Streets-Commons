@@ -7,7 +7,7 @@ export default function ForResearch() {
       metaDescription="Peer-reviewed methodology, comprehensive datasets, and academic partnership opportunities. Pedestrian safety data for researchers and academic institutions."
       title="Pedestrian Safety Intelligence for Research"
       subtitle="For Researchers & Academic Institutions"
-      heroDescription="Access comprehensive, field-verified pedestrian safety data built on transparent methodology. Our standardized assessment framework provides the reliable data your research requires."
+      heroDescription="Access comprehensive, field-verified pedestrian safety data built on transparent methodology. Our platform provides interactive dashboards, raw datasets, and citizen perception data your research requires."
       challenges={[
         {
           title: 'Inconsistent Measurement',
@@ -25,11 +25,13 @@ export default function ForResearch() {
       solutionTitle="Research-Grade Pedestrian Data"
       solutionDescription="Our standardized, field-verified assessment methodology produces datasets suitable for peer-reviewed research, with full documentation of collection protocols and scoring criteria."
       solutionPoints={[
+        'Interactive dashboard with API access for custom analysis (Complete tier)',
         'Standardized 12-metric assessment framework',
+        'Citizen perception data alongside objective field measurements',
         'Full methodology documentation with inter-rater reliability data',
         'Raw measurement data in open formats (CSV, GeoJSON, Shapefile)',
+        'Qualitative community voice data for mixed-methods research',
         'GPS-tagged photograph database for qualitative analysis',
-        'Scoring algorithms published for replication',
         'Academic licensing and collaboration opportunities',
       ]}
       useCases={[

@@ -65,7 +65,7 @@ export default function ActivationHandler() {
       <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center">
         {status === 'checking' && (
           <>
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-terra mx-auto mb-4"></div>
             <h3 className="text-xl font-bold text-gray-800 mb-2">
               Activating Your Access...
             </h3>

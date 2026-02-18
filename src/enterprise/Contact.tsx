@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const PROJECT_TYPES = [
   'Municipal Planning & Policy',
@@ -30,7 +31,7 @@ export default function Contact() {
   useEffect(() => {
     document.title = 'Contact Sales | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a pedestrian safety report consultation for your project.');
+    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a consultation for dashboards, field audits, and citizen advocacy for your project.');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -87,7 +88,7 @@ export default function Contact() {
           </div>
           <h1 className="text-3xl font-bold text-enterprise-slate mb-3">Thank you</h1>
           <p className="text-gray-600 mb-8">We've received your inquiry and will be in touch within 1-2 business days to discuss your project.</p>
-          <a href="/enterprise" className="text-enterprise-navy font-medium hover:underline">&larr; Back to SafeStreets Intelligence</a>
+          <Link to="/enterprise" className="text-enterprise-navy font-medium hover:underline">&larr; Back to SafeStreets Intelligence</Link>
         </div>
       </section>
     );
@@ -95,9 +96,9 @@ export default function Contact() {
 
   return (
     <>
-      <section className="py-20 md:py-28">
+      <section className="bg-enterprise-gray py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid md:grid-cols-5 gap-16">
+          <div className="grid md:grid-cols-5 gap-8 md:gap-16">
             {/* Left — Info */}
             <div className="md:col-span-2">
               <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Contact Sales</p>
@@ -195,7 +196,7 @@ export default function Contact() {
                     name="message"
                     required
                     rows={4}
-                    placeholder="What are your pedestrian safety analysis needs? What decisions will this inform?"
+                    placeholder="What are your pedestrian safety intelligence needs? Are you interested in dashboard analytics, field audits, citizen advocacy, or all three?"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy resize-none"
                   />
                 </div>

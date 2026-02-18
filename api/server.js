@@ -101,7 +101,7 @@ const ANALYTICS_FILE = process.env.ANALYTICS_FILE || '/data/analytics.json';
 const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
 
 function requireAdminKey(req, res) {
-  const key = req.query.key || req.headers['x-admin-key'];
+  const key = req.headers['x-admin-key'];
   if (key !== ANALYTICS_SECRET) {
     res.status(401).json({ error: 'Unauthorized' });
     return false;
@@ -393,6 +393,33 @@ function saveEmails(data) {
   }
 }
 
+// ─── Contact Inquiries Storage ──────────────────────────────────────────────
+const INQUIRIES_FILE = process.env.INQUIRIES_FILE || '/data/contact-inquiries.json';
+
+function loadInquiries() {
+  try {
+    if (fs.existsSync(INQUIRIES_FILE)) {
+      return JSON.parse(fs.readFileSync(INQUIRIES_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load inquiries:', err.message);
+  }
+  return { inquiries: [], count: 0 };
+}
+
+function saveInquiry(inquiry) {
+  try {
+    const data = loadInquiries();
+    data.inquiries.push(inquiry);
+    data.count = data.inquiries.length;
+    const dir = path.dirname(INQUIRIES_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.warn('Could not save inquiry:', err.message);
+  }
+}
+
 // ─── Editorial Calendar Storage ─────────────────────────────────────────────
 const EDITORIAL_CALENDAR_FILE = process.env.EDITORIAL_CALENDAR_FILE || '/data/editorial-calendar.json';
 
@@ -561,6 +588,16 @@ app.get('/api/admin/emails', (req, res) => {
     res.json(emailData);
   } catch {
     res.json({ emails: [], count: 0 });
+  }
+});
+
+app.get('/api/admin/inquiries', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  try {
+    const data = loadInquiries();
+    res.json(data);
+  } catch {
+    res.json({ inquiries: [], count: 0 });
   }
 });
 
@@ -3953,6 +3990,9 @@ app.post('/api/contact-inquiry', contactInquiryLimiter, async (req, res) => {
   };
 
   console.log('📬 New contact inquiry:', JSON.stringify(inquiry, null, 2));
+
+  // Persist inquiry to file
+  saveInquiry(inquiry);
 
   // Send email if SMTP is configured
   const smtpHost = process.env.SMTP_HOST;

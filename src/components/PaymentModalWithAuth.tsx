@@ -36,6 +36,14 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
 
   const accessInfo = getAccessInfoFromUser(user);
 
+  // Escape key dismissal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   // State 3: Already paid — auto-close via effect (not during render)
   useEffect(() => {
     if (isOpen && isSignedIn && accessInfo.tier === 'advocate') {

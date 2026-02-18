@@ -47,16 +47,16 @@ const VERTICALS = [
 
 const STATS = [
   { value: '12', label: 'Safety & Infrastructure Metrics' },
-  { value: '150+', label: 'Page Reports' },
-  { value: '4', label: 'Analysis Categories' },
-  { value: '5-Day', label: 'Field Audits' },
+  { value: 'Live', label: 'Interactive Dashboard' },
+  { value: '5-Day', label: 'In-Depth Field Audits' },
+  { value: '3', label: 'Intelligence Pillars' },
 ];
 
 export default function EnterpriseHome() {
   useEffect(() => {
-    document.title = 'SafeStreets Intelligence — Pedestrian Safety & Infrastructure Reports';
+    document.title = 'SafeStreets Intelligence — Pedestrian Safety & Infrastructure Platform';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Comprehensive pedestrian safety and infrastructure intelligence reports for governments, real estate developers, mobility companies, and research institutions. Starting at $50K.');
+    if (desc) desc.setAttribute('content', 'Interactive dashboards, in-depth field audits, and citizen advocacy intelligence for governments, real estate developers, mobility companies, and research institutions. Starting at $50K.');
   }, []);
 
   return (
@@ -64,19 +64,19 @@ export default function EnterpriseHome() {
       {/* Hero */}
       <section className="bg-enterprise-gray py-24 md:py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-green font-semibold text-sm uppercase tracking-wider mb-4">Pedestrian Safety & Infrastructure Intelligence</p>
-          <h1 className="text-4xl md:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Data-Driven Pedestrian<br />Intelligence for Better Decisions
+          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">Pedestrian Safety & Infrastructure Intelligence</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
+            Data-Driven Pedestrian Intelligence for Better Decisions
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-            Comprehensive pedestrian safety and infrastructure reports that combine field audits, data analysis, and actionable strategy for governments, developers, and urban planners.
+            An intelligence platform combining interactive dashboards, in-depth field audits, and citizen advocacy to transform pedestrian safety data into action for governments, developers, and urban planners.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/enterprise/contact"
-              className="px-8 py-4 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition text-lg"
+              className="px-8 py-4 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition text-lg"
             >
-              Request a Report
+              Request a Consultation
             </Link>
             <Link
               to="/enterprise/how-it-works"
@@ -133,14 +133,15 @@ export default function EnterpriseHome() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Rigorous Methodology</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Every report follows a structured 4-phase process combining field research with data analysis.</p>
+            <p className="text-gray-600 max-w-xl mx-auto">Every engagement follows a structured 5-phase process combining field research, community engagement, and data analysis.</p>
           </div>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
             {[
-              { step: '01', title: 'Scope & Planning', desc: 'Define study area, objectives, and assessment parameters.' },
+              { step: '01', title: 'Scope & Planning', desc: 'Define study area, objectives, and community engagement plan.' },
               { step: '02', title: 'Field Audit', desc: '3-5 day on-ground assessment by trained analysts.' },
-              { step: '03', title: 'Analysis', desc: 'Multi-source data integration and metric scoring.' },
-              { step: '04', title: 'Report & Strategy', desc: 'Comprehensive report with actionable recommendations.' },
+              { step: '03', title: 'Citizen Engagement', desc: 'Community surveys, voice collection, and cultural context.' },
+              { step: '04', title: 'Analysis', desc: 'Multi-source data integration and metric scoring.' },
+              { step: '05', title: 'Dashboard & Delivery', desc: 'Interactive platform, downloadable reports, and advocacy insights.' },
             ].map((phase) => (
               <div key={phase.step} className="bg-white rounded-xl border border-gray-100 p-6">
                 <p className="text-sm font-bold text-enterprise-navy mb-2">{phase.step}</p>
@@ -171,7 +172,7 @@ export default function EnterpriseHome() {
               <p className="text-4xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">
-                {['8 core safety & infrastructure metrics', '80-page comprehensive report', '3-day field audit', '6-week delivery', 'Data appendix & methodology'].map((f) => (
+                {['Interactive dashboard with core metrics', '3-day in-depth field audit (8 metrics)', 'Community survey & voice collection', '80+ page downloadable report', '6-week delivery'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -181,7 +182,7 @@ export default function EnterpriseHome() {
                 ))}
               </ul>
               <Link to="/enterprise/pricing" className="block text-center py-3 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition">
-                View Details
+                View Pricing
               </Link>
             </div>
 
@@ -194,7 +195,7 @@ export default function EnterpriseHome() {
               <p className="text-4xl font-bold mb-1">$100K</p>
               <p className="text-sm text-gray-400 mb-6">Starting price</p>
               <ul className="space-y-3 mb-8">
-                {['All 12 safety & infrastructure metrics', '150-page detailed report', '5-day field audit', '8-week delivery', 'Strategic action plan', 'Ongoing advisory support'].map((f) => (
+                {['Full 12-metric interactive dashboard', '5-day comprehensive field audit', 'Full citizen advocacy module', '150+ page report & strategic action plan', '8-week delivery', 'Ongoing advisory support'].map((f) => (
                   <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
                     <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

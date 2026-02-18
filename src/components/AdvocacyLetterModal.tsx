@@ -3,7 +3,7 @@
  * AI-generated formal letter to city officials based on walkability metrics
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DemographicData } from '../types';
 import { COLORS } from '../constants';
 
@@ -34,6 +34,14 @@ export default function AdvocacyLetterModal({
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [language, setLanguage] = useState('en');
+
+  // Escape key dismissal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') { setStep('form'); setLetter(''); setError(null); onClose(); } };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -155,7 +163,7 @@ export default function AdvocacyLetterModal({
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
                   placeholder="e.g., Jane Smith, Walkable Streets Coalition"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terra/40 focus:border-transparent"
                 />
               </div>
 
@@ -168,7 +176,7 @@ export default function AdvocacyLetterModal({
                   value={recipientTitle}
                   onChange={(e) => setRecipientTitle(e.target.value)}
                   placeholder="e.g., City Council, Mayor's Office, Department of Transportation"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terra/40 focus:border-transparent"
                 />
               </div>
 
@@ -179,7 +187,7 @@ export default function AdvocacyLetterModal({
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-terra/40 focus:border-transparent bg-white"
                 >
                   <option value="en">English</option>
                   <option value="es">Español</option>
@@ -204,7 +212,7 @@ export default function AdvocacyLetterModal({
               <textarea
                 value={letter}
                 onChange={(e) => setLetter(e.target.value)}
-                className="w-full h-48 sm:h-64 md:h-[400px] p-4 border border-gray-300 rounded-xl text-sm leading-relaxed font-serif resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full h-48 sm:h-64 md:h-[400px] p-4 border border-gray-300 rounded-xl text-sm leading-relaxed font-serif resize-none focus:ring-2 focus:ring-terra/40 focus:border-transparent"
               />
               <p className="text-xs text-gray-500">
                 You can edit the letter above before copying or downloading.

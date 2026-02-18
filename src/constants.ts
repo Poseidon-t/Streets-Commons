@@ -8,7 +8,7 @@ export const USER_AGENT = 'SafeStreets/2.0';
 
 // Design colors
 export const COLORS = {
-  primary: '#1e3a5f',
+  primary: '#e07850',
   accent: '#f97316',
   excellent: '#22c55e',
   good: '#84cc16',

@@ -65,7 +65,7 @@ export default function VerticalPage({
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/enterprise/contact"
-              className="px-8 py-3.5 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition"
+              className="px-8 py-3.5 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition"
             >
               Request a Consultation
             </Link>
@@ -86,7 +86,7 @@ export default function VerticalPage({
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">The Challenge</h2>
             <p className="text-gray-600 max-w-xl mx-auto">Critical pedestrian infrastructure gaps that affect your decisions</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {challenges.map((c, i) => (
               <div key={i} className="bg-red-50/50 border border-red-100 rounded-xl p-6">
                 <div className="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center mb-4">
@@ -105,7 +105,7 @@ export default function VerticalPage({
       {/* Our Solution */}
       <section className="py-20 bg-enterprise-gray">
         <div className="max-w-6xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-enterprise-slate mb-4">{solutionTitle}</h2>
               <p className="text-gray-600 mb-6 leading-relaxed">{solutionDescription}</p>
@@ -147,7 +147,7 @@ export default function VerticalPage({
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Use Cases</h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {useCases.map((uc, i) => (
               <div key={i} className="bg-white border border-gray-100 rounded-xl p-6 hover:shadow-md transition">
                 <div className="flex items-center gap-3 mb-3">

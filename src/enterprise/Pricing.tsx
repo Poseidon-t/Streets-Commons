@@ -3,10 +3,16 @@ import { Link } from 'react-router-dom';
 import EnterpriseCTA from './components/EnterpriseCTA';
 
 const FEATURES = [
-  { name: 'Safety & infrastructure metrics', core: '8 core metrics', complete: 'All 12 metrics' },
-  { name: 'Report length', core: '80+ pages', complete: '150+ pages' },
+  // Interactive Dashboard
+  { name: 'Interactive dashboard', core: 'Core metrics view', complete: 'Full 12-metric platform' },
+  { name: 'Live metric scoring & maps', core: true, complete: true },
+  { name: 'Advanced analytics & trend tracking', core: false, complete: true },
+  { name: 'Heat maps & hotspot analysis', core: 'Basic', complete: 'Advanced' },
+  { name: 'Data export (CSV, GIS)', core: true, complete: true },
+
+  // In-Depth Field Audit
   { name: 'Field audit duration', core: '3-day audit', complete: '5-day audit' },
-  { name: 'Delivery timeline', core: '6 weeks', complete: '8 weeks' },
+  { name: 'Safety & infrastructure metrics', core: '8 core metrics', complete: 'All 12 metrics' },
   { name: 'Sidewalk quality analysis', core: true, complete: true },
   { name: 'Crossing safety assessment', core: true, complete: true },
   { name: 'ADA compliance review', core: true, complete: true },
@@ -19,10 +25,23 @@ const FEATURES = [
   { name: 'Traffic volume assessment', core: false, complete: true },
   { name: 'Speed environment analysis', core: false, complete: true },
   { name: 'Crash history & risk mapping', core: false, complete: true },
-  { name: 'Data appendix & methodology', core: true, complete: true },
+
+  // Citizen Advocacy
+  { name: 'Community survey tool', core: true, complete: true },
+  { name: 'Citizen voice collection', core: true, complete: true },
+  { name: 'Cultural context mapping', core: false, complete: true },
+  { name: 'Sentiment analysis', core: false, complete: true },
+  { name: 'Multilingual support', core: false, complete: true },
+
+  // Reports & Deliverables
+  { name: 'Downloadable PDF report', core: '80+ pages', complete: '150+ pages' },
   { name: 'Executive summary', core: true, complete: true },
+  { name: 'Data appendix & methodology', core: true, complete: true },
   { name: 'Strategic action plan', core: false, complete: true },
   { name: 'Stakeholder presentation deck', core: false, complete: true },
+
+  // Support
+  { name: 'Delivery timeline', core: '6 weeks', complete: '8 weeks' },
   { name: 'Ongoing advisory support', core: false, complete: true },
 ];
 
@@ -48,8 +67,20 @@ const FAQS = [
     a: 'Currently, our field audit capabilities are focused on US cities. We can discuss international projects on a case-by-case basis — the methodology is applicable globally, though data availability may vary.',
   },
   {
-    q: 'What format is the final deliverable?',
-    a: 'You receive a professionally designed PDF report, a stakeholder-ready presentation deck (Complete tier), raw data in CSV/GIS formats, and high-resolution maps. All deliverables are yours to use and share internally.',
+    q: 'What do I actually get access to?',
+    a: 'Your primary interface is an interactive dashboard with live metrics, maps, and scoring. You also receive downloadable PDF reports (80-150+ pages), raw data in CSV/GIS formats, and high-resolution maps. The Complete tier adds a stakeholder presentation deck and strategic action plan. All deliverables are yours to use and share internally.',
+  },
+  {
+    q: 'How does the interactive dashboard work?',
+    a: 'The dashboard is a secure web-based platform where your team can explore metrics, view heat maps, filter by area, and track conditions. The Pedestrian Safety Intelligence tier provides core metric views and basic maps. The Complete Intelligence tier unlocks advanced analytics, trend tracking, and detailed hotspot analysis.',
+  },
+  {
+    q: 'What is the Citizen Advocacy Module?',
+    a: 'The Citizen Advocacy Module captures community voices through structured surveys, digital input tools, and on-the-ground engagement. Citizen perspectives on safety concerns, barriers, and priorities are integrated into your analysis. The Complete tier adds cultural context mapping, sentiment analysis, and multilingual community outreach.',
+  },
+  {
+    q: 'How long do I have access to the dashboard?',
+    a: 'Both tiers include 12 months of dashboard access from the date of delivery. Annual renewals are available to maintain access and receive updated data. The Complete tier also includes 3 months of advisory support during the initial access period.',
   },
   {
     q: 'Is there ongoing support after delivery?',
@@ -63,7 +94,7 @@ export default function Pricing() {
   useEffect(() => {
     document.title = 'Pricing | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence pricing. Pedestrian safety & infrastructure reports starting at $50K. Complete Intelligence System starting at $100K.');
+    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence pricing. Interactive dashboards, field audits, and citizen advocacy starting at $50K. Complete Intelligence platform starting at $100K.');
   }, []);
 
   return (
@@ -74,7 +105,7 @@ export default function Pricing() {
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Pricing</p>
           <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Invest in Pedestrian Intelligence</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Two tiers designed for different project scopes. Both deliver rigorous, actionable pedestrian safety analysis.
+            Two tiers designed for different project scopes. Both include dashboard access, in-depth field audits, and citizen advocacy.
           </p>
         </div>
       </section>
@@ -88,7 +119,7 @@ export default function Pricing() {
               <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Pedestrian Safety Intelligence</p>
               <p className="text-5xl font-bold text-enterprise-slate mb-1">$50K</p>
               <p className="text-sm text-gray-500 mb-2">Starting price</p>
-              <p className="text-sm text-gray-600 mb-8">8 core metrics, 80-page report, 3-day field audit. Ideal for focused corridor or neighborhood analysis.</p>
+              <p className="text-sm text-gray-600 mb-8">Interactive dashboard, 3-day field audit across 8 core metrics, community voice collection, and 80+ page downloadable report.</p>
               <Link to="/enterprise/contact" className="block text-center py-3.5 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition mb-6">
                 Request Proposal
               </Link>
@@ -103,7 +134,7 @@ export default function Pricing() {
               <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-3">Complete Intelligence</p>
               <p className="text-5xl font-bold mb-1">$100K</p>
               <p className="text-sm text-gray-400 mb-2">Starting price</p>
-              <p className="text-sm text-gray-300 mb-8">All 12 metrics, 150-page report, 5-day field audit, strategic action plan, and ongoing advisory.</p>
+              <p className="text-sm text-gray-300 mb-8">Full 12-metric dashboard with advanced analytics, 5-day field audit, complete citizen advocacy module, 150+ page report, and ongoing advisory.</p>
               <Link to="/enterprise/contact" className="block text-center py-3.5 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition mb-6">
                 Contact Sales
               </Link>
@@ -114,7 +145,8 @@ export default function Pricing() {
           {/* Feature Comparison */}
           <div>
             <h2 className="text-2xl font-bold text-enterprise-slate mb-8 text-center">Feature Comparison</h2>
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl overflow-x-auto">
+              <div className="min-w-[600px]">
               <div className="grid grid-cols-3 bg-enterprise-gray px-6 py-4 border-b border-gray-100">
                 <div className="text-sm font-semibold text-gray-500">Feature</div>
                 <div className="text-sm font-semibold text-enterprise-navy text-center">Pedestrian Safety Intelligence</div>
@@ -127,26 +159,33 @@ export default function Pricing() {
                     {typeof f.core === 'string' ? (
                       <span className="text-sm text-gray-700">{f.core}</span>
                     ) : f.core ? (
-                      <svg className="w-5 h-5 text-enterprise-navy mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                      <>
+                        <svg className="w-5 h-5 text-enterprise-navy mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="sr-only">Included</span>
+                      </>
                     ) : (
-                      <span className="text-gray-300">&mdash;</span>
+                      <span className="text-gray-300" aria-label="Not included">&mdash;</span>
                     )}
                   </div>
                   <div className="text-center">
                     {typeof f.complete === 'string' ? (
                       <span className="text-sm text-gray-700">{f.complete}</span>
                     ) : f.complete ? (
-                      <svg className="w-5 h-5 text-enterprise-green mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                      <>
+                        <svg className="w-5 h-5 text-enterprise-green mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span className="sr-only">Included</span>
+                      </>
                     ) : (
-                      <span className="text-gray-300">&mdash;</span>
+                      <span className="text-gray-300" aria-label="Not included">&mdash;</span>
                     )}
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </div>

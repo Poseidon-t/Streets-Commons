@@ -4,6 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { getBlogPostBySlug, BLOG_POSTS, type BlogPost as BlogPostType } from '../data/blogPosts';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -207,7 +208,7 @@ export default function BlogPost() {
             color: '#3a4a3a',
             lineHeight: 1.8,
           }}
-          dangerouslySetInnerHTML={{ __html: post.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
         />
 
         {/* Tags */}

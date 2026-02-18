@@ -170,7 +170,7 @@ export default function Metrics() {
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
           <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Every SafeStreets report is built on a rigorous framework of 12 metrics across 4 categories, each measured through field audit and data analysis.
+            Every SafeStreets engagement is built on a rigorous framework of 12 metrics across 4 categories, each measured through field audit, displayed in your interactive dashboard, and enriched with citizen insights.
           </p>
         </div>
       </section>
@@ -213,8 +213,8 @@ export default function Metrics() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-enterprise-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
-            The Pedestrian Safety Intelligence package ($50K) covers 8 core metrics across Infrastructure, Environment, and Access.
-            The Complete Intelligence package ($100K) adds all 4 Safety metrics plus Network Connectivity for full coverage.
+            The Pedestrian Safety Intelligence package ($50K) covers 8 core metrics accessible through your interactive dashboard.
+            The Complete Intelligence package ($100K) unlocks all 12 metrics with advanced analytics, trend tracking, and full citizen advocacy integration.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/enterprise/pricing" className="px-6 py-3 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition">

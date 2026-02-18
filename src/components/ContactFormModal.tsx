@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface ContactFormModalProps {
   isOpen: boolean;
@@ -30,6 +30,14 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Escape key dismissal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -85,7 +93,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
             <button
               onClick={onClose}
               className="px-6 py-3 rounded-xl font-semibold text-white"
-              style={{ backgroundColor: '#5090b0' }}
+              style={{ backgroundColor: '#e07850' }}
             >
               Done
             </button>
@@ -206,7 +214,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg disabled:opacity-60"
-                style={{ backgroundColor: '#5090b0' }}
+                style={{ backgroundColor: '#e07850' }}
               >
                 {loading ? 'Sending...' : 'Send Inquiry'}
               </button>

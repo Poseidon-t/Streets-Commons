@@ -7,18 +7,19 @@ const PHASES = [
     number: '01',
     title: 'Scope & Planning',
     duration: 'Week 1-2',
-    description: 'We define the study area, assessment objectives, and project parameters together. This phase ensures the final report addresses your specific decision-making needs.',
+    description: 'We define the study area, assessment objectives, and community engagement plan together. This phase ensures every deliverable addresses your specific decision-making needs.',
     details: [
       'Define study area boundaries via GIS mapping',
-      'Identify key stakeholders and report audience',
+      'Identify key stakeholders and target communities',
       'Establish assessment objectives and priorities',
       'Customize metric weighting for your use case',
-      'Schedule field audit logistics',
+      'Design citizen advocacy survey parameters',
+      'Schedule field audit and community engagement logistics',
     ],
   },
   {
     number: '02',
-    title: 'Field Audit',
+    title: 'In-Depth Field Audit',
     duration: '3-5 Days On-Site',
     description: 'Trained analysts walk every street segment in the study area, documenting conditions across all assessed metrics using standardized protocols.',
     details: [
@@ -32,31 +33,44 @@ const PHASES = [
   },
   {
     number: '03',
-    title: 'Analysis & Modeling',
-    duration: 'Week 3-5',
-    description: 'Field observations are combined with municipal data, census demographics, transit schedules, and crash databases into a multi-source pedestrian safety model.',
+    title: 'Citizen Engagement',
+    duration: 'Concurrent / Week 2-4',
+    description: 'Community voices are captured through structured surveys, interviews, and digital input tools to understand the lived pedestrian experience beyond what physical infrastructure reveals.',
     details: [
-      'Field data digitization and quality review',
-      'GIS integration with municipal datasets',
-      'Statistical scoring of each metric (0-100)',
-      'Heat map and hotspot generation',
-      'Comparative analysis with peer corridors',
-      'Identification of priority improvement zones',
+      'Deploy community survey tools (digital and in-person)',
+      'Collect citizen voices on safety concerns and barriers',
+      'Document cultural context and community-specific needs',
+      'Multilingual outreach for diverse communities (Complete tier)',
+      'Sentiment analysis and theme identification (Complete tier)',
     ],
   },
   {
     number: '04',
-    title: 'Report & Strategy',
-    duration: 'Week 6-8',
-    description: 'A comprehensive, professionally designed report with executive summary, detailed findings, data appendix, and actionable recommendations.',
+    title: 'Analysis & Modeling',
+    duration: 'Week 3-5',
+    description: 'Field observations and citizen input are combined with municipal data, census demographics, transit schedules, and crash databases into a multi-source pedestrian safety model.',
     details: [
-      '80-150 page professionally designed report',
+      'Field data digitization and quality review',
+      'Integration of citizen advocacy data with field observations',
+      'GIS integration with municipal datasets',
+      'Statistical scoring of each metric (0-100)',
+      'Heat map and hotspot generation',
+      'Identification of priority improvement zones',
+    ],
+  },
+  {
+    number: '05',
+    title: 'Dashboard & Deliverables',
+    duration: 'Week 6-8',
+    description: 'Your interactive dashboard goes live with all metrics, maps, and citizen insights. Comprehensive reports are available for download directly from the platform.',
+    details: [
+      'Interactive dashboard with live metrics and scoring',
+      'Heat maps, GIS visualizations, and trend analytics',
+      'Citizen advocacy module with community voice data',
+      '80-150+ page downloadable PDF report',
       'Executive summary for leadership audiences',
-      'Detailed metric-by-metric analysis',
-      'High-resolution maps and visualizations',
       'Prioritized improvement recommendations',
-      'Data appendix with raw measurements',
-      'Stakeholder presentation deck (Complete tier)',
+      'Strategic action plan & presentation deck (Complete tier)',
     ],
   },
 ];
@@ -68,13 +82,14 @@ const DATA_SOURCES = [
   { name: 'Transit Data', desc: 'GTFS feeds, service frequency, route coverage, ridership' },
   { name: 'Crash Databases', desc: 'FARS, state DOT records, police reports, severity coding' },
   { name: 'Satellite & Aerial', desc: 'Land cover, canopy analysis, impervious surface mapping' },
+  { name: 'Community Input', desc: 'Citizen surveys, voice recordings, cultural context interviews, community feedback' },
 ];
 
 export default function HowItWorks() {
   useEffect(() => {
     document.title = 'How It Works | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence follows a rigorous 4-phase process: Scope & Planning, Field Audit, Analysis & Modeling, and Report & Strategy.');
+    if (desc) desc.setAttribute('content', 'SafeStreets Intelligence follows a rigorous 5-phase process: Scope & Planning, In-Depth Field Audit, Citizen Engagement, Analysis & Modeling, and Dashboard & Deliverables.');
   }, []);
 
   return (
@@ -85,7 +100,7 @@ export default function HowItWorks() {
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Process</p>
           <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">How We Build Intelligence</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Every SafeStreets report follows a structured 4-phase methodology that combines on-the-ground field research with rigorous data analysis.
+            Every SafeStreets engagement follows a structured 5-phase methodology combining field research, community engagement, and data analysis.
           </p>
         </div>
       </section>
@@ -149,7 +164,7 @@ export default function HowItWorks() {
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Data Sources</h2>
             <p className="text-gray-600 max-w-xl mx-auto">We integrate multiple data sources for a comprehensive, validated picture of pedestrian conditions.</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {DATA_SOURCES.map((ds) => (
               <div key={ds.name} className="bg-white rounded-xl border border-gray-100 p-6">
                 <h3 className="text-base font-semibold text-enterprise-slate mb-2">{ds.name}</h3>
@@ -171,12 +186,13 @@ export default function HowItWorks() {
               <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Pedestrian Safety Intelligence — $50K</p>
               <ul className="space-y-3">
                 {[
-                  '80+ page professionally designed report',
+                  'Interactive dashboard with core metrics',
+                  '3-day in-depth field audit data',
+                  'Community survey & voice collection',
+                  '80+ page downloadable report',
                   'Executive summary',
-                  '8 metric analyses with scoring',
                   'Heat maps and GIS visualizations',
-                  'Prioritized improvement list',
-                  'Data appendix with raw measurements',
+                  'Data export (CSV, GIS formats)',
                   'Post-delivery Q&A session',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
@@ -193,11 +209,13 @@ export default function HowItWorks() {
               <p className="text-xs text-gray-400 mb-4">Everything in Pedestrian Safety Intelligence, plus:</p>
               <ul className="space-y-3">
                 {[
+                  'Full 12-metric interactive dashboard',
+                  'Advanced analytics & trend tracking',
+                  'Complete citizen advocacy module',
+                  'Cultural context mapping & sentiment analysis',
+                  'Multilingual community engagement',
                   '150+ page comprehensive report',
-                  'All 12 metric analyses',
-                  'Strategic action plan with timelines',
-                  'Stakeholder presentation deck',
-                  'Comparative peer analysis',
+                  'Strategic action plan & presentation deck',
                   '3 months of advisory support',
                   'Annual update option',
                 ].map((item) => (

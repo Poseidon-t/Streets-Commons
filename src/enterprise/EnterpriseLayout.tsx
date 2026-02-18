@@ -50,9 +50,9 @@ export default function EnterpriseLayout() {
                   onMouseEnter={() => setSolutionsOpen(true)}
                   onMouseLeave={() => setSolutionsOpen(false)}
                 >
-                  <button className="text-sm font-medium text-gray-600 hover:text-enterprise-navy transition flex items-center gap-1">
+                  <button className="text-sm font-medium text-gray-600 hover:text-enterprise-navy transition flex items-center gap-1" aria-expanded={solutionsOpen} aria-haspopup="true">
                     {item.label}
-                    <svg className={`w-4 h-4 transition ${solutionsOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className={`w-4 h-4 transition ${solutionsOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
@@ -91,6 +91,12 @@ export default function EnterpriseLayout() {
               )
             )}
             <Link
+              to="/"
+              className="text-sm font-medium text-gray-600 hover:text-enterprise-navy transition"
+            >
+              Try Free Tool
+            </Link>
+            <Link
               to="/enterprise/contact"
               className="ml-2 px-5 py-2 bg-enterprise-navy text-white text-sm font-medium rounded-lg hover:bg-enterprise-navy-light transition"
             >
@@ -102,6 +108,8 @@ export default function EnterpriseLayout() {
           <button
             className="md:hidden p-2 text-gray-600"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? (
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -127,7 +135,7 @@ export default function EnterpriseLayout() {
                       key={child.href}
                       to={child.href}
                       onClick={() => setMobileOpen(false)}
-                      className={`block px-3 py-2 rounded-lg text-sm ${
+                      className={`block px-3 py-2.5 rounded-lg text-sm ${
                         isActive(child.href)
                           ? 'text-enterprise-navy bg-blue-50 font-medium'
                           : 'text-gray-600 hover:bg-gray-50'
@@ -142,7 +150,7 @@ export default function EnterpriseLayout() {
                   key={item.href}
                   to={item.href!}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-3 py-2 rounded-lg text-sm ${
+                  className={`block px-3 py-2.5 rounded-lg text-sm ${
                     isActive(item.href!)
                       ? 'text-enterprise-navy bg-blue-50 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
@@ -152,6 +160,13 @@ export default function EnterpriseLayout() {
                 </Link>
               )
             )}
+            <Link
+              to="/"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-2.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+            >
+              Try Free Tool
+            </Link>
             <Link
               to="/enterprise/contact"
               onClick={() => setMobileOpen(false)}
@@ -183,7 +198,7 @@ export default function EnterpriseLayout() {
                 <span className="text-lg font-semibold">SafeStreets Intelligence</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed">
-                Data-driven pedestrian safety and infrastructure intelligence for governments, developers, and urban planners.
+                Interactive dashboards, in-depth field audits, and citizen advocacy intelligence for governments, developers, and urban planners.
               </p>
             </div>
 

@@ -7,7 +7,7 @@ export default function ForMobility() {
       metaDescription="Transit integration analysis, micromobility planning, and last-mile connectivity mapping. Pedestrian safety reports for mobility companies and transit agencies."
       title="Pedestrian Safety Intelligence for Mobility"
       subtitle="For Transit & Mobility Companies"
-      heroDescription="Every trip begins and ends with walking. Our reports map the pedestrian environment around transit stops, micromobility hubs, and mobility corridors to improve first/last-mile connectivity."
+      heroDescription="Every trip begins and ends with walking. Our platform maps the pedestrian environment around transit stops, micromobility hubs, and mobility corridors with interactive dashboards, field audits, and rider voice data to improve first/last-mile connectivity."
       challenges={[
         {
           title: 'First/Last Mile Gap',
@@ -25,12 +25,14 @@ export default function ForMobility() {
       solutionTitle="Complete First/Last Mile Intelligence"
       solutionDescription="Map the pedestrian environment around transit stops, mobility hubs, and key corridors to understand how people actually walk to and from your service."
       solutionPoints={[
+        'Interactive dashboard with route-level pedestrian metrics and heat maps',
         'Pedestrian access analysis around transit stops and stations',
+        'Rider and pedestrian voice collection at key transit access points',
         'Walking route quality assessment for key corridors',
         'Sidewalk capacity and conflict zone identification',
         'ADA accessibility audit of transit-adjacent infrastructure',
+        'Community feedback integration for service planning decisions',
         'Lighting and safety conditions for evening commuters',
-        'Recommendations for pedestrian improvements that boost ridership',
       ]}
       useCases={[
         {

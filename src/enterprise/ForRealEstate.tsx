@@ -7,7 +7,7 @@ export default function ForRealEstate() {
       metaDescription="Site selection insights, pedestrian environment analysis, and development risk assessment. Data-driven reports for real estate developers and investors."
       title="Pedestrian Infrastructure Intelligence for Real Estate"
       subtitle="For Developers & Investors"
-      heroDescription="Pedestrian infrastructure drives property values. Our reports quantify street-level conditions to inform site selection, assess development risk, and identify value-creation opportunities."
+      heroDescription="Pedestrian infrastructure drives property values. Our platform quantifies street-level conditions with interactive dashboards, field audits, and community sentiment data to inform site selection, assess risk, and identify value-creation opportunities."
       challenges={[
         {
           title: 'Walk Score Is Not Enough',
@@ -23,14 +23,16 @@ export default function ForRealEstate() {
         },
       ]}
       solutionTitle="Beyond Walk Score"
-      solutionDescription="Our field-verified reports give you ground-truth data that no algorithmic score can provide. Understand the actual pedestrian experience around your development sites."
+      solutionDescription="Our field-verified platform gives you ground-truth data that no algorithmic score can provide. Understand the actual pedestrian experience and community sentiment around your development sites."
       solutionPoints={[
+        'Interactive dashboard for site comparison and portfolio monitoring',
         'Street-level pedestrian safety scoring with photo documentation',
+        'Community sentiment data to anticipate neighborhood reception',
         'Pedestrian infrastructure gap analysis for due diligence',
         'Improvement opportunity identification to enhance the pedestrian environment',
         'Comparative analysis against competing sites or neighborhoods',
+        'Cultural context insights for community-aligned development proposals',
         'Transit connectivity scoring for TOD projects',
-        'Community impact data for entitlement support',
       ]}
       useCases={[
         {
