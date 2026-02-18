@@ -1678,13 +1678,13 @@ function App() {
                       >
                         Unlock Advocacy Toolkit
                       </button>
-                      <button
-                        onClick={() => setShowContactModal(true)}
-                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md cursor-pointer border-2"
-                        style={{ borderColor: '#e0dbd0', color: '#5a6a5a', backgroundColor: 'transparent' }}
+                      <a
+                        href="/enterprise"
+                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md border-2 text-center inline-block"
+                        style={{ borderColor: '#1E40AF', color: '#1E40AF', backgroundColor: 'transparent' }}
                       >
-                        Contact for Custom
-                      </button>
+                        Enterprise Reports &rarr;
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -2039,6 +2039,42 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Enterprise Banner - visible on landing page */}
+      {!compareMode && !location && !isAnalyzing && (
+        <section className="py-12">
+          <div className="max-w-5xl mx-auto px-6">
+            <a
+              href="/enterprise"
+              className="block rounded-2xl overflow-hidden transition-all hover:shadow-xl group"
+              style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #1E40AF 100%)' }}
+            >
+              <div className="px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex-1">
+                  <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#34D399' }}>
+                    For Governments, Developers & Organizations
+                  </p>
+                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                    Need In-Depth Pedestrian Safety Reports?
+                  </h3>
+                  <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
+                    Field audits, 12-metric analysis, and strategic action plans. Comprehensive pedestrian safety & infrastructure intelligence reports starting at $50K.
+                  </p>
+                </div>
+                <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                  <span
+                    className="px-8 py-3.5 rounded-lg font-semibold text-white transition group-hover:shadow-lg"
+                    style={{ backgroundColor: '#10B981' }}
+                  >
+                    Explore Enterprise &rarr;
+                  </span>
+                  <span className="text-xs text-gray-400">Field audits &middot; Custom reports &middot; Advisory</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        </section>
+      )}
 
       {/* FAQ Section - Only show when no analysis is displayed */}
       {!compareMode && !location && !isAnalyzing && (
