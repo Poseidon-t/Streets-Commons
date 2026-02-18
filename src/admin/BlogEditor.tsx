@@ -6,7 +6,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
-import { fetchAdminPost, createPost, updatePost, generateBlogPost } from './adminApi';
+import { fetchAdminPost, createPost, updatePost, generateBlogPost, type Region } from './adminApi';
 
 function generateSlug(title: string) {
   return title
@@ -16,7 +16,7 @@ function generateSlug(title: string) {
     .slice(0, 80);
 }
 
-const CATEGORIES = ['Safety', 'Real Estate', 'Guide', 'Advocacy', 'Technology', 'Urban Design', 'General'];
+const CATEGORIES = ['Safety', 'Real Estate', 'Guide', 'Advocacy', 'Technology', 'Urban Design', 'Street Design', 'Walkability', 'Global Standards', 'Infrastructure Impact', 'Urban Case Studies', 'General'];
 
 function ToolbarButton({
   active,
@@ -169,7 +169,7 @@ function AIGeneratePanel({
   const [keywords, setKeywords] = useState('');
   const [postType, setPostType] = useState<'standard' | 'data_report' | 'case_study' | 'explainer'>('standard');
   const [tone, setTone] = useState<'informed_advocate' | 'urgent' | 'hopeful' | 'analytical'>('informed_advocate');
-  const [region, setRegion] = useState<'global' | 'india' | 'us'>('global');
+  const [region, setRegion] = useState<Region>('global');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -258,6 +258,7 @@ function AIGeneratePanel({
             <option value="data_report">Data Report</option>
             <option value="case_study">Case Study</option>
             <option value="explainer">Explainer</option>
+            <option value="education">Educational Guide</option>
           </select>
         </div>
         <div>
@@ -281,8 +282,13 @@ function AIGeneratePanel({
             className="w-full px-3 py-2 border border-orange-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-300 bg-white"
           >
             <option value="global">Global</option>
-            <option value="us">United States</option>
+            <option value="europe">Europe</option>
+            <option value="north_america">North America</option>
             <option value="india">India</option>
+            <option value="asia">Asia</option>
+            <option value="south_america">South America</option>
+            <option value="africa">Africa</option>
+            <option value="oceania">Oceania</option>
           </select>
         </div>
       </div>

@@ -578,6 +578,7 @@ function App() {
             )}
             <a href="#faq" onClick={(e) => { if (location || compareMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
+            <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -610,6 +611,7 @@ function App() {
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-earth-border bg-earth-cream px-6 py-3 space-y-2">
             <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
+            <a href="/learn" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Learn</a>
             <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>

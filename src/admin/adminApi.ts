@@ -32,12 +32,17 @@ export const deletePost = (slug: string) =>
   adminFetch(`/api/admin/blog/posts/${slug}`, { method: 'DELETE' });
 
 // AI Blog Generation
+export type Region = 'global' | 'europe' | 'north_america' | 'india' | 'asia' | 'south_america' | 'africa' | 'oceania';
+export type PostType = 'standard' | 'data_report' | 'case_study' | 'explainer' | 'education';
+export type Tone = 'informed_advocate' | 'urgent' | 'hopeful' | 'analytical';
+
 export const generateBlogPost = (params: {
   topic: string;
   keywords?: string[];
-  postType?: 'standard' | 'data_report' | 'case_study' | 'explainer';
-  tone?: 'informed_advocate' | 'urgent' | 'hopeful' | 'analytical';
-  region?: 'global' | 'india' | 'us';
+  postType?: PostType;
+  tone?: Tone;
+  region?: Region;
+  wordCount?: number;
 }) =>
   adminFetch('/api/admin/blog/generate', { method: 'POST', body: JSON.stringify(params) });
 
@@ -45,6 +50,22 @@ export const generateBlogPost = (params: {
 export const fetchContentQueue = () => adminFetch('/api/admin/content-queue');
 export const updateContentQueuePost = (id: number, data: { status?: string; generatedSlug?: string }) =>
   adminFetch(`/api/admin/content-queue/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+
+// AI Topic Suggestion
+export const suggestTopics = (params: { region?: Region; postType?: string; count?: number }) =>
+  adminFetch('/api/admin/content-queue/suggest', { method: 'POST', body: JSON.stringify(params) });
+
+// Add post to editorial calendar
+export const addCalendarPost = (data: {
+  title: string;
+  region?: Region;
+  keywords?: string[];
+  dataSources?: string[];
+  primaryMessage?: string;
+  tone?: Tone;
+  postType?: PostType;
+}) =>
+  adminFetch('/api/admin/content-queue/add', { method: 'POST', body: JSON.stringify(data) });
 
 // Emails
 export const fetchEmails = () => adminFetch('/api/admin/emails');

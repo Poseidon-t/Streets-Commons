@@ -107,13 +107,16 @@ export default function BlogIndex() {
             </svg>
             <span className="text-xl font-bold" style={{ color: '#e07850' }}>SafeStreets</span>
           </Link>
-          <Link
-            to="/"
-            className="text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md text-white"
-            style={{ backgroundColor: '#e07850' }}
-          >
-            Analyze Any Address
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link to="/learn" className="text-sm font-medium" style={{ color: '#5a6a5a' }}>Learn</Link>
+            <Link
+              to="/"
+              className="text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md text-white"
+              style={{ backgroundColor: '#e07850' }}
+            >
+              Analyze Any Address
+            </Link>
+          </div>
         </div>
       </header>
 

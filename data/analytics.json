@@ -1,0 +1,43 @@
+{
+  "daily": {
+    "2026-02-16": {
+      "pageViews": 0,
+      "uniqueVisitors": 0,
+      "analyses": 0,
+      "chatMessages": 0,
+      "pdfUploads": 0,
+      "advocacyLetters": 0,
+      "payments": 0,
+      "topCountries": {},
+      "topReferrers": {},
+      "utmSources": {},
+      "utmMediums": {},
+      "utmCampaigns": {},
+      "shareClicks": 0,
+      "sharePlatforms": {},
+      "emailsCaptured": 0
+    },
+    "2026-02-17": {
+      "pageViews": 0,
+      "uniqueVisitors": 0,
+      "analyses": 0,
+      "chatMessages": 0,
+      "pdfUploads": 0,
+      "advocacyLetters": 0,
+      "payments": 0,
+      "topCountries": {},
+      "topReferrers": {},
+      "utmSources": {},
+      "utmMediums": {},
+      "utmCampaigns": {},
+      "shareClicks": 0,
+      "sharePlatforms": {},
+      "emailsCaptured": 0
+    }
+  },
+  "allTime": {
+    "pageViews": 0,
+    "analyses": 0,
+    "firstSeen": "2026-02-16"
+  }
+}

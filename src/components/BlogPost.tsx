@@ -152,6 +152,7 @@ export default function BlogPost() {
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/blog" className="text-sm font-medium" style={{ color: '#5a6a5a' }}>Blog</Link>
+            <Link to="/learn" className="text-sm font-medium" style={{ color: '#5a6a5a' }}>Learn</Link>
             <Link
               to="/"
               className="text-sm font-semibold px-4 py-2 rounded-lg transition-all hover:shadow-md text-white"
@@ -169,7 +170,11 @@ export default function BlogPost() {
         <nav className="text-sm mb-6" style={{ color: '#8a9a8a' }}>
           <Link to="/" className="hover:underline">Home</Link>
           <span className="mx-2">/</span>
-          <Link to="/blog" className="hover:underline">Blog</Link>
+          {document.referrer.includes('/learn') ? (
+            <Link to="/learn" className="hover:underline">Learn</Link>
+          ) : (
+            <Link to="/blog" className="hover:underline">Blog</Link>
+          )}
           <span className="mx-2">/</span>
           <span style={{ color: '#5a6a5a' }}>{post.title}</span>
         </nav>

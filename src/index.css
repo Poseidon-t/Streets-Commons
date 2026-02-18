@@ -60,6 +60,21 @@ body {
 .tiptap-editor .ProseMirror pre code { background: none; padding: 0; color: inherit; }
 .tiptap-editor .ProseMirror hr { border: none; border-top: 2px solid #e0dbd0; margin: 1.5rem 0; }
 
+/* Learn page — topic section icons */
+.learn-topic-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.learn-topic-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
 /* Blog visual elements — stat highlights, callouts, images */
 .blog-image {
   margin: 2rem 0;
@@ -181,12 +196,170 @@ body {
   line-height: 1.5;
 }
 
+/* Inline data bar chart — horizontal bars with labels and values */
+.data-bar-chart {
+  margin: 1.5rem 0;
+  background: #f8f6f1;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+.data-bar-chart .chart-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #2a3a2a;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.data-bar-chart .chart-source {
+  font-size: 0.75rem;
+  color: #8a9a8a;
+  margin-top: 0.75rem;
+}
+.data-bar-item {
+  margin-bottom: 0.75rem;
+}
+.data-bar-item .bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #3a4a3a;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+.data-bar-item .bar-label .bar-value {
+  font-weight: 700;
+  color: #e07850;
+}
+.data-bar-item .bar-track {
+  height: 10px;
+  background: #e0dbd0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.data-bar-item .bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #e07850 0%, #c06040 100%);
+  transition: width 0.6s ease;
+}
+.data-bar-item .bar-fill.green {
+  background: linear-gradient(90deg, #4ade80 0%, #16a34a 100%);
+}
+.data-bar-item .bar-fill.blue {
+  background: linear-gradient(90deg, #60a5fa 0%, #2563eb 100%);
+}
+
+/* Inline progress/metric cards — side by side mini stats */
+.metric-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.metric-card {
+  background: #f8f6f1;
+  border-radius: 10px;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid #e0dbd0;
+}
+.metric-card .metric-value {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #2a3a2a;
+  line-height: 1.2;
+}
+.metric-card .metric-value.danger { color: #dc2626; }
+.metric-card .metric-value.success { color: #16a34a; }
+.metric-card .metric-value.accent { color: #e07850; }
+.metric-card .metric-label {
+  display: block;
+  font-size: 0.8rem;
+  color: #5a6a5a;
+  margin-top: 0.25rem;
+  line-height: 1.3;
+}
+
+/* Timeline / progression visual */
+.timeline-visual {
+  margin: 1.5rem 0;
+  padding: 0 0 0 1.5rem;
+  border-left: 3px solid #e07850;
+}
+.timeline-item {
+  position: relative;
+  padding: 0 0 1.25rem 1rem;
+}
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -1.65rem;
+  top: 0.35rem;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e07850;
+  border: 2px solid #fff;
+}
+.timeline-item .timeline-year {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #e07850;
+  text-transform: uppercase;
+}
+.timeline-item .timeline-text {
+  font-size: 0.9rem;
+  color: #3a4a3a;
+  line-height: 1.5;
+  margin-top: 0.15rem;
+}
+
+/* Percentage donut / ring visual (CSS only) */
+.donut-stat {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  background: #f8f6f1;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+}
+.donut-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #2a3a2a;
+}
+.donut-stat .donut-text {
+  font-size: 0.95rem;
+  color: #3a4a3a;
+  line-height: 1.5;
+}
+.donut-stat .donut-text strong {
+  color: #2a3a2a;
+}
+
 @media (max-width: 640px) {
   .comparison-box {
     grid-template-columns: 1fr;
   }
   .stat-highlight .stat-number {
     font-size: 2rem;
+  }
+  .metric-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .donut-stat {
+    flex-direction: column;
+    text-align: center;
   }
 }
 

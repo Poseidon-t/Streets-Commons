@@ -305,7 +305,11 @@ app.use(helmet({
 
 // CORS: Restrict to your domain only
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: process.env.FRONTEND_URL || [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+  ],
   credentials: true,
 }));
 
@@ -660,24 +664,58 @@ app.delete('/api/admin/blog/posts/:slug', (req, res) => {
 // AI Blog Post Generation (uses Anthropic Claude)
 // ═══════════════════════════════════════════════
 
-// Curated Unsplash image bank — categorized by topic, all verified CDN URLs
+// Curated Unsplash image bank — sourced from top urbanism photographers
+// Featured: Marek Lumi (@mareklumi), Joshua Colah (@zoshuacolah), Alain R (@alainr), and others
 const BLOG_IMAGE_BANK = {
   pedestrian: [
     { url: 'https://images.unsplash.com/photo-1533826418470-0cef7eb8bdaa?w=1200&q=80&fit=crop', alt: 'Pedestrians crossing a busy urban crosswalk', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1465815367149-ca149851a3a9?w=1200&q=80&fit=crop', alt: 'People waiting at a pedestrian crossing', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1571754947519-10e7388da6ff?w=1200&q=80&fit=crop', alt: 'Crowds crossing at a busy city intersection', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1717339701000-990a1682f200?w=1200&q=80&fit=crop', alt: 'City street with painted crosswalk markings', credit: 'Unsplash' },
-    { url: 'https://images.unsplash.com/photo-1730033145458-e185f1cd5e0b?w=1200&q=80&fit=crop', alt: 'Residential crosswalk in a quiet neighborhood', credit: 'Unsplash' },
-    { url: 'https://images.unsplash.com/photo-1646438578231-5d8558ae2ba8?w=1200&q=80&fit=crop', alt: 'Person walking across a street crosswalk', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1495549014838-6a652bd8e06b?w=1200&q=80&fit=crop', alt: 'Pedestrian navigating a city street', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1736083821029-665b513718f9?w=1200&q=80&fit=crop', alt: 'Group of people walking across a crosswalk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1758754113538-db868274199f?w=1200&q=80&fit=crop', alt: 'Person walking across a striped crosswalk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1763027850730-775742560f41?w=1200&q=80&fit=crop', alt: 'Cars at a busy city intersection with crosswalk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1762439183800-049f31d25891?w=1200&q=80&fit=crop', alt: 'Pedestrians crossing a street at night', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1587613552674-134b268886b3?w=1200&q=80&fit=crop', alt: 'Pedestrians crossing at a busy Osaka intersection', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1626363743036-4a7da1ba7b62?w=1200&q=80&fit=crop', alt: 'Person walking on crosswalk at night', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1642761502976-3c4c1fc344d1?w=1200&q=80&fit=crop', alt: 'Pedestrians crossing a zebra crossing', credit: 'Unsplash' },
   ],
   cycling: [
     { url: 'https://images.unsplash.com/photo-1485381771061-e2cbd5317d9c?w=1200&q=80&fit=crop', alt: 'Protected bicycle lane in a city', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1700730025710-58ff304c1c8b?w=1200&q=80&fit=crop', alt: 'Cyclist riding on a city street', credit: 'Unsplash' },
-    { url: 'https://images.unsplash.com/photo-1652348588909-e3c66c7e95f7?w=1200&q=80&fit=crop', alt: 'Bicycle commuter on a busy urban road', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1567158753851-2407cc0f6e2f?w=1200&q=80&fit=crop', alt: 'People biking on a dedicated cycling path', credit: 'Unsplash' },
-    { url: 'https://images.unsplash.com/photo-1767556247327-46007f652a74?w=1200&q=80&fit=crop', alt: 'Cyclists riding down a tree-lined street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1693993942340-45013057cfb3?w=1200&q=80&fit=crop', alt: 'Cyclist riding past tall buildings on a city street', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1694005997743-e6e9f2a14159?w=1200&q=80&fit=crop', alt: 'Row of bikes parked along a city road', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1694000406432-0122a1fe454c?w=1200&q=80&fit=crop', alt: 'Bicycle parked on a European city sidewalk', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1606636667096-3db2169f3207?w=1200&q=80&fit=crop', alt: 'Bike lane marked on a city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1764532435628-391ae9adc2af?w=1200&q=80&fit=crop', alt: 'Two cyclists riding on a sunny road under an overpass', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1765273558959-3c150903f313?w=1200&q=80&fit=crop', alt: 'Bicycle street in Berne with cycling infrastructure', credit: 'Alain R / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1763463119338-44d4fa52cd39?w=1200&q=80&fit=crop', alt: 'Red bike lane with white markings at intersection', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1764756843213-645c6b98a278?w=1200&q=80&fit=crop', alt: 'Copenhagen cycling and pedestrian bridge infrastructure', credit: 'Alain R / Unsplash' },
+  ],
+  walkable: [
+    { url: 'https://images.unsplash.com/photo-1763462893307-c01adea64082?w=1200&q=80&fit=crop', alt: 'People walking down a modern city street with planters', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1764756982229-cd1c9c863578?w=1200&q=80&fit=crop', alt: 'Copenhagen waterfront with pedestrian zone and cycling path', credit: 'Alain R / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1634985492349-8589a9255cbe?w=1200&q=80&fit=crop', alt: 'People walking on a wide European pedestrian street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1653303927150-8878c51a7d5a?w=1200&q=80&fit=crop', alt: 'Busy downtown Porto street near S\u00e3o Bento station', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1730346057283-886fc2c458fc?w=1200&q=80&fit=crop', alt: 'Bustling pedestrian streets of Milan', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1690266606474-22f02dbdb4ac?w=1200&q=80&fit=crop', alt: 'People walking through a vibrant European city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1693997296239-e6b152d70e29?w=1200&q=80&fit=crop', alt: 'Cobblestone street in a charming European city', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1769328728541-dcabb8925bed?w=1200&q=80&fit=crop', alt: 'Tree-lined walkable city boulevard with pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1764756720033-20b931a95ca5?w=1200&q=80&fit=crop', alt: 'Copenhagen Vesterbro neighborhood with cyclists and pedestrians', credit: 'Alain R / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1693992689275-08a368ac15d7?w=1200&q=80&fit=crop', alt: 'Street with traffic calming planters and pedestrian space', credit: 'Marek Lumi / Unsplash' },
+  ],
+  transit: [
+    { url: 'https://images.unsplash.com/photo-1744193091837-b9edd24c28dc?w=1200&q=80&fit=crop', alt: 'Urban street with buildings and a public bus', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1694010767280-0280bf4157e9?w=1200&q=80&fit=crop', alt: 'Red and white commuter train passing a station', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1694020369178-0d18379fb8f4?w=1200&q=80&fit=crop', alt: 'Train station platform with arriving train', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1706984946688-0a2177276110?w=1200&q=80&fit=crop', alt: 'Modern train traveling past city buildings', credit: 'Marek Lumi / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1768224768118-939dbdd814da?w=1200&q=80&fit=crop', alt: 'Modern subway entrance on a city street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1761907319591-fde7593ce377?w=1200&q=80&fit=crop', alt: 'Modern tram waiting at a station platform', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1765739100076-44310ed3b42d?w=1200&q=80&fit=crop', alt: 'City metro bus at a transit stop', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1601388354919-cd320b26f39b?w=1200&q=80&fit=crop', alt: 'European tram on city street at night', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1674715181278-5154a26cb431?w=1200&q=80&fit=crop', alt: 'Public transit bus on a city street at night', credit: 'Unsplash' },
   ],
   india: [
     { url: 'https://images.unsplash.com/photo-1640558817252-f6139cbd2853?w=1200&q=80&fit=crop', alt: 'Busy city street with traffic at night in India', credit: 'Unsplash' },
@@ -685,6 +723,10 @@ const BLOG_IMAGE_BANK = {
     { url: 'https://images.unsplash.com/photo-1754808881154-a4708f947004?w=1200&q=80&fit=crop', alt: 'Street scene with people and vehicles in India', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1522726832281-362409683a2d?w=1200&q=80&fit=crop', alt: 'Aerial view of an Indian city', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1753805122914-6366c65a4877?w=1200&q=80&fit=crop', alt: 'Vehicles driving on a busy Indian city road', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1760782064110-365c9ac24234?w=1200&q=80&fit=crop', alt: 'Aerial view of Chandni Chowk market with rickshaws', credit: 'Joshua Colah / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1760782065310-ff09c7507bc1?w=1200&q=80&fit=crop', alt: 'Hand-pulled rickshaws on Delhi market streets', credit: 'Joshua Colah / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1760791963163-283dc5b3713e?w=1200&q=80&fit=crop', alt: 'Cycle rickshaws waiting on a Delhi street', credit: 'Joshua Colah / Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1760782066069-5b4c33e0573c?w=1200&q=80&fit=crop', alt: 'Bustling Chandni Chowk street with pedestrians', credit: 'Joshua Colah / Unsplash' },
   ],
   urban: [
     { url: 'https://images.unsplash.com/photo-1504494645474-cc4e25299579?w=1200&q=80&fit=crop', alt: 'Aerial view of a green urban neighborhood', credit: 'Unsplash' },
@@ -692,7 +734,10 @@ const BLOG_IMAGE_BANK = {
     { url: 'https://images.unsplash.com/photo-1630381962702-4fbde321a0fb?w=1200&q=80&fit=crop', alt: 'People walking in an urban park with water views', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1731451163974-639ea494d81d?w=1200&q=80&fit=crop', alt: 'Aerial view of a city park surrounded by buildings', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1625235521692-e2d9bfba6234?w=1200&q=80&fit=crop', alt: 'People enjoying a walkable city park', credit: 'Unsplash' },
-    { url: 'https://images.unsplash.com/photo-1715303927070-ba14c412d6df?w=1200&q=80&fit=crop', alt: 'City park with tall buildings in background', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1764391811842-7fe53915ee1b?w=1200&q=80&fit=crop', alt: 'People relaxing by a fountain in a city square', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1763770447226-6eb1b30c2991?w=1200&q=80&fit=crop', alt: 'People sitting on a bench in a modern city park', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1590253230659-0863d300f57d?w=1200&q=80&fit=crop', alt: 'People walking in a park near high-rise buildings', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1767727816373-cd0e66cb3bf8?w=1200&q=80&fit=crop', alt: 'Park with people enjoying cityscape views', credit: 'Unsplash' },
   ],
   traffic: [
     { url: 'https://images.unsplash.com/photo-1738200984864-cfe24df27e36?w=1200&q=80&fit=crop', alt: 'City street at night with traffic lights', credit: 'Unsplash' },
@@ -700,24 +745,33 @@ const BLOG_IMAGE_BANK = {
     { url: 'https://images.unsplash.com/photo-1472070153210-15e27d938957?w=1200&q=80&fit=crop', alt: 'Red traffic light signaling stop', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1622032432572-7943ed0340a6?w=1200&q=80&fit=crop', alt: 'Street light and road infrastructure', credit: 'Unsplash' },
     { url: 'https://images.unsplash.com/photo-1760278357611-0c06ab1ded5b?w=1200&q=80&fit=crop', alt: 'Suburban street illuminated at night', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1708183559528-432746aa781c?w=1200&q=80&fit=crop', alt: 'European city street with traffic and buildings', credit: 'Unsplash' },
   ],
 };
 
-// Select relevant images based on content topic, category, and region
-function selectBlogImages(category, keywords, region, count = 3) {
+// Select relevant images from static bank (used for education posts and as fallback)
+function selectStaticImages(category, keywords, region, count = 3) {
   const keywordStr = (keywords || []).join(' ').toLowerCase();
   const cat = (category || '').toLowerCase();
   const reg = (region || '').toLowerCase();
 
-  // Determine which image pools to use based on content
   const pools = [];
 
-  // Region-specific pool
   if (reg === 'india' || keywordStr.includes('india') || keywordStr.includes('mumbai') || keywordStr.includes('delhi')) {
     pools.push(...BLOG_IMAGE_BANK.india);
   }
-
-  // Topic-based pools
+  if (reg === 'europe' || reg === 'oceania') {
+    pools.push(...BLOG_IMAGE_BANK.walkable, ...BLOG_IMAGE_BANK.cycling, ...BLOG_IMAGE_BANK.transit);
+  }
+  if (reg === 'asia') {
+    pools.push(...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.pedestrian, ...BLOG_IMAGE_BANK.transit);
+  }
+  if (reg === 'africa' || reg === 'south_america') {
+    pools.push(...BLOG_IMAGE_BANK.pedestrian, ...BLOG_IMAGE_BANK.walkable, ...BLOG_IMAGE_BANK.traffic);
+  }
+  if (reg === 'north_america') {
+    pools.push(...BLOG_IMAGE_BANK.traffic, ...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.transit);
+  }
   if (keywordStr.includes('cycl') || keywordStr.includes('bike') || keywordStr.includes('bicycle')) {
     pools.push(...BLOG_IMAGE_BANK.cycling);
   }
@@ -725,18 +779,18 @@ function selectBlogImages(category, keywords, region, count = 3) {
     pools.push(...BLOG_IMAGE_BANK.pedestrian);
   }
   if (keywordStr.includes('urban') || keywordStr.includes('city') || keywordStr.includes('park') || keywordStr.includes('walkab') || cat === 'urban design') {
-    pools.push(...BLOG_IMAGE_BANK.urban);
+    pools.push(...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.walkable);
   }
   if (keywordStr.includes('traffic') || keywordStr.includes('speed') || keywordStr.includes('road') || keywordStr.includes('crash') || keywordStr.includes('accident')) {
     pools.push(...BLOG_IMAGE_BANK.traffic);
   }
-
-  // If no specific match, use a mix of all
+  if (keywordStr.includes('transit') || keywordStr.includes('bus') || keywordStr.includes('train') || keywordStr.includes('tram') || keywordStr.includes('metro') || keywordStr.includes('subway')) {
+    pools.push(...BLOG_IMAGE_BANK.transit);
+  }
   if (pools.length === 0) {
-    pools.push(...BLOG_IMAGE_BANK.pedestrian, ...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.traffic);
+    pools.push(...BLOG_IMAGE_BANK.pedestrian, ...BLOG_IMAGE_BANK.urban, ...BLOG_IMAGE_BANK.walkable, ...BLOG_IMAGE_BANK.traffic);
   }
 
-  // Shuffle and pick unique images
   const shuffled = pools.sort(() => Math.random() - 0.5);
   const unique = [];
   const seen = new Set();
@@ -749,9 +803,140 @@ function selectBlogImages(category, keywords, region, count = 3) {
   return unique;
 }
 
-// Inject images into generated HTML content after <h2> sections
-function injectBlogImages(html, category, keywords, region) {
-  const images = selectBlogImages(category, keywords, region, 3);
+// ── Unsplash Search API — location-specific images for blog posts ──
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY || '';
+
+// Extract location/city names from title and keywords for targeted image search
+function buildImageSearchQueries(title, keywords, count = 3) {
+  const queries = [];
+  const titleLower = (title || '').toLowerCase();
+  const kws = (keywords || []).map(k => k.toLowerCase());
+
+  // Known city/location names to detect in title and keywords
+  const CITY_PATTERNS = [
+    'seoul', 'cheonggyecheon', 'barcelona', 'paris', 'amsterdam', 'copenhagen',
+    'tokyo', 'oslo', 'helsinki', 'vienna', 'london', 'berlin', 'zurich',
+    'bogotá', 'bogota', 'curitiba', 'medellín', 'medellin', 'singapore',
+    'taipei', 'jakarta', 'manila', 'mumbai', 'delhi', 'bangalore', 'chennai',
+    'jaipur', 'pune', 'hyderabad', 'kolkata', 'nairobi', 'addis ababa',
+    'melbourne', 'new york', 'nyc', 'san francisco', 'seattle', 'portland',
+    'chicago', 'austin', 'detroit', 'minneapolis', 'hoboken', 'cambridge',
+    'florida', 'netherlands', 'sweden', 'superblocks', 'strøget',
+  ];
+
+  // Find city/location mentioned in title
+  const foundCities = CITY_PATTERNS.filter(city =>
+    titleLower.includes(city) || kws.some(k => k.includes(city))
+  );
+
+  if (foundCities.length > 0) {
+    const mainCity = foundCities[0];
+    // Primary: city + street/urban context
+    queries.push(`${mainCity} street pedestrian urban`);
+    // Secondary: city + specific landmark or topic from title
+    const topicWords = titleLower
+      .replace(/[^a-z\s]/g, '')
+      .split(/\s+/)
+      .filter(w => w.length > 3 && !['that', 'this', 'what', 'when', 'from', 'with', 'have', 'been', 'were', 'most', 'into', 'city', 'america'].includes(w))
+      .slice(0, 3);
+    if (topicWords.length > 0) {
+      queries.push(`${mainCity} ${topicWords.join(' ')}`);
+    }
+    // Tertiary: city skyline / aerial for variety
+    queries.push(`${mainCity} city aerial`);
+  } else {
+    // No specific city found — use topic-based queries
+    const topicTerms = kws.slice(0, 3).join(' ');
+    queries.push(`${topicTerms} street city`);
+    queries.push(`pedestrian safety urban ${topicTerms}`);
+    queries.push(`walkable city street ${topicTerms}`);
+  }
+
+  return queries.slice(0, count);
+}
+
+// Search Unsplash API for images matching a query
+async function searchUnsplash(query, perPage = 3) {
+  if (!UNSPLASH_ACCESS_KEY) return [];
+
+  try {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=${perPage}&orientation=landscape&content_filter=high`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Client-ID ${UNSPLASH_ACCESS_KEY}` },
+    });
+    if (!res.ok) {
+      console.warn(`⚠️ Unsplash API error: ${res.status}`);
+      return [];
+    }
+    const data = await res.json();
+    return (data.results || []).map(photo => ({
+      url: `${photo.urls.regular}&w=1200&q=80&fit=crop`,
+      alt: photo.alt_description || photo.description || query,
+      credit: `${photo.user.name} / Unsplash`,
+      unsplashLink: photo.links.html, // for attribution
+    }));
+  } catch (err) {
+    console.warn('⚠️ Unsplash search failed:', err.message);
+    return [];
+  }
+}
+
+// Fetch location-specific images via Unsplash Search API
+async function fetchLocationImages(title, keywords, count = 6) {
+  const queries = buildImageSearchQueries(title, keywords, 3);
+  const perQuery = Math.ceil(count / queries.length);
+
+  console.log(`📸 Searching Unsplash for: ${queries.join(' | ')}`);
+
+  const results = await Promise.all(
+    queries.map(q => searchUnsplash(q, perQuery))
+  );
+
+  // Flatten, deduplicate, limit
+  const seen = new Set();
+  const images = [];
+  for (const batch of results) {
+    for (const img of batch) {
+      if (!seen.has(img.url) && images.length < count) {
+        seen.add(img.url);
+        images.push(img);
+      }
+    }
+  }
+  return images;
+}
+
+// Select images: dynamic Unsplash search for blog posts, static bank for education
+async function selectBlogImages(title, category, keywords, region, postType, count = 6) {
+  const isEducation = (postType || '').toLowerCase() === 'education';
+
+  // Education posts use static image bank (generic is fine)
+  if (isEducation) {
+    console.log('📸 Education post — using static image bank');
+    return selectStaticImages(category, keywords, region, count);
+  }
+
+  // Try dynamic Unsplash search for location-specific images
+  if (UNSPLASH_ACCESS_KEY) {
+    const dynamicImages = await fetchLocationImages(title, keywords, count);
+    if (dynamicImages.length >= 3) {
+      console.log(`📸 Found ${dynamicImages.length} location-specific images from Unsplash`);
+      return dynamicImages;
+    }
+    console.log(`📸 Only ${dynamicImages.length} Unsplash results, supplementing with static bank`);
+    // Supplement with static images
+    const staticFill = selectStaticImages(category, keywords, region, count - dynamicImages.length);
+    return [...dynamicImages, ...staticFill].slice(0, count);
+  }
+
+  // No API key — fall back to static bank
+  console.log('📸 No Unsplash API key — using static image bank');
+  return selectStaticImages(category, keywords, region, count);
+}
+
+// Inject images into generated HTML content — targets 6 images distributed across sections
+async function injectBlogImages(html, title, category, keywords, region, postType) {
+  const images = await selectBlogImages(title, category, keywords, region, postType, 6);
   if (images.length === 0) return html;
 
   // Find all <h2> positions
@@ -768,23 +953,35 @@ function injectBlogImages(html, category, keywords, region) {
     return figureHtml + html;
   }
 
-  // Inject images after every 2nd <h2> section (before the next <h2>)
   let result = '';
   let lastIdx = 0;
   let imgIdx = 0;
 
-  // Place images at strategic positions (after 1st, 3rd, 5th h2)
-  const insertAfter = [0, 2, 4].filter(i => i < h2Positions.length);
+  // Place images after sections 1, 2, 3, 4, 5, 6 (every section gets one if enough images)
+  // For 7-part structure: image after Hook, each Core Argument sub, Case Study, Possibility
+  const maxInserts = Math.min(images.length, h2Positions.length - 1);
+  // Distribute evenly: pick section indices
+  const insertAfter = [];
+  if (h2Positions.length <= maxInserts + 1) {
+    // Image after every section except the last
+    for (let i = 0; i < h2Positions.length - 1 && insertAfter.length < maxInserts; i++) {
+      insertAfter.push(i);
+    }
+  } else {
+    // Spread images evenly across sections
+    const step = h2Positions.length / (maxInserts + 1);
+    for (let i = 0; i < maxInserts; i++) {
+      insertAfter.push(Math.floor(i * step));
+    }
+  }
 
   for (let i = 0; i < h2Positions.length && imgIdx < images.length; i++) {
     if (insertAfter.includes(i) && i + 1 < h2Positions.length) {
-      // Find end of current section (start of next h2)
       const sectionEnd = h2Positions[i + 1];
-      // Find last </p> before next h2
       const sectionHtml = html.substring(h2Positions[i], sectionEnd);
       const lastP = sectionHtml.lastIndexOf('</p>');
       if (lastP !== -1) {
-        const insertPos = h2Positions[i] + lastP + 4; // after </p>
+        const insertPos = h2Positions[i] + lastP + 4;
         result += html.substring(lastIdx, insertPos);
         const img = images[imgIdx++];
         result += `\n<figure class="blog-image"><img src="${img.url}" alt="${img.alt}" loading="lazy" /><figcaption>${img.alt} — Photo: ${img.credit}</figcaption></figure>\n`;
@@ -796,23 +993,25 @@ function injectBlogImages(html, category, keywords, region) {
   return result;
 }
 
-const BLOG_CONTENT_SYSTEM_PROMPT = `You are the content engine for SafeStreets — a walkability analysis platform. You write SEO-optimized, data-driven blog posts about pedestrian safety, walkability, urban planning, and street advocacy.
+const BLOG_CONTENT_SYSTEM_PROMPT = `You are the content engine for SafeStreets — a walkability analysis platform. You write highly visual, scannable, story-driven blog posts about pedestrian safety, walkability, urban planning, and street advocacy.
 
 VOICE & STYLE:
-- Passionate but not preachy. Data-driven but narrative. Urgent but hopeful. Accessible but not condescending.
-- Reading level: Grade 9-10 (Flesch Reading Ease 60-70)
-- Active voice 80%+. Average sentence length 15-20 words. Paragraphs 2-4 sentences.
+- Direct, clear, evidence-based but human. Observational — show don't preach.
+- Principled but not dogmatic. NOT academic, NOT moralistic, NOT product-pushy.
+- Active voice 80%+. Paragraphs: 2-3 sentences MAX. Subheadings every 200-300 words.
 - Use "pedestrian deaths" not "accidents". Use "traffic violence" not "accidents". Use "street design" not just "infrastructure".
 - Never use "jaywalking" (victim-blaming) or "pedestrian error" (system design is the issue).
+- Use bold (<strong>) for key phrases and concepts. Use line breaks generously.
 
 CONTENT REQUIREMENTS:
 - Every statistic MUST have a credible source cited inline (e.g. "according to NHTSA FARS data" or "WHO reports that...")
 - Include at least 5 specific statistics with sources
 - Include comparison data (across countries, cities, or time periods)
 - Present evidence-based solutions with real-world success stories
-- End with concrete, actionable steps readers can take
+- End with concrete, actionable perspective (not preachy)
 - Include 2-3 compelling pull quotes as <blockquote> elements
 - Use data tables with <table> where comparing interventions or cities
+- A visual break (stat-highlight, blockquote, info-box, comparison-box, or image placeholder) should appear every 150-200 words
 
 DATA SOURCES TO REFERENCE:
 - NHTSA FARS (US crash data), FHWA (Federal Highway Administration)
@@ -824,76 +1023,262 @@ DATA SOURCES TO REFERENCE:
 - Brookings Institution (walkability & property values)
 - CDC pedestrian injury data
 
+TITLE FORMULA:
+Use this pattern: "[Reframe], Not [Conventional Wisdom]: [Specific Claim]"
+Examples:
+- "Infrastructure Failure, Not Careless Walking: Why Pedestrians Die on US Streets"
+- "System Design, Not Personal Choice: How Cities Create Traffic Violence"
+Or use a strong declarative title under 70 characters.
+
 OUTPUT FORMAT:
 Return ONLY a JSON object (no markdown, no code fences) with these fields:
 {
-  "title": "Post title (under 60 characters)",
+  "title": "Post title (under 70 characters, use reframe formula when possible)",
   "metaTitle": "SEO meta title (50-60 characters) — Primary Keyword | SafeStreets Blog",
   "metaDescription": "SEO meta description (150-160 characters, include primary keyword and CTA)",
   "excerpt": "2-3 sentence summary for the blog index (50-75 words)",
-  "category": "One of: Safety, Real Estate, Guide, Advocacy, Technology, Urban Design",
+  "category": "One of: Safety, Real Estate, Guide, Advocacy, Technology, Urban Design, Street Design, Walkability, Global Standards, Infrastructure Impact, Urban Case Studies",
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "content": "<h2>...</h2><p>...</p>... (full HTML content, 2000-2500 words)"
+  "content": "<h2>...</h2><p>...</p>... (full HTML content, length matches the target word count specified)"
 }
 
 HTML STRUCTURE FOR content:
-- Use <h2> for main sections, <h3> for subsections
-- Use <p> for paragraphs, <strong> for key terms
+- Use <h2> for the 7 main sections, <h3> for subsections within them
+- Use <p> for paragraphs (2-3 sentences each, never more), <strong> for key terms
 - Use <blockquote> for pull quotes (2-3 per post)
 - Use <ul>/<ol> for lists
 - Use <table><thead><tr><th>...</th></tr></thead><tbody>... for data tables
 - Use <a href="URL"> for external source links
 - Do NOT include <h1> (the title is rendered separately)
-- Do NOT include <img> tags (images are injected automatically after generation)
+- Do NOT include <img> tags (images are injected automatically after generation — aim for 6-8 image positions)
 
-VISUAL ELEMENTS (use these to make posts visually engaging):
-- Use <div class="stat-highlight"><span class="stat-number">NUMBER</span><span class="stat-label">DESCRIPTION</span><span class="stat-source">Source: SOURCE</span></div> for big standout statistics (use 2-3 per post)
-- Use <div class="key-takeaway"><strong>Key Takeaway:</strong> TEXT</div> for important callout boxes
-- Use <div class="info-box"><strong>INFO_TITLE</strong><p>TEXT</p></div> for tips or context boxes
-- Use <div class="comparison-box"><div class="compare-item bad"><strong>Before</strong><p>TEXT</p></div><div class="compare-item good"><strong>After</strong><p>TEXT</p></div></div> for before/after comparisons
-- Use at least 2 stat-highlight elements and 1 key-takeaway per post`;
+VISUAL ELEMENTS (use generously — visual break every 150-200 words):
 
+CALLOUT ELEMENTS:
+- <div class="stat-highlight"><span class="stat-number">NUMBER</span><span class="stat-label">DESCRIPTION</span><span class="stat-source">Source: SOURCE</span></div> — big standout statistics (3-4 per post)
+- <div class="key-takeaway"><strong>Key Takeaway:</strong> TEXT</div> — important callout boxes (2-3 per post)
+- <div class="info-box"><strong>INFO_TITLE</strong><p>TEXT</p></div> — tips, context boxes, expert quotes
+- <div class="comparison-box"><div class="compare-item bad"><strong>Before</strong><p>TEXT</p></div><div class="compare-item good"><strong>After</strong><p>TEXT</p></div></div> — before/after comparisons (1+ per post)
+
+DATA CHARTS & INFOGRAPHICS (use 2-3 per post to visualize data):
+- HORIZONTAL BAR CHART:
+  <div class="data-bar-chart"><div class="chart-title">CHART TITLE</div><div class="data-bar-item"><div class="bar-label"><span>LABEL</span><span class="bar-value">VALUE</span></div><div class="bar-track"><div class="bar-fill" style="width: PERCENT%"></div></div></div><!-- more data-bar-items --><div class="chart-source">Source: SOURCE</div></div>
+  Use class="bar-fill green" for positive metrics, class="bar-fill blue" for neutral comparisons.
+
+- METRIC CARDS ROW:
+  <div class="metric-row"><div class="metric-card"><span class="metric-value danger">VALUE</span><span class="metric-label">LABEL</span></div><div class="metric-card"><span class="metric-value success">VALUE</span><span class="metric-label">LABEL</span></div><div class="metric-card"><span class="metric-value accent">VALUE</span><span class="metric-label">LABEL</span></div></div>
+  Use class="danger" for alarming stats, "success" for positive, "accent" for neutral emphasis.
+
+- TIMELINE:
+  <div class="timeline-visual"><div class="timeline-item"><span class="timeline-year">YEAR</span><div class="timeline-text">EVENT DESCRIPTION</div></div><!-- more items --></div>
+  Great for showing policy history, city transformation timelines, or before/after progressions.
+
+- DONUT STAT:
+  <div class="donut-stat"><div class="donut-ring" style="background: conic-gradient(#e07850 0% PERCENT%, #e0dbd0 PERCENT% 100%)">PERCENT%</div><div class="donut-text"><strong>LABEL</strong> — DESCRIPTION</div></div>
+
+MINIMUM VISUAL TARGETS PER POST:
+- 3-4 stat-highlight elements
+- 2-3 key-takeaway boxes
+- 1+ comparison-box
+- 2-3 data charts/infographics (bar charts, metric cards, timelines, or donut stats)
+- 1+ data table where comparing cities, interventions, or time periods`;
+
+// Universal 7-Part Article Structure adapted per post type
 const POST_TYPE_PROMPTS = {
-  standard: `Write a STANDARD BLOG POST with this structure:
-1. Hook (100-150 words) — compelling opening statistic or story
-2. Problem Statement (300-400 words) — core issue with key statistics
-3. Data Deep Dive (500-700 words) — analysis from multiple angles with trends
-4. Root Causes (400-500 words) — systemic reasons, go beyond surface
-5. Solutions (500-700 words) — evidence-based interventions, success stories, data tables
-6. Call to Action (100-200 words) — concrete steps readers can take
+  standard: `Write using the UNIVERSAL 7-PART ARTICLE STRUCTURE:
 
-Tone: Informed advocate.`,
+1. OPENING HOOK (150-200 words)
+   - Start with a specific moment/observation that illustrates the larger point
+   - 1-2 concrete examples or anecdotes
+   - Pivot to thesis statement
+   - Clarify what this is REALLY about (reframe conventional wisdom)
 
-  data_report: `Write a DATA-DRIVEN ANALYSIS REPORT with this structure:
-1. Key Findings (150-200 words) — bullet-point executive summary
-2. Methodology (200-250 words) — data sources, time period, limitations
-3. Detailed Findings (800-1000 words) — 4-6 major findings each with data
-4. Comparative Analysis (400-500 words) — compare across regions/demographics
-5. Policy Implications (300-400 words) — what findings mean for policy
-6. Recommendations (200-300 words) — specific, numbered, data-driven
+2. THE CORE ARGUMENT (300-400 words) — broken into 3 sub-sections:
+   A. The System/Pattern — explain the underlying mechanism, show how the cycle works
+   B. Who/What It Affects — identify who bears the cost, specific impacts
+   C. Hidden Consequences — secondary effects people don't see, quantify with data
 
-Tone: Analytical. Heavier on data tables and statistics. Minimize narrative.`,
+3. CASE STUDY / DEEP DIVE (300-400 words)
+   - Pick ONE specific example and go deep
+   - Historical context (how did we get here?)
+   - Current state (what does it look like now?)
+   - Comparison (what does good look like?)
 
-  case_study: `Write a CASE STUDY with this structure:
-1. Introduction (150-200 words) — what and why it matters
-2. Background / The Situation Before (300-400 words) — baseline data, key problems
-3. Intervention / What They Did (400-500 words) — timeline, actions, budget, challenges
-4. Results (500-700 words) — before/after data, quantitative + qualitative outcomes
-5. Why It Worked (300-400 words) — critical success factors
-6. Lessons for Other Cities (300-400 words) — what's replicable vs context-specific
-7. Conclusion (100-150 words) — main takeaway
+4. BROADER CONTEXT (200-300 words)
+   - Connect to larger patterns — this isn't unique to one place
+   - Global/universal patterns, reference experts
+   - Reframe from local issue to systemic pattern
 
-Tone: Hopeful. Narrative-driven with before/after emphasis. Use quotes where applicable.`,
+5. THE POSSIBILITY (200-300 words)
+   - Concrete examples where things worked
+   - Data on positive outcomes
+   - Economic/practical case for change
 
-  explainer: `Write an EXPLAINER / EDUCATIONAL POST with this structure:
-1. What Is [Concept]? (300-400 words) — plain language definition, address misconceptions
-2. Why It Matters (400-500 words) — real-world impact with data, who is affected
-3. How It Works (500-700 words) — use analogies, break down complexity, step-by-step
-4. Examples in Practice (500-600 words) — 3-5 concrete real-world examples
-5. Common Questions (300-400 words) — FAQ format addressing objections
-6. Taking Action (100-200 words) — how readers can engage
+6. LOCAL/SPECIFIC APPLICATION (150-200 words)
+   - What's possible here/now
+   - Specific, concrete recommendations (not abstract)
 
-Tone: Educational. Use analogies. Progressive complexity (start simple, add detail).`,
+7. CLOSING (100-150 words)
+   - Reframe the conventional wisdom
+   - Call to awareness/new perspective
+   - End with possibility, not preachiness
+
+Tone: Informed advocate. Observational — show don't preach.`,
+
+  data_report: `Write a DATA-DRIVEN ANALYSIS using the 7-PART STRUCTURE:
+
+1. OPENING HOOK (150-200 words)
+   - Lead with the most striking data point — make it visceral
+   - One sentence of context, then immediately into the numbers
+
+2. THE CORE ARGUMENT (300-400 words) — 3 sub-sections:
+   A. The Data Pattern — what the numbers show, trend over time
+   B. Who Bears the Cost — demographic breakdowns, geographic disparities
+   C. Hidden Numbers — secondary metrics, economic costs, underreported data
+   Use stat-highlight elements generously. Use a comparison table.
+
+3. DEEP DIVE (300-400 words)
+   - Pick ONE city/region/dataset and analyze thoroughly
+   - Compare to peers — why is this place different?
+   - Use before/after data with comparison-box elements
+
+4. BROADER CONTEXT (200-300 words)
+   - How does this fit the global picture?
+   - Reference WHO, NHTSA, or MoRTH benchmark data
+   - Historical trends
+
+5. THE POSSIBILITY (200-300 words)
+   - Cities/regions where numbers improved dramatically
+   - Quantify the interventions that worked
+   - Cost-benefit data
+
+6. POLICY IMPLICATIONS (150-200 words)
+   - Specific, numbered recommendations based on the data
+   - Actionable, not abstract
+
+7. CLOSING (100-150 words)
+   - The one number readers should remember
+   - Reframe the story the data tells
+
+Tone: Analytical. Heavy on data visualizations (stat-highlight, tables, comparison-box). Let the numbers tell the story.`,
+
+  case_study: `Write a CASE STUDY using the 7-PART STRUCTURE:
+
+1. OPENING HOOK (150-200 words)
+   - Start with a specific street/intersection/moment BEFORE the change
+   - Paint the scene — what did it look like, feel like, how dangerous was it?
+   - Thesis: this place transformed, here's how
+
+2. THE CORE ARGUMENT (300-400 words) — 3 sub-sections:
+   A. The System — what was broken in the old design
+   B. The Human Cost — specific incidents, statistics, community impact
+   C. The Turning Point — what triggered the change (crisis, leader, movement)
+   Use a comparison-box for before/after.
+
+3. THE INTERVENTION (300-400 words)
+   - Exactly what they did — timeline, budget, political challenges
+   - Design specifics — not vague, but concrete changes
+   - Who drove it — people, not just policy
+
+4. THE RESULTS (200-300 words)
+   - Before/after data — deaths, injuries, traffic volume, air quality
+   - Qualitative changes — how the community responded
+   - Use stat-highlight for the most dramatic improvements
+
+5. WHY IT WORKED (200-300 words)
+   - Critical success factors
+   - What's replicable vs. context-specific
+   - Common objections and how they were overcome
+
+6. LESSONS FOR OTHER CITIES (150-200 words)
+   - Concrete, transferable insights
+   - What to do first if you want to replicate this
+
+7. CLOSING (100-150 words)
+   - Return to the opening scene — what does it look like NOW?
+   - End with possibility
+
+Tone: Hopeful, narrative-driven. Before/after is the emotional engine. Show transformation.`,
+
+  explainer: `Write an EXPLAINER using the 7-PART STRUCTURE:
+
+1. OPENING HOOK (150-200 words)
+   - Start with a common misconception or surprising fact
+   - "Most people think X, but actually Y"
+   - Why this concept matters for everyday life
+
+2. THE CORE ARGUMENT (300-400 words) — 3 sub-sections:
+   A. What It Actually Is — plain language definition, clear analogies
+   B. Why It Matters — real-world impact, who is affected
+   C. The Hidden Mechanism — how it works beneath the surface, counter-intuitive aspects
+
+3. DEEP DIVE EXAMPLE (300-400 words)
+   - ONE specific, vivid example that makes the concept concrete
+   - Walk through it step by step
+   - Use before/after or comparison to illustrate
+
+4. BROADER CONTEXT (200-300 words)
+   - How this concept connects to larger systems
+   - Historical background — how did we get here?
+   - Expert perspectives
+
+5. EXAMPLES IN PRACTICE (200-300 words)
+   - 3-4 quick real-world examples showing the concept at work
+   - Mix of success stories and cautionary tales
+   - Different geographies/contexts
+
+6. APPLICATION (150-200 words)
+   - How readers can recognize this in their own city/neighborhood
+   - Simple things to notice or advocate for
+
+7. CLOSING (100-150 words)
+   - Reframe — now you'll never see [X] the same way
+   - End with an observation, not a lecture
+
+Tone: Educational but never condescending. Use analogies. Progressive complexity (start simple, add nuance).`,
+
+  education: `Write an EDUCATIONAL GUIDE using the 7-PART STRUCTURE:
+
+1. OPENING HOOK (150-200 words)
+   - Start with a relatable observation: "Next time you cross the street, look at..."
+   - Pose a question or common misconception
+   - Promise: by the end, you'll see streets differently
+
+2. THE CORE CONCEPT (300-400 words) — 3 sub-sections:
+   A. Definition — what is this element/concept, plain language
+   B. Observable Components — specific physical features to look for
+   C. Variations — how it looks in different contexts
+   Use comparison-box elements to contrast good vs bad design.
+
+3. HOW TO RECOGNIZE QUALITY (300-400 words)
+   - Good vs. bad examples with specific measurements and standards
+   - What to look for: dimensions, materials, placement, condition
+   - Reference NACTO/WHO standards with specific numbers
+   Use stat-highlight for key measurements.
+
+4. WHY IT MATTERS (200-300 words)
+   - Safety impact with crash reduction data
+   - Accessibility considerations (ADA, universal design)
+   - Economic and equity dimensions
+   Use metric-card elements for impact data.
+
+5. GLOBAL BEST PRACTICES (200-300 words)
+   - What do NACTO, WHO, Vision Zero recommend?
+   - Examples from leading cities (Amsterdam, Copenhagen, Tokyo, Bogotá)
+   - Common mistakes and why they fail
+
+6. WHAT TO LOOK FOR IN YOUR NEIGHBORHOOD (150-200 words)
+   - Observable checklist — specific things readers can assess on their next walk
+   - Red flags that indicate poor design
+   - Quick wins cities can implement
+   Use an info-box for the checklist.
+
+7. CLOSING (100-150 words)
+   - "Next time you walk down your street..." observation prompt
+   - Encourage active observation and sharing findings
+   - Connect to related concepts
+
+Tone: Teaching and empowering. Make readers feel smarter and more observant. Use "you" and "your neighborhood" to make it personal.`,
 };
 
 app.post('/api/admin/blog/generate', async (req, res) => {
@@ -910,6 +1295,7 @@ app.post('/api/admin/blog/generate', async (req, res) => {
     postType = 'standard',
     tone = 'informed_advocate',
     region = 'global',
+    wordCount = 1500,
   } = req.body;
 
   if (!topic || !topic.trim()) {
@@ -924,6 +1310,7 @@ TOPIC: ${topic}
 ${keywords.length ? `TARGET SEO KEYWORDS: ${keywords.join(', ')}` : ''}
 GEOGRAPHIC FOCUS: ${region}
 TONE: ${tone.replace(/_/g, ' ')}
+TARGET WORD COUNT: approximately ${wordCount} words
 
 Write the complete blog post now. Remember: output ONLY a valid JSON object, no markdown code fences.`;
 
@@ -976,8 +1363,8 @@ Write the complete blog post now. Remember: output ONLY a valid JSON object, no 
       return res.status(500).json({ error: 'AI response missing required fields. Please try again.' });
     }
 
-    // Inject curated Unsplash images into the content
-    const enrichedContent = injectBlogImages(parsed.content, parsed.category, keywords, region);
+    // Inject location-specific Unsplash images into the content
+    const enrichedContent = await injectBlogImages(parsed.content, parsed.title, parsed.category, keywords, region, postType);
     console.log(`✅ Blog post generated: "${parsed.title}" (${enrichedContent.length} chars, images injected)`);
 
     res.json({
@@ -1027,6 +1414,132 @@ app.put('/api/admin/content-queue/:id', (req, res) => {
 
   saveEditorialCalendar(calendar);
   res.json(post);
+});
+
+// POST /api/admin/content-queue/suggest — AI-powered topic idea generator
+app.post('/api/admin/content-queue/suggest', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    return res.status(503).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  }
+
+  const { region = 'global', postType = '', count = 5 } = req.body;
+  const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10);
+
+  const regionNames = {
+    global: 'worldwide / cross-country',
+    europe: 'Europe (EU cities, Nordic countries, UK)',
+    north_america: 'North America (US and Canada)',
+    india: 'India (major Indian cities)',
+    asia: 'Asia (East and Southeast Asia — Japan, South Korea, Singapore, Taiwan, Indonesia, Philippines)',
+    south_america: 'South America (Colombia, Brazil, Argentina)',
+    africa: 'Africa (Kenya, Ethiopia, South Africa, Nigeria)',
+    oceania: 'Oceania (Australia, New Zealand)',
+  };
+
+  const regionDesc = regionNames[region] || regionNames.global;
+  const typeFilter = postType ? `\nPreferred post type: ${postType.replace(/_/g, ' ')}` : '';
+
+  const prompt = `You are a content strategist for SafeStreets, a walkability analysis platform focused on pedestrian safety, walkability, and urban planning.
+
+Suggest ${safeCount} blog post topic ideas focused on: ${regionDesc}${typeFilter}
+
+Topics should be specific, data-driven, and timely. Mix case studies with data reports and explainers.
+
+Return ONLY a JSON array (no markdown code fences) with this structure:
+[
+  {
+    "title": "Compelling blog post title (under 70 chars)",
+    "keywords": ["keyword1", "keyword2", "keyword3", "keyword4"],
+    "primaryMessage": "One-sentence summary of the key argument or finding",
+    "tone": "informed_advocate|urgent|hopeful|analytical",
+    "postType": "standard|data_report|case_study|explainer",
+    "dataSources": ["Relevant data source 1", "Source 2"]
+  }
+]`;
+
+  try {
+    console.log(`💡 Suggesting ${safeCount} topics for region: ${region}`);
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 2000,
+        temperature: 0.9,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('Anthropic API error:', response.status, errBody);
+      return res.status(502).json({ error: `AI suggestion failed (${response.status})` });
+    }
+
+    const result = await response.json();
+    const text = result.content?.[0]?.text || '';
+
+    let suggestions;
+    try {
+      suggestions = JSON.parse(text);
+    } catch {
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        suggestions = JSON.parse(jsonMatch[0]);
+      } else {
+        return res.status(500).json({ error: 'AI returned invalid format. Please try again.' });
+      }
+    }
+
+    console.log(`✅ Generated ${suggestions.length} topic suggestions`);
+    res.json({ suggestions });
+  } catch (err) {
+    console.error('Topic suggestion error:', err);
+    res.status(500).json({ error: 'Failed to generate suggestions. Please try again.' });
+  }
+});
+
+// POST /api/admin/content-queue/add — add a new post to the editorial calendar
+app.post('/api/admin/content-queue/add', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+
+  const { title, region = 'global', keywords = [], dataSources = [], primaryMessage = '', tone = 'informed_advocate', postType = 'standard' } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  const calendar = loadEditorialCalendar();
+
+  // Auto-increment ID: find the max ID and add 1
+  const maxId = calendar.posts.reduce((max, p) => Math.max(max, p.id), 0);
+  const newPost = {
+    id: maxId + 1,
+    title: title.trim(),
+    region,
+    targetDate: '',
+    keywords,
+    dataSources,
+    primaryMessage,
+    tone,
+    postType,
+    status: 'pending',
+  };
+
+  calendar.posts.push(newPost);
+  calendar.metadata.totalPosts = calendar.posts.length;
+  saveEditorialCalendar(calendar);
+
+  console.log(`📝 Added calendar post #${newPost.id}: "${newPost.title}"`);
+  res.json(newPost);
 });
 
 // ═══════════════════════════════════════════════

@@ -3,7 +3,7 @@
     {
       "id": 1,
       "title": "Why Vision Zero Works: Lessons from Sweden's Success",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-03-01",
       "keywords": [
         "Vision Zero",
@@ -23,7 +23,7 @@
     {
       "id": 2,
       "title": "Barcelona's Superblocks: How One City Reclaimed Streets From Cars",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-03-08",
       "keywords": [
         "superblocks",
@@ -43,7 +43,7 @@
     {
       "id": 3,
       "title": "The Netherlands' Secret: How Dutch Infrastructure Protects Pedestrians",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-03-15",
       "keywords": [
         "Netherlands",
@@ -84,7 +84,7 @@
     {
       "id": 5,
       "title": "Oslo's Car-Free City Center: A Vision Zero Success Story",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-03-29",
       "keywords": [
         "Oslo",
@@ -124,7 +124,7 @@
     {
       "id": 7,
       "title": "Paris's 15-Minute City: Putting People Before Cars",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-04-12",
       "keywords": [
         "15-minute city",
@@ -166,7 +166,7 @@
     {
       "id": 9,
       "title": "Tokyo's Pedestrian Safety: What the World's Largest City Gets Right",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2026-04-26",
       "keywords": [
         "Tokyo",
@@ -186,7 +186,7 @@
     {
       "id": 10,
       "title": "The Deadly Legacy of Robert Moses: How One Man Designed Death Into American Streets",
-      "region": "global",
+      "region": "north_america",
       "targetDate": "2026-05-03",
       "keywords": [
         "Robert Moses",
@@ -227,7 +227,7 @@
     {
       "id": 12,
       "title": "London's Ultra Low Emission Zone: Public Health Meets Traffic Safety",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-05-17",
       "keywords": [
         "ULEZ",
@@ -247,7 +247,7 @@
     {
       "id": 13,
       "title": "Bogotá's Ciclovía: How Closing Roads Opens Cities",
-      "region": "global",
+      "region": "south_america",
       "targetDate": "2026-05-24",
       "keywords": [
         "Bogotá",
@@ -286,7 +286,7 @@
     {
       "id": 15,
       "title": "How Singapore Tamed Traffic: Lessons from a City-State",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2026-06-07",
       "keywords": [
         "Singapore",
@@ -346,7 +346,7 @@
     {
       "id": 18,
       "title": "Copenhagen's Pedestrian Paradise: 60 Years of Car-Free Success",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-06-28",
       "keywords": [
         "Copenhagen",
@@ -407,7 +407,7 @@
     {
       "id": 21,
       "title": "Melbourne's 20-Minute Neighborhoods: Walkability by Design",
-      "region": "global",
+      "region": "oceania",
       "targetDate": "2026-07-19",
       "keywords": [
         "Melbourne",
@@ -447,7 +447,7 @@
     {
       "id": 23,
       "title": "Curitiba's Bus Rapid Transit: How Public Transport Saves Pedestrians",
-      "region": "global",
+      "region": "south_america",
       "targetDate": "2026-08-02",
       "keywords": [
         "Curitiba",
@@ -462,8 +462,9 @@
       "primaryMessage": "Curitiba's BRT system reduced car dependency and made streets dramatically safer for pedestrians.",
       "tone": "hopeful",
       "postType": "case_study",
-      "status": "generating",
-      "updatedAt": "2026-02-16T17:38:01.496Z"
+      "status": "generated",
+      "updatedAt": "2026-02-16T17:40:03.810Z",
+      "generatedSlug": "how-curitiba-s-bus-rapid-transit-made-streets-safer-for-everyone"
     },
     {
       "id": 24,
@@ -508,7 +509,7 @@
     {
       "id": 26,
       "title": "Medellín's Urban Escalators: Innovation for Pedestrian Access",
-      "region": "global",
+      "region": "south_america",
       "targetDate": "2026-08-23",
       "keywords": [
         "Medellín",
@@ -568,7 +569,7 @@
     {
       "id": 29,
       "title": "Addis Ababa's Pedestrian Crisis: Africa's Growing Traffic Death Epidemic",
-      "region": "global",
+      "region": "africa",
       "targetDate": "2026-09-13",
       "keywords": [
         "Africa",
@@ -608,7 +609,7 @@
     {
       "id": 31,
       "title": "Seoul's Cheonggyecheon: Tearing Down a Highway to Build a Park",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2026-09-27",
       "keywords": [
         "Seoul",
@@ -623,7 +624,9 @@
       "primaryMessage": "Seoul demolished a highway and built a park—property values rose and pedestrian deaths dropped.",
       "tone": "hopeful",
       "postType": "case_study",
-      "status": "pending"
+      "status": "generated",
+      "updatedAt": "2026-02-16T18:58:02.989Z",
+      "generatedSlug": "seoul-tore-down-a-highway-and-built-a-park-here-s-what-happened"
     },
     {
       "id": 32,
@@ -648,7 +651,7 @@
     {
       "id": 33,
       "title": "How Taipei Halved Pedestrian Deaths in a Decade",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2026-10-11",
       "keywords": [
         "Taipei",
@@ -688,7 +691,7 @@
     {
       "id": 35,
       "title": "Shared Space Streets: Do They Work or Kill?",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-10-25",
       "keywords": [
         "shared space",
@@ -708,7 +711,7 @@
     {
       "id": 36,
       "title": "Nairobi's Walkability Fight: Grassroots Movements for Pedestrian Rights",
-      "region": "global",
+      "region": "africa",
       "targetDate": "2026-11-01",
       "keywords": [
         "Nairobi",
@@ -748,7 +751,7 @@
     {
       "id": 38,
       "title": "Helsinki's Zero Pedestrian Deaths: How Finland's Capital Achieved the Impossible",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-11-15",
       "keywords": [
         "Helsinki",
@@ -808,7 +811,7 @@
     {
       "id": 41,
       "title": "Manila's Traffic Nightmare: Pedestrian Deaths in the Philippines' Capital",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2026-12-06",
       "keywords": [
         "Manila",
@@ -828,7 +831,7 @@
     {
       "id": 42,
       "title": "How Vienna Became Europe's Most Livable City Through Walkability",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2026-12-13",
       "keywords": [
         "Vienna",
@@ -868,7 +871,7 @@
     {
       "id": 44,
       "title": "Jakarta's Pedestrian Revolution: How Indonesia's Capital Is Changing",
-      "region": "global",
+      "region": "asia",
       "targetDate": "2027-01-03",
       "keywords": [
         "Jakarta",
@@ -927,7 +930,7 @@
     {
       "id": 47,
       "title": "Berlin's Superblock Experiment: Germany Learns from Barcelona",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2027-01-24",
       "keywords": [
         "Berlin",
@@ -967,7 +970,7 @@
     {
       "id": 49,
       "title": "Zurich's Traffic Calming Success: The Swiss Model",
-      "region": "global",
+      "region": "europe",
       "targetDate": "2027-02-07",
       "keywords": [
         "Zurich",
@@ -1387,7 +1390,7 @@
     {
       "id": 100,
       "title": "The Deadly Myth of 'Pedestrian Error': Why Victim-Blaming Must Stop",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-03-12",
       "keywords": [
         "pedestrian safety",
@@ -1406,7 +1409,7 @@
     {
       "id": 101,
       "title": "America's Pedestrian Death Crisis: 7,500 Lives Lost in 2023",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-03-26",
       "keywords": [
         "pedestrian deaths US",
@@ -1425,7 +1428,7 @@
     {
       "id": 102,
       "title": "NYC's Vision Zero: Progress, Setbacks, and Lessons Learned",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-04-09",
       "keywords": [
         "New York City",
@@ -1445,7 +1448,7 @@
     {
       "id": 103,
       "title": "The Stroad: America's Most Dangerous Invention",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-04-23",
       "keywords": [
         "stroads",
@@ -1465,7 +1468,7 @@
     {
       "id": 104,
       "title": "Seattle's 20 MPH Success: How Lower Speed Limits Save Lives",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-05-07",
       "keywords": [
         "Seattle",
@@ -1485,7 +1488,7 @@
     {
       "id": 105,
       "title": "SUVs Are Killing American Pedestrians: The Data Is Clear",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-05-21",
       "keywords": [
         "SUV safety",
@@ -1505,7 +1508,7 @@
     {
       "id": 106,
       "title": "The Racial Geography of Pedestrian Deaths: Environmental Justice and Traffic Safety",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-06-04",
       "keywords": [
         "environmental justice",
@@ -1525,7 +1528,7 @@
     {
       "id": 107,
       "title": "Cambridge's Protected Bike Lanes: How One City Prioritizes People",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-06-18",
       "keywords": [
         "Cambridge MA",
@@ -1545,7 +1548,7 @@
     {
       "id": 108,
       "title": "Florida's Deadly Streets: Why the Sunshine State Leads in Pedestrian Deaths",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-07-02",
       "keywords": [
         "Florida",
@@ -1564,7 +1567,7 @@
     {
       "id": 109,
       "title": "Portland's Vision Zero Setback: What Went Wrong?",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-07-16",
       "keywords": [
         "Portland",
@@ -1584,7 +1587,7 @@
     {
       "id": 110,
       "title": "Chicago's Complete Streets Initiative: Progress and Pitfalls",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-07-30",
       "keywords": [
         "Chicago",
@@ -1604,7 +1607,7 @@
     {
       "id": 111,
       "title": "Hoboken's Vision Zero Miracle: Zero Pedestrian Deaths for 7 Years",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-08-13",
       "keywords": [
         "Hoboken",
@@ -1624,7 +1627,7 @@
     {
       "id": 112,
       "title": "The Rural Pedestrian Crisis: America's Forgotten Victims",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-08-27",
       "keywords": [
         "rural pedestrians",
@@ -1643,7 +1646,7 @@
     {
       "id": 113,
       "title": "Austin's Failed Pedestrian Infrastructure: When Growth Outpaces Safety",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-09-10",
       "keywords": [
         "Austin",
@@ -1663,7 +1666,7 @@
     {
       "id": 114,
       "title": "How San Francisco's Tenderloin Became a Pedestrian Safety Lab",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-09-24",
       "keywords": [
         "San Francisco",
@@ -1683,7 +1686,7 @@
     {
       "id": 115,
       "title": "The Federal Highway Administration's Pedestrian Safety Crisis: Policy Failures at the National Level",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-10-08",
       "keywords": [
         "FHWA",
@@ -1703,7 +1706,7 @@
     {
       "id": 116,
       "title": "The School Walk Audit: How American Schools Are Fighting for Safe Routes",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-10-22",
       "keywords": [
         "safe routes to school",
@@ -1723,7 +1726,7 @@
     {
       "id": 117,
       "title": "Detroit's Pedestrian Death Epidemic: The Motor City's Deadly Irony",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-11-05",
       "keywords": [
         "Detroit",
@@ -1742,7 +1745,7 @@
     {
       "id": 118,
       "title": "Minneapolis's Bold Street Redesign: Before and After",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-11-19",
       "keywords": [
         "Minneapolis",
@@ -1762,7 +1765,7 @@
     {
       "id": 119,
       "title": "The Insurance Industry and Pedestrian Deaths: Following the Money",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-12-03",
       "keywords": [
         "insurance",
@@ -1782,7 +1785,7 @@
     {
       "id": 120,
       "title": "2026 in Review: America's Pedestrian Safety Report Card",
-      "region": "us",
+      "region": "north_america",
       "targetDate": "2026-12-17",
       "keywords": [
         "year in review",
@@ -1798,14 +1801,346 @@
       "tone": "analytical",
       "postType": "data_report",
       "status": "pending"
+    },
+    {
+      "id": 121,
+      "title": "How to Read a Street: The Anatomy of Pedestrian Infrastructure",
+      "region": "global",
+      "targetDate": "2026-03-05",
+      "keywords": [
+        "street design",
+        "pedestrian infrastructure",
+        "sidewalks",
+        "crosswalks",
+        "lane width"
+      ],
+      "dataSources": [
+        "NACTO",
+        "FHWA"
+      ],
+      "primaryMessage": "Learn the basic elements that make streets walkable — and how to recognize when they're missing.",
+      "tone": "informed_advocate",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 122,
+      "title": "Road Hierarchy Explained: Why Not All Streets Should Be the Same",
+      "region": "global",
+      "targetDate": "2026-03-12",
+      "keywords": [
+        "road hierarchy",
+        "street classification",
+        "arterial",
+        "local streets",
+        "collector roads"
+      ],
+      "dataSources": [
+        "NACTO",
+        "FHWA",
+        "ITE"
+      ],
+      "primaryMessage": "Streets serve different purposes — learn how hierarchy shapes safety and livability.",
+      "tone": "analytical",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 123,
+      "title": "Complete Streets 101: What 'Complete' Actually Means",
+      "region": "global",
+      "targetDate": "2026-03-19",
+      "keywords": [
+        "complete streets",
+        "multimodal",
+        "street design",
+        "pedestrian safety",
+        "cycling infrastructure"
+      ],
+      "dataSources": [
+        "Smart Growth America",
+        "NACTO",
+        "FHWA"
+      ],
+      "primaryMessage": "A complete street isn't just a buzzword — it's a design framework that saves lives.",
+      "tone": "informed_advocate",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 124,
+      "title": "The Three Pillars of Walkability: Protection, Comfort, Enjoyment",
+      "region": "global",
+      "targetDate": "2026-03-26",
+      "keywords": [
+        "walkability",
+        "Jan Gehl",
+        "pedestrian comfort",
+        "street life",
+        "human-scale design"
+      ],
+      "dataSources": [
+        "Jan Gehl's Life Between Buildings",
+        "Gehl Institute"
+      ],
+      "primaryMessage": "Jan Gehl's framework reveals what makes people want to walk — it goes far beyond sidewalks.",
+      "tone": "hopeful",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 125,
+      "title": "Why Crosswalks Aren't Enough: The Infrastructure Pedestrians Actually Need",
+      "region": "global",
+      "targetDate": "2026-04-02",
+      "keywords": [
+        "crosswalks",
+        "pedestrian infrastructure",
+        "crossing safety",
+        "curb extensions",
+        "refuge islands"
+      ],
+      "dataSources": [
+        "NACTO",
+        "FHWA Proven Safety Countermeasures",
+        "WHO"
+      ],
+      "primaryMessage": "Paint on pavement doesn't protect pedestrians — real safety requires engineered infrastructure.",
+      "tone": "urgent",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 126,
+      "title": "Street Trees and the Invisible Infrastructure of Walkable Cities",
+      "region": "global",
+      "targetDate": "2026-04-09",
+      "keywords": [
+        "street trees",
+        "urban canopy",
+        "walkability",
+        "traffic calming",
+        "heat islands"
+      ],
+      "dataSources": [
+        "USDA Forest Service",
+        "NACTO",
+        "American Forests"
+      ],
+      "primaryMessage": "Street trees reduce speeds, cool neighborhoods, and make walking feel safe — they're infrastructure, not decoration.",
+      "tone": "hopeful",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 127,
+      "title": "Vision Zero Explained: The Framework to Eliminate Traffic Deaths",
+      "region": "global",
+      "targetDate": "2026-04-16",
+      "keywords": [
+        "Vision Zero",
+        "Sweden",
+        "traffic safety",
+        "safe system",
+        "policy framework"
+      ],
+      "dataSources": [
+        "Vision Zero Network",
+        "Swedish Transport Administration",
+        "WHO"
+      ],
+      "primaryMessage": "Zero traffic deaths isn't utopian — it's a proven framework adopted by cities worldwide.",
+      "tone": "hopeful",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 128,
+      "title": "NACTO Urban Street Design Guide: The Standards Changing Cities",
+      "region": "global",
+      "targetDate": "2026-04-23",
+      "keywords": [
+        "NACTO",
+        "urban design guide",
+        "street standards",
+        "design guidelines",
+        "crosswalk design"
+      ],
+      "dataSources": [
+        "NACTO Urban Street Design Guide",
+        "NACTO Transit Street Design Guide"
+      ],
+      "primaryMessage": "NACTO's evidence-based standards are replacing outdated highway engineering in cities worldwide.",
+      "tone": "analytical",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 129,
+      "title": "WHO Safe System Approach: Rethinking Road Safety from First Principles",
+      "region": "global",
+      "targetDate": "2026-04-30",
+      "keywords": [
+        "WHO",
+        "Safe System",
+        "road safety",
+        "global standards",
+        "speed management"
+      ],
+      "dataSources": [
+        "WHO Global Status Report on Road Safety",
+        "World Bank GRSF"
+      ],
+      "primaryMessage": "The WHO's Safe System approach accepts that humans make mistakes — and designs roads so mistakes don't kill.",
+      "tone": "informed_advocate",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 130,
+      "title": "The Hidden Cost of Car-Centric Design: Health, Economics, and Equity",
+      "region": "global",
+      "targetDate": "2026-05-07",
+      "keywords": [
+        "car dependency",
+        "health impacts",
+        "equity",
+        "economic cost",
+        "infrastructure spending"
+      ],
+      "dataSources": [
+        "WHO",
+        "CDC",
+        "Brookings Institution",
+        "Victoria Transport Policy Institute"
+      ],
+      "primaryMessage": "Street design affects far more than traffic — it shapes health, wealth, and opportunity.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 131,
+      "title": "How Street Width Controls Speed — And Why That Kills",
+      "region": "global",
+      "targetDate": "2026-05-14",
+      "keywords": [
+        "street width",
+        "speed",
+        "lane width",
+        "traffic calming",
+        "design speed"
+      ],
+      "dataSources": [
+        "NACTO",
+        "FHWA",
+        "AAA Foundation for Traffic Safety"
+      ],
+      "primaryMessage": "Wide lanes invite speed. Narrow lanes save lives. The physics of street width is the most important safety lever.",
+      "tone": "informed_advocate",
+      "postType": "education",
+      "status": "pending"
+    },
+    {
+      "id": 132,
+      "title": "Walkability and Property Values: The $77,000 Premium Explained",
+      "region": "global",
+      "targetDate": "2026-05-21",
+      "keywords": [
+        "property values",
+        "walkability premium",
+        "real estate",
+        "Walk Score",
+        "economic impact"
+      ],
+      "dataSources": [
+        "Brookings Institution",
+        "NAR",
+        "Redfin",
+        "CEOs for Cities"
+      ],
+      "primaryMessage": "Walkable neighborhoods command higher home values — the economic case for pedestrian infrastructure.",
+      "tone": "analytical",
+      "postType": "data_report",
+      "status": "pending"
+    },
+    {
+      "id": 133,
+      "title": "Seoul's Cheonggyecheon: What Happens When You Tear Down a Highway",
+      "region": "asia",
+      "targetDate": "2026-05-28",
+      "keywords": [
+        "Seoul",
+        "Cheonggyecheon",
+        "highway removal",
+        "urban renewal",
+        "before and after"
+      ],
+      "dataSources": [
+        "Seoul Metropolitan Government",
+        "Project for Public Spaces"
+      ],
+      "primaryMessage": "Seoul demolished an elevated highway and uncovered a stream — the result transformed the city.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 134,
+      "title": "Before and After: 5 Streets That Transformed for Pedestrians",
+      "region": "global",
+      "targetDate": "2026-06-04",
+      "keywords": [
+        "street transformation",
+        "before after",
+        "pedestrian infrastructure",
+        "road diet",
+        "case study"
+      ],
+      "dataSources": [
+        "NACTO",
+        "Project for Public Spaces",
+        "Gehl Institute"
+      ],
+      "primaryMessage": "Five streets, five transformations — concrete proof that better design creates better cities.",
+      "tone": "hopeful",
+      "postType": "case_study",
+      "status": "pending"
+    },
+    {
+      "id": 135,
+      "title": "The Stroad Problem: America's Most Dangerous Street Type",
+      "region": "north_america",
+      "targetDate": "2026-06-11",
+      "keywords": [
+        "stroad",
+        "suburban design",
+        "pedestrian deaths",
+        "Strong Towns",
+        "road vs street"
+      ],
+      "dataSources": [
+        "Strong Towns",
+        "Smart Growth America",
+        "NHTSA FARS"
+      ],
+      "primaryMessage": "Stroads — hybrid street-roads — are killing pedestrians and bankrupting cities. Here's how to spot them.",
+      "tone": "informed_advocate",
+      "postType": "education",
+      "status": "pending"
     }
   ],
   "metadata": {
-    "totalPosts": 120,
+    "totalPosts": 135,
     "targetDistribution": {
-      "global": "55-60%",
-      "india": "15-20%",
-      "us": "25%"
+      "global": "25-30%",
+      "europe": "12-15%",
+      "north_america": "20-25%",
+      "india": "20%",
+      "asia": "6-8%",
+      "south_america": "3-5%",
+      "africa": "2-3%",
+      "oceania": "1%"
     },
     "publishFrequency": {
       "postsPerWeek": 3.5,
@@ -1817,9 +2152,9 @@
     }
   },
   "tracking": {
-    "lastGeneratedDate": "2026-02-16T16:48:39.132Z",
-    "lastGeneratedPostId": 8,
-    "totalGenerated": 1,
+    "lastGeneratedDate": "2026-02-16T18:58:02.989Z",
+    "lastGeneratedPostId": 31,
+    "totalGenerated": 2,
     "totalPublished": 0
   }
 }
