@@ -428,6 +428,8 @@ interface StreetCrossSectionProps {
   location: Location;
   metrics: WalkabilityMetrics;
   isPremium?: boolean;
+  isDemoMode?: boolean;
+  onUpgrade?: () => void;
   onConfigChange?: (snapshot: CrossSectionSnapshot | null) => void;
 }
 
@@ -435,6 +437,8 @@ export default function StreetCrossSection({
   location,
   metrics,
   isPremium = false,
+  isDemoMode = false,
+  onUpgrade,
   onConfigChange,
 }: StreetCrossSectionProps) {
   const [streetAttrs, setStreetAttrs] = useState<StreetAttributes | null>(null);
@@ -623,7 +627,7 @@ export default function StreetCrossSection({
                     key={imp.key}
                     option={imp}
                     active={activeImprovements.has(imp.key)}
-                    onToggle={() => toggleImprovement(imp.key)}
+                    onToggle={() => isDemoMode && onUpgrade ? onUpgrade() : toggleImprovement(imp.key)}
                     measurementValues={measurements}
                     onMeasurementChange={updateMeasurement}
                   />

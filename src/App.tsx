@@ -18,6 +18,8 @@ const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const EmailCaptureBanner = lazy(() => import('./components/EmailCaptureBanner'));
+const ProductTour = lazy(() => import('./components/ProductTour'));
+const DemoBanner = lazy(() => import('./components/DemoBanner'));
 
 import { captureUTMParams } from './utils/utm';
 import { trackEvent } from './utils/analytics';
@@ -75,6 +77,13 @@ function App() {
   // Backward compatibility with magic link system
   const accessInfo = getAccessInfo();
 
+  // Demo mode + product tour
+  const [demoMode, setDemoMode] = useState(false);
+  const [showTour, setShowTour] = useState(false);
+
+  // Effective premium: real premium OR demo mode (used for 6 of 8 gates)
+  const effectivePremium = userIsPremium || accessInfo.tier !== 'free' || demoMode;
+
   // Compare mode state
   const [location1, setLocation1] = useState<AnalysisData | null>(null);
   const [location2, setLocation2] = useState<AnalysisData | null>(null);
@@ -104,6 +113,7 @@ function App() {
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [compareError, setCompareError] = useState<string | null>(null);
   const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
 
   // Capture UTM params on mount
@@ -328,6 +338,58 @@ function App() {
     setLocation2(null);
 
     // Clear URL params
+    window.history.pushState({}, '', window.location.pathname);
+  };
+
+  // Demo mode: load pre-baked Portland data, show all features
+  const activateDemoMode = async () => {
+    setDemoMode(true);
+    setCompareMode(false);
+    setIsAnalyzing(true);
+
+    const {
+      DEMO_LOCATION, DEMO_METRICS, DEMO_COMPOSITE_SCORE, DEMO_DATA_QUALITY,
+      DEMO_CRASH_DATA, DEMO_DEMOGRAPHIC_DATA, DEMO_RAW_METRIC_DATA,
+      DEMO_OSM_DATA, DEMO_SATELLITE_SOURCES,
+    } = await import('./data/demoData');
+
+    setLocation(DEMO_LOCATION);
+    setMetrics(DEMO_METRICS);
+    setCompositeScore(DEMO_COMPOSITE_SCORE);
+    setDataQuality(DEMO_DATA_QUALITY);
+    setCrashData(DEMO_CRASH_DATA);
+    setCrashLoading(false);
+    setDemographicData(DEMO_DEMOGRAPHIC_DATA);
+    setRawMetricData(DEMO_RAW_METRIC_DATA);
+    setOsmData(DEMO_OSM_DATA as any);
+    setSatelliteLoaded(new Set(DEMO_SATELLITE_SOURCES));
+    setIsAnalyzing(false);
+
+    // Auto-start tour after render settles (unless already seen)
+    const tourSeen = localStorage.getItem('safestreets_tour_completed');
+    if (!tourSeen) {
+      setTimeout(() => setShowTour(true), 800);
+    }
+  };
+
+  const exitDemoMode = () => {
+    setDemoMode(false);
+    setShowTour(false);
+    setLocation(null);
+    setMetrics(null);
+    setCompositeScore(null);
+    setDataQuality(null);
+    setCrashData(null);
+    setCrashLoading(false);
+    setDemographicData(null);
+    setDemographicLoading(false);
+    setRawMetricData({});
+    setOsmData(null);
+    setSatelliteLoaded(new Set());
+    setBuildingDensityScore(undefined);
+    setPopulationDensityScore(undefined);
+
+    // Clean URL
     window.history.pushState({}, '', window.location.pathname);
   };
 
@@ -579,6 +641,7 @@ function App() {
             <a href="#faq" onClick={(e) => { if (location || compareMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
+            <a href="/enterprise" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Enterprise</a>
             <UserButton
               afterSignOutUrl="/"
               appearance={{
@@ -613,6 +676,7 @@ function App() {
             <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
             <a href="/learn" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Learn</a>
             <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <a href="/enterprise" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Enterprise</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
             )}
@@ -681,6 +745,13 @@ function App() {
                 />
               </div>
             </div>
+
+            <button
+              onClick={activateDemoMode}
+              className="text-sm font-medium text-terra hover:underline mb-4"
+            >
+              or try a demo &rarr;
+            </button>
 
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
@@ -1145,6 +1216,7 @@ function App() {
                     <AddressInput
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(1);
+                        setCompareError(null);
                         try {
                           // Fire OSM, satellite, and crash requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
@@ -1203,7 +1275,7 @@ function App() {
                           crashPromise.then(data => { extra.crashData = data; setLocation1(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 1:', error);
-                          alert('Failed to analyze location 1. Please try again.');
+                          setCompareError('Failed to analyze location 1. Please try again.');
                         } finally {
                           setIsAnalyzingCompare(null);
                         }
@@ -1226,6 +1298,7 @@ function App() {
                     <AddressInput
                       onSelect={async (selectedLocation) => {
                         setIsAnalyzingCompare(2);
+                        setCompareError(null);
                         try {
                           // Fire OSM, satellite, and crash requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
@@ -1284,7 +1357,7 @@ function App() {
                           crashPromise.then(data => { extra.crashData = data; setLocation2(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 2:', error);
-                          alert('Failed to analyze location 2. Please try again.');
+                          setCompareError('Failed to analyze location 2. Please try again.');
                         } finally {
                           setIsAnalyzingCompare(null);
                         }
@@ -1294,6 +1367,9 @@ function App() {
                     />
                   </div>
                 </div>
+                {compareError && (
+                  <p className="mt-3 text-sm text-red-600 bg-red-50 px-4 py-2.5 rounded-lg">{compareError}</p>
+                )}
               </div>
             ) : (
               <div className="mb-8">
@@ -1392,7 +1468,7 @@ function App() {
 
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
-          <div className="space-y-6">
+          <div className={`space-y-6 ${demoMode ? 'pt-12' : ''}`}>
             {/* Location name */}
             <h2 className="text-2xl font-bold text-center" style={{ color: '#2a3a2a' }}>
               {location.displayName}
@@ -1419,6 +1495,13 @@ function App() {
                     {s.label}
                   </a>
                 ))}
+                <button
+                  onClick={() => setShowTour(true)}
+                  className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ml-auto"
+                  style={{ color: '#e07850' }}
+                >
+                  Take a Tour
+                </button>
               </div>
             </nav>
 
@@ -1495,16 +1578,18 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
             </div>
 
-            {/* Email capture banner */}
-            <Suspense fallback={null}>
-              <EmailCaptureBanner
-                locationName={location.displayName}
-                score={compositeScore ? (compositeScore.overallScore / 10).toFixed(1) : ''}
-                lat={location.lat}
-                lon={location.lon}
-                userEmail={user?.primaryEmailAddress?.emailAddress}
-              />
-            </Suspense>
+            {/* Email capture banner (hidden in demo mode) */}
+            {!demoMode && (
+              <Suspense fallback={null}>
+                <EmailCaptureBanner
+                  locationName={location.displayName}
+                  score={compositeScore ? (compositeScore.overallScore / 10).toFixed(1) : ''}
+                  lat={location.lat}
+                  lon={location.lon}
+                  userEmail={user?.primaryEmailAddress?.emailAddress}
+                />
+              </Suspense>
+            )}
 
             {/* 15-Minute City Score (free for all users) */}
             <div id="neighborhood" className="scroll-mt-16"></div>
@@ -1515,7 +1600,7 @@ function App() {
             </ErrorBoundary>
 
             {/* Mid-page upgrade nudge (free users only) */}
-            {!(userIsPremium || accessInfo.tier !== 'free') && (
+            {!effectivePremium && (
               <div
                 className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 rounded-xl border"
                 style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}
@@ -1541,7 +1626,7 @@ function App() {
             <div id="cross-section" className="scroll-mt-16">
               <ErrorBoundary sectionName="Street Cross-Section">
                 <Suspense fallback={null}>
-                  <StreetCrossSection location={location} metrics={metrics} isPremium={userIsPremium || accessInfo.tier !== 'free'} onConfigChange={setCrossSectionSnapshot} />
+                  <StreetCrossSection location={location} metrics={metrics} isPremium={effectivePremium} isDemoMode={demoMode} onUpgrade={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
                 </Suspense>
               </ErrorBoundary>
             </div>
@@ -1553,7 +1638,7 @@ function App() {
                   location={location}
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
-                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  isPremium={effectivePremium}
                   crossSectionSnapshot={crossSectionSnapshot}
                   onShareReport={() => setShowReportCard(true)}
                 />
@@ -1562,7 +1647,7 @@ function App() {
 
             {/* Advocacy Tools — Consolidated Section */}
             <div id="tools" className="scroll-mt-16">
-              {(userIsPremium || accessInfo.tier !== 'free') ? (
+              {effectivePremium ? (
                 /* Paid users: tool grid */
                 <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
                   <div className="px-6 py-6 sm:px-8">
@@ -1573,7 +1658,7 @@ function App() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {/* Advocacy Letter */}
                       <button
-                        onClick={() => setShowLetterModal(true)}
+                        onClick={() => demoMode ? setShowSignInModal(true) : setShowLetterModal(true)}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
@@ -1594,6 +1679,7 @@ function App() {
                       {/* Proposal */}
                       <button
                         onClick={() => {
+                          if (demoMode) { setShowSignInModal(true); return; }
                           const proposalData = {
                             location, metrics,
                             compositeScore: compositeScore || undefined,
@@ -1623,7 +1709,7 @@ function App() {
 
                       {/* Street Audit */}
                       <button
-                        onClick={() => setShowAuditTool(true)}
+                        onClick={() => demoMode ? setShowSignInModal(true) : setShowAuditTool(true)}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
@@ -1683,7 +1769,7 @@ function App() {
                         className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md border-2 text-center inline-block"
                         style={{ borderColor: '#1E40AF', color: '#1E40AF', backgroundColor: 'transparent' }}
                       >
-                        Enterprise Reports &rarr;
+                        Enterprise Intelligence &rarr;
                       </a>
                     </div>
                   </div>
@@ -1698,7 +1784,7 @@ function App() {
                   address={location.displayName}
                   metrics={metrics}
                   compositeScore={compositeScore}
-                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  isPremium={effectivePremium}
                   onClose={() => setShowAuditTool(false)}
                 />
               </Suspense>
@@ -1749,7 +1835,7 @@ function App() {
                   location={location}
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
-                  isPremium={userIsPremium || accessInfo.tier !== 'free'}
+                  isPremium={effectivePremium}
                   onUnlock={() => setShowSignInModal(true)}
                 />
               </Suspense>
@@ -2055,10 +2141,10 @@ function App() {
                     For Governments, Developers & Organizations
                   </p>
                   <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Need In-Depth Pedestrian Safety Reports?
+                    Need In-Depth Pedestrian Safety Intelligence?
                   </h3>
                   <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
-                    Field audits, 12-metric analysis, and strategic action plans. Comprehensive pedestrian safety & infrastructure intelligence reports starting at $50K.
+                    Interactive dashboards, field audits, citizen advocacy, and 12-metric analysis. Comprehensive pedestrian safety intelligence starting at $50K.
                   </p>
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
@@ -2068,7 +2154,7 @@ function App() {
                   >
                     Explore Enterprise &rarr;
                   </span>
-                  <span className="text-xs text-gray-400">Field audits &middot; Custom reports &middot; Advisory</span>
+                  <span className="text-xs text-gray-400">Dashboards &middot; Field audits &middot; Citizen advocacy</span>
                 </div>
               </div>
             </a>
@@ -2419,14 +2505,14 @@ function App() {
                     <p className="text-xs" style={{ color: '#7a8a7a' }}>Street audit, AI documents, redesign mockups, unlimited chatbot</p>
                   </div>
                 </li>
-              </ul>
-              <li className="flex items-start gap-2 mt-3">
+                <li className="flex items-start gap-2">
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#1E40AF' }}></span>
                   <div>
-                    <a href="/enterprise" className="font-semibold transition hover:text-white" style={{ color: '#93c5fd' }}>Enterprise Intelligence</a>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Custom walkability reports from $50K</p>
+                    <a href="/enterprise" className="font-semibold transition hover:text-white" style={{ color: '#93c5fd' }}>Safety & Infrastructure Intelligence</a>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Dashboards, field audits & citizen advocacy from $50K</p>
                   </div>
                 </li>
+              </ul>
             </div>
 
             {/* Features Column */}
@@ -2500,6 +2586,24 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Demo mode banner */}
+      {demoMode && (
+        <Suspense fallback={null}>
+          <DemoBanner onExit={exitDemoMode} onUnlock={() => setShowSignInModal(true)} />
+        </Suspense>
+      )}
+
+      {/* Product tour overlay */}
+      {showTour && (
+        <Suspense fallback={null}>
+          <ProductTour
+            isActive={showTour}
+            onComplete={() => { setShowTour(false); localStorage.setItem('safestreets_tour_completed', '1'); }}
+            onSkip={() => { setShowTour(false); localStorage.setItem('safestreets_tour_completed', '1'); }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

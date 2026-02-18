@@ -368,3 +368,15 @@ body {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* Product tour spotlight */
+@keyframes spotlight-pulse {
+  0%, 100% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); }
+  50% { box-shadow: 0 0 0 9999px rgba(0,0,0,0.55); }
+}
+
+/* Mobile bottom-sheet slide up */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
