@@ -3814,7 +3814,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=success&tier=${tier}`,
+      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=cancelled`,
       metadata: {
         userId: userId || '',
@@ -3886,10 +3886,12 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
             } else {
               const errBody = await clerkRes.text();
               console.error(`❌ Clerk API error (${clerkRes.status}): ${errBody}`);
+              return res.status(503).json({ error: 'Failed to activate tier — will retry' });
             }
           }
         } catch (clerkErr) {
           console.error('❌ Failed to update Clerk metadata:', clerkErr.message);
+          return res.status(503).json({ error: 'Failed to activate tier — will retry' });
         }
       } else {
         console.warn('⚠️  Missing userId or tier in session metadata — cannot activate');
@@ -3945,7 +3947,10 @@ app.get('/api/verify-token', async (req, res) => {
 
   try {
     const jwt = await import('jsonwebtoken');
-    const secret = process.env.JWT_SECRET || process.env.STRIPE_SECRET_KEY || 'fallback-secret';
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      return res.status(500).json({ valid: false, error: 'Token verification not configured' });
+    }
     const decoded = jwt.default.verify(token, secret);
 
     res.json({

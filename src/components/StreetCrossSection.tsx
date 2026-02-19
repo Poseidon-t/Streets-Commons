@@ -627,7 +627,7 @@ export default function StreetCrossSection({
                     key={imp.key}
                     option={imp}
                     active={activeImprovements.has(imp.key)}
-                    onToggle={() => isDemoMode && onUpgrade ? onUpgrade() : toggleImprovement(imp.key)}
+                    onToggle={() => toggleImprovement(imp.key)}
                     measurementValues={measurements}
                     onMeasurementChange={updateMeasurement}
                   />

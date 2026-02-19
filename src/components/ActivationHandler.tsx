@@ -28,7 +28,7 @@ export default function ActivationHandler() {
 
   const verifyAndActivate = async (token: string) => {
     try {
-      console.log('Verifying access token...');
+      // Verify token with backend
       const result = await verifyTokenWithBackend(token);
 
       if (result.valid && result.tier && result.email) {

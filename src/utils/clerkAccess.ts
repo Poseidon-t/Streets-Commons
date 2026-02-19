@@ -25,15 +25,15 @@ export interface AccessInfo {
 }
 
 /**
- * DEV MODE: Automatically enables advocate tier on localhost
+ * DEV MODE: Automatically enables advocate tier on localhost (development only)
  */
 function getDevTierOverride(): PremiumTier | null {
   if (typeof window === 'undefined') return null;
+  if (import.meta.env.PROD) return null;
 
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   if (isLocalhost) {
-    console.log('🔓 DEV MODE: Auto-enabled advocate tier (localhost)');
     return 'advocate';
   }
 

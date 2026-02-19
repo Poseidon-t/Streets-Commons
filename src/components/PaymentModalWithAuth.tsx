@@ -74,11 +74,16 @@ export default function PaymentModalWithAuth({ isOpen, onClose, locationName }: 
           userId: user.id,
         }),
       });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        setError(errData.error || 'Failed to start checkout. Please try again.');
+        return;
+      }
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
       } else {
-        setError(data.error || 'Failed to start checkout.');
+        setError('Failed to start checkout. Please try again.');
       }
     } catch {
       setError('Network error. Please try again.');

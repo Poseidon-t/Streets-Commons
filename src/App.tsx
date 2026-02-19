@@ -168,7 +168,7 @@ function App() {
 
       const apiUrl = import.meta.env.VITE_API_URL || '';
       let attempts = 0;
-      const maxAttempts = 10; // 10 × 2s = 20s
+      const maxAttempts = 30; // 30 × 2s = 60s
 
       const poll = setInterval(async () => {
         attempts++;
@@ -1665,7 +1665,7 @@ function App() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {/* Advocacy Letter */}
                       <button
-                        onClick={() => demoMode ? setShowSignInModal(true) : setShowLetterModal(true)}
+                        onClick={() => setShowLetterModal(true)}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
@@ -1686,7 +1686,6 @@ function App() {
                       {/* Proposal */}
                       <button
                         onClick={() => {
-                          if (demoMode) { setShowSignInModal(true); return; }
                           const proposalData = {
                             location, metrics,
                             compositeScore: compositeScore || undefined,
@@ -1716,7 +1715,7 @@ function App() {
 
                       {/* Street Audit */}
                       <button
-                        onClick={() => demoMode ? setShowSignInModal(true) : setShowAuditTool(true)}
+                        onClick={() => setShowAuditTool(true)}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
