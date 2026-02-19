@@ -96,7 +96,7 @@ function setCache(key, data) {
 import { createHash } from 'crypto';
 import fs from 'fs';
 
-const ANALYTICS_FILE = process.env.ANALYTICS_FILE || '/data/analytics.json';
+const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(__dirname, '..', 'data', 'analytics.json');
 const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
 
 function requireAdminKey(req, res) {
@@ -367,7 +367,7 @@ app.post('/api/track', (req, res) => {
 
 // ─── Email Capture ──────────────────────────────────────────────────────────
 
-const EMAILS_FILE = process.env.EMAILS_FILE || '/data/emails.json';
+const EMAILS_FILE = process.env.EMAILS_FILE || path.join(__dirname, '..', 'data', 'emails.json');
 
 function loadEmails() {
   try {
@@ -393,7 +393,7 @@ function saveEmails(data) {
 }
 
 // ─── Contact Inquiries Storage ──────────────────────────────────────────────
-const INQUIRIES_FILE = process.env.INQUIRIES_FILE || '/data/contact-inquiries.json';
+const INQUIRIES_FILE = process.env.INQUIRIES_FILE || path.join(__dirname, '..', 'data', 'contact-inquiries.json');
 
 function loadInquiries() {
   try {
@@ -420,7 +420,7 @@ function saveInquiry(inquiry) {
 }
 
 // ─── Editorial Calendar Storage ─────────────────────────────────────────────
-const EDITORIAL_CALENDAR_FILE = process.env.EDITORIAL_CALENDAR_FILE || '/data/editorial-calendar.json';
+const EDITORIAL_CALENDAR_FILE = process.env.EDITORIAL_CALENDAR_FILE || path.join(__dirname, '..', 'data', 'editorial-calendar.json');
 
 function loadEditorialCalendar() {
   try {
@@ -455,7 +455,7 @@ function saveEditorialCalendar(calendar) {
 }
 
 // ─── Blog Post Storage ──────────────────────────────────────────────────────
-const BLOG_POSTS_FILE = process.env.BLOG_POSTS_FILE || '/data/blog-posts.json';
+const BLOG_POSTS_FILE = process.env.BLOG_POSTS_FILE || path.join(__dirname, '..', 'data', 'blog-posts.json');
 
 function loadBlogPosts() {
   try {
