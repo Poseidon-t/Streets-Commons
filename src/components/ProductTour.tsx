@@ -149,6 +149,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     const tooltipWidth = 340;
     const tooltipHeight = tooltipRef.current?.offsetHeight || 220;
     const margin = 16;
+    const topSafeZone = 120; // clear fixed header (demo banner + nav)
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
 
@@ -156,25 +157,29 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     let left: number;
 
     const spaceBelow = vpHeight - (spotlightRect.bottom + PADDING);
-    const spaceAbove = spotlightRect.top - PADDING;
     const spaceRight = vpWidth - (spotlightRect.right + PADDING);
+    const spaceLeft = spotlightRect.left - PADDING;
 
-    // If the target is tall and there's room to the right, position beside it
-    if (spaceBelow < tooltipHeight + margin && spaceAbove < tooltipHeight + margin && spaceRight >= tooltipWidth + margin) {
-      top = spotlightRect.top;
-      left = spotlightRect.right + PADDING + margin;
-    } else if (spaceBelow >= tooltipHeight + margin) {
+    if (spaceBelow >= tooltipHeight + margin) {
       // Prefer below
       top = spotlightRect.bottom + PADDING + margin;
       left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
+    } else if (spaceRight >= tooltipWidth + margin) {
+      // Position to the right
+      top = Math.max(topSafeZone, spotlightRect.top);
+      left = spotlightRect.right + PADDING + margin;
+    } else if (spaceLeft >= tooltipWidth + margin) {
+      // Position to the left
+      top = Math.max(topSafeZone, spotlightRect.top);
+      left = spotlightRect.left - PADDING - margin - tooltipWidth;
     } else {
-      // Position above
-      top = spotlightRect.top - PADDING - margin - tooltipHeight;
-      left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
+      // Fallback: center in viewport below the safe zone
+      top = topSafeZone;
+      left = vpWidth / 2 - tooltipWidth / 2;
     }
 
-    // Clamp to viewport
-    if (top < margin) top = margin;
+    // Clamp to viewport (respect fixed header)
+    if (top < topSafeZone) top = topSafeZone;
     if (top + tooltipHeight > vpHeight - margin) top = vpHeight - margin - tooltipHeight;
 
     // Keep within horizontal bounds
