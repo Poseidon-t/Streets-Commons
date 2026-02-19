@@ -614,6 +614,242 @@ export const BLOG_POSTS: BlogPost[] = [
 <p>India's cities are at a crossroads. We can continue down the path of car-centric development that treats pedestrian deaths as acceptable collateral damage. Or we can choose a different future—one where streets serve everyone safely, where walking is protected rather than penalized, where Vision Zero isn't just a slogan but a lived reality.</p>
 <p>The 29,000 lives lost in 2022 can't be brought back. But they can be honoured through action that ensures no other families suffer the same loss. That's not just a policy imperative—it's a moral obligation. Our streets should connect communities, not destroy them. It's time to make that vision real.</p>
     `,
+  },
+  {
+    slug: 'first-last-mile-transit-pedestrian-infrastructure-ridership',
+    title: 'The First/Last Mile Problem: What Transit Data Shows About Pedestrian Infrastructure and Ridership',
+    metaTitle: 'First/Last Mile Problem — How Pedestrian Infrastructure Determines Transit Ridership',
+    metaDescription: '91% of transit trips start with walking. Yet most cities ignore the sidewalks, crossings, and shelter that determine whether people ride. Here\'s what 10 years of data shows.',
+    date: '2026-02-19',
+    author: 'Streets & Commons',
+    category: 'Infrastructure Impact',
+    readTime: '12 min read',
+    excerpt: 'Walking is the access mode for 80-98% of all transit trips. Yet pedestrian infrastructure around transit stops is chronically underfunded, poorly measured, and institutionally orphaned. Here\'s what the data actually shows.',
+    tags: ['first last mile', 'transit ridership', 'pedestrian infrastructure', 'mobility', 'data'],
+    content: `
+<h2>The Paradox Hiding in Every Transit System</h2>
+<p>Here's a fact that should reshape how every city invests in transportation: <strong>91% of public transit users walk to their stop</strong>. Not drive. Not bike. Not get dropped off. Walk. And on the return trip, that number rises to 98%.</p>
+<p>These figures come from Walk21 and UNECE's landmark study across 12 European cities, conducted by Research Institute Socialdata between 2016 and 2022. They align with data from every transit system that has bothered to measure: <strong>LA Metro's on-board surveys show 80% of bus riders and 67% of rail riders arrive on foot</strong>. The Transit Cooperative Research Program puts the US average above 80%.</p>
+<p>Walking isn't just one way people reach transit. It is <em>the</em> way. And yet, the infrastructure that supports this walk — sidewalks, crossings, shelter, lighting — is among the most neglected in urban transportation budgets.</p>
+<blockquote>"Most public transport journeys start and end with a walk. If walking fails, transit fails." — ITDP, 2024</blockquote>
+<p>This is the first/last mile paradox: <strong>the most critical link in the transit chain is the one we invest in least</strong>. And the data on what this costs us — in ridership, in safety, in equity — is damning.</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">How Transit Riders Access Their Stop</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Walk to stop (EU)</span><div style="height:28px;border-radius:4px;background:#e07850;width:91%" title="91%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">91%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Walk from stop (EU)</span><div style="height:28px;border-radius:4px;background:#e07850;width:98%" title="98%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">98%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">LA Metro bus (walk)</span><div style="height:28px;border-radius:4px;background:#5090b0;width:80%" title="80%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">80%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">LA Metro rail (walk)</span><div style="height:28px;border-radius:4px;background:#5090b0;width:67%" title="67%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">67%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">US average (walk)</span><div style="height:28px;border-radius:4px;background:#5090b0;width:83%" title="83%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">>80%</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Sources: Walk21/UNECE (2024), LA Metro On-Board Survey, TCRP</p>
+</div>
+
+<h2>People Walk Further Than Planners Assume</h2>
+<p>For decades, transit planners have used a simple rule of thumb: people will walk <strong>400 meters (0.25 miles) to a bus stop</strong> and <strong>800 meters (0.5 miles) to a rail station</strong>. These numbers define service areas, justify route decisions, and determine where transit agencies invest.</p>
+<p>The problem: they're wrong.</p>
+<p>The landmark El-Geneidy et al. (2014) study from Montreal — published in <em>Transportation</em> — tracked actual walking distances of transit riders using GPS data, not planning assumptions. The results should have rewritten every transit planning manual:</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Actual Walking Distance to Transit (Montreal GPS Data)</p>
+<table style="width:100%;border-collapse:collapse;font-size:0.85rem">
+<thead>
+<tr style="border-bottom:2px solid #e0dbd0">
+<th style="text-align:left;padding:0.5rem;color:#2a3a2a">Percentile</th>
+<th style="text-align:center;padding:0.5rem;color:#2a3a2a">Bus</th>
+<th style="text-align:center;padding:0.5rem;color:#2a3a2a">Commuter Rail</th>
+<th style="text-align:center;padding:0.5rem;color:#2a3a2a">Planning Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr style="border-bottom:1px solid #e0dbd0">
+<td style="padding:0.5rem;color:#5a6a5a">Median (50th)</td>
+<td style="text-align:center;padding:0.5rem;font-weight:600">294 m</td>
+<td style="text-align:center;padding:0.5rem;font-weight:600">—</td>
+<td style="text-align:center;padding:0.5rem;color:#8a9a8a">400 m / 800 m</td>
+</tr>
+<tr style="border-bottom:1px solid #e0dbd0">
+<td style="padding:0.5rem;color:#5a6a5a">75th percentile</td>
+<td style="text-align:center;padding:0.5rem;font-weight:600">525 m</td>
+<td style="text-align:center;padding:0.5rem;font-weight:600">—</td>
+<td style="text-align:center;padding:0.5rem;color:#c03030">Exceeds bus standard</td>
+</tr>
+<tr>
+<td style="padding:0.5rem;color:#5a6a5a">85th percentile</td>
+<td style="text-align:center;padding:0.5rem;font-weight:700;color:#e07850">524 m</td>
+<td style="text-align:center;padding:0.5rem;font-weight:700;color:#e07850">1,259 m</td>
+<td style="text-align:center;padding:0.5rem;color:#c03030">Exceeds both standards</td>
+</tr>
+</tbody>
+</table>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: El-Geneidy et al. (2014), Transportation, 41(1), 193-210</p>
+</div>
+
+<p>The critical finding: <strong>at the 85th percentile, bus riders walk 524 meters — 31% further than the 400m standard</strong>. Commuter rail riders walk 1,259 meters — 57% beyond the 800m standard. People walk further to reach better service. And the quality of that walk — whether there are sidewalks, crossings, shade, lighting — determines whether they make the trip at all.</p>
+<p>This means transit agencies are systematically underestimating the pedestrian infrastructure they need to support. A bus stop with a 400m service area that has broken sidewalks at 300m effectively has a 300m service area. The walk, not the distance, is the constraint.</p>
+
+<h2>Houston: What Happens When Pedestrians Are an Afterthought</h2>
+<p>Houston is perhaps the most thoroughly documented case of first/last mile failure in the United States. The city invested billions in a new light rail system — then neglected the sidewalks around it.</p>
+<p>In 2019, a research team published a foot-based audit of <strong>590 street segments</strong> around Houston's new LRT stations in <em>BMC Public Health</em>. They walked every segment using the Analytic Audit Tool. The findings were stark:</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Houston LRT Station Area Audit (590 Street Segments)</p>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#c03030">23%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">No sidewalks on either side</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#e07850">72%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">No mixed-use integration</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#e07850">44%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Abandoned buildings / vacant lots</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#c03030">93%</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Lack shade / comfort features</div>
+</div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: BMC Public Health (2019), foot-based audit of streets adjacent to Houston LRT stations</p>
+</div>
+
+<p>Nearly one in four street segments near brand-new rail stations had <strong>no sidewalks at all</strong>. Over 93% lacked basic comfort features like shade or benches. 44% included abandoned buildings or vacant lots. Houston built the train but forgot the walk to the train.</p>
+<p>The companion study, published in the <em>Journal of Transport & Health</em> (2020), quantified the cost of this neglect. Using regression analysis across all Houston LRT stations, researchers found:</p>
+<ul>
+<li><strong>Every one-unit increase in the Transportation Environment index = +425 daily riders per station</strong></li>
+<li><strong>Every one-unit increase in the Social Environment index = +488 daily riders per station</strong></li>
+</ul>
+<p>In other words, the quality of the pedestrian environment around a station is a statistically significant predictor of how many people use it. Better sidewalks, crossings, and street conditions don't just make walking nicer — they directly generate ridership.</p>
+<p>The financial context makes this even more painful. Houston needs an estimated <strong>$13.2 billion</strong> to provide sidewalks on both sides of every street that lacks them and repair 75% of existing sidewalks. That sounds astronomical — until you consider that a single highway interchange can cost $500 million to $1 billion. The city spent $1.4 billion on the LRT system but couldn't fund the sidewalks to reach it.</p>
+
+<h2>Crash Risk: The Safety Tax on Transit Riders</h2>
+<p>The first/last mile isn't just an inconvenience problem. It's a safety problem. And the data is unambiguous.</p>
+<p>McMahon et al.'s analysis of pedestrian crash data found that locations with a paved sidewalk were <strong>88.2% less likely to be pedestrian crash sites</strong>. Roads without sidewalks had <strong>3x higher pedestrian crash rates per mile</strong>. For transit riders who must walk to their stop on streets without sidewalks, this isn't an abstract statistic — it's a daily risk calculation.</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Pedestrian Fatality Risk by Vehicle Speed</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">20 mph (32 km/h)</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:5%" title="5%"></div><span style="font-size:0.85rem;font-weight:600;color:#4a8a3c">5% fatality rate</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">30 mph (48 km/h)</span><div style="height:28px;border-radius:4px;background:#c0a060;width:45%" title="45%"></div><span style="font-size:0.85rem;font-weight:600;color:#c0a060">45% fatality rate</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">40 mph (64 km/h)</span><div style="height:28px;border-radius:4px;background:#c03030;width:85%" title="85%"></div><span style="font-size:0.85rem;font-weight:600;color:#c03030">85% fatality rate</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: FHWA Pedestrian Safety Guide for Transit Agencies</p>
+</div>
+
+<p>The FHWA's <em>Pedestrian Safety Guide for Transit Agencies</em> puts it bluntly: at 40 mph, a pedestrian struck by a vehicle faces an 85% fatality rate. At 20 mph, it drops to 5%. Yet many bus stops in American cities sit on arterial roads with 40-45 mph speed limits, no sidewalk connections, and no protected crossings. We're asking transit riders to risk their lives to reach the bus.</p>
+<p>A 2025 study using structural equation modelling across Indian cities — published in <em>Accident Analysis & Prevention</em> — confirmed the link quantitatively: <strong>as perceived sidewalk safety decreases, bus ridership declines</strong>. People don't just avoid unsafe walks because they're uncomfortable. They avoid them because they're dangerous. And when they avoid the walk, they avoid transit.</p>
+
+<h2>Singapore: What It Looks Like When You Actually Invest</h2>
+<p>If Houston represents the failure case, Singapore represents the ambition case. The city-state's Walk2Ride programme is the world's most systematic investment in first/last mile pedestrian infrastructure.</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Singapore Walk2Ride Programme</p>
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#e07850">200 km</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Sheltered walkways built</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#5090b0">S$300M</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Initial investment (~US$220M)</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#4a8a3c">S$1B</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Expansion announced (2024)</div>
+</div>
+<div style="text-align:center;padding:1rem;background:white;border-radius:8px;border:1px solid #e0dbd0">
+<div style="font-size:2rem;font-weight:800;color:#4a8a3c">7.46M</div>
+<div style="font-size:0.8rem;color:#5a6a5a;margin-top:0.25rem">Daily public transport trips</div>
+</div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: Land Transport Authority of Singapore (2024)</p>
+</div>
+
+<p>Since launching in 2013, Singapore's Land Transport Authority has built <strong>200 km of sheltered walkways</strong> connecting transit stops to surrounding neighbourhoods. The coverage standards are explicit:</p>
+<ul>
+<li><strong>400m sheltered walk</strong> from all MRT (metro) stations</li>
+<li><strong>200m sheltered walk</strong> from all bus interchanges and high-volume bus stops</li>
+<li>Expansion underway to <strong>800m radius</strong> from MRT stations</li>
+</ul>
+<p>The investment is substantial: S$300 million for the initial 200 km, with an additional <strong>S$1 billion announced in 2024</strong> for the next decade of Walk, Cycle, Ride infrastructure. Standard covered linkway construction costs S$200,000-300,000 per 100 metres.</p>
+<p>The rationale is pragmatic, not idealistic. Singapore's tropical climate means monsoon rains and intense heat can make a 400m walk intolerable. Without shelter, commuters call ride-hailing instead of walking to the train. Every ride-hailing trip that replaces a walk-to-MRT trip adds congestion, carbon, and cost. The sheltered walkway pays for itself by keeping riders on the system.</p>
+<p>The results speak in ridership numbers. Singapore's public transport mode share is <strong>65%</strong>, with a government target of <strong>75% by 2030</strong>. Daily public transport ridership reached 7.46 million in 2024, with MRT ridership alone exceeding 3.41 million daily rides — surpassing pre-pandemic levels. The walk to the station isn't a nice-to-have. It's core transit infrastructure.</p>
+
+<h2>LA Metro: Building the Playbook</h2>
+<p>Los Angeles — a city synonymous with car dependence — produced one of the most comprehensive first/last mile strategies in the world. LA Metro's First/Last Mile Strategic Plan, adopted in April 2014, won the <strong>2015 APA National Planning Excellence Award</strong> for best practice.</p>
+<p>The plan addresses <strong>154 train stations</strong> and the <strong>top 100 ridership bus stops</strong> across Los Angeles County — a system serving ~1.5 million daily riders. The core framework, called the "Pathway" concept, designs active transportation networks within station areas to increase walking and cycling speed, reduce distances, and support multimodal transfers.</p>
+<p>Key data from the plan:</p>
+<ul>
+<li>Standard access shed: <strong>half-mile walk, three miles by bike</strong></li>
+<li><strong>~90% of Metro riders</strong> arrive without driving or being dropped off</li>
+<li>Metro's first/last mile partnership with Via generated <strong>80,000 rides</strong> to and from stations in its first year</li>
+</ul>
+<p>What makes LA's approach notable is that it treats pedestrian infrastructure as transit infrastructure. The plan doesn't just recommend better sidewalks — it integrates walking conditions into station area planning as a formal component of transit investment. A station with bad pedestrian access is an underperforming transit asset, not just a neighbourhood with bad sidewalks.</p>
+
+<h2>The Global South: Where First/Last Mile Is Life or Death</h2>
+<p>In developing countries, the first/last mile problem isn't an inconvenience — it's an existential barrier. The World Bank estimates that <strong>1 billion people live more than 2 km from an all-weather road</strong>. For these communities, walking isn't a choice. It's the only mode.</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Walking Mode Share in African Cities</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Dar es Salaam</span><div style="height:28px;border-radius:4px;background:#e07850;width:100%" title="70%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">45-70%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Kampala</span><div style="height:28px;border-radius:4px;background:#e07850;width:86%" title="60%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">40-60%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Nairobi</span><div style="height:28px;border-radius:4px;background:#e07850;width:70%" title="49%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">49%</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:110px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Addis Ababa</span><div style="height:28px;border-radius:4px;background:#e07850;width:57%" title="40%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">>40%</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: ITDP / World Bank Urban Mobility Studies</p>
+</div>
+
+<p>The World Bank's 2022 study of Addis Ababa is devastating in its specificity:</p>
+<ul>
+<li><strong>63% of roads</strong> lack walkways despite high pedestrian flow</li>
+<li><strong>50%</strong> of existing sidewalk pavement ranks poor to very poor</li>
+<li><strong>79%</strong> of the road network lacks adequate crossings</li>
+<li><strong>52%</strong> of street sections lack street lighting</li>
+<li><strong>75% of pedestrians</strong> consider sidewalks inaccessible</li>
+</ul>
+<p>In cities where 40-70% of all trips are on foot, the absence of pedestrian infrastructure isn't a planning oversight. It's a systemic failure that traps communities in poverty, exposes them to preventable death, and undermines the transit systems that could connect them to opportunity.</p>
+<p>The WHO's 2023 Global Status Report quantifies the toll: <strong>1.19 million annual road traffic deaths globally</strong>, with pedestrians accounting for 21% of fatalities. Nine in ten road deaths occur in low- and middle-income countries — the same countries where walking is the dominant mode of transport. The people who walk the most are protected the least.</p>
+
+<h2>The Institutional Gap: Whose Problem Is This?</h2>
+<p>Perhaps the most insidious aspect of the first/last mile problem is that <strong>nobody owns it</strong>.</p>
+<p>Transit agencies are responsible for the stop, the vehicle, and the route. Municipal public works departments own the sidewalks. State DOTs manage arterial roads. Private property owners control the frontage. The 200-meter walk from an apartment building to a bus stop might cross four different jurisdictions — and none of them see the complete walk as their responsibility.</p>
+<p>The Eno Center for Transportation identified this as the "first and last 20 feet" problem: often, the critical failure point isn't hundreds of meters of missing sidewalk. It's a single missing curb ramp, a tree root lifting pavers, or an unlit crossing at a wide road. These micro-barriers are cheap to fix but invisible to the institutions that could fix them, because no single agency is looking at the complete walking journey.</p>
+<p>This institutional fragmentation explains why the FTA's National Transit Database — the most comprehensive transit dataset in the US — <strong>doesn't systematically collect first/last mile pedestrian access data</strong>. We meticulously track vehicle revenue hours, passenger miles, and operating costs, but we have no national dataset on whether riders can safely walk to the stop.</p>
+
+<h2>The Evidence Is Clear: What Needs to Happen</h2>
+<p>The research points to five interventions that directly connect pedestrian infrastructure to transit performance:</p>
+
+<div style="margin:2rem 0;padding:1.5rem;background:#f8f6f1;border-radius:12px;border:1px solid #e0dbd0">
+<p style="font-weight:700;margin-bottom:1rem;color:#2a3a2a;font-size:0.95rem">Infrastructure Impact on Safety</p>
+<div style="display:flex;flex-direction:column;gap:0.6rem">
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Add sidewalks</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:100%" title="88%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">88% fewer crash sites</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Street lighting</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:87%" title="77%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">42-77% fewer night crashes</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Marked crosswalks</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:45%" title="40%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">25-40% fewer crashes</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Refuge islands</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:52%" title="46%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">32-46% fewer crashes</span></div>
+<div style="display:flex;align-items:center;gap:0.75rem"><span style="width:140px;font-size:0.85rem;color:#5a6a5a;flex-shrink:0">Speed reduction</span><div style="height:28px;border-radius:4px;background:#4a8a3c;width:53%" title="47%"></div><span style="font-size:0.85rem;font-weight:600;color:#2a3a2a">19-47% fewer crashes</span></div>
+</div>
+<p style="font-size:0.75rem;color:#8a9a8a;margin-top:0.75rem">Source: FHWA, NACTO, McMahon et al.</p>
+</div>
+
+<p><strong>1. Audit every transit stop's walking catchment.</strong> Not just the stop itself — the 400-800m radius around it. Document sidewalk gaps, missing crossings, lighting deficiencies, and ADA barriers. The Houston LRT study proved this can be done with a standardized audit tool. Most transit agencies have never systematically assessed the pedestrian environment around their own stops.</p>
+
+<p><strong>2. Fund pedestrian infrastructure as transit infrastructure.</strong> Sidewalks within 800m of a transit stop should be eligible for transit capital funding, not just municipal sidewalk budgets. Singapore's Walk2Ride programme shows the model: the LTA funds the walkways because they understand that walkways generate ridership.</p>
+
+<p><strong>3. Measure and publish first/last mile data.</strong> Every transit agency publishes ridership data, on-time performance, and cost per trip. None publish "percentage of stops with continuous sidewalk access" or "average crossing distance at high-ridership stops." What gets measured gets managed. Currently, nobody is measuring.</p>
+
+<p><strong>4. Design station areas, not just stations.</strong> LA Metro's First/Last Mile Strategic Plan treats the walk to the station as a design problem equal in importance to the station itself. Every new transit investment should include a first/last mile assessment and a pedestrian access plan with dedicated funding.</p>
+
+<p><strong>5. Assign institutional ownership.</strong> Someone has to own the complete walking journey — from origin to transit stop. Whether that's the transit agency, a metropolitan planning organization, or a dedicated first/last mile program, the institutional gap must be closed. The walk to the bus is transit. Fund it, design it, and maintain it accordingly.</p>
+
+<h2>The Math Is Simple</h2>
+<p>The Houston data gives us a formula: <strong>better pedestrian environments = more riders</strong>. Each unit of improvement in the transportation environment around a station generates 425 additional daily riders. Multiply that across a transit system with hundreds of stations, and the ridership impact of pedestrian investment dwarfs most service expansion strategies.</p>
+<p>Singapore invested S$300 million in 200 km of sheltered walkways. Houston needs $13.2 billion to close its sidewalk gap. The difference isn't just money — it's whether a city treats pedestrian infrastructure as core to its transit system or as someone else's problem.</p>
+<p>The first/last mile is not an urban planning buzzword. It's the most underleveraged investment in every transit system on earth. The data has been telling us this for decades. The question is whether we'll finally listen.</p>
+    `,
   }
 
 ];

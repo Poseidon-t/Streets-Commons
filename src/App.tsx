@@ -626,13 +626,13 @@ function App() {
             {!isSignedIn && (
               <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
             )}
-            {isSignedIn && !userIsPremium && accessInfo.tier !== 'advocate' && (
+            {!effectivePremium && (
               <button
                 onClick={() => setShowSignInModal(true)}
-                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md hidden sm:block"
+                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md"
                 style={{ backgroundColor: '#e07850', color: 'white' }}
               >
-                Upgrade
+                Unlock — $49
               </button>
             )}
             <a href="#faq" onClick={(e) => { if (location || compareMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
@@ -677,13 +677,13 @@ function App() {
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
             )}
-            {isSignedIn && !userIsPremium && accessInfo.tier !== 'advocate' && (
+            {!effectivePremium && (
               <button
                 onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }}
                 className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left"
                 style={{ backgroundColor: '#e07850', color: 'white' }}
               >
-                Upgrade
+                Unlock — $49
               </button>
             )}
           </div>
@@ -1500,6 +1500,15 @@ function App() {
                 >
                   Take a Tour
                 </button>
+                {!effectivePremium && (
+                  <button
+                    onClick={() => setShowSignInModal(true)}
+                    className="px-3 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:shadow-md"
+                    style={{ backgroundColor: '#e07850', color: 'white' }}
+                  >
+                    Upgrade — $49
+                  </button>
+                )}
               </div>
             </nav>
 
@@ -1600,22 +1609,22 @@ function App() {
             {/* Mid-page upgrade nudge (free users only) */}
             {!effectivePremium && (
               <div
-                className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 rounded-xl border"
-                style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-xl border-2"
+                style={{ borderColor: '#e07850', backgroundColor: 'rgba(224,120,80,0.06)' }}
               >
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-lg">&#x1F4DD;</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xl">&#x1F4DD;</span>
                   <span style={{ color: '#2a3a2a' }}>
-                    <strong>Turn this data into action</strong>
-                    <span style={{ color: '#5a6a5a' }}> — advocacy letters, street redesign mockups, PDF proposals & more</span>
+                    <strong className="text-base">Turn this data into action</strong>
+                    <span className="text-sm block sm:inline" style={{ color: '#5a6a5a' }}> — advocacy letters, street redesign mockups, PDF proposals & more</span>
                   </span>
                 </div>
                 <button
                   onClick={() => setShowSignInModal(true)}
-                  className="px-4 py-2 rounded-lg font-semibold text-xs text-white transition-all hover:shadow-md whitespace-nowrap flex-shrink-0"
+                  className="px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all hover:shadow-lg whitespace-nowrap flex-shrink-0"
                   style={{ backgroundColor: '#e07850' }}
                 >
-                  See Advocacy Toolkit — $49
+                  Unlock Toolkit — $49
                 </button>
               </div>
             )}
