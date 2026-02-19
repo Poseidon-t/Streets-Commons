@@ -651,7 +651,7 @@ function App() {
                 className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md"
                 style={{ backgroundColor: '#e07850', color: 'white' }}
               >
-                Unlock — $49
+                Go Premium — $49
               </button>
             )}
             <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
@@ -702,7 +702,7 @@ function App() {
                 className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left"
                 style={{ backgroundColor: '#e07850', color: 'white' }}
               >
-                Unlock — $49
+                Go Premium — $49
               </button>
             )}
           </div>
@@ -2627,7 +2627,7 @@ function App() {
             className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap flex-shrink-0"
             style={{ backgroundColor: '#e07850' }}
           >
-            Unlock — $49
+            Go Premium — $49
           </button>
           <button
             onClick={() => setDemoNudge(false)}
