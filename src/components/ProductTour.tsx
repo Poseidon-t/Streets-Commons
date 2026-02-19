@@ -134,7 +134,8 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     if (currentStep > 0) setCurrentStep(currentStep - 1);
   };
 
-  // Calculate tooltip position (desktop: beside spotlight, mobile: bottom sheet)
+  // Tooltip is always pinned to bottom-right (desktop) or bottom sheet (mobile).
+  // This avoids all edge cases with tall targets, fixed headers, and viewport clipping.
   const getTooltipStyle = (): React.CSSProperties => {
     if (isMobile) {
       return {
@@ -146,51 +147,11 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
       };
     }
 
-    const tooltipWidth = 340;
-    const tooltipHeight = tooltipRef.current?.offsetHeight || 220;
-    const margin = 16;
-    const topSafeZone = 120; // clear fixed header (demo banner + nav)
-    const vpWidth = window.innerWidth;
-    const vpHeight = window.innerHeight;
-
-    let top: number;
-    let left: number;
-
-    const spaceBelow = vpHeight - (spotlightRect.bottom + PADDING);
-    const spaceRight = vpWidth - (spotlightRect.right + PADDING);
-    const spaceLeft = spotlightRect.left - PADDING;
-
-    if (spaceBelow >= tooltipHeight + margin) {
-      // Prefer below
-      top = spotlightRect.bottom + PADDING + margin;
-      left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
-    } else if (spaceRight >= tooltipWidth + margin) {
-      // Position to the right
-      top = Math.max(topSafeZone, spotlightRect.top);
-      left = spotlightRect.right + PADDING + margin;
-    } else if (spaceLeft >= tooltipWidth + margin) {
-      // Position to the left
-      top = Math.max(topSafeZone, spotlightRect.top);
-      left = spotlightRect.left - PADDING - margin - tooltipWidth;
-    } else {
-      // Fallback: center in viewport below the safe zone
-      top = topSafeZone;
-      left = vpWidth / 2 - tooltipWidth / 2;
-    }
-
-    // Clamp to viewport (respect fixed header)
-    if (top < topSafeZone) top = topSafeZone;
-    if (top + tooltipHeight > vpHeight - margin) top = vpHeight - margin - tooltipHeight;
-
-    // Keep within horizontal bounds
-    if (left < margin) left = margin;
-    if (left + tooltipWidth > vpWidth - margin) left = vpWidth - margin - tooltipWidth;
-
     return {
       position: 'fixed',
-      top,
-      left,
-      width: tooltipWidth,
+      bottom: 24,
+      right: 24,
+      width: 360,
       animation: 'fadeInUp 0.3s ease-out',
     };
   };
