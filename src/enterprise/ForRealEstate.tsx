@@ -10,8 +10,8 @@ export default function ForRealEstate() {
       heroDescription="Pedestrian infrastructure drives property values. Our platform quantifies street-level conditions with interactive dashboards, field audits, and community sentiment data to inform site selection, assess risk, and identify value-creation opportunities."
       challenges={[
         {
-          title: 'Walk Score Is Not Enough',
-          description: 'Walk Score measures proximity to destinations but ignores actual pedestrian conditions — sidewalk quality, crossing safety, lighting, and ADA compliance.',
+          title: 'Proximity Scores Are Not Enough',
+          description: 'Traditional walkability scores measure proximity to destinations but ignore actual pedestrian conditions - crossing safety, lighting, and ADA compliance.',
         },
         {
           title: 'Hidden Development Risk',
@@ -22,7 +22,7 @@ export default function ForRealEstate() {
           description: 'Research shows strong pedestrian environments add 5-30% to property values, but developers lack the granular data to quantify this premium for specific sites.',
         },
       ]}
-      solutionTitle="Beyond Walk Score"
+      solutionTitle="Beyond Proximity Scores"
       solutionDescription="Our field-verified platform gives you ground-truth data that no algorithmic score can provide. Understand the actual pedestrian experience and community sentiment around your development sites."
       solutionPoints={[
         'Interactive dashboard for site comparison and portfolio monitoring',

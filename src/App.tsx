@@ -2225,7 +2225,7 @@ function App() {
                   aria-controls="faq-2-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    How is this different from WalkScore?
+                    How is this different from other walkability tools?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 2 ? '−' : '+'}
@@ -2236,7 +2236,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    SafeStreets uses <strong>real satellite data from Sentinel-2</strong> (tree canopy coverage), <strong>NASADEM elevation data</strong> (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure—features WalkScore doesn't offer. We focus on the actual physical environment that makes walking comfortable and safe. Plus, our free tier is actually free (WalkScore API costs $1,000-10,000/year).
+                    Most walkability tools only measure proximity to destinations. SafeStreets uses <strong>real satellite data from Sentinel-2</strong> (tree canopy coverage), <strong>NASADEM elevation data</strong> (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure. We focus on the actual physical environment that makes walking comfortable and safe - not just what's nearby, but whether it's safe to get there.
                   </p>
                 </div>
               </div>

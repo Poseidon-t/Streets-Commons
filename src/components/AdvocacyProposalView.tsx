@@ -458,7 +458,7 @@ export default function AdvocacyProposalView() {
                 </div>
               )}
               <p className="text-xs mt-2 italic" style={{ color: C.textLight }}>
-                {economicImpact ? 'Calculated from local demographic data' : 'Based on Walk Score & CDC research'}
+                {economicImpact ? 'Calculated from local demographic data' : 'Based on walkability research & CDC data'}
               </p>
             </div>
           </div>
