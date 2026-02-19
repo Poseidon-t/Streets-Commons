@@ -10,9 +10,10 @@ import { calculate15MinuteCityScore, type FifteenMinuteCityScore } from '../serv
 
 interface FifteenMinuteCityProps {
   location: Location;
+  osmElements?: unknown[];
 }
 
-export default function FifteenMinuteCity({ location }: FifteenMinuteCityProps) {
+export default function FifteenMinuteCity({ location, osmElements }: FifteenMinuteCityProps) {
   const [score, setScore] = useState<FifteenMinuteCityScore | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -22,7 +23,7 @@ export default function FifteenMinuteCity({ location }: FifteenMinuteCityProps) 
     setIsLoading(true);
     setError(false);
 
-    calculate15MinuteCityScore(location.lat, location.lon)
+    calculate15MinuteCityScore(location.lat, location.lon, 1200, osmElements)
       .then(result => {
         if (!cancelled) {
           setScore(result);
@@ -37,7 +38,7 @@ export default function FifteenMinuteCity({ location }: FifteenMinuteCityProps) 
       });
 
     return () => { cancelled = true; };
-  }, [location.lat, location.lon]);
+  }, [location.lat, location.lon, osmElements]);
 
   if (isLoading) {
     return (

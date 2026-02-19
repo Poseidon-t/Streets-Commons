@@ -1612,7 +1612,7 @@ function App() {
             <div id="neighborhood" className="scroll-mt-16"></div>
             <ErrorBoundary sectionName="15-Minute City">
               <Suspense fallback={null}>
-                <FifteenMinuteCity location={location} />
+                <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
               </Suspense>
             </ErrorBoundary>
 

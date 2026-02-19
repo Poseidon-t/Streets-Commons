@@ -37,30 +37,37 @@ interface ServiceAvailability {
 
 /**
  * Calculate 15-Minute City Score
+ * When prefetchedElements is provided, skips the Overpass API call entirely.
  */
 export async function calculate15MinuteCityScore(
   latitude: number,
   longitude: number,
-  radius: number = 1200 // 15-minute walk = ~1.2km
+  radius: number = 1200, // 15-minute walk = ~1.2km
+  prefetchedElements?: unknown[]
 ): Promise<FifteenMinuteCityScore> {
 
-  // Query all services in a single request to minimize API calls
-  const allServicesQuery = buildAllServicesQuery(latitude, longitude, radius);
-
   try {
-    const data = await executeOverpassQuery(allServicesQuery, {
-      maxRetries: 3,
-      timeout: 30000,
-    });
+    // Use prefetched data if available (from the main OSM query), otherwise fetch
+    let elements: unknown[];
+    if (prefetchedElements && prefetchedElements.length > 0) {
+      elements = prefetchedElements;
+    } else {
+      const allServicesQuery = buildAllServicesQuery(latitude, longitude, radius);
+      const data = await executeOverpassQuery(allServicesQuery, {
+        maxRetries: 3,
+        timeout: 30000,
+      });
+      elements = data.elements;
+    }
 
     // Parse results by category
     const serviceScores = {
-      grocery: parseServiceResults(data.elements, latitude, longitude, ['supermarket', 'convenience', 'grocery', 'greengrocer']),
-      healthcare: parseServiceResults(data.elements, latitude, longitude, ['pharmacy', 'clinic', 'doctors', 'hospital']),
-      education: parseServiceResults(data.elements, latitude, longitude, ['school', 'kindergarten', 'library']),
-      recreation: parseServiceResults(data.elements, latitude, longitude, ['park', 'playground', 'sports_centre', 'fitness_centre']),
-      transit: parseServiceResults(data.elements, latitude, longitude, ['bus_stop', 'station', 'tram_stop', 'subway_entrance', 'stop_position', 'platform']),
-      dining: parseServiceResults(data.elements, latitude, longitude, ['restaurant', 'cafe', 'fast_food', 'bar'])
+      grocery: parseServiceResults(elements, latitude, longitude, ['supermarket', 'convenience', 'grocery', 'greengrocer']),
+      healthcare: parseServiceResults(elements, latitude, longitude, ['pharmacy', 'clinic', 'doctors', 'hospital']),
+      education: parseServiceResults(elements, latitude, longitude, ['school', 'kindergarten', 'library']),
+      recreation: parseServiceResults(elements, latitude, longitude, ['park', 'playground', 'sports_centre', 'fitness_centre']),
+      transit: parseServiceResults(elements, latitude, longitude, ['bus_stop', 'station', 'tram_stop', 'subway_entrance', 'stop_position', 'platform']),
+      dining: parseServiceResults(elements, latitude, longitude, ['restaurant', 'cafe', 'fast_food', 'bar'])
     };
 
     // Calculate overall score (0-100)

@@ -70,8 +70,7 @@ const CACHE_TTL = 30 * 60 * 1000; // 30 minutes — OSM data rarely changes
 const CACHE_MAX = 1000;
 
 function getCacheKey(query) {
-  // Simple hash: use first 200 chars + length as key
-  return query.slice(0, 200) + ':' + query.length;
+  return createHash('sha256').update(query.trim()).digest('hex');
 }
 
 function getFromCache(key) {
@@ -4507,9 +4506,11 @@ if (distPath) {
     },
   }));
 
-  // SPA fallback - serve index.html for non-API routes (no cache)
+  // SPA fallback - serve index.html for non-API, non-asset routes (no cache)
+  // Assets must NOT fall through here — missing hashed assets should 404,
+  // not return index.html (which causes MIME type errors in the browser).
   app.use((req, res, next) => {
-    if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/assets/')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.sendFile(path.join(distPath, 'index.html'));
     } else {

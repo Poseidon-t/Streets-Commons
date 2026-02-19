@@ -59,8 +59,43 @@ async function queryOverpassDirect(query: string): Promise<any> {
 
 export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const radius = ANALYSIS_RADIUS;
+  const poiRadius = 1200; // 15-min walk radius for service availability
 
-  const query = `[out:json][timeout:15];(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];node(around:${radius},${lat},${lon})["amenity"];node(around:${radius},${lat},${lon})["shop"];way(around:${radius},${lat},${lon})["leisure"="park"];way(around:${radius},${lat},${lon})["leisure"="garden"];way(around:${radius},${lat},${lon})["leisure"="playground"];way(around:${radius},${lat},${lon})["leisure"="pitch"];way(around:${radius},${lat},${lon})["landuse"="forest"];way(around:${radius},${lat},${lon})["landuse"="meadow"];way(around:${radius},${lat},${lon})["landuse"="grass"];way(around:${radius},${lat},${lon})["natural"="wood"];node(around:${radius},${lat},${lon})["leisure"="park"];node(around:${radius},${lat},${lon})["leisure"="garden"];);out body; >; out skel qt;`;
+  // Split into two output groups to avoid downloading full geometry for POIs.
+  // Group 1: Streets/crossings/sidewalks — need full node geometry for length calculation.
+  // Group 2: POIs/amenities/transit — only need center coordinates (much lighter).
+  const query = `[out:json][timeout:25];
+(
+  node(around:${radius},${lat},${lon})["highway"="crossing"];
+  way(around:${radius},${lat},${lon})["footway"="sidewalk"];
+  way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];
+);
+out body; >; out skel qt;
+(
+  node(around:${poiRadius},${lat},${lon})["amenity"];
+  node(around:${poiRadius},${lat},${lon})["shop"];
+  way(around:${poiRadius},${lat},${lon})["shop"="supermarket"];
+  way(around:${poiRadius},${lat},${lon})["amenity"="school"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="park"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="garden"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="playground"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="pitch"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="sports_centre"];
+  way(around:${poiRadius},${lat},${lon})["leisure"="fitness_centre"];
+  way(around:${poiRadius},${lat},${lon})["landuse"="forest"];
+  way(around:${poiRadius},${lat},${lon})["landuse"="meadow"];
+  way(around:${poiRadius},${lat},${lon})["landuse"="grass"];
+  way(around:${poiRadius},${lat},${lon})["natural"="wood"];
+  node(around:${poiRadius},${lat},${lon})["leisure"="park"];
+  node(around:${poiRadius},${lat},${lon})["leisure"="garden"];
+  node(around:${poiRadius},${lat},${lon})["public_transport"="stop_position"];
+  node(around:${poiRadius},${lat},${lon})["public_transport"="platform"];
+  node(around:${poiRadius},${lat},${lon})["highway"="bus_stop"];
+  node(around:${poiRadius},${lat},${lon})["railway"="station"];
+  node(around:${poiRadius},${lat},${lon})["railway"="tram_stop"];
+  node(around:${poiRadius},${lat},${lon})["railway"="subway_entrance"];
+);
+out center;`;
 
   const apiUrl = import.meta.env.VITE_API_URL || '';
 
@@ -222,6 +257,7 @@ function processOSMData(data: any): OSMData {
     ),
     nodes,
     networkGraph,
+    rawElements: data.elements,
   };
 }
 

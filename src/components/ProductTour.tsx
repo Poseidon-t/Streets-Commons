@@ -152,17 +152,30 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     const vpWidth = window.innerWidth;
     const vpHeight = window.innerHeight;
 
-    // Prefer positioning below the spotlight
-    let top = spotlightRect.bottom + PADDING + margin;
-    let left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
+    let top: number;
+    let left: number;
 
-    // If below goes off-screen, position above
-    if (top + tooltipHeight > vpHeight) {
+    const spaceBelow = vpHeight - (spotlightRect.bottom + PADDING);
+    const spaceAbove = spotlightRect.top - PADDING;
+    const spaceRight = vpWidth - (spotlightRect.right + PADDING);
+
+    // If the target is tall and there's room to the right, position beside it
+    if (spaceBelow < tooltipHeight + margin && spaceAbove < tooltipHeight + margin && spaceRight >= tooltipWidth + margin) {
+      top = spotlightRect.top;
+      left = spotlightRect.right + PADDING + margin;
+    } else if (spaceBelow >= tooltipHeight + margin) {
+      // Prefer below
+      top = spotlightRect.bottom + PADDING + margin;
+      left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
+    } else {
+      // Position above
       top = spotlightRect.top - PADDING - margin - tooltipHeight;
+      left = spotlightRect.left + spotlightRect.width / 2 - tooltipWidth / 2;
     }
 
-    // If still off-screen (above), clamp to top
+    // Clamp to viewport
     if (top < margin) top = margin;
+    if (top + tooltipHeight > vpHeight - margin) top = vpHeight - margin - tooltipHeight;
 
     // Keep within horizontal bounds
     if (left < margin) left = margin;
@@ -193,11 +206,11 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
         }}
       />
 
-      {/* Tooltip */}
+      {/* Tooltip — z-10 ensures it paints above the spotlight box-shadow overlay */}
       <div
         ref={tooltipRef}
         style={getTooltipStyle()}
-        className={`bg-white ${isMobile ? 'rounded-t-2xl p-6 pb-8' : 'rounded-xl p-5'} shadow-2xl`}
+        className={`bg-white ${isMobile ? 'rounded-t-2xl p-6 pb-8' : 'rounded-xl p-5'} shadow-2xl relative z-10`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Step counter */}

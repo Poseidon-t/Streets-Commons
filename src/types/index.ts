@@ -37,6 +37,7 @@ export interface OSMData {
   pois: any[];
   nodes: Map<string, { lat: number; lon: number }>;
   networkGraph?: NetworkGraph;
+  rawElements?: any[];
 }
 
 // --- Network Graph (computed from OSM way topology) ---
