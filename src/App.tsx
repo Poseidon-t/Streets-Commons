@@ -5,7 +5,7 @@ import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
 import ActivationHandler from './components/ActivationHandler';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
-import ContactFormModal from './components/ContactFormModal';
+
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy-load heavy components (only loaded when needed)
@@ -106,7 +106,7 @@ function App() {
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [paymentPollingFailed, setPaymentPollingFailed] = useState(false);
-  const [showContactModal, setShowContactModal] = useState(false);
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
@@ -552,12 +552,6 @@ function App() {
         isOpen={showSignInModal}
         onClose={() => setShowSignInModal(false)}
         locationName={location?.displayName || ''}
-      />
-
-      {/* Contact Form Modal */}
-      <ContactFormModal
-        isOpen={showContactModal}
-        onClose={() => setShowContactModal(false)}
       />
 
       {/* Shareable Report Card Modal */}
@@ -2607,6 +2601,7 @@ function App() {
                 <a href="/enterprise" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Enterprise</a>
                 <a href="/blog" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Blog</a>
                 <a href="#faq" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>FAQ</a>
+                <a href="mailto:hello@streetsandcommons.com" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Contact</a>
               </div>
             </div>
           </div>
