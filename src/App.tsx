@@ -112,9 +112,19 @@ function App() {
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
+  const [demoNudge, setDemoNudge] = useState(false);
+  const demoNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
+
+  // Show demo upgrade nudge after using a premium feature
+  const showDemoNudge = () => {
+    if (!demoMode) return;
+    if (demoNudgeTimer.current) clearTimeout(demoNudgeTimer.current);
+    setDemoNudge(true);
+    demoNudgeTimer.current = setTimeout(() => setDemoNudge(false), 6000);
+  };
 
   // Capture UTM params on mount
   useEffect(() => { captureUTMParams(); }, []);
@@ -1665,7 +1675,7 @@ function App() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {/* Advocacy Letter */}
                       <button
-                        onClick={() => setShowLetterModal(true)}
+                        onClick={() => { setShowLetterModal(true); showDemoNudge(); }}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
@@ -1697,6 +1707,7 @@ function App() {
                           };
                           sessionStorage.setItem('advocacyProposalData', JSON.stringify(proposalData));
                           window.open('/proposal', '_blank');
+                          showDemoNudge();
                         }}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
@@ -1715,7 +1726,7 @@ function App() {
 
                       {/* Street Audit */}
                       <button
-                        onClick={() => setShowAuditTool(true)}
+                        onClick={() => { setShowAuditTool(true); showDemoNudge(); }}
                         className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
                         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
                       >
@@ -2592,6 +2603,33 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* Demo nudge toast — appears after using a premium feature in demo */}
+      {demoNudge && (
+        <div
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border animate-in"
+          style={{ backgroundColor: 'white', borderColor: '#e07850', maxWidth: '420px' }}
+        >
+          <span className="text-sm" style={{ color: '#2a3a2a' }}>
+            <strong>Like this?</strong> Get it for your own address.
+          </span>
+          <button
+            onClick={() => { setDemoNudge(false); setShowSignInModal(true); }}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap flex-shrink-0"
+            style={{ backgroundColor: '#e07850' }}
+          >
+            Unlock — $49
+          </button>
+          <button
+            onClick={() => setDemoNudge(false)}
+            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
       {/* Demo mode banner */}
       {demoMode && (
