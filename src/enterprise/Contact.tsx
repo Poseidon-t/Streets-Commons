@@ -127,9 +127,17 @@ export default function Contact() {
                 </div>
 
                 <div className="pt-6 border-t border-gray-100">
-                  <p className="text-sm text-gray-500">Or email us directly at</p>
-                  <a href="mailto:hello@safestreets.com" className="text-enterprise-navy font-medium hover:underline">
-                    hello@safestreets.com
+                  <a
+                    href="https://tidycal.com/sarathsabarish/streets-and-commons-30-min-consultation"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition text-sm"
+                  >
+                    Book a 30-Min Call
+                  </a>
+                  <p className="text-sm text-gray-500 mt-4">Or email us directly at</p>
+                  <a href="mailto:hello@streetsandcommons.com" className="text-enterprise-navy font-medium hover:underline">
+                    hello@streetsandcommons.com
                   </a>
                 </div>
               </div>
