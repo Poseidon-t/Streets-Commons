@@ -105,20 +105,13 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
 
   return (
     <>
-      {/* Dim backdrop — click to dismiss */}
-      <div
-        className="fixed inset-0 z-[60] bg-black/50"
-        onClick={onSkip}
-      />
-
-      {/* Tooltip card — pinned bottom-right (desktop) or bottom sheet (mobile) */}
+      {/* Tour card — pinned bottom-right (desktop) or bottom sheet (mobile), no overlay */}
       <div
         ref={tooltipRef}
-        className={`fixed z-[61] bg-white shadow-2xl ${
-          isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl p-6 pb-8' : 'bottom-6 right-6 w-[380px] rounded-xl p-5'
+        className={`fixed z-[60] bg-white border border-gray-200 shadow-lg ${
+          isMobile ? 'inset-x-4 bottom-4 rounded-xl p-5' : 'bottom-6 right-6 w-[380px] rounded-xl p-5'
         }`}
         style={{ animation: 'fadeInUp 0.3s ease-out' }}
-        onClick={(e) => e.stopPropagation()}
       >
         {/* Step counter */}
         <div className="flex items-center justify-between mb-3">
