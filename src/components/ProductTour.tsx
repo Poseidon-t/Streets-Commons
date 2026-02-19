@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface TourStep {
   targetSelector: string;
@@ -13,7 +13,6 @@ interface ProductTourProps {
 }
 
 const STEPS: TourStep[] = [
-  // --- Free features ---
   {
     targetSelector: '#score',
     title: 'Your Walkability Score',
@@ -29,55 +28,43 @@ const STEPS: TourStep[] = [
     title: '15-Minute City Analysis',
     description: 'Grocery stores, healthcare, transit, and essentials within walking distance.',
   },
-  // --- Premium features ---
   {
     targetSelector: '#cross-section',
-    title: 'Street Redesign Tool ✦',
+    title: 'Street Redesign Tool \u2726',
     description: 'See your street\'s cross-section and redesign it — add bike lanes, widen sidewalks, plant trees. Premium feature.',
   },
   {
     targetSelector: '#tools',
-    title: 'Advocacy Toolkit ✦',
+    title: 'Advocacy Toolkit \u2726',
     description: 'Draft letters to officials, generate formal PDF proposals, and run structured street audits — all data-backed.',
   },
   {
     targetSelector: '[aria-label="Open urbanist advocate"]',
-    title: 'Meridian AI Advisor ✦',
+    title: 'Meridian AI Advisor \u2726',
     description: 'Your urban planning assistant trained on NACTO & WHO standards. Free tier gets 6 messages — premium unlocks unlimited.',
   },
 ];
 
-const PADDING = 12;
-
 export default function ProductTour({ isActive, onComplete, onSkip }: ProductTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [spotlightRect, setSpotlightRect] = useState<DOMRect | null>(null);
+  const [ready, setReady] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const observerRef = useRef<ResizeObserver | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
 
   const step = STEPS[currentStep];
 
-  const updateSpotlight = useCallback(() => {
-    if (!step) return;
-    const el = document.querySelector(step.targetSelector);
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      setSpotlightRect(rect);
-    }
-  }, [step]);
-
-  // Scroll to target and position spotlight — skip missing targets
+  // Scroll to target, skip missing targets
   useEffect(() => {
     if (!isActive || !step) return;
+
+    setIsMobile(window.innerWidth < 640);
 
     const el = document.querySelector(step.targetSelector);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      const timer = setTimeout(updateSpotlight, 500);
+      const timer = setTimeout(() => setReady(true), 400);
       return () => clearTimeout(timer);
     } else {
-      // Target not found — skip to next step
       const timer = setTimeout(() => {
         if (currentStep < STEPS.length - 1) {
           setCurrentStep(currentStep + 1);
@@ -87,29 +74,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isActive, currentStep, step, updateSpotlight, onComplete]);
-
-  // Reposition on resize
-  useEffect(() => {
-    if (!isActive) return;
-
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 640);
-      updateSpotlight();
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    observerRef.current = new ResizeObserver(updateSpotlight);
-    const el = step ? document.querySelector(step.targetSelector) : null;
-    if (el) observerRef.current.observe(el);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      observerRef.current?.disconnect();
-    };
-  }, [isActive, step, updateSpotlight]);
+  }, [isActive, currentStep, step, onComplete]);
 
   // Escape key
   useEffect(() => {
@@ -119,9 +84,10 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
     return () => document.removeEventListener('keydown', handleKey);
   }, [isActive, onSkip]);
 
-  if (!isActive || !spotlightRect) return null;
+  if (!isActive || !ready) return null;
 
   const handleNext = () => {
+    setReady(false);
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -131,52 +97,27 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
   };
 
   const handlePrev = () => {
-    if (currentStep > 0) setCurrentStep(currentStep - 1);
-  };
-
-  // Tooltip is always pinned to bottom-right (desktop) or bottom sheet (mobile).
-  // This avoids all edge cases with tall targets, fixed headers, and viewport clipping.
-  const getTooltipStyle = (): React.CSSProperties => {
-    if (isMobile) {
-      return {
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        animation: 'slideUp 0.3s ease-out',
-      };
+    if (currentStep > 0) {
+      setReady(false);
+      setCurrentStep(currentStep - 1);
     }
-
-    return {
-      position: 'fixed',
-      bottom: 24,
-      right: 24,
-      width: 360,
-      animation: 'fadeInUp 0.3s ease-out',
-    };
   };
 
   return (
-    <div className="fixed inset-0 z-[60]" onClick={onSkip}>
-      {/* Spotlight hole (box-shadow creates the dark overlay — no separate bg needed) */}
+    <>
+      {/* Dim backdrop — click to dismiss */}
       <div
-        className="absolute rounded-xl"
-        style={{
-          top: spotlightRect.top - PADDING,
-          left: spotlightRect.left - PADDING,
-          width: spotlightRect.width + PADDING * 2,
-          height: spotlightRect.height + PADDING * 2,
-          boxShadow: '0 0 0 9999px rgba(0,0,0,0.6)',
-          animation: 'spotlight-pulse 3s ease-in-out infinite',
-          pointerEvents: 'none',
-        }}
+        className="fixed inset-0 z-[60] bg-black/50"
+        onClick={onSkip}
       />
 
-      {/* Tooltip — z-10 ensures it paints above the spotlight box-shadow overlay */}
+      {/* Tooltip card — pinned bottom-right (desktop) or bottom sheet (mobile) */}
       <div
         ref={tooltipRef}
-        style={getTooltipStyle()}
-        className={`bg-white ${isMobile ? 'rounded-t-2xl p-6 pb-8' : 'rounded-xl p-5'} shadow-2xl relative z-10`}
+        className={`fixed z-[61] bg-white shadow-2xl ${
+          isMobile ? 'inset-x-0 bottom-0 rounded-t-2xl p-6 pb-8' : 'bottom-6 right-6 w-[380px] rounded-xl p-5'
+        }`}
+        style={{ animation: 'fadeInUp 0.3s ease-out' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Step counter */}
@@ -198,8 +139,8 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
 
         {/* Content */}
         <div className="flex items-center gap-2 mb-2">
-          <h3 className="text-lg font-bold text-gray-900">{step.title.replace(' ✦', '')}</h3>
-          {step.title.includes('✦') && (
+          <h3 className="text-lg font-bold text-gray-900">{step.title.replace(' \u2726', '')}</h3>
+          {step.title.includes('\u2726') && (
             <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-terra/10 text-terra uppercase tracking-wide">Premium</span>
           )}
         </div>
@@ -231,6 +172,6 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
