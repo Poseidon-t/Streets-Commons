@@ -5,7 +5,7 @@ interface DemoBannerProps {
 
 export default function DemoBanner({ onExit, onUnlock }: DemoBannerProps) {
   return (
-    <div className="fixed top-16 left-0 right-0 z-[70] bg-gradient-to-r from-terra/90 to-terra-dark/90 backdrop-blur-sm text-white px-4 py-2.5 shadow-md">
+    <div className="fixed top-16 left-0 right-0 z-[55] bg-gradient-to-r from-terra/90 to-terra-dark/90 backdrop-blur-sm text-white px-4 py-2.5 shadow-md">
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm">
           <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />

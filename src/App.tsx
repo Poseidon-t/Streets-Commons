@@ -382,6 +382,8 @@ function App() {
   const exitDemoMode = () => {
     setDemoMode(false);
     setShowTour(false);
+    setDemoNudge(false);
+    if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; }
     setLocation(null);
     setMetrics(null);
     setCompositeScore(null);
@@ -398,6 +400,7 @@ function App() {
 
     // Clean URL
     window.history.pushState({}, '', window.location.pathname);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Start all satellite fetches immediately (called before OSM completes)
@@ -616,6 +619,12 @@ function App() {
               setCompareMode(false);
               setLocation1(null);
               setLocation2(null);
+              setDemoMode(false);
+              setShowTour(false);
+              setDemoNudge(false);
+              if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; }
+              setMobileMenuOpen(false);
+              setShowSignInModal(false);
               window.history.pushState({}, '', window.location.pathname);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -645,7 +654,7 @@ function App() {
                 Unlock — $49
               </button>
             )}
-            <a href="#faq" onClick={(e) => { if (location || compareMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
+            <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
             <a href="/enterprise" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Enterprise</a>
@@ -682,7 +691,7 @@ function App() {
           <div className="sm:hidden border-t border-earth-border bg-earth-cream px-6 py-3 space-y-2">
             <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
             <a href="/learn" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Learn</a>
-            <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); } setMobileMenuOpen(false); }}>FAQ</a>
             <a href="/enterprise" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Enterprise</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
