@@ -742,7 +742,7 @@ function App() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Satellite data for any address. Tree cover, crash history, slope, air quality & more.
+              Satellite data for any address. Tree cover, crash history, slope, sidewalks & more.
               <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
             </p>
 

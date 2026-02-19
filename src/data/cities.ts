@@ -51,7 +51,7 @@ export const CITIES: CityData[] = [
     population: 2693976,
     description: 'A grid-planned city with excellent transit (CTA), wide sidewalks, and diverse walkable neighborhoods from Lincoln Park to Hyde Park.',
     metaTitle: 'Chicago Walkability Score — Free Street Analysis | SafeStreets',
-    metaDescription: 'Get a free walkability score for any Chicago address. Analyze sidewalks, tree cover, crash data, air quality & more using satellite data.',
+    metaDescription: 'Get a free walkability score for any Chicago address. Analyze sidewalks, tree cover, crash data, slope & more using satellite data.',
   },
   {
     slug: 'boston',
@@ -135,7 +135,7 @@ export const CITIES: CityData[] = [
     population: 715522,
     description: 'The Mile High City combines a walkable downtown core with expanding light rail and growing Complete Streets initiatives across the metro area.',
     metaTitle: 'Denver Walkability Score — Free Street Analysis | SafeStreets',
-    metaDescription: 'Get a free walkability score for any Denver address. Analyze sidewalks, tree cover, crash data, air quality & more using satellite data.',
+    metaDescription: 'Get a free walkability score for any Denver address. Analyze sidewalks, tree cover, crash data, slope & more using satellite data.',
   },
   {
     slug: 'minneapolis',
