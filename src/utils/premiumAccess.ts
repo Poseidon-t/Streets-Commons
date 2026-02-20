@@ -26,22 +26,13 @@ export function storeAccessToken(token: string, tier: PremiumTier, email: string
 }
 
 /**
- * Get current access info
+ * Get current access info.
+ * Legacy localStorage tier is no longer trusted — Clerk publicMetadata
+ * is the source of truth (set by Stripe webhook). This prevents
+ * localStorage spoofing to bypass the paywall.
  */
 export function getAccessInfo(): AccessInfo {
-  const token = localStorage.getItem(TOKEN_KEY);
-  const tier = (localStorage.getItem(TIER_KEY) as PremiumTier) || 'free';
-  const email = localStorage.getItem(EMAIL_KEY);
-
-  if (!token) {
-    return { tier: 'free', email: null, isValid: false };
-  }
-
-  return {
-    tier,
-    email,
-    isValid: true,
-  };
+  return { tier: 'free', email: null, isValid: false };
 }
 
 /**

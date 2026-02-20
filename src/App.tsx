@@ -1800,7 +1800,7 @@ function App() {
             </div>
 
             {/* Street Audit Tool Overlay */}
-            {showAuditTool && location && (
+            {showAuditTool && location && effectivePremium && (
               <Suspense fallback={null}>
                 <StreetAuditTool
                   address={location.displayName}

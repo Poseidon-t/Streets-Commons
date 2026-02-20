@@ -3897,6 +3897,13 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
       console.log(`   Tier: ${tier}`);
       console.log(`   Location: ${locationName}`);
 
+      // Validate tier to prevent metadata tampering
+      const validTiers = ['advocate'];
+      if (tier && !validTiers.includes(tier)) {
+        console.error(`❌ Invalid tier in session metadata: ${tier}`);
+        return res.status(400).json({ error: 'Invalid tier in session metadata' });
+      }
+
       // Update Clerk user metadata to grant premium access
       if (userId && tier) {
         try {

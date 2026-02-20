@@ -46,7 +46,7 @@ const STEPS: TourStep[] = [
   {
     targetSelector: '[aria-label="Open urbanist advocate"]',
     title: 'Meridian AI Advisor \u2726',
-    description: 'Your urban planning assistant trained on NACTO & WHO standards. Free tier gets 6 messages — premium unlocks unlimited.',
+    description: 'Your urban planning assistant trained on NACTO & WHO standards. Free tier gets 12 messages — premium unlocks unlimited.',
   },
 ];
 
