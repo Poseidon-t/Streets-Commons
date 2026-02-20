@@ -6,6 +6,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { COLORS } from '../constants';
+import { trackEvent } from '../utils/analytics';
 import type { Location, WalkabilityMetrics, DataQuality } from '../types';
 
 interface Message {
@@ -260,6 +261,9 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
     // Persist count immediately
     persistedCount.current = newCount;
     persistChat(updatedMessages, newCount);
+
+    // Track chat engagement
+    trackEvent('chat_message', { location: location?.displayName, messageNumber: newCount });
 
     // Add empty assistant message that we'll stream into
     const assistantMessage: Message = { role: 'assistant', content: '' };

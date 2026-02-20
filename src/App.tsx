@@ -1136,6 +1136,8 @@ function App() {
                   onClick={() => setShowSavedDropdown(!showSavedDropdown)}
                   className="text-sm font-medium px-4 py-2 rounded-lg border transition-all hover:shadow-sm"
                   style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+                  aria-label="Saved addresses"
+                  aria-expanded={showSavedDropdown}
                 >
                   Saved Addresses ({savedAddressList.length}) {showSavedDropdown ? '\u25B2' : '\u25BC'}
                 </button>
@@ -1169,9 +1171,9 @@ function App() {
                             removeAddress(addr.id);
                             setSavedAddressList(getSavedAddresses());
                           }}
-                          className="text-xs px-1.5 py-0.5 rounded hover:bg-red-50"
+                          className="text-sm p-2 rounded hover:bg-red-50"
                           style={{ color: '#b0a8a0' }}
-                          title="Remove"
+                          aria-label={`Remove ${addr.displayName.split(',')[0]}`}
                         >
                           &#x2715;
                         </button>
@@ -1458,7 +1460,7 @@ function App() {
         {!compareMode && isAnalyzing && (
           <div className="flex flex-col items-center py-16">
             <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-lg text-gray-600">Analyzing walkability...</p>
+            <p className="text-lg text-gray-600" aria-live="polite">Analyzing walkability...</p>
             <p className="text-sm text-gray-500">Fetching OpenStreetMap data</p>
           </div>
         )}
