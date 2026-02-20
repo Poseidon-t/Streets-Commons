@@ -1652,6 +1652,7 @@ function App() {
             </div>
 
             {/* Share + Export */}
+            <div id="report-actions">
             <ErrorBoundary sectionName="Share Buttons">
               <Suspense fallback={null}>
                 <ShareButtons
@@ -1664,6 +1665,7 @@ function App() {
                 />
               </Suspense>
             </ErrorBoundary>
+            </div>
 
             {/* Advocacy Tools — Consolidated Section */}
             <div id="tools" className="scroll-mt-16">
@@ -1941,9 +1943,9 @@ function App() {
                           <rect x="26" y="28" width="4" height="10" fill="#4a8a4a"/>
                         </svg>
                       </div>
-                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Take Action</h3>
+                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Verify & Take Action</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Share results on social media, compare locations side-by-side, or upgrade for the Street Audit Tool, advocacy letters & proposals, and street redesign mockups.
+                        Field-verify scores based on what you actually see, download a verified PDF report, share on social media, or upgrade for advocacy tools and street redesign mockups.
                       </p>
                     </div>
                   </div>
@@ -1969,7 +1971,7 @@ function App() {
                   8 Key Metrics, Completely Free
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using real data from NASA, Sentinel-2, and OpenStreetMap.
+                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using real data from NASA, Sentinel-2, and OpenStreetMap. Then field-verify scores based on what you observe on the ground.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -2211,7 +2213,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics, compare mode, and composite scoring are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
+                    Yes! All 8 key walkability metrics, compare mode, composite scoring, and field verification mode are completely free with no sign-up required. Field verification lets you adjust any metric score based on what you actually observe and download a verified PDF report. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
                   </p>
                 </div>
               </div>
@@ -2236,7 +2238,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Most walkability tools only measure proximity to destinations. SafeStreets uses <strong>real satellite data from Sentinel-2</strong> (tree canopy coverage), <strong>NASADEM elevation data</strong> (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure. We focus on the actual physical environment that makes walking comfortable and safe - not just what's nearby, but whether it's safe to get there.
+                    Most walkability tools only measure proximity to destinations. SafeStreets uses <strong>real satellite data from Sentinel-2</strong> (tree canopy coverage), <strong>NASADEM elevation data</strong> (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure. We focus on the actual physical environment that makes walking comfortable and safe - not just what's nearby, but whether it's safe to get there. Plus, our <strong>field verification mode</strong> lets you adjust scores based on ground observations - something no other tool offers.
                   </p>
                 </div>
               </div>
@@ -2286,7 +2288,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The 8 core walkability metrics and compare mode work instantly without any account. Creating a free account gives you access to the Meridian chatbot (6 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, and data export.
+                    No! The 8 core walkability metrics, compare mode, and field verification mode work instantly without any account. You can adjust scores based on what you see on the ground and download a verified PDF report, all without signing up. Creating a free account gives you access to the Meridian chatbot (12 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, and data export.
                   </p>
                 </div>
               </div>
@@ -2311,7 +2313,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics and compare mode work without any sign-up. For advanced advocacy tools like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
+                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics, compare mode, and field verification mode work without any sign-up. You can adjust scores based on ground observation and save a verified PDF. For advanced advocacy tools like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
                   </p>
                 </div>
               </div>
@@ -2336,7 +2338,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required.
+                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required. Note: field verification mode and verified PDF reports are free for everyone — no toolkit purchase needed.
                   </p>
                 </div>
               </div>
@@ -2364,7 +2366,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use publicly available scientific and government data sources: <strong>OpenStreetMap</strong> (community-maintained street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (NASA elevation model), <strong>NASA POWER</strong> (regional temperature data), <strong>NHTSA FARS</strong> (US fatal crash locations), and <strong>WHO Global Health Observatory</strong> (country-level road traffic death rates). These are the same sources used by governments and research institutions worldwide. However, remote data has limitations — OpenStreetMap coverage varies by location, and satellite/climate data is regional, not street-level. For a complete picture, we always recommend walking the area yourself. No dataset replaces eyes on the ground.
+                    We use publicly available scientific and government data sources: <strong>OpenStreetMap</strong> (community-maintained street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (NASA elevation model), <strong>NASA POWER</strong> (regional temperature data), <strong>NHTSA FARS</strong> (US fatal crash locations), and <strong>WHO Global Health Observatory</strong> (country-level road traffic death rates). These are the same sources used by governments and research institutions worldwide. However, remote data has limitations — OpenStreetMap coverage varies by location, and satellite/climate data is regional, not street-level. That's exactly why we built <strong>field verification mode</strong>: open the full report, toggle "Field Verify," and adjust any score based on what you actually observe. Your verified report can be saved as PDF for presentations or advocacy.
                   </p>
                 </div>
               </div>
@@ -2515,7 +2517,7 @@ function App() {
                   <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#7a8a7a' }}></span>
                   <div>
                     <span className="font-semibold" style={{ color: '#e0dbd0' }}>Free Tier</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, compare mode, 15-min city, cross-section</p>
+                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, compare mode, field verification, 15-min city</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
@@ -2550,6 +2552,10 @@ function App() {
                 <li className="flex items-center gap-2">
                   <span style={{ color: '#e07850' }}>·</span>
                   Global coverage (190+ countries)
+                </li>
+                <li className="flex items-center gap-2">
+                  <span style={{ color: '#e07850' }}>·</span>
+                  Field verification & PDF export
                 </li>
                 <li className="flex items-center gap-2">
                   <span style={{ color: '#e07850' }}>·</span>

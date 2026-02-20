@@ -29,6 +29,11 @@ const STEPS: TourStep[] = [
     description: 'Grocery stores, healthcare, transit, and essentials within walking distance.',
   },
   {
+    targetSelector: '#report-actions',
+    title: 'Field Verification',
+    description: 'Adjust any metric score based on what you actually see on the ground. Add observations, recalculate the overall score, and download a verified PDF report.',
+  },
+  {
     targetSelector: '#cross-section',
     title: 'Street Redesign Tool \u2726',
     description: 'See your street\'s cross-section and redesign it — add bike lanes, widen sidewalks, plant trees. Premium feature.',
