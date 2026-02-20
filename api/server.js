@@ -365,6 +365,34 @@ app.post('/api/track', (req, res) => {
   res.status(204).end();
 });
 
+// ─── Airtable Integration ───────────────────────────────────────────────────
+
+const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID;
+
+async function pushToAirtable(fields) {
+  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) return;
+  try {
+    const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${AIRTABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ records: [{ fields }] }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.warn('Airtable push failed:', res.status, err);
+    } else {
+      console.log('Airtable: record created');
+    }
+  } catch (err) {
+    console.warn('Airtable push error:', err.message);
+  }
+}
+
 // ─── Email Capture ──────────────────────────────────────────────────────────
 
 const EMAILS_FILE = process.env.EMAILS_FILE || path.join(__dirname, '..', 'data', 'emails.json');
@@ -544,6 +572,17 @@ app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
 
   saveEmails(emailDB);
   trackEvent('email_captured', req, { source });
+
+  // Push to Airtable (non-blocking)
+  pushToAirtable({
+    Email: entry.email,
+    Source: entry.source,
+    Location: entry.locationAnalyzed || '',
+    Score: entry.score ? Number(entry.score) : null,
+    Country: entry.country || '',
+    Type: 'Email Capture',
+    'Captured At': entry.capturedAt,
+  });
 
   console.log(`📧 Email captured: ${entry.email} (${entry.source}) — ${entry.locationAnalyzed || 'no location'}`);
 
@@ -1361,7 +1400,7 @@ Write the complete blog post now. Remember: output ONLY a valid JSON object, no 
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 8000,
         temperature: 0.7,
         system: BLOG_CONTENT_SYSTEM_PROMPT,
@@ -1507,7 +1546,7 @@ Return ONLY a JSON array (no markdown code fences) with this structure:
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2000,
         temperature: 0.9,
         messages: [{ role: 'user', content: prompt }],
@@ -3998,6 +4037,16 @@ app.post('/api/contact-inquiry', contactInquiryLimiter, async (req, res) => {
   // Persist inquiry to file
   saveInquiry(inquiry);
 
+  // Push to Airtable (non-blocking)
+  pushToAirtable({
+    Email: email,
+    Source: `Contact: ${projectType}`,
+    Location: inquiry.location,
+    Type: 'Contact Inquiry',
+    Notes: `Name: ${name}\nOrg/Role: see description\nTimeline: ${inquiry.timeline}\n\n${description}`,
+    'Captured At': inquiry.submittedAt,
+  });
+
   // Send email if SMTP is configured
   const smtpHost = process.env.SMTP_HOST;
   const contactEmail = process.env.CONTACT_EMAIL;
@@ -4132,7 +4181,7 @@ INSTRUCTIONS:
   }
 });
 
-// ─── Advocacy Chatbot (Groq, streaming) ──────────────────────────────────────
+// ─── Advocacy Chatbot (Anthropic Claude, streaming) ──────────────────────────
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -4145,9 +4194,9 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
   trackEvent('chat', req);
 
   try {
-    const groqKey = process.env.GROQ_API_KEY;
-    if (!groqKey) {
-      return res.status(503).json({ error: 'Chat is not configured' });
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) {
+      return res.status(503).json({ error: 'Chat is not configured. Add ANTHROPIC_API_KEY.' });
     }
 
     const { messages, context } = req.body;
@@ -4188,13 +4237,14 @@ You think like Jane Jacobs — you believe cities belong to the people who walk 
 You are not neutral. You are an advocate for people over cars, for life over traffic, for equity over speed. But you earn that position through data, standards, and evidence — never ideology alone.
 
 VOICE & STYLE:
-- Sharp, direct, and confident. No filler. No corporate softness.
-- Thoughtful — connect the user's specific data to bigger urban truths
+- Sharp, direct, and honest. No filler. No corporate softness. No overselling what the data can tell us.
+- Thoughtful — connect the user's specific data to bigger urban truths, but always be clear about what is measured data vs general urban planning knowledge
 - Inspirational — remind people that better streets are not utopian; they exist right now in cities worldwide
-- Advocate's edge — when data reveals a failing, name it clearly. A crossing safety score of 2/10 isn't "an area for improvement" — it's a neighborhood where the street was designed to move cars, not protect people
-- Use specific numbers, standards, and comparisons. Vague advice is useless advice
+- Advocate's edge — when data reveals a failing, name it clearly, but qualify appropriately. A crossing safety score of 2/10 BASED ON OUR DATA suggests crossings may be sparse — but note whether OSM coverage could be a factor
+- Use specific numbers, standards, and comparisons. Vague advice is useless advice. But distinguish YOUR data from general benchmarks
 - Keep responses focused (2-4 paragraphs) unless the user asks for depth. Every sentence should earn its place
 - When relevant, connect to the human story: who is affected, what daily life looks like, what changes would feel like
+- Be honest about uncertainty. "Our data suggests" and "based on available mapping data" are more trustworthy than false confidence. Users respect honesty more than a chatbot that pretends to know everything
 
 INTELLECTUAL FOUNDATIONS:
 
@@ -4304,15 +4354,25 @@ ECONOMIC IMPACT:
 - Walkable cities: 20-40% lower transportation costs
 - Glaeser's insight: density and walkability are not costs — they are the source of urban wealth
 
-DATA SOURCES IN THIS TOOL:
-- Street Connectivity: OpenStreetMap road network geometry (intersection density, route directness)
-- Crosswalk Density: OpenStreetMap highway=crossing nodes within 500m radius
-- Daily Needs Access: OpenStreetMap amenity/shop/leisure POIs within 1km radius
-- Slope/Terrain: NASA SRTM 30m elevation data
-- Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution
-- Surface Temperature: NASA POWER climatological data
-- Air Quality: OpenAQ real-time monitoring (5,000+ stations, 100+ countries)
-- Heat Island: Sentinel-2 SWIR urban vs vegetated surface comparison
+DATA SOURCES & HONEST LIMITATIONS — READ THIS CAREFULLY:
+
+This tool uses two types of data with VERY different reliability levels. You MUST communicate this distinction honestly.
+
+HIGH-RELIABILITY (Satellite-based, scientifically validated):
+- Slope/Terrain: NASA SRTM 30m elevation data — consistent and accurate worldwide
+- Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution — measures actual vegetation, reliable
+- Thermal Comfort: NASA POWER surface temperature + Sentinel-2 SWIR heat island analysis — regional-level accuracy
+
+MEDIUM-TO-LOW RELIABILITY (OpenStreetMap, volunteer-contributed):
+- Crossing Safety: OSM highway=crossing nodes — depends entirely on whether local volunteers mapped crossings. A low score might mean few crossings OR just poor mapping coverage
+- Sidewalk Coverage: OSM sidewalk tags — measures ONLY whether sidewalks are TAGGED in OpenStreetMap, NOT actual sidewalk condition, width, quality, or usability. A high score means sidewalks are mapped; it says NOTHING about whether they are broken, obstructed, too narrow, or accessible. A low score might mean no sidewalks OR just that nobody mapped them
+- Traffic Speed Safety: OSM maxspeed/lanes tags — often INFERRED from road type (e.g., "residential" assumed 25mph) when actual speed data is missing. These are estimates, not measurements
+- Night Safety (Lighting): OSM lit=yes/no tags — VERY sparse coverage. In most cities, <10% of streets have lighting data. This metric is heavily inferred and should be treated as a rough estimate only
+- Daily Needs Access: OSM amenity/shop/leisure POIs — captures major destinations but misses many small businesses, informal markets, and recent openings
+
+CRITICAL: OSM coverage varies enormously by city. Well-mapped cities (e.g., Portland, Berlin, Amsterdam) have rich data. Many cities in Africa, South Asia, Southeast Asia, parts of Australia, and smaller cities worldwide have sparse, incomplete, or outdated OSM data. Scores for these places may reflect MAPPING GAPS, not actual conditions on the ground.
+
+You MUST NOT present OSM-derived scores as ground truth. Always qualify them.
 
 WHO TO CONTACT (by issue):
 - Crosswalks/signals → Transportation/Public Works, Traffic Engineering
@@ -4331,15 +4391,28 @@ ADVOCACY APPROACH — Inspired by Sadik-Khan & Lydon:
 - Provide tactical options: what can citizens do THIS WEEK vs what requires policy change
 - Remind people: every great street was once a bad one. Change is possible.
 
+ENTERPRISE AWARENESS:
+If the user asks about analyzing multiple locations, city-wide assessments, team access, API access, bulk analysis, reports for clients, planning department use, or organizational/municipal deployment — naturally mention that Streets & Commons offers an enterprise tier with custom multi-location dashboards, field audits, and dedicated support. Say something like: "For multi-location or organizational needs, Streets & Commons offers an enterprise solution — you can learn more at streetsandcommons.com/enterprise or book a consultation there." Keep it brief and natural — don't push it if the user is just asking a regular question. Only mention it when their question genuinely signals organizational or multi-site needs.
+
 CRITICAL RULES — NEVER BREAK THESE:
 1. NEVER fabricate contact info (phone, email, addresses, URLs). Say "Search your city's official website for [department]" instead.
 2. NEVER claim you can perform actions. You CANNOT send emails, submit letters, or take action outside this chat. Draft content for the user to send themselves.
 3. NEVER invent statistics beyond what's provided above or in the user's actual scores. If unsure, say so.
 4. Suggest TYPES of officials/departments — never invent specific names or contact details.
 5. Always: "Here's a draft you can send" — never "I've submitted this for you."
-6. When explaining scores, anchor to specific standards (e.g., "Your crossing safety score of 2.6/10 means crosswalks are sparse and unprotected, far below NACTO's 80-100m standard — this is a street designed for cars, not people").
+6. When explaining scores, anchor to specific standards (e.g., "Your crossing safety score of 2.6/10 means crosswalks are sparse and unprotected, far below NACTO's 80-100m standard").
 7. Be specific and actionable. Generic encouragement is not advocacy. Connect every recommendation to the user's data.
-8. Channel the thinkers: when a Jacobs insight or a Speck principle is relevant, weave it in naturally — not as decoration, but as the intellectual backbone of your answer.`;
+8. Channel the thinkers: when a Jacobs insight or a Speck principle is relevant, weave it in naturally — not as decoration, but as the intellectual backbone of your answer.
+
+HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
+9. ALWAYS distinguish between "what our tool's data shows" vs "general urban planning knowledge." NEVER present general knowledge as if it came from the user's analysis. Say "Based on your scores..." for actual data, and "Generally in urban planning..." for background knowledge.
+10. NEVER describe sidewalk condition, quality, width, accessibility, or usability. Our sidewalk metric ONLY measures whether sidewalks are tagged in OpenStreetMap. Say "Our data shows X% of streets have mapped sidewalks" — NEVER "the sidewalks in this area are good/bad/narrow/wide/broken."
+11. NEVER describe street lighting conditions as fact. Our lighting data is mostly inferred, not measured. Say "Our estimate suggests..." or "Based on limited available data..." — NEVER "this area has poor lighting" as a definitive claim.
+12. When scores seem surprisingly low or high, proactively flag that OSM mapping coverage may be a factor. Example: "This area shows low crossing data — this could mean crossings are genuinely sparse, or it may reflect limited mapping coverage in OpenStreetMap for this area."
+13. NEVER make specific claims about a location's physical infrastructure (e.g., "the sidewalks here are cracked," "this intersection lacks a signal," "there are no bike lanes on X street") unless that specific detail is in the provided analysis data. You are not a local — do not pretend to be.
+14. For cities outside well-mapped regions (North America, Western Europe, Japan, South Korea), add a brief data confidence note: "Note: OpenStreetMap coverage for [city/region] may be limited, so these scores should be interpreted as estimates rather than definitive assessments."
+15. When the user asks about something we don't measure (e.g., crime safety, ADA compliance, pavement quality, road noise), be upfront: "That's not something our tool measures. Our analysis covers [list actual metrics]. For [their question], you'd need [suggest appropriate source]."
+16. Be an honest urban planner, not a salesperson. If the data is uncertain, say so. Trust is more valuable than appearing comprehensive. An honest "we can't tell you that from our data" is always better than a confident guess.`;
 
     if (context) {
       systemPrompt += `\n\nCURRENT ANALYSIS DATA:`;
@@ -4349,15 +4422,17 @@ CRITICAL RULES — NEVER BREAK THESE:
       if (context.metrics) {
         const m = context.metrics;
         systemPrompt += `\n\nMetric Scores (0-10 scale):`;
-        if (m.crossingSafety !== undefined) systemPrompt += `\n- Crossing Safety: ${m.crossingSafety}/10`;
-        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10`;
-        if (m.speedExposure !== undefined) systemPrompt += `\n- Traffic Speed Safety: ${m.speedExposure}/10`;
-        if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10`;
-        if (m.nightSafety !== undefined) systemPrompt += `\n- Night Safety (Lighting): ${m.nightSafety}/10`;
+        systemPrompt += `\n\nSatellite-based (high confidence):`;
         if (m.slope !== undefined) systemPrompt += `\n- Terrain (Flatness): ${m.slope}/10`;
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
         if (m.thermalComfort !== undefined) systemPrompt += `\n- Thermal Comfort: ${m.thermalComfort}/10`;
-        if (m.overallScore !== undefined) systemPrompt += `\n- Overall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
+        systemPrompt += `\n\nOpenStreetMap-based (depends on local mapping coverage — interpret with caution):`;
+        if (m.crossingSafety !== undefined) systemPrompt += `\n- Crossing Safety: ${m.crossingSafety}/10 (based on mapped crossings — unmapped crossings won't appear)`;
+        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10 (measures OSM tagging ONLY — NOT actual sidewalk condition or quality)`;
+        if (m.speedExposure !== undefined) systemPrompt += `\n- Traffic Speed Safety: ${m.speedExposure}/10 (often inferred from road type, not actual speed data)`;
+        if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10 (based on mapped POIs — may miss smaller businesses)`;
+        if (m.nightSafety !== undefined) systemPrompt += `\n- Night Safety (Lighting): ${m.nightSafety}/10 (VERY limited data — mostly inferred, treat as rough estimate)`;
+        if (m.overallScore !== undefined) systemPrompt += `\n\nOverall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
         const metricEntries = [
           ['Crossing Safety', m.crossingSafety],
@@ -4377,6 +4452,9 @@ CRITICAL RULES — NEVER BREAK THESE:
       }
       if (context.dataQuality) {
         systemPrompt += `\nData confidence: ${context.dataQuality.confidence}`;
+        if (context.dataQuality.confidence === 'low') {
+          systemPrompt += `\nWARNING: Data confidence is LOW for this location. OpenStreetMap coverage may be sparse. Be extra cautious about making specific claims — clearly communicate that scores are estimates based on limited available data.`;
+        }
       }
 
       // Multi-language support
@@ -4398,18 +4476,17 @@ CRITICAL RULES — NEVER BREAK THESE:
       content: msg.content,
     }));
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqKey}`,
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...trimmedMessages,
-        ],
+        model: 'claude-sonnet-4-6',
+        system: systemPrompt,
+        messages: trimmedMessages,
         temperature: 0.6,
         max_tokens: 1500,
         stream: true,
@@ -4418,7 +4495,7 @@ CRITICAL RULES — NEVER BREAK THESE:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Groq chat error:', response.status, errorText);
+      console.error('Anthropic chat error:', response.status, errorText);
       if (response.status === 429) {
         res.write(`data: ${JSON.stringify({ error: 'rate_limited', retryAfter: 30 })}\n\n`);
       } else {
@@ -4428,27 +4505,26 @@ CRITICAL RULES — NEVER BREAK THESE:
       return;
     }
 
-    // Stream the response
+    // Stream the Anthropic response
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
-          if (data === '[DONE]') break;
-
           try {
             const parsed = JSON.parse(data);
-            const text = parsed.choices?.[0]?.delta?.content;
-            if (text) {
-              res.write(`data: ${JSON.stringify({ text })}\n\n`);
+            if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+              res.write(`data: ${JSON.stringify({ text: parsed.delta.text })}\n\n`);
             }
           } catch {
             // Skip malformed lines
