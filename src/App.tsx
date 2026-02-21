@@ -1570,6 +1570,22 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} rawData={rawMetricData} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
             </div>
 
+            {/* Share + Export — right after metrics so users can act immediately */}
+            <div id="report-actions">
+            <ErrorBoundary sectionName="Share Buttons">
+              <Suspense fallback={null}>
+                <ShareButtons
+                  location={location}
+                  metrics={metrics}
+                  dataQuality={dataQuality || undefined}
+                  isPremium={effectivePremium}
+                  crossSectionSnapshot={crossSectionSnapshot}
+                  onShareReport={() => setShowReportCard(true)}
+                />
+              </Suspense>
+            </ErrorBoundary>
+            </div>
+
             {/* Email capture banner (hidden in demo mode) */}
             {!demoMode && (
               <Suspense fallback={null}>
@@ -1619,22 +1635,6 @@ function App() {
                   <StreetCrossSection location={location} metrics={metrics} isPremium={effectivePremium} isDemoMode={demoMode} onUpgrade={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
                 </Suspense>
               </ErrorBoundary>
-            </div>
-
-            {/* Share + Export */}
-            <div id="report-actions">
-            <ErrorBoundary sectionName="Share Buttons">
-              <Suspense fallback={null}>
-                <ShareButtons
-                  location={location}
-                  metrics={metrics}
-                  dataQuality={dataQuality || undefined}
-                  isPremium={effectivePremium}
-                  crossSectionSnapshot={crossSectionSnapshot}
-                  onShareReport={() => setShowReportCard(true)}
-                />
-              </Suspense>
-            </ErrorBoundary>
             </div>
 
             {/* Advocacy Tools — Consolidated Section */}
