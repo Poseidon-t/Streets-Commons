@@ -16,6 +16,7 @@ export default {
           'text-light': '#8a9a8a',
           'text-mid': '#6a7a6a',
           'text-body': '#5a6a5a',
+          'text-muted': '#7a8a7a',
           'text-dark': '#2a3a2a',
           green: '#4a8a4a',
           'green-light': '#6aaa5a',

@@ -3,7 +3,11 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
 import './index.css'
+import { installErrorReporter } from './utils/analytics'
 import App from './App.tsx'
+
+// Install global error tracking
+installErrorReporter();
 import ReportView from './components/ReportView.tsx'
 import AdvocacyProposalView from './components/AdvocacyProposalView.tsx'
 import CityPage from './components/CityPage.tsx'
@@ -95,9 +99,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
               <div className="text-center px-6">
-                <h1 className="text-6xl font-bold mb-4" style={{ color: '#2a3a2a' }}>404</h1>
-                <p className="text-xl mb-6" style={{ color: '#5a6a5a' }}>Page not found</p>
-                <a href="/" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ backgroundColor: '#e07850' }}>
+                <h1 className="text-6xl font-bold mb-4 text-earth-text-dark">404</h1>
+                <p className="text-xl mb-6 text-earth-text-body">Page not found</p>
+                <a href="/" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg bg-terra">
                   Go to SafeStreets
                 </a>
               </div>

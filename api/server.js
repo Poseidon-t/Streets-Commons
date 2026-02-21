@@ -287,10 +287,34 @@ function trackEvent(eventType, req, extra = {}) {
 loadAnalytics();
 setInterval(saveAnalytics, 60 * 1000);
 
+// Push daily analytics summary to Airtable (survives redeployment)
+async function pushAnalyticsToAirtable() {
+  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) return;
+  const today = getToday();
+  const data = analyticsStore.daily[today];
+  if (!data || data.pageViews === 0) return;
+  try {
+    await pushToAirtable({
+      Email: `analytics-${today}@system`,
+      Source: 'Daily Analytics',
+      Type: 'Analytics Snapshot',
+      Notes: `PV:${data.pageViews} UV:${data.uniqueVisitors} Analyses:${data.analyses} Chat:${data.chatMessages} Shares:${data.shareClicks || 0} Emails:${data.emailsCaptured || 0} Payments:${data.payments} Errors:${data.clientErrors || 0}`,
+      'Captured At': new Date().toISOString(),
+    });
+    console.log('📊 Analytics snapshot pushed to Airtable');
+  } catch (err) {
+    console.warn('Analytics Airtable push failed:', err.message);
+  }
+}
+
+// Push analytics to Airtable every 6 hours
+setInterval(pushAnalyticsToAirtable, 6 * 60 * 60 * 1000);
+
 // Also save on shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('📊 Saving analytics before shutdown...');
   saveAnalytics();
+  await pushAnalyticsToAirtable();
   process.exit(0);
 });
 
@@ -591,6 +615,97 @@ app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
     : 'https://safestreets.streetsandcommons.com/';
 
   res.json({ success: true, reportUrl });
+});
+
+// ─── GDPR: Delete My Data ────────────────────────────────────────────────────
+
+const deleteDataLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 5 });
+
+app.post('/api/delete-my-data', deleteDataLimiter, async (req, res) => {
+  const { email } = req.body;
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return res.status(400).json({ error: 'Valid email address required' });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  let deletedFrom = [];
+
+  // 1. Remove from emails.json
+  try {
+    const emailDB = loadEmails();
+    const before = emailDB.emails.length;
+    emailDB.emails = emailDB.emails.filter(e => e.email.toLowerCase() !== normalizedEmail);
+    if (emailDB.emails.length < before) {
+      emailDB.count = emailDB.emails.length;
+      saveEmails(emailDB);
+      deletedFrom.push('email captures');
+    }
+  } catch (err) {
+    console.warn('GDPR: Error cleaning emails:', err.message);
+  }
+
+  // 2. Remove from inquiries.json
+  try {
+    const inquiryDB = loadInquiries();
+    const before = inquiryDB.inquiries.length;
+    inquiryDB.inquiries = inquiryDB.inquiries.filter(i => (i.email || '').toLowerCase() !== normalizedEmail);
+    if (inquiryDB.inquiries.length < before) {
+      inquiryDB.count = inquiryDB.inquiries.length;
+      const dir = path.dirname(INQUIRIES_FILE);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(inquiryDB, null, 2));
+      deletedFrom.push('contact inquiries');
+    }
+  } catch (err) {
+    console.warn('GDPR: Error cleaning inquiries:', err.message);
+  }
+
+  // 3. Request deletion from Airtable (best-effort: find and delete matching records)
+  if (AIRTABLE_API_KEY && AIRTABLE_BASE_ID && AIRTABLE_TABLE_ID) {
+    try {
+      const searchRes = await fetch(
+        `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}?filterByFormula=${encodeURIComponent(`{Email}='${normalizedEmail}'`)}`,
+        { headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+      );
+      if (searchRes.ok) {
+        const { records } = await searchRes.json();
+        for (const record of records) {
+          await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}/${record.id}`,
+            { method: 'DELETE', headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` } }
+          );
+        }
+        if (records.length > 0) deletedFrom.push('cloud database');
+      }
+    } catch (err) {
+      console.warn('GDPR: Airtable deletion error:', err.message);
+    }
+  }
+
+  console.log(`🗑️ GDPR delete: ${normalizedEmail} — removed from: ${deletedFrom.join(', ') || 'no records found'}`);
+  res.json({
+    success: true,
+    message: deletedFrom.length > 0
+      ? `Your data has been deleted from: ${deletedFrom.join(', ')}.`
+      : 'No data found associated with this email address.',
+  });
+});
+
+// ─── Client Error Tracking ──────────────────────────────────────────────────
+
+app.post('/api/error', (req, res) => {
+  const { message, stack, url, userAgent, timestamp } = req.body;
+  if (!message) return res.status(400).json({ error: 'Missing error message' });
+
+  const today = ensureTodayExists();
+  today.clientErrors = (today.clientErrors || 0) + 1;
+
+  // Log for server-side visibility
+  console.error(`🐛 Client error: ${message}`);
+  if (stack) console.error(`   Stack: ${stack.split('\n')[0]}`);
+  if (url) console.error(`   URL: ${url}`);
+
+  res.json({ received: true });
 });
 
 // ─── Public Blog API ────────────────────────────────────────────────────────
@@ -4371,8 +4486,8 @@ HIGH-RELIABILITY (Satellite-based, scientifically validated):
 - Thermal Comfort: NASA POWER surface temperature + Sentinel-2 SWIR heat island analysis — regional-level accuracy
 
 MEDIUM-TO-LOW RELIABILITY (OpenStreetMap, volunteer-contributed):
+- Sidewalk Coverage: OSM highway=footway/sidewalk tags — measures whether sidewalks are TAGGED in OSM, not actual sidewalk presence or condition. Many cities have sidewalks that simply aren't mapped. A low score might mean poor mapping, not missing sidewalks
 - Crossing Safety: OSM highway=crossing nodes — depends entirely on whether local volunteers mapped crossings. A low score might mean few crossings OR just poor mapping coverage
-- Sidewalk Coverage: OSM sidewalk tags — measures ONLY whether sidewalks are TAGGED in OpenStreetMap, NOT actual sidewalk condition, width, quality, or usability. A high score means sidewalks are mapped; it says NOTHING about whether they are broken, obstructed, too narrow, or accessible. A low score might mean no sidewalks OR just that nobody mapped them
 - Traffic Speed Safety: OSM maxspeed/lanes tags — often INFERRED from road type (e.g., "residential" assumed 25mph) when actual speed data is missing. These are estimates, not measurements
 - Night Safety (Lighting): OSM lit=yes/no tags — VERY sparse coverage. In most cities, <10% of streets have lighting data. This metric is heavily inferred and should be treated as a rough estimate only
 - Daily Needs Access: OSM amenity/shop/leisure POIs — captures major destinations but misses many small businesses, informal markets, and recent openings
@@ -4434,16 +4549,16 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
         if (m.thermalComfort !== undefined) systemPrompt += `\n- Thermal Comfort: ${m.thermalComfort}/10`;
         systemPrompt += `\n\nOpenStreetMap-based (depends on local mapping coverage — interpret with caution):`;
+        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10 (measures OSM tagging, NOT actual sidewalk presence — many real sidewalks aren't mapped)`;
         if (m.crossingSafety !== undefined) systemPrompt += `\n- Crossing Safety: ${m.crossingSafety}/10 (based on mapped crossings — unmapped crossings won't appear)`;
-        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10 (measures OSM tagging ONLY — NOT actual sidewalk condition or quality)`;
         if (m.speedExposure !== undefined) systemPrompt += `\n- Traffic Speed Safety: ${m.speedExposure}/10 (often inferred from road type, not actual speed data)`;
         if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10 (based on mapped POIs — may miss smaller businesses)`;
         if (m.nightSafety !== undefined) systemPrompt += `\n- Night Safety (Lighting): ${m.nightSafety}/10 (VERY limited data — mostly inferred, treat as rough estimate)`;
         if (m.overallScore !== undefined) systemPrompt += `\n\nOverall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
         const metricEntries = [
-          ['Crossing Safety', m.crossingSafety],
           ['Sidewalk Coverage', m.sidewalkCoverage],
+          ['Crossing Safety', m.crossingSafety],
           ['Traffic Speed Safety', m.speedExposure],
           ['Daily Needs Access', m.destinationAccess],
           ['Night Safety', m.nightSafety],

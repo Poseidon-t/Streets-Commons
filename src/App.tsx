@@ -642,8 +642,7 @@ function App() {
             {!effectivePremium && (
               <button
                 onClick={() => setShowSignInModal(true)}
-                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md"
-                style={{ backgroundColor: '#e07850', color: 'white' }}
+                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md bg-terra text-white"
               >
                 Go Premium — $49
               </button>
@@ -664,8 +663,7 @@ function App() {
             {/* Mobile hamburger menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="sm:hidden p-2 rounded-lg transition-colors"
-              style={{ color: '#5a6a5a' }}
+              className="sm:hidden p-2 rounded-lg transition-colors text-earth-text-body"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -693,8 +691,7 @@ function App() {
             {!effectivePremium && (
               <button
                 onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }}
-                className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left"
-                style={{ backgroundColor: '#e07850', color: 'white' }}
+                className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left bg-terra text-white"
               >
                 Go Premium — $49
               </button>
@@ -1049,7 +1046,7 @@ function App() {
           {/* Credibility & Data Sources - centered */}
           <div className="flex flex-col items-center px-6 pb-8">
             {/* Credibility Marker */}
-            <div className="flex items-center justify-center gap-2 mt-6 mb-4 px-4 py-2 rounded-full" style={{ backgroundColor: 'rgba(74, 138, 60, 0.08)' }}>
+            <div className="flex items-center justify-center gap-2 mt-6 mb-4 px-4 py-2 rounded-full bg-earth-green/[0.08]">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
               </svg>
@@ -1063,8 +1060,7 @@ function App() {
               {['Sentinel-2 Satellite', 'OpenStreetMap', 'NASADEM Elevation', 'GSDG Standards'].map((source) => (
                 <div
                   key={source}
-                  className="source-tag-light flex items-center gap-2 px-3 py-1.5 rounded-full"
-                  style={{ backgroundColor: 'rgba(74, 138, 60, 0.1)', border: '1px solid rgba(74, 138, 60, 0.2)' }}
+                  className="source-tag-light flex items-center gap-2 px-3 py-1.5 rounded-full bg-earth-green/10 border border-earth-green/20"
                 >
                   <div className="w-1.5 h-1.5 rounded-full bg-earth-green"/>
                   <span className="text-xs font-mono text-earth-green">
@@ -1092,15 +1088,13 @@ function App() {
                 window.history.pushState({}, '', window.location.pathname);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base"
-              style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+              className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base border-earth-border text-earth-text-dark bg-white"
             >
               Search Another Location
             </button>
             <button
               onClick={handleCompareMode}
-              className="px-4 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg text-sm sm:text-base"
-              style={{ backgroundColor: COLORS.accent }}
+              className="px-4 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg text-sm sm:text-base bg-orange-500"
             >
               Compare with Another Location
             </button>
@@ -1119,8 +1113,7 @@ function App() {
                   }
                 }}
                 disabled={savedAddressList.length >= MAX_ADDRESSES || savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)}
-                className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base disabled:opacity-40"
-                style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+                className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base disabled:opacity-40 border-earth-border text-earth-text-dark bg-white"
               >
                 {savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)
                   ? 'Saved'
@@ -1134,20 +1127,18 @@ function App() {
               <div className="relative">
                 <button
                   onClick={() => setShowSavedDropdown(!showSavedDropdown)}
-                  className="text-sm font-medium px-4 py-2 rounded-lg border transition-all hover:shadow-sm"
-                  style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+                  className="text-sm font-medium px-4 py-2 rounded-lg border transition-all hover:shadow-sm border-earth-border text-earth-text-dark bg-white"
                   aria-label="Saved addresses"
                   aria-expanded={showSavedDropdown}
                 >
                   Saved Addresses ({savedAddressList.length}) {showSavedDropdown ? '\u25B2' : '\u25BC'}
                 </button>
                 {showSavedDropdown && (
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-white rounded-xl shadow-xl border z-30 overflow-hidden" style={{ borderColor: '#e0dbd0' }}>
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-72 bg-white rounded-xl shadow-xl border border-earth-border z-30 overflow-hidden">
                     {savedAddressList.map((addr) => (
-                      <div key={addr.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 border-b last:border-0" style={{ borderColor: '#f0ebe0' }}>
+                      <div key={addr.id} className="flex items-center justify-between px-3 py-2 hover:bg-gray-50 border-b border-[#f0ebe0] last:border-0">
                         <button
-                          className="flex-1 text-left text-sm truncate mr-2"
-                          style={{ color: '#2a3a2a' }}
+                          className="flex-1 text-left text-sm truncate mr-2 text-earth-text-dark"
                           onClick={() => {
                             setShowSavedDropdown(false);
                             const savedLoc: Location = {
@@ -1160,7 +1151,7 @@ function App() {
                         >
                           <span className="font-medium">{addr.displayName.split(',')[0]}</span>
                           {addr.overallScore !== undefined && (
-                            <span className="text-xs ml-1" style={{ color: '#8a9a8a' }}>
+                            <span className="text-xs ml-1 text-earth-text-light">
                               ({addr.overallScore.toFixed(1)}/10)
                             </span>
                           )}
@@ -1171,8 +1162,7 @@ function App() {
                             removeAddress(addr.id);
                             setSavedAddressList(getSavedAddresses());
                           }}
-                          className="text-sm p-2 rounded hover:bg-red-50"
-                          style={{ color: '#b0a8a0' }}
+                          className="text-sm p-2 rounded hover:bg-red-50 text-[#b0a8a0]"
                           aria-label={`Remove ${addr.displayName.split(',')[0]}`}
                         >
                           &#x2715;
@@ -1414,8 +1404,7 @@ function App() {
                         alert('Geolocation is not supported by your browser.');
                       }
                     }}
-                    className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2"
-                    style={{ backgroundColor: COLORS.primary }}
+                    className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2 bg-terra"
                     aria-label="Use my current location"
                   >
                     <span role="img" aria-label="Location pin">📍</span>
@@ -1467,12 +1456,11 @@ function App() {
 
         {/* Analysis Error */}
         {analysisError && !isAnalyzing && (
-          <div className="max-w-md mx-auto rounded-xl p-6 text-center border" style={{ backgroundColor: 'rgba(255,255,255,0.9)', borderColor: '#e0dbd0' }}>
-            <p className="text-sm font-medium mb-3" style={{ color: '#c03030' }}>{analysisError}</p>
+          <div className="max-w-md mx-auto rounded-xl p-6 text-center border bg-white/90 border-earth-border">
+            <p className="text-sm font-medium mb-3 text-red-700">{analysisError}</p>
             <button
               onClick={() => setAnalysisError(null)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ backgroundColor: '#e07850' }}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-terra"
             >
               Try Again
             </button>
@@ -1483,12 +1471,12 @@ function App() {
         {!compareMode && location && metrics && !isAnalyzing && (
           <div className={`space-y-6 ${demoMode ? 'pt-12' : ''}`}>
             {/* Location name */}
-            <h2 className="text-2xl font-bold text-center" style={{ color: '#2a3a2a' }}>
+            <h2 className="text-2xl font-bold text-center text-earth-text-dark">
               {location.displayName}
             </h2>
 
             {/* Section Navigation */}
-            <nav className="sticky top-0 z-10 -mx-6 px-6 py-2 backdrop-blur-md" style={{ backgroundColor: 'rgba(248,246,241,0.85)' }}>
+            <nav className="sticky top-0 z-10 -mx-6 px-6 py-2 backdrop-blur-md bg-earth-cream/85">
               <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                 {[
                   { id: 'score', label: 'Score' },
@@ -1502,24 +1490,21 @@ function App() {
                     key={s.id}
                     href={`#${s.id}`}
                     onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                    className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80"
-                    style={{ backgroundColor: '#e0dbd0', color: '#2a3a2a' }}
+                    className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 bg-earth-border text-earth-text-dark"
                   >
                     {s.label}
                   </a>
                 ))}
                 <button
                   onClick={() => setShowTour(true)}
-                  className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ml-auto"
-                  style={{ color: '#e07850' }}
+                  className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ml-auto text-terra"
                 >
                   Take a Tour
                 </button>
                 {!effectivePremium && (
                   <button
                     onClick={() => setShowSignInModal(true)}
-                    className="px-3 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:shadow-md"
-                    style={{ backgroundColor: '#e07850', color: 'white' }}
+                    className="px-3 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:shadow-md bg-terra text-white"
                   >
                     Upgrade — $49
                   </button>
@@ -1535,7 +1520,7 @@ function App() {
 
             {/* Compact data quality badge */}
             {dataQuality && (
-              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs" style={{ color: '#8a9a8a' }}>
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-earth-text-light">
                 <span className="flex items-center gap-1.5">
                   Data Quality:
                   <span className={`px-2 py-0.5 rounded font-bold ${
@@ -1554,16 +1539,15 @@ function App() {
             {/* Meridian philosophy quote */}
             {meridianQuote && (
               <div
-                className="flex items-center gap-3 px-4 py-3 rounded-xl border animate-[fadeInUp_0.4s_ease-out]"
-                style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl border animate-[fadeInUp_0.4s_ease-out] border-earth-border bg-[#faf8f5]"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs italic" style={{ color: '#5a6a5a' }}>
+                  <p className="text-xs italic text-earth-text-body">
                     &ldquo;{meridianQuote.text}&rdquo;
                   </p>
-                  <p className="text-[10px] mt-0.5 flex items-center gap-2" style={{ color: '#8a9a8a' }}>
+                  <p className="text-[10px] mt-0.5 flex items-center gap-2 text-earth-text-light">
                     <span>&mdash; {meridianQuote.author}</span>
-                    <span className="inline-flex items-center gap-1 font-medium" style={{ color: '#2a3a2a' }}>
+                    <span className="inline-flex items-center gap-1 font-medium text-earth-text-dark">
                       via Meridian
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -1624,20 +1608,18 @@ function App() {
             {/* Mid-page upgrade nudge (free users only) */}
             {!effectivePremium && (
               <div
-                className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-xl border-2"
-                style={{ borderColor: '#e07850', backgroundColor: 'rgba(224,120,80,0.06)' }}
+                className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-xl border-2 border-terra bg-terra/[0.06]"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">&#x1F4DD;</span>
-                  <span style={{ color: '#2a3a2a' }}>
+                  <span className="text-earth-text-dark">
                     <strong className="text-base">Turn this data into action</strong>
-                    <span className="text-sm block sm:inline" style={{ color: '#5a6a5a' }}> — advocacy letters, street redesign mockups, PDF proposals & more</span>
+                    <span className="text-sm block sm:inline text-earth-text-body"> — advocacy letters, street redesign mockups, PDF proposals & more</span>
                   </span>
                 </div>
                 <button
                   onClick={() => setShowSignInModal(true)}
-                  className="px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all hover:shadow-lg whitespace-nowrap flex-shrink-0"
-                  style={{ backgroundColor: '#e07850' }}
+                  className="px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all hover:shadow-lg whitespace-nowrap flex-shrink-0 bg-terra"
                 >
                   Unlock Toolkit — $49
                 </button>
@@ -1673,20 +1655,19 @@ function App() {
             <div id="tools" className="scroll-mt-16">
               {effectivePremium ? (
                 /* Paid users: tool grid */
-                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
+                <div className="rounded-2xl border-2 overflow-hidden border-earth-border bg-white/90">
                   <div className="px-6 py-6 sm:px-8">
-                    <h3 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>Advocacy Tools</h3>
-                    <p className="text-sm mb-5" style={{ color: '#5a6a5a' }}>
+                    <h3 className="text-lg font-bold mb-1 text-earth-text-dark">Advocacy Tools</h3>
+                    <p className="text-sm mb-5 text-earth-text-body">
                       Professional tools to advocate for safer, more walkable streets.
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {/* Advocacy Letter */}
                       <button
                         onClick={() => { setShowLetterModal(true); showDemoNudge(); }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
-                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
                       >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                             <polyline points="14 2 14 8 20 8" />
@@ -1695,8 +1676,8 @@ function App() {
                           </svg>
                         </div>
                         <div>
-                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Advocacy Letter</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Draft data-backed letters to city council or local officials</span>
+                          <span className="text-sm font-bold block text-earth-text-dark">Advocacy Letter</span>
+                          <span className="text-xs text-earth-text-light">Draft data-backed letters to city council or local officials</span>
                         </div>
                       </button>
 
@@ -1716,36 +1697,34 @@ function App() {
                           window.open('/proposal', '_blank');
                           showDemoNudge();
                         }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
-                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
                       >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                             <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                           </svg>
                         </div>
                         <div>
-                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Proposal</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Professional PDF with scores, equity data & recommendations</span>
+                          <span className="text-sm font-bold block text-earth-text-dark">Proposal</span>
+                          <span className="text-xs text-earth-text-light">Professional PDF with scores, equity data & recommendations</span>
                         </div>
                       </button>
 
                       {/* Street Audit */}
                       <button
                         onClick={() => { setShowAuditTool(true); showDemoNudge(); }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer"
-                        style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
                       >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'rgba(224,120,80,0.1)' }}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M9 11l3 3L22 4" />
                             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                           </svg>
                         </div>
                         <div>
-                          <span className="text-sm font-bold block" style={{ color: '#2a3a2a' }}>Street Audit</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>Walk & document issues — missing crosswalks, broken sidewalks, poor lighting</span>
+                          <span className="text-sm font-bold block text-earth-text-dark">Street Audit</span>
+                          <span className="text-xs text-earth-text-light">Walk & document issues — missing crosswalks, broken sidewalks, poor lighting</span>
                         </div>
                       </button>
                     </div>
@@ -1753,14 +1732,14 @@ function App() {
                 </div>
               ) : (
                 /* Free users: compact upgrade banner */
-                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}>
+                <div className="rounded-2xl border-2 overflow-hidden border-earth-border bg-[#faf8f5]">
                   <div className="px-6 py-6 sm:px-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                       <div>
-                        <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Advocacy Toolkit</h3>
-                        <p className="text-sm mt-0.5" style={{ color: '#8a9a8a' }}>One-time payment, no subscription</p>
+                        <h3 className="text-lg font-bold text-earth-text-dark">Advocacy Toolkit</h3>
+                        <p className="text-sm mt-0.5 text-earth-text-light">One-time payment, no subscription</p>
                       </div>
-                      <div className="text-2xl font-bold" style={{ color: '#e07850' }}>$49</div>
+                      <div className="text-2xl font-bold text-terra">$49</div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
                       {[
@@ -1771,11 +1750,11 @@ function App() {
                         { name: 'Meridian Chatbot', desc: 'Urbanism assistant trained on NACTO, WHO, and global street design standards. Unlimited messages.' },
                         { name: 'Export & Save', desc: 'Download PDF reports and raw JSON data. Save up to 10 addresses for tracking.' },
                       ].map((f) => (
-                        <div key={f.name} className="flex items-start gap-2.5 p-3 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.7)' }}>
-                          <span className="mt-0.5 flex-shrink-0" style={{ color: '#22c55e' }}>&#x2713;</span>
+                        <div key={f.name} className="flex items-start gap-2.5 p-3 rounded-lg bg-white/70">
+                          <span className="mt-0.5 flex-shrink-0 text-green-500">&#x2713;</span>
                           <div>
-                            <span className="text-xs font-semibold block" style={{ color: '#2a3a2a' }}>{f.name}</span>
-                            <span className="text-[11px] leading-snug block mt-0.5" style={{ color: '#8a9a8a' }}>{f.desc}</span>
+                            <span className="text-xs font-semibold block text-earth-text-dark">{f.name}</span>
+                            <span className="text-[11px] leading-snug block mt-0.5 text-earth-text-light">{f.desc}</span>
                           </div>
                         </div>
                       ))}
@@ -1783,15 +1762,13 @@ function App() {
                     <div className="flex flex-wrap gap-3">
                       <button
                         onClick={() => setShowSignInModal(true)}
-                        className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none"
-                        style={{ backgroundColor: '#e07850' }}
+                        className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none bg-terra"
                       >
                         Unlock Advocacy Toolkit
                       </button>
                       <a
                         href="/enterprise"
-                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md border-2 text-center inline-block"
-                        style={{ borderColor: '#1E40AF', color: '#1E40AF', backgroundColor: 'transparent' }}
+                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md border-2 text-center inline-block border-enterprise-navy text-enterprise-navy bg-transparent"
                       >
                         Enterprise Intelligence &rarr;
                       </a>
@@ -1815,12 +1792,12 @@ function App() {
             )}
 
             {/* --- Tier 4: Reference --- */}
-            <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)', borderColor: '#c8d8c8' }}>
+            <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">
               <button
                 onClick={() => setShowMethodology(!showMethodology)}
                 className="w-full flex items-center justify-between px-8 py-5 transition hover:opacity-80"
               >
-                <h3 className="text-xl font-bold" style={{ color: '#2a3a2a' }}>
+                <h3 className="text-xl font-bold text-earth-text-dark">
                   How This Analysis Works
                 </h3>
                 <span className="text-2xl text-gray-500" aria-hidden="true">
@@ -1829,22 +1806,22 @@ function App() {
               </button>
               {showMethodology && (
                 <div className="px-8 pb-8">
-                  <div className="space-y-3 text-sm" style={{ color: '#3a4a3a' }}>
+                  <div className="space-y-3 text-sm text-[#3a4a3a]">
                     <div>
                       <strong className="block mb-1">8 Verified Metrics</strong>
-                      <p style={{ color: '#4a5a4a' }}>We analyze crossing safety, sidewalk coverage, traffic speed exposure, daily destinations, street lighting, terrain slope, tree canopy, and thermal comfort using real data from OpenStreetMap, NASA POWER, and Sentinel-2 satellite imagery.</p>
+                      <p className="text-[#4a5a4a]">We analyze crossing safety, sidewalk coverage, traffic speed exposure, daily destinations, street lighting, terrain slope, tree canopy, and thermal comfort using real data from OpenStreetMap, NASA POWER, and Sentinel-2 satellite imagery.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Global Standards</strong>
-                      <p style={{ color: '#4a5a4a' }}>Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
+                      <p className="text-[#4a5a4a]">Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Free & Open Data</strong>
-                      <p style={{ color: '#4a5a4a' }}>All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, Sentinel-2 satellite imagery, NASADEM elevation data, NHTSA FARS crash data, and WHO health statistics.</p>
+                      <p className="text-[#4a5a4a]">All data comes from publicly available sources: OpenStreetMap community, NASA POWER meteorological data, Sentinel-2 satellite imagery, NASADEM elevation data, NHTSA FARS crash data, and WHO health statistics.</p>
                     </div>
                   </div>
-                  <div className="mt-6 p-4 rounded-lg border" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#d0dbd0' }}>
-                    <p className="text-xs" style={{ color: '#3a4a3a' }}>
+                  <div className="mt-6 p-4 rounded-lg border bg-white/60 border-[#d0dbd0]">
+                    <p className="text-xs text-[#3a4a3a]">
                       <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
                     </p>
                   </div>
@@ -1870,7 +1847,7 @@ function App() {
         {!compareMode && !location && !isAnalyzing && (
           <>
             {/* How It Works Section */}
-            <section className="py-16 relative overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
+            <section className="py-16 relative overflow-hidden bg-white/50">
               {/* Subtle background pattern */}
               <div className="absolute inset-0 opacity-[0.03]">
                 <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -1967,7 +1944,7 @@ function App() {
             </section>
 
             {/* What You Get - Free Tier Features */}
-            <section className="py-16" style={{ backgroundColor: 'rgba(238, 245, 240, 0.6)' }}>
+            <section className="py-16 bg-earth-sage/60">
               <div className="max-w-5xl mx-auto px-6">
                 <h2 className="text-3xl font-bold text-center mb-4 text-earth-text-dark">
                   8 Key Metrics, Completely Free
@@ -2020,9 +1997,8 @@ function App() {
                       <svg viewBox="0 0 64 64" className="w-10 h-10">
                         <rect x="8" y="44" width="48" height="12" fill="#3b82f6" opacity="0.15" rx="2"/>
                         <rect x="8" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
-                        <rect x="44" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
-                        <path d="M14 44 L14 20" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M50 44 L50 20" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round"/>
+                        <rect x="22" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
+                        <rect x="36" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
                         <circle cx="14" cy="16" r="3" fill="#1e293b"/>
                         <path d="M14 19 L14 28 M11 23 L17 23 M14 28 L11 34 M14 28 L17 34" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
                         <circle cx="50" cy="16" r="3" fill="#1e293b"/>
@@ -2161,7 +2137,7 @@ function App() {
             >
               <div className="px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#34D399' }}>
+                  <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-enterprise-green-light">
                     For Governments, Developers & Organizations
                   </p>
                   <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
@@ -2173,8 +2149,7 @@ function App() {
                 </div>
                 <div className="flex-shrink-0 flex flex-col items-center gap-2">
                   <span
-                    className="px-8 py-3.5 rounded-lg font-semibold text-white transition group-hover:shadow-lg"
-                    style={{ backgroundColor: '#10B981' }}
+                    className="px-8 py-3.5 rounded-lg font-semibold text-white transition group-hover:shadow-lg bg-enterprise-green"
                   >
                     Explore Enterprise &rarr;
                   </span>
@@ -2188,7 +2163,7 @@ function App() {
 
       {/* FAQ Section - Only show when no analysis is displayed */}
       {!compareMode && !location && !isAnalyzing && (
-        <section id="faq" className="py-12" style={{ backgroundColor: 'rgba(255,255,255,0.4)' }}>
+        <section id="faq" className="py-12 bg-white/40">
           <div className="max-w-4xl mx-auto px-6">
             <h2 className="text-3xl font-bold text-center mb-10 text-earth-text-dark">
               Frequently Asked Questions
@@ -2196,7 +2171,7 @@ function App() {
 
             <div className="space-y-3">
               {/* FAQ 1 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 1 ? null : 1)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2221,7 +2196,7 @@ function App() {
               </div>
 
               {/* FAQ 2 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2246,7 +2221,7 @@ function App() {
               </div>
 
               {/* FAQ 3 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2271,7 +2246,7 @@ function App() {
               </div>
 
               {/* FAQ 4 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 4 ? null : 4)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2296,7 +2271,7 @@ function App() {
               </div>
 
               {/* FAQ 5 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 5 ? null : 5)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2321,7 +2296,7 @@ function App() {
               </div>
 
               {/* FAQ 6 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 6 ? null : 6)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2349,7 +2324,7 @@ function App() {
               {showAllFaqs && (
               <>
               {/* FAQ 7 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 7 ? null : 7)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2374,7 +2349,7 @@ function App() {
               </div>
 
               {/* FAQ 8 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 8 ? null : 8)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2399,7 +2374,7 @@ function App() {
               </div>
 
               {/* FAQ 9 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 9 ? null : 9)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2424,7 +2399,7 @@ function App() {
               </div>
 
               {/* FAQ 10 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 10 ? null : 10)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2449,7 +2424,7 @@ function App() {
               </div>
 
               {/* FAQ 11 */}
-              <div className="rounded-lg border overflow-hidden" style={{ backgroundColor: 'rgba(255,255,255,0.6)', borderColor: '#e0dbd0' }}>
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
                   onClick={() => setOpenFaq(openFaq === 11 ? null : 11)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -2502,38 +2477,38 @@ function App() {
                 </svg>
                 <h3 className="text-xl font-bold text-terra">SafeStreets</h3>
               </div>
-              <p className="text-sm mb-4 leading-relaxed" style={{ color: '#8a9a8a' }}>
+              <p className="text-sm mb-4 leading-relaxed text-earth-text-light">
                 Satellite-powered walkability analysis. Analyze street infrastructure, terrain, and environmental conditions anywhere on Earth.
               </p>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs" style={{ backgroundColor: 'rgba(74, 138, 60, 0.15)', border: '1px solid rgba(74, 138, 60, 0.25)', color: '#6aaa5a' }}>
-                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#6aaa5a' }}></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-earth-green/[0.15] border border-earth-green/25 text-earth-green-light">
+                <span className="w-1.5 h-1.5 rounded-full bg-earth-green-light"></span>
                 100% free · No sign-up required
               </div>
             </div>
 
             {/* Pricing Column */}
             <div id="pricing">
-              <h4 className="font-bold mb-4" style={{ color: '#e0dbd0' }}>Pricing</h4>
+              <h4 className="font-bold mb-4 text-earth-border">Pricing</h4>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#7a8a7a' }}></span>
+                  <span className="w-2 h-2 rounded-full mt-1.5 bg-earth-text-muted"></span>
                   <div>
-                    <span className="font-semibold" style={{ color: '#e0dbd0' }}>Free Tier</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>8 metrics, compare mode, field verification, 15-min city</p>
+                    <span className="font-semibold text-earth-border">Free Tier</span>
+                    <p className="text-xs text-earth-text-muted">8 metrics, compare mode, field verification, 15-min city</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#e07850' }}></span>
+                  <span className="w-2 h-2 rounded-full mt-1.5 bg-terra"></span>
                   <div>
-                    <span className="font-semibold" style={{ color: '#e07850' }}>Advocacy Toolkit — $49</span>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Street audit, AI documents, redesign mockups, unlimited chatbot</p>
+                    <span className="font-semibold text-terra">Advocacy Toolkit — $49</span>
+                    <p className="text-xs text-earth-text-muted">Street audit, AI documents, redesign mockups, unlimited chatbot</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5" style={{ backgroundColor: '#1E40AF' }}></span>
+                  <span className="w-2 h-2 rounded-full mt-1.5 bg-enterprise-navy"></span>
                   <div>
-                    <a href="/enterprise" className="font-semibold transition hover:text-white" style={{ color: '#93c5fd' }}>Safety & Infrastructure Intelligence</a>
-                    <p className="text-xs" style={{ color: '#7a8a7a' }}>Dashboards, field audits & citizen advocacy from $50K</p>
+                    <a href="/enterprise" className="font-semibold transition hover:text-white text-blue-300">Safety & Infrastructure Intelligence</a>
+                    <p className="text-xs text-earth-text-muted">Dashboards, field audits & citizen advocacy from $50K</p>
                   </div>
                 </li>
               </ul>
@@ -2541,26 +2516,26 @@ function App() {
 
             {/* Features Column */}
             <div>
-              <h4 className="font-bold mb-4" style={{ color: '#e0dbd0' }}>Key Features</h4>
-              <ul className="space-y-2 text-sm" style={{ color: '#8a9a8a' }}>
+              <h4 className="font-bold mb-4 text-earth-border">Key Features</h4>
+              <ul className="space-y-2 text-sm text-earth-text-light">
                 <li className="flex items-center gap-2">
-                  <span style={{ color: '#e07850' }}>·</span>
+                  <span className="text-terra">·</span>
                   Sentinel-2 satellite (10m)
                 </li>
                 <li className="flex items-center gap-2">
-                  <span style={{ color: '#e07850' }}>·</span>
+                  <span className="text-terra">·</span>
                   NASADEM elevation (30m)
                 </li>
                 <li className="flex items-center gap-2">
-                  <span style={{ color: '#e07850' }}>·</span>
+                  <span className="text-terra">·</span>
                   Global coverage (190+ countries)
                 </li>
                 <li className="flex items-center gap-2">
-                  <span style={{ color: '#e07850' }}>·</span>
+                  <span className="text-terra">·</span>
                   Field verification & PDF export
                 </li>
                 <li className="flex items-center gap-2">
-                  <span style={{ color: '#e07850' }}>·</span>
+                  <span className="text-terra">·</span>
                   GSDG Standards compliant
                 </li>
               </ul>
@@ -2568,29 +2543,29 @@ function App() {
 
             {/* Resources Column */}
             <div>
-              <h4 className="font-bold mb-4" style={{ color: '#e0dbd0' }}>Data Sources</h4>
+              <h4 className="font-bold mb-4 text-earth-border">Data Sources</h4>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <a href="https://www.openstreetmap.org" className="transition flex items-center gap-2" style={{ color: '#8a9a8a' }} target="_blank" rel="noopener noreferrer">
-                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#5a6a5a' }}></span>
+                  <a href="https://www.openstreetmap.org" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
                     OpenStreetMap
                   </a>
                 </li>
                 <li>
-                  <a href="https://earthengine.google.com" className="transition flex items-center gap-2" style={{ color: '#8a9a8a' }} target="_blank" rel="noopener noreferrer">
-                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#5a6a5a' }}></span>
+                  <a href="https://earthengine.google.com" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
                     Google Earth Engine
                   </a>
                 </li>
                 <li>
-                  <a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_HARMONIZED" className="transition flex items-center gap-2" style={{ color: '#8a9a8a' }} target="_blank" rel="noopener noreferrer">
-                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#5a6a5a' }}></span>
+                  <a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_HARMONIZED" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
                     Sentinel-2 Satellite
                   </a>
                 </li>
                 <li>
-                  <a href="https://lpdaac.usgs.gov/products/nasadem_hgtv001/" className="transition flex items-center gap-2" style={{ color: '#8a9a8a' }} target="_blank" rel="noopener noreferrer">
-                    <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#5a6a5a' }}></span>
+                  <a href="https://lpdaac.usgs.gov/products/nasadem_hgtv001/" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
                     NASADEM Elevation
                   </a>
                 </li>
@@ -2599,17 +2574,17 @@ function App() {
           </div>
 
           {/* Bottom Bar */}
-          <div className="pt-6" style={{ borderTop: '1px solid #3a4a3a' }}>
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm" style={{ color: '#5a6a5a' }}>
+          <div className="pt-6 border-t border-[#3a4a3a]">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-earth-text-body">
               <p>© 2026 SafeStreets. All rights reserved.</p>
               <p className="text-center text-xs">
                 Built for walkable cities, inspired by Jane Jacobs
               </p>
               <div className="flex items-center gap-4">
-                <a href="/enterprise" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Enterprise</a>
-                <a href="/blog" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Blog</a>
-                <a href="#faq" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>FAQ</a>
-                <a href="mailto:hello@streetsandcommons.com" className="transition hover:text-white" style={{ color: '#7a8a7a' }}>Contact</a>
+                <a href="/enterprise" className="transition hover:text-white text-earth-text-muted">Enterprise</a>
+                <a href="/blog" className="transition hover:text-white text-earth-text-muted">Blog</a>
+                <a href="#faq" className="transition hover:text-white text-earth-text-muted">FAQ</a>
+                <a href="mailto:hello@streetsandcommons.com" className="transition hover:text-white text-earth-text-muted">Contact</a>
               </div>
             </div>
           </div>
@@ -2619,16 +2594,14 @@ function App() {
       {/* Demo nudge toast — appears after using a premium feature in demo */}
       {demoNudge && (
         <div
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border animate-in"
-          style={{ backgroundColor: 'white', borderColor: '#e07850', maxWidth: '420px' }}
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border animate-in bg-white border-terra max-w-[420px]"
         >
-          <span className="text-sm" style={{ color: '#2a3a2a' }}>
+          <span className="text-sm text-earth-text-dark">
             <strong>Like this?</strong> Get it for your own address.
           </span>
           <button
             onClick={() => { setDemoNudge(false); setShowSignInModal(true); }}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap flex-shrink-0"
-            style={{ backgroundColor: '#e07850' }}
+            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap flex-shrink-0 bg-terra"
           >
             Go Premium — $49
           </button>
