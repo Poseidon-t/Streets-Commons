@@ -333,34 +333,37 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
           </>
         )}
 
-        {/* Export — premium only */}
+        {/* PDF Report — free for all users */}
+        <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />
+        {crossSectionSnapshot && (
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={includeCrossSection}
+              onChange={(e) => setIncludeCrossSection(e.target.checked)}
+              className="w-3.5 h-3.5 rounded accent-[#e07850]"
+            />
+            <span className="text-xs" style={{ color: '#5a6a5a' }}>+ cross-section</span>
+          </label>
+        )}
+        <button
+          onClick={handleGeneratePDF}
+          className="px-3 py-2 rounded-lg font-semibold text-white hover:shadow-md transition-all text-xs"
+          style={{ backgroundColor: COLORS.primary }}
+        >
+          PDF Report
+        </button>
+
+        {/* JSON Export — premium only */}
         {isPremium && (
           <>
             <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />
-            {crossSectionSnapshot && (
-              <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={includeCrossSection}
-                  onChange={(e) => setIncludeCrossSection(e.target.checked)}
-                  className="w-3.5 h-3.5 rounded accent-[#e07850]"
-                />
-                <span className="text-xs" style={{ color: '#5a6a5a' }}>+ cross-section</span>
-              </label>
-            )}
             <button
               onClick={handleExportJSON}
               className="px-3 py-2 rounded-lg font-semibold text-white hover:shadow-md transition-all text-xs"
               style={{ backgroundColor: COLORS.accent }}
             >
               JSON
-            </button>
-            <button
-              onClick={handleGeneratePDF}
-              className="px-3 py-2 rounded-lg font-semibold text-white hover:shadow-md transition-all text-xs"
-              style={{ backgroundColor: COLORS.primary }}
-            >
-              PDF Report
             </button>
           </>
         )}

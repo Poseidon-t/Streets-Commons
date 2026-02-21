@@ -1495,20 +1495,6 @@ function App() {
                     {s.label}
                   </a>
                 ))}
-                <button
-                  onClick={() => setShowTour(true)}
-                  className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 ml-auto text-terra"
-                >
-                  Take a Tour
-                </button>
-                {!effectivePremium && (
-                  <button
-                    onClick={() => setShowSignInModal(true)}
-                    className="px-3 py-2.5 rounded-full text-xs font-bold whitespace-nowrap transition-all hover:shadow-md bg-terra text-white"
-                  >
-                    Upgrade — $49
-                  </button>
-                )}
               </div>
             </nav>
 

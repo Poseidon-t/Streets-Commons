@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500">
+  <defs>
+    <!-- Hand-drawn wobbly effect via turbulence -->
+    <filter id="sketchy" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="turbulence" baseFrequency="0.015" numOctaves="3" seed="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="sketchyLight" x="-3%" y="-3%" width="106%" height="106%">
+      <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="2" seed="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <!-- Transparent background -->
+
+  <!-- ==================== HEADER ==================== -->
+
+  <!-- Hand-drawn underline scribble -->
+  <path d="M 310,185 C 380,178 500,195 600,182 C 700,170 820,190 890,183" fill="none" stroke="#ef4444" stroke-width="3.5" opacity="0.5" filter="url(#sketchyLight)"/>
+  <path d="M 340,192 C 420,198 540,185 620,193 C 720,200 800,188 860,195" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.3" filter="url(#sketchyLight)"/>
+
+  <text x="600" y="100" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="18" fill="#94a3b8" letter-spacing="4" font-weight="600">URBAN WALKABILITY</text>
+  <text x="600" y="175" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="62" fill="#1e293b" font-weight="700">The Vicious Cycle</text>
+  <text x="600" y="225" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="19" fill="#94a3b8">Why poor walkability persists in cities</text>
+
+  <!-- ==================== HAND-DRAWN CURVED ARROWS ==================== -->
+
+  <!-- Top → Right (wobbly red) -->
+  <path d="M 720,410 C 760,430 830,480 860,540 C 880,580 885,610 878,640" fill="none" stroke="#f87171" stroke-width="4" stroke-linecap="round" filter="url(#sketchy)"/>
+  <!-- arrowhead hand-drawn -->
+  <path d="M 868,636 L 880,655 L 890,632" fill="none" stroke="#f87171" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <!-- Right → Bottom (wobbly orange) -->
+  <path d="M 870,790 C 860,840 830,890 790,930 C 760,955 730,968 700,975" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round" filter="url(#sketchy)"/>
+  <path d="M 705,965 L 688,980 L 710,985" fill="none" stroke="#fb923c" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <!-- Bottom → Left (wobbly yellow) -->
+  <path d="M 490,975 C 460,968 420,950 380,920 C 350,895 330,855 325,800" fill="none" stroke="#facc15" stroke-width="4" stroke-linecap="round" filter="url(#sketchy)"/>
+  <path d="M 335,805 L 322,785 L 315,810" fill="none" stroke="#facc15" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <!-- Left → Top (wobbly purple) -->
+  <path d="M 330,640 C 335,590 360,540 400,500 C 430,470 470,445 510,430" fill="none" stroke="#a78bfa" stroke-width="4" stroke-linecap="round" filter="url(#sketchy)"/>
+  <path d="M 505,440 L 522,422 L 500,425" fill="none" stroke="#a78bfa" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <!-- ===== NODE 1: Poor Infrastructure (Top) ===== -->
+
+  <!-- Big hand-drawn circle blob -->
+  <ellipse cx="600" cy="380" rx="135" ry="80" fill="#fef2f2" stroke="#f87171" stroke-width="3" filter="url(#sketchy)"/>
+
+  <text x="600" y="375" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="22" fill="#dc2626" font-weight="700">Poor Infrastructure</text>
+  <text x="600" y="400" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="15" fill="#9ca3af">no sidewalks, no shade, no safety</text>
+
+  <!-- ===== NODE 2: Nobody Walks (Right) ===== -->
+
+  <ellipse cx="880" cy="710" rx="135" ry="80" fill="#fff7ed" stroke="#fb923c" stroke-width="3" filter="url(#sketchy)"/>
+
+  <!-- Lone person doodle with X -->
+  <g transform="translate(838, 660)">
+    <!-- stick figure -->
+    <circle cx="22" cy="8" r="6" fill="none" stroke="#ea580c" stroke-width="2.5" filter="url(#sketchyLight)"/>
+    <line x1="22" y1="14" x2="22" y2="30" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" filter="url(#sketchyLight)"/>
+    <line x1="22" y1="30" x2="14" y2="42" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" filter="url(#sketchyLight)"/>
+    <line x1="22" y1="30" x2="30" y2="42" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" filter="url(#sketchyLight)"/>
+    <line x1="12" y1="20" x2="32" y2="20" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" filter="url(#sketchyLight)"/>
+    <!-- big X -->
+    <line x1="8" y1="5" x2="36" y2="38" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round" opacity="0.5" filter="url(#sketchyLight)"/>
+    <line x1="36" y1="5" x2="8" y2="38" stroke="#ef4444" stroke-width="3.5" stroke-linecap="round" opacity="0.5" filter="url(#sketchyLight)"/>
+  </g>
+
+  <text x="880" y="725" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="22" fill="#ea580c" font-weight="700">Nobody Walks</text>
+  <text x="880" y="750" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="15" fill="#9ca3af">it's unsafe &amp; unpleasant</text>
+
+  <!-- ===== NODE 3: "Not Our Culture" (Bottom) ===== -->
+
+  <ellipse cx="600" cy="980" rx="145" ry="80" fill="#fefce8" stroke="#facc15" stroke-width="3" filter="url(#sketchy)"/>
+
+  <!-- Speech bubble doodle -->
+  <g transform="translate(548, 928)">
+    <ellipse cx="22" cy="14" rx="22" ry="14" fill="none" stroke="#ca8a04" stroke-width="2.5" filter="url(#sketchyLight)"/>
+    <path d="M 12,27 L 8,40 L 22,28" fill="none" stroke="#ca8a04" stroke-width="2" stroke-linecap="round" filter="url(#sketchyLight)"/>
+    <text x="22" y="19" text-anchor="middle" font-family="'Comic Sans MS', cursive" font-size="13" fill="#ca8a04" font-weight="700">?!</text>
+  </g>
+
+  <text x="600" y="995" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="22" fill="#ca8a04" font-weight="700">"Not Our Culture"</text>
+  <text x="600" y="1022" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="15" fill="#9ca3af">becomes the explanation</text>
+
+  <!-- ===== NODE 4: No Investment (Left) ===== -->
+
+  <ellipse cx="320" cy="710" rx="130" ry="80" fill="#f5f3ff" stroke="#a78bfa" stroke-width="3" filter="url(#sketchy)"/>
+
+  <!-- Dollar with slash doodle -->
+  <g transform="translate(280, 660)">
+    <circle cx="22" cy="20" r="16" fill="none" stroke="#7c3aed" stroke-width="2.5" filter="url(#sketchyLight)"/>
+    <text x="22" y="27" text-anchor="middle" font-family="'Comic Sans MS', cursive" font-size="22" fill="#7c3aed" font-weight="700">$</text>
+    <line x1="8" y1="6" x2="36" y2="34" stroke="#ef4444" stroke-width="3" stroke-linecap="round" opacity="0.5" filter="url(#sketchyLight)"/>
+  </g>
+
+  <text x="320" y="725" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="22" fill="#7c3aed" font-weight="700">No Investment</text>
+  <text x="320" y="750" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="15" fill="#9ca3af">why fix what nobody uses?</text>
+
+  <!-- ==================== CENTER: BREAK THE CYCLE ==================== -->
+
+  <!-- Hand-drawn starburst / explosion shape -->
+  <path d="M 600,640 L 618,660 L 645,650 L 635,675 L 660,685 L 638,700 L 655,720 L 630,718 L 625,745 L 605,728 L 590,750 L 582,725 L 558,735 L 565,712 L 540,700 L 560,688 L 542,670 L 568,672 L 572,648 L 590,665 Z"
+    fill="#dcfce7" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" filter="url(#sketchy)"/>
+
+  <!-- Lightning bolt in center -->
+  <path d="M 604,668 L 596,692 L 608,690 L 598,718" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <text x="600" y="772" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="20" fill="#16a34a" font-weight="700">BREAK THE CYCLE</text>
+
+  <!-- Hand-drawn circle around the text -->
+  <ellipse cx="600" cy="766" rx="110" ry="20" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-dasharray="1,0" filter="url(#sketchy)" opacity="0.4"/>
+
+  <text x="600" y="800" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="16" fill="#22c55e">fix infrastructure first!</text>
+
+  <!-- Hand-drawn arrow pointing up to the starburst -->
+  <path d="M 600,830 C 598,820 602,815 600,808" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" filter="url(#sketchyLight)"/>
+  <path d="M 592,815 L 600,802 L 608,815" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#sketchyLight)"/>
+
+  <!-- ==================== BOTTOM ==================== -->
+
+  <!-- Hand-drawn wavy divider -->
+  <path d="M 200,1100 C 300,1090 400,1110 500,1095 C 600,1080 700,1105 800,1092 C 900,1080 1000,1100 1000,1095" fill="none" stroke="#e2e8f0" stroke-width="2.5" filter="url(#sketchyLight)"/>
+
+  <!-- The big question -->
+  <text x="600" y="1185" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="46" fill="#1e293b" font-weight="700">Is it culture...</text>
+  <text x="600" y="1245" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="46" fill="#1e293b" font-weight="700">or <tspan fill="#dc2626" text-decoration="underline">infrastructure</tspan>?</text>
+
+  <!-- Hand-drawn circle around "infrastructure" -->
+  <ellipse cx="690" cy="1232" rx="145" ry="28" fill="none" stroke="#ef4444" stroke-width="2.5" filter="url(#sketchy)" opacity="0.35"/>
+
+  <text x="600" y="1300" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', 'Patrick Hand', cursive" font-size="19" fill="#94a3b8">When you build it right, people walk. Every time.</text>
+
+  <!-- Fun stat doodles instead of boxes -->
+  <!-- Stat 1 -->
+  <text x="230" y="1375" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="42" fill="#16a34a" font-weight="700">300%</text>
+  <text x="230" y="1400" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">more walking with</text>
+  <text x="230" y="1420" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">sidewalks added</text>
+  <!-- hand-drawn circle -->
+  <ellipse cx="230" cy="1390" rx="85" ry="42" fill="none" stroke="#86efac" stroke-width="2" filter="url(#sketchy)" opacity="0.4"/>
+
+  <!-- Stat 2 -->
+  <text x="600" y="1375" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="42" fill="#16a34a" font-weight="700">40%</text>
+  <text x="600" y="1400" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">fewer crashes with</text>
+  <text x="600" y="1420" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">proper crossings</text>
+  <ellipse cx="600" cy="1390" rx="80" ry="42" fill="none" stroke="#86efac" stroke-width="2" filter="url(#sketchy)" opacity="0.4"/>
+
+  <!-- Stat 3 -->
+  <text x="970" y="1375" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="42" fill="#16a34a" font-weight="700">$$$</text>
+  <text x="970" y="1400" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">property values rise</text>
+  <text x="970" y="1420" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#94a3b8">in walkable areas</text>
+  <ellipse cx="970" cy="1390" rx="80" ry="42" fill="none" stroke="#86efac" stroke-width="2" filter="url(#sketchy)" opacity="0.4"/>
+
+  <!-- Footer -->
+  <text x="600" y="1478" text-anchor="middle" font-family="'Comic Sans MS', 'Marker Felt', cursive" font-size="14" fill="#cbd5e1">safestreets.streetsandcommons.com</text>
+
+</svg>
