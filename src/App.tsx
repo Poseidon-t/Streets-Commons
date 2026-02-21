@@ -742,40 +742,38 @@ function App() {
 
             {/* Search Box */}
             <div className="w-full max-w-xl mb-4">
-              <div className="flex items-center gap-3">
-                <div className="flex-1 search-box-light bg-white rounded-2xl">
-                  <AddressInput
-                    onSelect={handleLocationSelect}
-                    placeholder="Enter any address worldwide..."
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    if (navigator.geolocation) {
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const { latitude, longitude } = position.coords;
-                          handleLocationSelect({
-                            lat: latitude,
-                            lon: longitude,
-                            displayName: 'My Current Location',
-                          });
-                        },
-                        (error) => {
-                          console.error('Geolocation error:', error);
-                          alert('Unable to get your location. Please enter an address manually.');
-                        }
-                      );
-                    } else {
-                      alert('Geolocation is not supported by your browser.');
-                    }
-                  }}
-                  className="text-sm font-medium text-terra hover:text-terra/80 transition-colors whitespace-nowrap"
-                  aria-label="Use my current location"
-                >
-                  Use my location
-                </button>
+              <div className="search-box-light bg-white rounded-2xl">
+                <AddressInput
+                  onSelect={handleLocationSelect}
+                  placeholder="Enter any address worldwide..."
+                />
               </div>
+              <button
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const { latitude, longitude } = position.coords;
+                        handleLocationSelect({
+                          lat: latitude,
+                          lon: longitude,
+                          displayName: 'My Current Location',
+                        });
+                      },
+                      (error) => {
+                        console.error('Geolocation error:', error);
+                        alert('Unable to get your location. Please enter an address manually.');
+                      }
+                    );
+                  } else {
+                    alert('Geolocation is not supported by your browser.');
+                  }
+                }}
+                className="mt-2 block mx-auto text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                aria-label="Use my current location"
+              >
+                Use my location
+              </button>
             </div>
 
             <button
