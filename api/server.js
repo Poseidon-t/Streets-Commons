@@ -554,7 +554,7 @@ const emailCaptureLimiter = rateLimit({
 });
 
 app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
-  const { email, source, locationAnalyzed, lat, lon, score, utm } = req.body || {};
+  const { email, source, utm } = req.body || {};
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Invalid email address.' });
@@ -565,16 +565,11 @@ app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
 
   const entry = {
     email: email.toLowerCase().trim(),
-    source: source || 'unknown',
-    locationAnalyzed: locationAnalyzed || null,
-    coordinates: lat && lon ? { lat, lon } : null,
-    score: score || null,
+    source: source || 'newsletter',
     utm: utm && Object.keys(utm).length > 0 ? utm : null,
     country,
     ipHash,
     capturedAt: new Date().toISOString(),
-    locations: locationAnalyzed ? [locationAnalyzed] : [],
-    analysisCount: 1,
   };
 
   const emailDB = loadEmails();
@@ -582,39 +577,26 @@ app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
 
   if (existing) {
     existing.lastSeen = entry.capturedAt;
-    existing.analysisCount = (existing.analysisCount || 1) + 1;
-    if (entry.locationAnalyzed) {
-      existing.locations = existing.locations || [];
-      if (!existing.locations.includes(entry.locationAnalyzed)) {
-        existing.locations.push(entry.locationAnalyzed);
-      }
-    }
   } else {
     emailDB.emails.push(entry);
     emailDB.count = emailDB.emails.length;
   }
 
   saveEmails(emailDB);
-  trackEvent('email_captured', req, { source });
+  trackEvent('newsletter_subscribe', req, { source: entry.source });
 
   // Push to Airtable (non-blocking)
   pushToAirtable({
     Email: entry.email,
     Source: entry.source,
-    Location: entry.locationAnalyzed || '',
-    Score: entry.score ? Number(entry.score) : null,
     Country: entry.country || '',
-    Type: 'Email Capture',
+    Type: 'Newsletter',
     'Captured At': entry.capturedAt,
   });
 
-  console.log(`📧 Email captured: ${entry.email} (${entry.source}) — ${entry.locationAnalyzed || 'no location'}`);
+  console.log(`📧 Newsletter subscriber: ${entry.email} (${entry.source})`);
 
-  const reportUrl = lat && lon
-    ? `https://safestreets.streetsandcommons.com/?lat=${lat}&lon=${lon}&name=${encodeURIComponent(locationAnalyzed || '')}`
-    : 'https://safestreets.streetsandcommons.com/';
-
-  res.json({ success: true, reportUrl });
+  res.json({ success: true });
 });
 
 // ─── GDPR: Delete My Data ────────────────────────────────────────────────────

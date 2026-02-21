@@ -4,10 +4,8 @@ import { fetchEmails } from './adminApi';
 interface EmailEntry {
   email: string;
   source: string;
-  locationAnalyzed: string | null;
   utm: { utm_source?: string } | null;
   capturedAt: string;
-  analysisCount?: number;
 }
 
 export default function EmailCaptures() {
@@ -41,16 +39,16 @@ export default function EmailCaptures() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
-          Email Captures
+          Newsletter Subscribers
         </h1>
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
-      {loading && <div className="text-gray-500">Loading emails...</div>}
+      {loading && <div className="text-gray-500">Loading subscribers...</div>}
       {error && <div className="text-red-500 mb-4">Error: {error}</div>}
 
       {!loading && emails.length === 0 && (
-        <div className="text-center py-12 text-gray-400">No emails captured yet.</div>
+        <div className="text-center py-12 text-gray-400">No subscribers yet.</div>
       )}
 
       {emails.length > 0 && (
@@ -60,7 +58,6 @@ export default function EmailCaptures() {
               <tr className="border-b border-gray-200 text-left">
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Email</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Source</th>
-                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Location</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">UTM Source</th>
                 <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
               </tr>
@@ -72,9 +69,6 @@ export default function EmailCaptures() {
                     {maskEmail(entry.email)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{entry.source || '-'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-600 max-w-[180px] truncate">
-                    {entry.locationAnalyzed ? entry.locationAnalyzed.split(',')[0] : '-'}
-                  </td>
                   <td className="px-4 py-3 text-sm text-gray-600">
                     {entry.utm?.utm_source || '-'}
                   </td>

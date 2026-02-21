@@ -406,8 +406,6 @@ export default function AdvocacyChatbot({ location, metrics, dataQuality, isPrem
         body: JSON.stringify({
           email: emailInput.trim(),
           source: 'chatbot_paywall',
-          location: location.displayName,
-          overallScore: metrics.overallScore,
         }),
       });
       setEmailSubmitted(true);

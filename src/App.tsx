@@ -748,6 +748,33 @@ function App() {
                   placeholder="Enter any address worldwide..."
                 />
               </div>
+              <button
+                onClick={() => {
+                  if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                      (position) => {
+                        const { latitude, longitude } = position.coords;
+                        handleLocationSelect({
+                          lat: latitude,
+                          lon: longitude,
+                          displayName: 'My Current Location',
+                        });
+                      },
+                      (error) => {
+                        console.error('Geolocation error:', error);
+                        alert('Unable to get your location. Please enter an address manually.');
+                      }
+                    );
+                  } else {
+                    alert('Geolocation is not supported by your browser.');
+                  }
+                }}
+                className="mt-3 w-full px-5 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2 bg-terra"
+                aria-label="Use my current location"
+              >
+                <span role="img" aria-label="Location pin">📍</span>
+                <span>Use My Location</span>
+              </button>
             </div>
 
             <button
@@ -1373,41 +1400,10 @@ function App() {
               </div>
             ) : (
               <div className="mb-8">
-                <div className="flex flex-col md:flex-row gap-3 items-stretch">
-                  <div className="flex-1">
-                    <AddressInput
-                      onSelect={handleLocationSelect}
-                      placeholder="Enter any address worldwide..."
-                    />
-                  </div>
-                  <button
-                    onClick={() => {
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            const { latitude, longitude } = position.coords;
-                            handleLocationSelect({
-                              lat: latitude,
-                              lon: longitude,
-                              displayName: 'My Current Location',
-                            });
-                          },
-                          (error) => {
-                            console.error('Geolocation error:', error);
-                            alert('Unable to get your location. Please enter an address manually.');
-                          }
-                        );
-                      } else {
-                        alert('Geolocation is not supported by your browser.');
-                      }
-                    }}
-                    className="w-full md:w-auto px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2 bg-terra"
-                    aria-label="Use my current location"
-                  >
-                    <span role="img" aria-label="Location pin">📍</span>
-                    <span>Use My Location</span>
-                  </button>
-                </div>
+                <AddressInput
+                  onSelect={handleLocationSelect}
+                  placeholder="Enter any address worldwide..."
+                />
               </div>
             )}
           </>
@@ -1580,19 +1576,6 @@ function App() {
               </Suspense>
             </ErrorBoundary>
             </div>
-
-            {/* Email capture banner (hidden in demo mode) */}
-            {!demoMode && (
-              <Suspense fallback={null}>
-                <EmailCaptureBanner
-                  locationName={location.displayName}
-                  score={compositeScore ? (compositeScore.overallScore / 10).toFixed(1) : ''}
-                  lat={location.lat}
-                  lon={location.lon}
-                  userEmail={user?.primaryEmailAddress?.emailAddress}
-                />
-              </Suspense>
-            )}
 
             {/* 15-Minute City Score (free for all users) */}
             <div id="neighborhood" className="scroll-mt-16"></div>
@@ -2082,6 +2065,19 @@ function App() {
                 </div>
               </div>
             </section>
+
+            {/* Newsletter subscribe */}
+            {!demoMode && (
+              <section className="py-12">
+                <div className="max-w-2xl mx-auto px-6">
+                  <Suspense fallback={null}>
+                    <EmailCaptureBanner
+                      userEmail={user?.primaryEmailAddress?.emailAddress}
+                    />
+                  </Suspense>
+                </div>
+              </section>
+            )}
           </>
         )}
 

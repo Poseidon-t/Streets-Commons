@@ -2,24 +2,18 @@ import { useState } from 'react';
 import { getUTMParams } from '../utils/utm';
 
 interface EmailCaptureBannerProps {
-  locationName: string;
-  score: string;
-  lat: number;
-  lon: number;
   userEmail?: string | null;
 }
 
-const DISMISSED_KEY = 'safestreets_email_banner_dismissed';
-const CAPTURED_KEY = 'safestreets_email_captured';
+const DISMISSED_KEY = 'safestreets_newsletter_dismissed';
+const SUBSCRIBED_KEY = 'safestreets_newsletter_subscribed';
 
-export default function EmailCaptureBanner({
-  locationName, score, lat, lon, userEmail,
-}: EmailCaptureBannerProps) {
+export default function EmailCaptureBanner({ userEmail }: EmailCaptureBannerProps) {
   const [email, setEmail] = useState(userEmail || '');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [dismissed, setDismissed] = useState(() => {
-    try { return !!localStorage.getItem(DISMISSED_KEY) || !!localStorage.getItem(CAPTURED_KEY); } catch { return false; }
+    try { return !!localStorage.getItem(DISMISSED_KEY) || !!localStorage.getItem(SUBSCRIBED_KEY); } catch { return false; }
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +26,7 @@ export default function EmailCaptureBanner({
         style={{ borderColor: '#c6e7c0', backgroundColor: '#f0faf0' }}
       >
         <span style={{ color: '#2a6a2a' }} className="text-sm">
-          &#x2714; Report link sent! Check your inbox.
+          &#x2714; You're subscribed! We'll keep you posted on walkability updates.
         </span>
       </div>
     );
@@ -56,16 +50,14 @@ export default function EmailCaptureBanner({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
-          source: 'report_banner',
-          locationAnalyzed: locationName,
-          lat, lon, score,
+          source: 'newsletter',
           utm: Object.keys(utm).length > 0 ? utm : undefined,
         }),
       });
 
       if (res.ok) {
         setSubmitted(true);
-        try { localStorage.setItem(CAPTURED_KEY, email); } catch {}
+        try { localStorage.setItem(SUBSCRIBED_KEY, email); } catch {}
       } else {
         const data = await res.json().catch(() => ({}));
         setError(data.error || 'Something went wrong. Try again.');
@@ -88,10 +80,10 @@ export default function EmailCaptureBanner({
       style={{ borderColor: '#d0e0d8', backgroundColor: '#f5faf7' }}
     >
       <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="text-lg flex-shrink-0">&#x1F4E7;</span>
+        <span className="text-lg flex-shrink-0">&#x1F4E8;</span>
         <div className="text-sm" style={{ color: '#2a3a2a' }}>
-          <strong>Email me this report</strong>
-          <span style={{ color: '#5a6a5a' }}> — get a link to your {locationName.split(',')[0]} walkability results</span>
+          <strong>Subscribe for updates</strong>
+          <span style={{ color: '#5a6a5a' }}> — street infrastructure, walkability research &amp; urban design</span>
         </div>
       </div>
 
@@ -110,7 +102,7 @@ export default function EmailCaptureBanner({
           className="px-4 py-2 rounded-lg font-semibold text-xs text-white transition-all hover:shadow-md whitespace-nowrap disabled:opacity-60"
           style={{ backgroundColor: '#5090b0' }}
         >
-          {loading ? 'Sending...' : 'Send'}
+          {loading ? 'Subscribing...' : 'Subscribe'}
         </button>
         <button
           type="button"
