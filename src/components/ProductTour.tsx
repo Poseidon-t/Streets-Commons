@@ -34,11 +34,6 @@ const STEPS: TourStep[] = [
     description: 'Adjust any metric score based on what you actually see on the ground. Add observations, recalculate the overall score, and download a verified PDF report.',
   },
   {
-    targetSelector: '#cross-section',
-    title: 'Street Redesign Tool \u2726',
-    description: 'See your street\'s cross-section and redesign it — add bike lanes, widen sidewalks, plant trees. Premium feature.',
-  },
-  {
     targetSelector: '#tools',
     title: 'Advocacy Toolkit \u2726',
     description: 'Draft letters to officials, generate formal PDF proposals, and run structured street audits — all data-backed.',

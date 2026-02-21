@@ -11,7 +11,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-load heavy components (only loaded when needed)
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
-const StreetCrossSection = lazy(() => import('./components/StreetCrossSection'));
 const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
@@ -41,7 +40,6 @@ import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type Save
 import { COLORS } from './constants';
 import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
-import type { CrossSectionSnapshot } from './components/StreetCrossSection';
 
 interface AnalysisData {
   location: Location;
@@ -68,7 +66,6 @@ function App() {
   const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
   const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
   const [demographicLoading, setDemographicLoading] = useState(false);
-  const [crossSectionSnapshot, setCrossSectionSnapshot] = useState<CrossSectionSnapshot | null>(null);
 
   // Premium access - Clerk integration
   const { user, isSignedIn } = useUser();
@@ -1482,7 +1479,6 @@ function App() {
                   { id: 'score', label: 'Score' },
                   { id: 'metrics', label: 'Metrics' },
                   { id: 'neighborhood', label: 'Neighborhood' },
-                  { id: 'cross-section', label: 'Street' },
                   { id: 'tools', label: 'Tools' },
                   { id: 'methodology', label: 'About' },
                 ].map(s => (
@@ -1579,7 +1575,6 @@ function App() {
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
                   isPremium={effectivePremium}
-                  crossSectionSnapshot={crossSectionSnapshot}
                   onShareReport={() => setShowReportCard(true)}
                 />
               </Suspense>
@@ -1627,15 +1622,6 @@ function App() {
                 </button>
               </div>
             )}
-
-            {/* Street Cross-Section (Current = free, Recommended = premium) */}
-            <div id="cross-section" className="scroll-mt-16">
-              <ErrorBoundary sectionName="Street Cross-Section">
-                <Suspense fallback={null}>
-                  <StreetCrossSection location={location} metrics={metrics} isPremium={effectivePremium} isDemoMode={demoMode} onUpgrade={() => setShowSignInModal(true)} onConfigChange={setCrossSectionSnapshot} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
 
             {/* Advocacy Tools — Consolidated Section */}
             <div id="tools" className="scroll-mt-16">

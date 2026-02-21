@@ -107,22 +107,6 @@ export interface StreetAttributes {
   osmId?: number;
 }
 
-export type CrossSectionElementType = 'building' | 'sidewalk' | 'tree' | 'curb' | 'parking' | 'bikelane' | 'travel_lane';
-
-export interface CrossSectionElement {
-  type: CrossSectionElementType;
-  width: number;
-  label?: string;
-  isEstimated: boolean;
-}
-
-export interface CrossSectionConfig {
-  elements: CrossSectionElement[];
-  totalWidth: number;
-  streetName: string;
-  highwayType: string;
-}
-
 // --- Crash / fatality data ---
 
 /** US street-level crash data from NHTSA FARS */
