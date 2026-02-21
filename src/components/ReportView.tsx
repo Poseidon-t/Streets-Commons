@@ -39,6 +39,12 @@ export default function ReportView() {
     }
   }, [searchParams]);
 
+  // Field verification computed values (must be before early return — hooks can't be conditional)
+  const fieldOverall = useMemo(() => {
+    if (!reportData || !fieldMode) return null;
+    return recalculateScore(reportData.metrics, fieldData);
+  }, [fieldMode, reportData, fieldData]);
+
   if (!reportData) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
@@ -57,12 +63,6 @@ export default function ReportView() {
   const score = metrics.overallScore;
   const hasCrossSection = !!crossSection?.displayConfig;
   const totalPages = hasCrossSection ? 4 : 3;
-
-  // Field verification computed values
-  const fieldOverall = useMemo(() =>
-    fieldMode ? recalculateScore(metrics, fieldData) : null,
-    [fieldMode, metrics, fieldData]
-  );
 
   const hasAnyAdjustment = METRIC_KEYS.some(k => fieldData[k].adjustedScore !== null);
   const displayScore = fieldMode && fieldOverall ? fieldOverall.overallScore : score;
