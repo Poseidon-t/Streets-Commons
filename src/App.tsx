@@ -769,11 +769,11 @@ function App() {
                     alert('Geolocation is not supported by your browser.');
                   }
                 }}
-                className="mt-3 w-full px-5 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg flex items-center justify-center gap-2 bg-terra"
+                className="mt-2 text-sm font-medium text-terra hover:text-terra/80 transition-colors flex items-center justify-center gap-1.5"
                 aria-label="Use my current location"
               >
                 <span role="img" aria-label="Location pin">📍</span>
-                <span>Use My Location</span>
+                <span>Use my location</span>
               </button>
             </div>
 
