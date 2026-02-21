@@ -123,52 +123,48 @@ export default function ReportView() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Controls — Hidden when printing */}
-      <div className="print:hidden fixed top-4 right-4 z-50 flex items-center gap-3 flex-wrap justify-end">
-        <button
-          onClick={() => setFieldMode(!fieldMode)}
-          className={`px-4 py-3 font-semibold rounded-xl transition-all shadow-lg text-sm ${
-            fieldMode
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-          }`}
-        >
-          {fieldMode ? '✓ Field Verification ON' : '📋 Field Verify'}
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="px-6 py-3 bg-orange-500 text-white font-semibold rounded-xl hover:bg-orange-600 transition-all shadow-lg"
-        >
-          📄 Save as PDF
-        </button>
+      {/* Toolbar — Hidden when printing */}
+      <div className="print:hidden sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setFieldMode(!fieldMode)}
+              className={`px-4 py-2 font-semibold rounded-lg transition-all text-sm ${
+                fieldMode
+                  ? 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {fieldMode ? '✓ Field Verification ON' : 'Field Verify'}
+            </button>
+            {fieldMode && (
+              <>
+                <input
+                  type="text"
+                  placeholder="Your name (optional)"
+                  value={verifierName}
+                  onChange={(e) => setVerifierName(e.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-200 rounded-lg w-44"
+                />
+                <span className="text-xs text-gray-400 hidden sm:inline">{verificationDate}</span>
+                {hasAnyAdjustment && (
+                  <button onClick={handleResetAll} className="text-xs text-red-500 hover:text-red-700 underline">
+                    Reset All
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => window.print()}
+            className="px-5 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 transition-all text-sm"
+          >
+            Save as PDF
+          </button>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto p-12">
-
-        {/* Verifier info bar — screen version */}
-        {fieldMode && (
-          <div className="print:hidden bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex flex-wrap items-center gap-4">
-            <div>
-              <span className="text-blue-600 font-bold text-sm">📋 Field Verification Mode</span>
-              <p className="text-xs text-blue-500 mt-0.5">Adjust scores based on what you observed on the ground</p>
-            </div>
-            <div className="ml-auto flex items-center gap-3 flex-wrap">
-              <input
-                type="text"
-                placeholder="Your name (optional)"
-                value={verifierName}
-                onChange={(e) => setVerifierName(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-blue-200 rounded-lg bg-white w-48"
-              />
-              <span className="text-xs text-blue-400">{verificationDate}</span>
-              {hasAnyAdjustment && (
-                <button onClick={handleResetAll} className="text-xs text-red-500 hover:text-red-700 underline">
-                  Reset All
-                </button>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Verifier info — print version */}
         {fieldMode && hasAnyAdjustment && (
