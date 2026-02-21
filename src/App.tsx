@@ -2163,31 +2163,6 @@ function App() {
                 </div>
               </div>
 
-              {/* FAQ 2 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 2}
-                  aria-controls="faq-2-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    How is this different from other walkability tools?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 2 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-2-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    Most walkability tools only measure proximity to destinations. SafeStreets uses <strong>real satellite data from Sentinel-2</strong> (tree canopy coverage), <strong>NASADEM elevation data</strong> (terrain slope), and comprehensive OpenStreetMap analysis of street infrastructure. We focus on the actual physical environment that makes walking comfortable and safe - not just what's nearby, but whether it's safe to get there. Plus, our <strong>field verification mode</strong> lets you adjust scores based on ground observations - something no other tool offers.
-                  </p>
-                </div>
-              </div>
-
               {/* FAQ 3 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
