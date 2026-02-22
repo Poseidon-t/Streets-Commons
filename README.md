@@ -6,8 +6,18 @@
 
 **[Try it live](https://safestreets.streetsandcommons.com)** | **[Report an Issue](https://github.com/Poseidon-t/Streets-Commons/issues)**
 
-<!-- Add a GIF/screenshot here showing: address input > score output > map overlay -->
-<!-- ![SafeStreets Demo](docs/demo.gif) -->
+![SafeStreets Analysis — Map with walkability score and metric cards](docs/demo-analysis.png)
+
+<details>
+<summary>See more screenshots</summary>
+
+**Metric cards with scores:**
+![Metric cards showing Network Design, Environmental Comfort, Safety scores](docs/demo-map.png)
+
+**Landing page:**
+![SafeStreets landing page](docs/demo-landing.png)
+
+</details>
 
 ---
 
