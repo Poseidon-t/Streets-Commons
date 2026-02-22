@@ -415,4 +415,4 @@ async def analyze_sidewalk(...):
 
 ## License
 
-MIT License - see main project for details.
+AGPL-3.0 License - see main project [LICENSE](../LICENSE) for details.

@@ -18,7 +18,7 @@
     "air-quality"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
     "@clerk/clerk-sdk-node": "^4.13.23",

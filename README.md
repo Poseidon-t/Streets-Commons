@@ -1,286 +1,240 @@
-# SafeStreets — Honest Walkability Analysis
+# Is Your Street Safe to Walk?
 
-**Is your neighborhood walkable? Free tool to find out in seconds.**
+**Free, open-source walkability safety analysis for any street on Earth** — powered by NASA satellite data, Sentinel-2 imagery, and OpenStreetMap.
 
-SafeStreets provides transparent, verifiable walkability analysis using real OpenStreetMap data. No estimates, no proxies, no fake metrics — only measurements we can verify 100%.
+> Enter any address. Get an instant safety score backed by 8 verifiable metrics. No estimates, no proxies — only real data.
 
-🌐 **Live Demo**: [http://localhost:5174](http://localhost:5174)
+**[Try it live](https://safestreets.streetsandcommons.com)** | **[Report an Issue](https://github.com/Poseidon-t/Streets-Commons/issues)**
 
-## 🎯 Mission
+<!-- Add a GIF/screenshot here showing: address input > score output > map overlay -->
+<!-- ![SafeStreets Demo](docs/demo.gif) -->
 
-Transform citizens from complainers into advocates with evidence. **Data is leverage.**
+---
 
-## ✅ Current Features
+![NASA Data](https://img.shields.io/badge/NASA-POWER%20%2B%20NASADEM-blue)
+![Sentinel-2](https://img.shields.io/badge/ESA-Sentinel--2-green)
+![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-Powered-brightgreen)
+![190+ Countries](https://img.shields.io/badge/Coverage-190%2B%20Countries-orange)
+![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-purple)
+![GitHub Stars](https://img.shields.io/github/stars/Poseidon-t/Streets-Commons?style=social)
 
-### 🗺️ Interactive Map Visualization
-- Real OSM data overlays (crossings + POIs)
-- Color-coded markers by category
-- Interactive popups with details
-- 800m analysis radius visualization
-- Live legend with counts
+---
 
-### 📊 8 Verifiable Metrics
-
-| Metric | Data Source | What It Measures |
-|--------|-------------|------------------|
-| **Crossing Safety** | OSM `highway=crossing` | Crossings weighted by protection level (signalized > unmarked) |
-| **Sidewalk Coverage** | OSM `sidewalk=*` tags | % of streets with sidewalk documentation |
-| **Traffic Speed** | OSM `maxspeed` + `lanes` | Speed limit + lane count danger exposure |
-| **Destination Access** | OSM amenity/shop/leisure | Variety of destination types within 800m |
-| **Night Safety** | OSM `lit=*` tags | Street lighting coverage |
-| **Slope** | NASADEM elevation data | Terrain gradient (wheelchair accessibility) |
-| **Tree Canopy** | Sentinel-2 NDVI | Vegetation coverage (shade, cooling) |
-| **Thermal Comfort** | NASA POWER + Sentinel-2 | Surface temperature + urban heat island |
-
-Each metric card shows:
-- What it measures
-- How it's calculated (exact formula)
-- Scoring standard (10-point scale)
-- Data source (specific OSM tags)
-
-### 🔄 Compare Two Locations
-- Side-by-side analysis
-- Metric-by-metric comparison
-- Winner indicators
-- Visual difference bars
-- Perfect for advocacy
-
-### 🔗 Share & Export
-- Shareable URLs (auto-save location in URL)
-- Share to Twitter/Facebook/LinkedIn
-- Export data as JSON
-- Copy link to clipboard
-
-### 🚨 Traffic Fatality Data
-- **US addresses**: Street-level fatal crash data within 800m (NHTSA FARS, 2018-2022)
-- **International**: Country-level road traffic death rates (WHO Global Health Observatory)
-- Yearly breakdown and nearest crash info
-- Informational context — does not affect walkability score
-
-### 🎯 Data Quality Transparency
-- Actual counts (crossings, streets, sidewalks, POIs)
-- Confidence levels (high/medium/low)
-- **AI-powered sidewalk validation** using street-level imagery
-- Clear limitations section
-
-## 🚀 Quick Start
-
-### Minimal Setup (5 Metrics - No APIs Required)
+## Quick Start
 
 ```bash
-# Install dependencies
+git clone https://github.com/Poseidon-t/Streets-Commons.git
+cd Streets-Commons
 npm install
-
-# Start dev server
 npm run dev
 ```
 
-Visit [http://localhost:5174](http://localhost:5174)
+Open `http://localhost:5174` — 5 core metrics work instantly with **zero API keys**.
 
-**Metrics:** Crossing Safety, Sidewalk Coverage, Traffic Speed, Destination Access, Night Safety ✅
+For all 8 metrics + satellite data, see [Full Setup](#full-setup).
 
-### Full Setup (All 8 Metrics + AI Validation)
+---
 
-See [SETUP.md](SETUP.md) for detailed instructions.
+## What It Does
 
-**Quick summary:**
+SafeStreets analyzes any street address and produces a **walkability safety score (0-10)** based on 8 real, verifiable metrics:
+
+| Metric | Source | What It Measures |
+|--------|--------|-----------------|
+| Crossing Safety | OpenStreetMap | Crossings weighted by protection level (signalized > unmarked) |
+| Sidewalk Coverage | OpenStreetMap | % of streets with documented sidewalks |
+| Traffic Speed | OpenStreetMap | Speed limits + lane count danger exposure |
+| Destination Access | OpenStreetMap | Variety of walkable destinations within 800m |
+| Night Safety | OpenStreetMap | Street lighting coverage |
+| Slope | NASADEM | Terrain gradient affecting wheelchair accessibility |
+| Tree Canopy | Sentinel-2 NDVI | Vegetation coverage for shade and cooling |
+| Thermal Comfort | NASA POWER + Sentinel-2 | Surface temperature + urban heat island effect |
+
+**Scoring weights:** Safety 55% | Comfort 35% | Access 10%
+
+Each metric card shows exactly what it measures, how it's calculated, and where the data comes from.
+
+### Additional Features
+
+- **Compare two locations** side-by-side with metric-by-metric breakdown
+- **Traffic fatality data** — US: street-level fatal crashes (NHTSA FARS 2018-2022); International: WHO country death rates
+- **AI sidewalk validation** — computer vision detects sidewalk condition from street photos
+- **Shareable URLs** — every analysis is linkable
+- **Export** — share to social media or download data as JSON
+- **Advocacy Toolkit** ($49) — AI-generated letters to city officials with data-backed arguments, policy proposals, and budget analysis
+
+---
+
+## Architecture
+
+```
+Browser (React 19 + Vite 7)
+  |
+  |--- Nominatim (geocoding)
+  |--- Overpass API (OSM pedestrian data)
+  |--- Open-Elevation API (SRTM 30m elevation)
+  |--- OpenWeather Agro API (Sentinel-2/Landsat NDVI)
+  |--- Mapillary (street-level photos)
+  |
+Express.js API Server
+  |--- Google Earth Engine (Landsat 8/9 thermal bands)
+  |--- NASA POWER (climate normals)
+  |--- NHTSA FARS (US crash data)
+  |--- Stripe + Clerk (payments + auth)
+  |--- Anthropic/Groq/Gemini (advocacy letter AI)
+  |
+FastAPI CV Backend
+  |--- Hugging Face SegFormer (sidewalk segmentation)
+```
+
+---
+
+## Data Sources
+
+| Source | Provider | Data | Auth Required |
+|--------|----------|------|---------------|
+| [OpenStreetMap](https://www.openstreetmap.org) | OSM Community | Crossings, sidewalks, speeds, POIs, lighting | No |
+| [Nominatim](https://nominatim.org) | OSM | Geocoding (address to coordinates) | No |
+| [Open-Elevation](https://open-elevation.com) | Open Source | SRTM 30m elevation data | No |
+| [NASADEM](https://www.earthdata.nasa.gov) | NASA | Digital elevation model | No |
+| [NASA POWER](https://power.larc.nasa.gov) | NASA | Climate normals, solar radiation | No |
+| [Sentinel-2](https://sentinels.copernicus.eu) | ESA/Copernicus | NDVI vegetation index, NDBI urban index | Via OpenWeather (free key) |
+| [Landsat 8/9](https://landsat.gsfc.nasa.gov) | NASA/USGS | Thermal infrared surface temperature | Via Google Earth Engine |
+| [NHTSA FARS](https://www.nhtsa.gov/research-data/fatality-analysis-reporting-system-fars) | US DOT | Fatal crash records 2018-2022 | No |
+| [WHO GHO](https://www.who.int/data/gho) | World Health Organization | Country-level road traffic deaths | No |
+| [Mapillary](https://www.mapillary.com) | Meta | Street-level imagery | Free token |
+| [SegFormer](https://huggingface.co/nvidia/segformer-b0-finetuned-cityscapes-1024-1024) | NVIDIA/HuggingFace | Semantic segmentation for sidewalk detection | Self-hosted |
+
+---
+
+## Full Setup
+
+### 5 OSM Metrics (No API Keys)
 
 ```bash
-# Frontend with tree canopy
-cp .env.example .env
-# Add VITE_OPENWEATHER_API_KEY
+npm install && npm run dev
+```
 
-# Backend for surface temperature
-cd api && npm install
-earthengine authenticate  # or use service account
+Works instantly: Crossing Safety, Sidewalk Coverage, Traffic Speed, Destination Access, Night Safety.
+
+### All 8 Metrics (Satellite Data)
+
+```bash
+# 1. Copy environment template
+cp .env.example .env
+
+# 2. Add free API keys (see .env.example for links):
+#    - VITE_OPENWEATHER_API_KEY (tree canopy)
+#    - VITE_MAPILLARY_ACCESS_TOKEN (street photos)
+
+# 3. Start backend for thermal data
+cd api && npm install && cp .env.example .env
+# Configure Google Earth Engine (see SETUP.md)
 npm run dev
 
-# Frontend connects to backend
-# Add VITE_API_URL=http://localhost:3001 to .env
+# 4. Start frontend
+cd .. && npm run dev
+```
 
-# CV Backend for AI sidewalk validation (optional)
+### AI Sidewalk Validation (Optional)
+
+```bash
 cd cv-backend
 pip install -r requirements.txt
 python main.py
 # Add VITE_CV_API_URL=http://localhost:8000 to .env
 ```
 
-### API Keys & Backends (Optional)
-
-- **Tree Canopy**: Free OpenWeather API key ([get it here](https://openweathermap.org/api))
-- **Surface Temperature**: Requires backend + Google Earth Engine ([setup guide](api/README.md))
-- **AI Sidewalk Validation**: Self-hosted CV backend ([deployment guide](cv-backend/DEPLOYMENT.md))
-
-## 📊 Scoring System
-
-**0-10 scale** with safety-dominant weighting: **Safety 55% | Access 10% | Comfort 35%**
-
-**All 8 metrics (full setup):**
-- Crossing Safety: 15%, Sidewalk Coverage: 15%, Traffic Speed: 15%
-- Night Safety: 10%, Destination Access: 10%
-- Slope: 10%, Tree Canopy: 10%, Thermal Comfort: 15%
-
-**OSM-only (no satellite):**
-- Averages the 5 OSM metrics equally (Crossing Safety, Sidewalk Coverage, Traffic Speed, Night Safety, Destination Access)
-
-| Score | Label |
-|-------|-------|
-| 8-10 | Excellent |
-| 6-7.9 | Good |
-| 4-5.9 | Fair |
-| 2-3.9 | Poor |
-| 0-1.9 | Critical |
-
-## 🛠️ Tech Stack
-
-### Frontend
-- React 19 + TypeScript
-- Vite 7
-- Tailwind CSS 3.4
-- Leaflet + React Leaflet
-- Vitest
-
-### Backends
-- **Surface Temp**: Node.js + Express + Google Earth Engine
-- **AI Validation**: FastAPI + Hugging Face Transformers (SegFormer)
-
-**Data Sources:**
-- Nominatim (geocoding)
-- Overpass API (OSM data)
-- Open-Elevation API (SRTM elevation)
-- OpenWeather Agro API (Sentinel-2/Landsat NDVI)
-- Google Earth Engine (Landsat thermal)
-- Mapillary (street-level imagery)
-- Hugging Face SegFormer (sidewalk detection)
-- NHTSA FARS (US fatal crash data)
-- WHO Global Health Observatory (international road traffic deaths)
-
-## 📁 Structure
-
-```
-src/
-├── components/
-│   ├── Map.tsx                      # Interactive map
-│   ├── CompareView.tsx              # Comparison UI
-│   ├── ShareButtons.tsx             # Share/export
-│   └── streetcheck/
-│       ├── AddressInput.tsx         # Search
-│       ├── ScoreCard.tsx            # Score display
-│       └── MetricGrid.tsx           # Metrics
-├── services/
-│   ├── nominatim.ts                 # Geocoding
-│   ├── overpass.ts                  # OSM data
-│   ├── mapillary.ts                 # Street imagery
-│   └── sidewalkImageAnalysis.ts     # CV analysis
-├── utils/
-│   └── metrics.ts                   # Calculations
-└── types/
-    └── index.ts                     # TypeScript types
-
-cv-backend/
-├── main.py                          # FastAPI CV service
-├── requirements.txt                 # Python dependencies
-├── Dockerfile                       # Container config
-├── railway.toml                     # Railway deployment
-├── README.md                        # Full docs
-├── DEPLOYMENT.md                    # Quick deploy guide
-└── test_local.py                    # Local testing
-```
-
-## 🧪 Testing
-
-```bash
-npm test              # Run all tests
-npm run test:ui       # Watch mode
-```
-
-**Coverage**: All tests passing ✅
-
-## ✅ What We CAN Measure
-
-- ✅ Crossing safety (weighted by protection level)
-- ✅ Sidewalk coverage (via OSM tags)
-- ✅ Traffic speed + lane exposure (via OSM maxspeed/lanes)
-- ✅ POI access + variety
-- ✅ Street lighting (via OSM lit tags)
-- ✅ Slope (via NASADEM elevation data)
-- ✅ Tree canopy (via Sentinel-2 NDVI)
-- ✅ Thermal comfort (NASA POWER + Sentinel-2 heat island)
-
-## ⚠️ What Has Limitations
-
-- ⚠️ **Sidewalk condition**: OSM shows if mapped, not current state
-  - **Solution**: AI analyzes street photos to detect obstructions/issues
-- ⚠️ **Actual width**: Not measured by standard tools
-- ⚠️ **Lighting quality**: OSM `lit` tag shows presence, not brightness/quality
-- ❌ **Real-time traffic**: Would require sensors
-- ❌ **Safety perception**: Subjective, no verifiable source
-
-**We're honest about limitations and validate data with AI when possible.**
-
-## 📝 Evolution: From Fake to Real
-
-Following user principle: *"only if it is 100%, we dont need to show some random walkable score"*
-
-### Phase 1: Removed Fake Metrics
-- ❌ Tree Canopy (was estimated from sidewalks - fake)
-- ❌ Surface Temperature (was proxy from tree canopy - fake)
-- ❌ Slope (was random 6-9 number - fake)
-- ❌ "Who's Affected" section (fixed 7,000 people/km² for ALL locations - fake)
-- ❌ Hardcoded 18% children, 12% elderly (not location-specific - fake)
-- ❌ "Economic Projections" (3352× ROI, $77M retail uplift - absurd fake numbers)
-
-### Phase 2: Replaced with Real Satellite Data
-- ✅ **Slope**: Real SRTM elevation data (30m) via Open-Elevation API (no auth)
-- ✅ **Tree Canopy**: Real Sentinel-2/Landsat NDVI via OpenWeather Agro API (free API key)
-- ✅ **Surface Temperature**: Real Landsat thermal data via Google Earth Engine (backend proxy)
-
-**Result**: All 8 metrics now use 100% verifiable satellite/OSM data ✅
-
-## 🎨 Design Principles
-
-1. **Honesty First**: Only show verified data
-2. **Transparency**: Clear data sources + methods
-3. **User-Centric**: Fast, clean, mobile-friendly
-4. **Advocacy-Ready**: Shareable, exportable, professional
-
-## 🚧 Planned Features
-
-### Phase 2
-- [ ] Budget upload + AI extraction
-- [ ] Country context (World Bank API)
-- [ ] Real demographics (when sources found)
-
-### Phase 3
-- [x] PDF policy reports (includes metrics, map, street photos, methodology)
-- [x] Mapillary street-level photos (integrated on map + gallery + PDF)
-- [x] AI-powered sidewalk validation (self-hosted CV backend)
-- [x] Data quality confidence indicators (high/medium/low badges)
-- [ ] Streetmix integration (street design visualization)
-- [ ] 3DStreet integration (3D street visualization)
-- [ ] Stripe payment (paid tier $29)
-
-## 🤝 Contributing
-
-Contributions welcome! Guidelines:
-
-1. **Never add fake metrics**
-2. **Be transparent** about data sources
-3. **Test thoroughly**
-4. **Keep it simple**
-
-## 📄 License
-
-MIT License
-
-## 🙏 Credits
-
-- OpenStreetMap contributors
-- Nominatim (geocoding)
-- Leaflet (maps)
+See [SETUP.md](SETUP.md) for detailed instructions and troubleshooting.
 
 ---
 
-**SafeStreets** • Honest Analysis • No Fake Metrics
+## Self-Hosting
 
-*Data is leverage.*
+SafeStreets is designed to be self-hosted. You can deploy your own instance:
+
+### Frontend (Vercel / Netlify)
+
+```bash
+npm run build
+# Deploy the dist/ folder
+```
+
+### Backend API (Railway / Render / Fly.io)
+
+```bash
+cd api
+# Deploy with your platform of choice
+# Set environment variables for GEE, Stripe, Clerk
+```
+
+### CV Backend (Railway / Fly.io / Docker)
+
+```bash
+cd cv-backend
+docker build -t safestreets-cv .
+docker run -p 8000:8000 safestreets-cv
+```
+
+See deployment guides: [API](api/README.md) | [CV Backend](cv-backend/DEPLOYMENT.md)
+
+---
+
+## Tech Stack
+
+**Frontend:** React 19, TypeScript, Vite 7, Tailwind CSS, Leaflet, React Router 7
+
+**Backend:** Express.js 5, Google Earth Engine, Stripe, Clerk
+
+**CV Backend:** Python, FastAPI, Hugging Face Transformers (SegFormer)
+
+**Testing:** Vitest, Playwright
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a PR.
+
+Key guidelines:
+- Never add fake metrics — every data point must be verifiable
+- Open an issue before large changes
+- All PRs must pass tests (`npm test`)
+
+See [open issues](https://github.com/Poseidon-t/Streets-Commons/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) tagged `good first issue` to get started.
+
+---
+
+## License
+
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+You are free to use, modify, and distribute this software. If you deploy a modified version as a network service, you must make your source code available under the same license.
+
+---
+
+## Support the Project
+
+If SafeStreets is useful to you:
+
+- Star this repo to help others discover it
+- [Sponsor on GitHub](https://github.com/sponsors/Poseidon-t)
+- [Support on Open Collective](https://opencollective.com/safestreets)
+- Report bugs or suggest features via [Issues](https://github.com/Poseidon-t/Streets-Commons/issues)
+- Contribute code, translations, or documentation
+
+---
+
+## Credits
+
+- [OpenStreetMap](https://www.openstreetmap.org) contributors worldwide
+- [NASA](https://www.nasa.gov) for POWER, NASADEM, and Landsat data
+- [ESA/Copernicus](https://www.copernicus.eu) for Sentinel-2 imagery
+- [NHTSA](https://www.nhtsa.gov) for FARS crash data
+- [WHO](https://www.who.int) for global road safety data
+- [Leaflet](https://leafletjs.com) for map rendering
+- [Mapillary](https://www.mapillary.com) for street-level imagery
+
+---
+
+**SafeStreets** — Honest walkability analysis. No fake metrics. *Data is leverage.*
