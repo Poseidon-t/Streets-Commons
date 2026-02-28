@@ -227,7 +227,7 @@ export default function CityPage() {
               </p>
             </div>
             <Link
-              to={analyzeUrl}
+              to={`${analyzeUrl}&agent=true`}
               className="flex-shrink-0 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90"
               style={{ backgroundColor: '#1e3a5f' }}
             >

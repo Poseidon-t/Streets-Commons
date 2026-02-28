@@ -150,7 +150,7 @@ This link will work on any browser/device. Bookmark it or save this email to acc
 
 Lost this email? Just visit SafeStreets and use the "Lost Access" button to get a new link.
 
-Questions? Reply to this email or visit https://safestreets.app/support
+Questions? Reply to this email or visit https://safestreets.streetsandcommons.com
 
 ---
 SafeStreets Team
@@ -169,7 +169,7 @@ Making cities walkable, one street at a time 🚶
   /*
   const resend = new Resend(process.env.RESEND_API_KEY);
   await resend.emails.send({
-    from: 'SafeStreets <noreply@safestreets.app>',
+    from: 'SafeStreets <noreply@streetsandcommons.com>',
     to: email,
     subject: `Welcome to SafeStreets ${details.name} - Activate Your Access`,
     text: emailBody,

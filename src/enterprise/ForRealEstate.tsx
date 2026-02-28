@@ -22,15 +22,21 @@ export default function ForRealEstate() {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  to="/"
+                  to="/?agent=true"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
                   style={{ backgroundColor: '#1e3a5f' }}
                 >
                   Try It Free — 3 Reports
                 </Link>
-                <span className="inline-flex items-center text-xs font-medium" style={{ color: '#8a9a8a' }}>
-                  Then $99 one-time for unlimited
-                </span>
+                <a
+                  href="https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center text-xs font-medium hover:underline"
+                  style={{ color: '#1e3a5f' }}
+                >
+                  Or get unlimited — $99 one-time &rarr;
+                </a>
               </div>
             </div>
 

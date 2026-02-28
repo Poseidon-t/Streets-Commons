@@ -690,7 +690,7 @@ export default function AdvocacyProposalView() {
               <span style={{ opacity: 0.7 }}>Contact:</span> {authorName || 'Community Advocate'}
             </div>
             <div className="rounded px-3 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-              <span style={{ opacity: 0.7 }}>Data:</span> safestreets.app
+              <span style={{ opacity: 0.7 }}>Data:</span> safestreets.streetsandcommons.com
             </div>
           </div>
         </div>

@@ -278,10 +278,11 @@ function generateEmails(leads: QualifiedLead[]) {
     console.log(`  • Build their personal brand as the "walkability expert" in the area`);
     console.log(`\nI'd love to generate a free report for your ${lead.sampleListing} listing so you can see it.`);
     console.log(`\nIf it's useful, Pro is a one-time $99 purchase — unlimited branded reports for every listing, no subscription. We also build custom dashboards for teams if that's more relevant.`);
-    console.log(`\nMore info: https://safestreets.app/enterprise/real-estate`);
+    console.log(`\nGet Pro: https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08`);
+    console.log(`More info: https://safestreets.streetsandcommons.com/enterprise/real-estate`);
     console.log(`\nBest,`);
     console.log(`Sarath`);
-    console.log(`SafeStreets — safestreets.app\n`);
+    console.log(`SafeStreets — safestreets.streetsandcommons.com\n`);
   }
 }
 

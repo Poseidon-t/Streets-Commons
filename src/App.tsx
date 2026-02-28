@@ -116,6 +116,7 @@ function App() {
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [demoNudge, setDemoNudge] = useState(false);
   const demoNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
@@ -188,7 +189,7 @@ function App() {
           const res = await fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`);
           if (!res.ok) return; // Server error — keep polling
           const data = await res.json();
-          if (data.tier === 'advocate') {
+          if (data.tier === 'advocate' || data.tier === 'pro') {
             clearInterval(poll);
             // Reload to pick up fresh Clerk user object with updated metadata
             window.location.reload();
@@ -232,6 +233,15 @@ function App() {
       }
     }
   }, []);
+
+  // Auto-trigger agent report flow when arriving via ?agent=true (from ForRealEstate / CityPage CTAs)
+  useEffect(() => {
+    if (pendingAgentReport.current && metrics && location) {
+      pendingAgentReport.current = false;
+      // Small delay to let UI settle, then trigger agent report
+      setTimeout(() => handleAgentReportClick(), 500);
+    }
+  }, [metrics, location]);
 
   // Dynamic page title — updates when analysis loads
   useEffect(() => {

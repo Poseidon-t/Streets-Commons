@@ -253,7 +253,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This walkability assessment analyzes 8 metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.app</strong>.
+              This walkability assessment analyzes 8 metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
             </p>
           </div>
 
@@ -274,7 +274,7 @@ export default function AgentReportView() {
 
           {/* Watermark */}
           <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.6875rem', color: C.textLight }}>
-            Powered by SafeStreets &middot; safestreets.app
+            Powered by SafeStreets &middot; safestreets.streetsandcommons.com
           </div>
         </div>
       </div>

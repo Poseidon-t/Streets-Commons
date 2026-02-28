@@ -119,7 +119,7 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   const baseUrl = window.location.origin;
   const shareUrl = `${baseUrl}/?lat=${location.lat}&lon=${location.lon}&name=${encodeURIComponent(location.displayName)}`;
   const buildShareUrl = (platform: string) =>
-    `https://safestreets.app/?lat=${location.lat}&lon=${location.lon}&utm_source=${platform}&utm_medium=social&utm_campaign=share`;
+    `https://safestreets.streetsandcommons.com/?lat=${location.lat}&lon=${location.lon}&utm_source=${platform}&utm_medium=social&utm_campaign=share`;
   const prodUrl = buildShareUrl('organic');
   const shortName = location.city || location.displayName.split(',')[0] || 'This area';
   const score = metrics.overallScore.toFixed(1);

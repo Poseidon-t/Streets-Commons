@@ -115,7 +115,7 @@ describe('Share Text Generation Logic', () => {
     it('should generate text that fits Twitter character limit', () => {
       const shortName = 'Portland';
       const score = '7.2';
-      const prodUrl = 'https://safestreets.app/?lat=45.5&lon=-122.6';
+      const prodUrl = 'https://safestreets.streetsandcommons.com/?lat=45.5&lon=-122.6';
       const weakest: [string, number] = ['tree canopy', 3.2];
 
       // Simulate a twitter template

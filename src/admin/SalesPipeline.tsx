@@ -58,11 +58,11 @@ I'd love to generate a free report for one of your current listings so you can s
 
 If walkability data is something you use often, we also build custom dashboards and reports for teams — happy to chat about what would be most useful for your business.
 
-More info: https://safestreets.app/enterprise/real-estate
+More info: https://safestreets.streetsandcommons.com/enterprise/real-estate
 
 Best,
 Sarath
-SafeStreets — safestreets.app`;
+SafeStreets — safestreets.streetsandcommons.com`;
 }
 
 // ── Component ───────────────────────────────────────────────────────────────
