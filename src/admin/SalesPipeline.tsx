@@ -293,8 +293,9 @@ export default function SalesPipeline() {
             <tr className="border-b border-gray-200 text-left">
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-10">#</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Agent</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">City</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Location</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Brokerage</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden xl:table-cell">Listing</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">Actions</th>
             </tr>
@@ -431,6 +432,10 @@ function LeadRow({
           <div className="text-xs text-gray-400">{lead.neighborhood}</div>
         </td>
         <td className="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell">{lead.brokerage}</td>
+        <td className="px-4 py-3 hidden xl:table-cell">
+          <div className="text-sm text-gray-700 truncate max-w-[200px]">{lead.sampleListing || '—'}</div>
+          <div className="text-xs text-gray-400">{lead.listingPrice || ''}</div>
+        </td>
         <td className="px-4 py-3 relative">
           <button
             onClick={e => { e.stopPropagation(); setShowStatusDropdown(!showStatusDropdown); }}
@@ -473,7 +478,7 @@ function LeadRow({
       </tr>
       {expanded && (
         <tr className="bg-gray-50/50">
-          <td colSpan={6} className="px-4 py-4">
+          <td colSpan={7} className="px-4 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Contact Info */}
               <div className="space-y-2">
