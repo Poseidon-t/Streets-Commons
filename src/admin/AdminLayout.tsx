@@ -7,6 +7,7 @@ const navItems = [
   { to: '/admin/content-queue', label: 'Content Queue', end: false },
   { to: '/admin/blog', label: 'Blog Posts', end: false },
   { to: '/admin/emails', label: 'Email Captures', end: false },
+  { to: '/admin/sales-pipeline', label: 'Sales Pipeline', end: false },
 ];
 
 export default function AdminLayout() {

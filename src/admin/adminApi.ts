@@ -69,3 +69,12 @@ export const addCalendarPost = (data: {
 
 // Emails
 export const fetchEmails = () => adminFetch('/api/admin/emails');
+
+// Sales Pipeline
+export const fetchLeads = () => adminFetch('/api/admin/sales/leads');
+export const updateLead = (rank: number, data: Record<string, unknown>) =>
+  adminFetch(`/api/admin/sales/leads/${rank}`, { method: 'PUT', body: JSON.stringify(data) });
+export const addLead = (data: Record<string, unknown>) =>
+  adminFetch('/api/admin/sales/leads', { method: 'POST', body: JSON.stringify(data) });
+export const searchAgents = (params: { city: string; state?: string; country?: string; neighborhoods?: string; count?: number }) =>
+  adminFetch('/api/admin/sales/search', { method: 'POST', body: JSON.stringify(params) });

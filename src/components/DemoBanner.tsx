@@ -19,12 +19,6 @@ export default function DemoBanner({ onExit, onUnlock }: DemoBannerProps) {
           >
             Exit Demo
           </button>
-          <button
-            onClick={onUnlock}
-            className="px-3 py-1.5 bg-white text-terra text-xs font-bold rounded-lg hover:bg-white/90 transition"
-          >
-            Unlock All Features — $49
-          </button>
         </div>
       </div>
     </div>

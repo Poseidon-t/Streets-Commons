@@ -3,9 +3,6 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
-    { "source": "/walkability/:path*", "destination": "/" },
-    { "source": "/blog/:path*", "destination": "/" },
-    { "source": "/report", "destination": "/" },
-    { "source": "/proposal", "destination": "/" }
+    { "source": "/(.*)", "destination": "/" }
   ]
 }

@@ -1715,6 +1715,200 @@ app.post('/api/admin/content-queue/add', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════
+// Sales Pipeline (Qualified Leads CRM)
+// ═══════════════════════════════════════════════
+
+const LEADS_FILE = process.env.LEADS_FILE || path.join(__dirname, '..', 'data', 'qualified-leads.json');
+
+function loadLeads() {
+  try {
+    if (fs.existsSync(LEADS_FILE)) {
+      return JSON.parse(fs.readFileSync(LEADS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load leads:', err.message);
+  }
+  return [];
+}
+
+function saveLeads(leads) {
+  try {
+    const dir = path.dirname(LEADS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2));
+  } catch (err) {
+    console.error('Failed to save leads:', err.message);
+  }
+}
+
+// GET /api/admin/sales/leads — return all leads
+app.get('/api/admin/sales/leads', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const leads = loadLeads();
+  res.json({ leads, count: leads.length });
+});
+
+// PUT /api/admin/sales/leads/:rank — update a lead
+app.put('/api/admin/sales/leads/:rank', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const rank = parseInt(req.params.rank, 10);
+  const leads = loadLeads();
+  const idx = leads.findIndex(l => l.rank === rank);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+
+  const updates = req.body;
+  // Only allow updating specific fields
+  const allowed = ['outreachStatus', 'outreachDate', 'responseDate', 'notes', 'email', 'phone', 'website', 'sampleListing', 'listingPrice', 'agentName', 'brokerage', 'neighborhood', 'qualificationNotes'];
+  for (const key of Object.keys(updates)) {
+    if (allowed.includes(key)) {
+      leads[idx][key] = updates[key];
+    }
+  }
+  saveLeads(leads);
+  res.json(leads[idx]);
+});
+
+// POST /api/admin/sales/leads — add a new lead
+app.post('/api/admin/sales/leads', (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const { agentName, city, state } = req.body;
+  if (!agentName || !city || !state) {
+    return res.status(400).json({ error: 'agentName, city, and state are required' });
+  }
+  const leads = loadLeads();
+  const maxRank = leads.reduce((max, l) => Math.max(max, l.rank || 0), 0);
+  const newLead = {
+    rank: maxRank + 1,
+    agentName: req.body.agentName || '',
+    brokerage: req.body.brokerage || '',
+    city: req.body.city || '',
+    state: req.body.state || '',
+    neighborhood: req.body.neighborhood || '',
+    email: req.body.email || '',
+    phone: req.body.phone || '',
+    website: req.body.website || '',
+    sampleListing: req.body.sampleListing || '',
+    listingPrice: req.body.listingPrice || '',
+    qualificationNotes: req.body.qualificationNotes || '',
+    outreachStatus: 'not_started',
+    notes: '',
+  };
+  leads.push(newLead);
+  saveLeads(leads);
+  console.log(`📋 Added lead #${newLead.rank}: ${newLead.agentName} (${newLead.city}, ${newLead.state})`);
+  res.json(newLead);
+});
+
+// POST /api/admin/sales/search — AI-powered agent search & qualification
+app.post('/api/admin/sales/search', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    return res.status(503).json({ error: 'ANTHROPIC_API_KEY not configured' });
+  }
+
+  const { city, state, country = 'US', neighborhoods = '', count = 5 } = req.body;
+  if (!city) {
+    return res.status(400).json({ error: 'city is required' });
+  }
+
+  const safeCount = Math.min(Math.max(parseInt(count, 10) || 5, 1), 10);
+  const locationDesc = state ? `${city}, ${state}` : `${city}, ${country}`;
+  const neighborhoodHint = neighborhoods ? `\nFocus on these walkable neighborhoods: ${neighborhoods}` : '';
+
+  // Load existing leads to avoid duplicates
+  const existingLeads = loadLeads();
+  const existingNames = existingLeads
+    .filter(l => l.city.toLowerCase() === city.toLowerCase())
+    .map(l => l.agentName.toLowerCase());
+  const dupeWarning = existingNames.length
+    ? `\nAVOID these agents (already in pipeline): ${existingNames.join(', ')}`
+    : '';
+
+  const prompt = `You are a sales research agent for SafeStreets, a walkability analysis tool that generates branded PDF reports for real estate agents. We sell a $99 one-time Pro license.
+
+Find ${safeCount} real estate agents in ${locationDesc} who would be the best prospects for our walkability report tool.${neighborhoodHint}${dupeWarning}
+
+QUALIFICATION CRITERIA:
+- Agent specializes in walkable urban neighborhoods (not suburban/rural)
+- Has active listings in the $400K-$1M price range (walkability premiums matter most here)
+- Individual agent or small team (not mega-teams where your email gets lost)
+- Contact info is publicly findable (has a website, listed on Compass/Zillow/Realtor.com)
+- Bonus: already markets walkability/location as a selling point
+
+For each agent, provide their REAL publicly available information. If you're not confident about specific contact details, say "verify at [website]" instead of guessing.
+
+Return ONLY a JSON array (no markdown code fences):
+[
+  {
+    "agentName": "Full Name",
+    "brokerage": "Company Name",
+    "city": "${city}",
+    "state": "${state || country}",
+    "neighborhood": "Primary walkable neighborhood they work",
+    "email": "their@email.com or 'verify at website.com'",
+    "phone": "(xxx) xxx-xxxx or 'verify at website.com'",
+    "website": "https://their-website.com",
+    "sampleListing": "Suggest searching their website for active listing",
+    "listingPrice": "$XXXk-$XXXk range",
+    "qualificationNotes": "One sentence on why they're a good prospect — mention specific walkability angle"
+  }
+]`;
+
+  try {
+    console.log(`🔍 AI searching for ${safeCount} agents in ${locationDesc}...`);
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4000,
+        temperature: 0.4,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.text();
+      console.error('Anthropic API error:', response.status, errBody);
+      return res.status(502).json({ error: `AI search failed (${response.status})` });
+    }
+
+    const result = await response.json();
+    const text = result.content?.[0]?.text || '';
+
+    let agents;
+    try {
+      agents = JSON.parse(text);
+    } catch {
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        agents = JSON.parse(jsonMatch[0]);
+      } else {
+        return res.status(500).json({ error: 'AI returned invalid format. Please try again.' });
+      }
+    }
+
+    // Filter out any that match existing leads
+    const filtered = agents.filter(a =>
+      !existingNames.includes(a.agentName?.toLowerCase())
+    );
+
+    console.log(`✅ Found ${filtered.length} new qualified agents in ${locationDesc}`);
+    res.json({ agents: filtered, city, state });
+  } catch (err) {
+    console.error('Agent search error:', err);
+    res.status(500).json({ error: 'Failed to search for agents. Please try again.' });
+  }
+});
+
+// ═══════════════════════════════════════════════
 
 // Overpass API proxy with caching
 app.post('/api/overpass', async (req, res) => {
@@ -3921,34 +4115,27 @@ app.post('/api/create-checkout-session', async (req, res) => {
         amount: 4900, // $49 in cents
         name: 'SafeStreets Advocate',
         description: 'Streetmix, 3DStreet, Policy Reports, Budget Analysis',
+        mode: 'payment',
+      },
+      pro: {
+        amount: 9900, // $99 one-time
+        name: 'SafeStreets Pro — Agent Reports',
+        description: 'Branded walkability reports for real estate listings',
+        mode: 'payment',
       },
     };
 
     const selectedPricing = pricing[tier];
     if (!selectedPricing) {
-      return res.status(400).json({ error: 'Invalid tier. Must be "advocate"' });
+      return res.status(400).json({ error: 'Invalid tier. Must be "advocate" or "pro"' });
     }
 
-    console.log(`💳 Creating checkout session for ${email} - ${tier} tier`);
+    console.log(`💳 Creating checkout session for ${email} - ${tier} tier (${selectedPricing.mode})`);
 
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Build checkout session config
+    const sessionConfig = {
       payment_method_types: ['card'],
       customer_email: email,
-      line_items: [
-        {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: selectedPricing.name,
-              description: `${selectedPricing.description} for ${locationName}`,
-            },
-            unit_amount: selectedPricing.amount,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'payment',
       success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=success`,
       cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=cancelled`,
       metadata: {
@@ -3957,7 +4144,36 @@ app.post('/api/create-checkout-session', async (req, res) => {
         locationName: locationName || '',
         companyName: metadata?.companyName || '',
       },
-    });
+    };
+
+    if (selectedPricing.mode === 'subscription') {
+      sessionConfig.mode = 'subscription';
+      sessionConfig.line_items = [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: selectedPricing.name, description: selectedPricing.description },
+          unit_amount: selectedPricing.amount,
+          recurring: { interval: selectedPricing.interval },
+        },
+        quantity: 1,
+      }];
+      sessionConfig.subscription_data = {
+        metadata: { userId: userId || '', tier },
+      };
+    } else {
+      sessionConfig.mode = 'payment';
+      sessionConfig.line_items = [{
+        price_data: {
+          currency: 'usd',
+          product_data: { name: selectedPricing.name, description: `${selectedPricing.description} for ${locationName}` },
+          unit_amount: selectedPricing.amount,
+        },
+        quantity: 1,
+      }];
+    }
+
+    // Create Stripe checkout session
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     console.log(`✅ Checkout session created: ${session.id}`);
     res.json({ url: session.url });
@@ -3995,7 +4211,7 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
       console.log(`   Location: ${locationName}`);
 
       // Validate tier to prevent metadata tampering
-      const validTiers = ['advocate'];
+      const validTiers = ['advocate', 'pro'];
       if (tier && !validTiers.includes(tier)) {
         console.error(`❌ Invalid tier in session metadata: ${tier}`);
         return res.status(400).json({ error: 'Invalid tier in session metadata' });
@@ -4019,6 +4235,7 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
                   tier,
                   activatedAt: new Date().toISOString(),
                   stripeSessionId: session.id,
+                  ...(tier === 'pro' && session.subscription ? { stripeSubscriptionId: session.subscription } : {}),
                 },
               }),
             });
@@ -4037,6 +4254,42 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
         }
       } else {
         console.warn('⚠️  Missing userId or tier in session metadata — cannot activate');
+      }
+    }
+
+    // Handle subscription cancellation — downgrade pro users
+    if (event.type === 'customer.subscription.deleted') {
+      const subscription = event.data.object;
+      const userId = subscription.metadata?.userId;
+      console.log(`⚠️  Subscription cancelled: ${subscription.id}`);
+
+      if (userId) {
+        try {
+          const clerkSecretKey = process.env.CLERK_SECRET_KEY;
+          if (clerkSecretKey) {
+            const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
+              method: 'PATCH',
+              headers: {
+                'Authorization': `Bearer ${clerkSecretKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                public_metadata: {
+                  tier: 'free',
+                  cancelledAt: new Date().toISOString(),
+                },
+              }),
+            });
+
+            if (clerkRes.ok) {
+              console.log(`✅ User ${userId} downgraded to free tier after subscription cancellation`);
+            } else {
+              console.error(`❌ Failed to downgrade user ${userId}`);
+            }
+          }
+        } catch (err) {
+          console.error('❌ Failed to process subscription cancellation:', err.message);
+        }
       }
     }
 

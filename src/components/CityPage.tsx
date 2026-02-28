@@ -211,6 +211,32 @@ export default function CityPage() {
         </div>
       </section>
 
+      {/* Agent CTA */}
+      <section className="max-w-5xl mx-auto px-6 pb-10">
+        <div
+          className="rounded-2xl p-6 sm:p-8 border"
+          style={{ borderColor: '#c8d4e0', backgroundColor: 'rgba(30, 58, 95, 0.04)' }}
+        >
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold mb-1" style={{ color: '#1e3a5f' }}>
+                Real Estate Agent in {city.name}?
+              </h3>
+              <p className="text-sm" style={{ color: '#6b7280' }}>
+                Generate branded walkability reports for your listings. 3 free reports, then $99 one-time for unlimited.
+              </p>
+            </div>
+            <Link
+              to={analyzeUrl}
+              className="flex-shrink-0 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90"
+              style={{ backgroundColor: '#1e3a5f' }}
+            >
+              Generate Agent Report
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Nearby Cities (internal linking for SEO) */}
       <section className="max-w-5xl mx-auto px-6 py-10">
         <h2 className="text-xl font-bold text-center mb-6" style={{ color: '#2a3a2a' }}>

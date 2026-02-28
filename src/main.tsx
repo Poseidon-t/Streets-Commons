@@ -17,6 +17,7 @@ import BlogPost from './components/BlogPost.tsx'
 import LearnIndex from './components/LearnIndex.tsx'
 // Reports
 import { FifteenMinuteCityReport } from './components/reports'
+import AgentReportView from './components/AgentReportView'
 
 // Enterprise marketing pages (lazy-loaded)
 const EnterpriseLayout = lazy(() => import('./enterprise/EnterpriseLayout'))
@@ -37,6 +38,7 @@ const BlogManager = lazy(() => import('./admin/BlogManager'))
 const BlogEditor = lazy(() => import('./admin/BlogEditor'))
 const ContentQueue = lazy(() => import('./admin/ContentQueue'))
 const EmailCaptures = lazy(() => import('./admin/EmailCaptures'))
+const SalesPipeline = lazy(() => import('./admin/SalesPipeline'))
 
 // Import Clerk publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -67,6 +69,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/learn" element={<LearnIndex />} />
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
+          <Route path="/report/agent" element={<AgentReportView />} />
           {/* Enterprise marketing pages */}
           <Route path="/enterprise" element={
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-gray-400">Loading...</div></div>}>
@@ -95,6 +98,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="blog/new" element={<BlogEditor />} />
             <Route path="blog/edit/:slug" element={<BlogEditor />} />
             <Route path="emails" element={<EmailCaptures />} />
+            <Route path="sales-pipeline" element={<SalesPipeline />} />
           </Route>
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>

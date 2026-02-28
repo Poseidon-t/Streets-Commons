@@ -19,6 +19,8 @@ const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const EmailCaptureBanner = lazy(() => import('./components/EmailCaptureBanner'));
 const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
+const ProUpgradeModal = lazy(() => import('./components/ProUpgradeModal'));
+const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 
 import { captureUTMParams } from './utils/utm';
 import { trackEvent } from './utils/analytics';
@@ -35,7 +37,8 @@ import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
 import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { isPremium } from './utils/clerkAccess';
+import { isPremium, isPro, canGenerateAgentReport, getAgentProfile, getProTrialReportsUsed } from './utils/clerkAccess';
+import type { AgentProfile } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
 import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
@@ -109,6 +112,8 @@ function App() {
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
+  const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
+  const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [demoNudge, setDemoNudge] = useState(false);
   const demoNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -539,6 +544,66 @@ function App() {
     });
   };
 
+  // Agent Report flow: check access → profile → generate
+  const handleAgentReportClick = () => {
+    if (!isSignedIn || !canGenerateAgentReport(user)) {
+      setShowProUpgradeModal(true);
+      return;
+    }
+    const profile = getAgentProfile(user);
+    if (!profile) {
+      setShowAgentProfileModal(true);
+      return;
+    }
+    generateAgentReport(profile);
+  };
+
+  const handleProUpgradeReady = () => {
+    setShowProUpgradeModal(false);
+    const profile = getAgentProfile(user);
+    if (!profile) {
+      setShowAgentProfileModal(true);
+      return;
+    }
+    generateAgentReport(profile);
+  };
+
+  const handleAgentProfileSave = (profile: AgentProfile) => {
+    setShowAgentProfileModal(false);
+    generateAgentReport(profile);
+  };
+
+  const generateAgentReport = async (profile: AgentProfile) => {
+    if (!location || !metrics) return;
+
+    // Increment trial counter if not pro
+    if (user && !isPro(user)) {
+      const used = getProTrialReportsUsed(user);
+      try {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            proTrialReportsUsed: used + 1,
+          },
+        });
+      } catch (err) {
+        console.error('Failed to update trial counter:', err);
+      }
+    }
+
+    // Store report data in sessionStorage
+    const reportData = {
+      location,
+      metrics,
+      compositeScore,
+      dataQuality,
+      crashData,
+      agentProfile: profile,
+    };
+    sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
+    window.open('/report/agent', '_blank');
+  };
+
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #f2f0eb 30%, #eef5f0 60%, #f0ede8 100%)' }}>
       {/* Activation Handler - Processes magic link tokens */}
@@ -564,20 +629,23 @@ function App() {
         </Suspense>
       )}
 
-      {/* AI Advocacy Letter Modal */}
-      {location && metrics && (
-        <Suspense fallback={null}>
-          <AdvocacyLetterModal
-            isOpen={showLetterModal}
-            onClose={() => setShowLetterModal(false)}
-            location={location}
-            metrics={metrics}
-            compositeScore={compositeScore}
-            crashData={crashData}
-            demographicData={demographicData}
-          />
-        </Suspense>
-      )}
+      {/* Pro Upgrade Modal */}
+      <Suspense fallback={null}>
+        <ProUpgradeModal
+          isOpen={showProUpgradeModal}
+          onClose={() => setShowProUpgradeModal(false)}
+          onReady={handleProUpgradeReady}
+        />
+      </Suspense>
+
+      {/* Agent Profile Modal */}
+      <Suspense fallback={null}>
+        <AgentProfileModal
+          isOpen={showAgentProfileModal}
+          onClose={() => setShowAgentProfileModal(false)}
+          onSave={handleAgentProfileSave}
+        />
+      </Suspense>
 
       {/* Custom styles for light aesthetic */}
       <style>{`
@@ -636,14 +704,6 @@ function App() {
             {!isSignedIn && (
               <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
             )}
-            {!effectivePremium && (
-              <button
-                onClick={() => setShowSignInModal(true)}
-                className="text-sm font-bold px-4 py-1.5 rounded-lg transition-all hover:shadow-md bg-terra text-white"
-              >
-                Go Premium — $49
-              </button>
-            )}
             <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
@@ -684,14 +744,6 @@ function App() {
             <a href="/enterprise" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Enterprise</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
-            )}
-            {!effectivePremium && (
-              <button
-                onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }}
-                className="block text-sm font-bold px-4 py-2 rounded-lg w-full text-left bg-terra text-white"
-              >
-                Go Premium — $49
-              </button>
             )}
           </div>
         )}
@@ -736,7 +788,7 @@ function App() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Satellite data for any address. Tree cover, crash history, street network & more.
+              Satellite data for any address. Tree cover, crash history, street network & more. 8 real metrics.
               <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
             </p>
 
@@ -1121,7 +1173,7 @@ function App() {
             >
               Compare with Another Location
             </button>
-            {(userIsPremium || accessInfo.tier === 'advocate') && location && (
+            {isSignedIn && location && (
               <button
                 onClick={() => {
                   if (!location || !metrics) return;
@@ -1145,7 +1197,7 @@ function App() {
             )}
           </div>
           {/* Saved Addresses Dropdown */}
-          {(userIsPremium || accessInfo.tier === 'advocate') && savedAddressList.length > 0 && (
+          {isSignedIn && savedAddressList.length > 0 && (
             <div className="flex justify-center">
               <div className="relative">
                 <button
@@ -1474,7 +1526,6 @@ function App() {
                   { id: 'score', label: 'Score' },
                   { id: 'metrics', label: 'Metrics' },
                   { id: 'neighborhood', label: 'Neighborhood' },
-                  { id: 'tools', label: 'Tools' },
                   { id: 'methodology', label: 'About' },
                 ].map(s => (
                   <a
@@ -1513,32 +1564,6 @@ function App() {
               </div>
             )}
 
-            {/* Meridian philosophy quote */}
-            {meridianQuote && (
-              <div
-                className="flex items-center gap-3 px-4 py-3 rounded-xl border animate-[fadeInUp_0.4s_ease-out] border-earth-border bg-[#faf8f5]"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs italic text-earth-text-body">
-                    &ldquo;{meridianQuote.text}&rdquo;
-                  </p>
-                  <p className="text-[10px] mt-0.5 flex items-center gap-2 text-earth-text-light">
-                    <span>&mdash; {meridianQuote.author}</span>
-                    <span className="inline-flex items-center gap-1 font-medium text-earth-text-dark">
-                      via Meridian
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </span>
-                  </p>
-                </div>
-                <button
-                  onClick={() => setMeridianQuote(null)}
-                  className="text-gray-300 hover:text-gray-500 text-sm flex-shrink-0"
-                  aria-label="Dismiss quote"
-                >&times;</button>
-              </div>
-            )}
 
             {/* First-time onboarding tip */}
             {showOnboarding && (
@@ -1569,11 +1594,28 @@ function App() {
                   location={location}
                   metrics={metrics}
                   dataQuality={dataQuality || undefined}
-                  isPremium={effectivePremium}
+                  isPremium={true}
                   onShareReport={() => setShowReportCard(true)}
                 />
               </Suspense>
             </ErrorBoundary>
+
+            {/* Agent Report CTA */}
+            <div className="mt-3 rounded-xl border p-4 sm:p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(30,58,95,0.04)' }}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <h4 className="text-sm font-bold" style={{ color: '#1e3a5f' }}>Real Estate Agent?</h4>
+                  <p className="text-xs" style={{ color: '#8a9a8a' }}>Generate a branded walkability report for this listing</p>
+                </div>
+                <button
+                  onClick={handleAgentReportClick}
+                  className="px-4 py-2 text-sm font-semibold rounded-lg text-white transition hover:opacity-90"
+                  style={{ backgroundColor: '#1e3a5f' }}
+                >
+                  Generate Agent Report
+                </button>
+              </div>
+            </div>
             </div>
 
             {/* 15-Minute City Score (free for all users) */}
@@ -1584,166 +1626,7 @@ function App() {
               </Suspense>
             </ErrorBoundary>
 
-            {/* Mid-page upgrade nudge (free users only) */}
-            {!effectivePremium && (
-              <div
-                className="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-xl border-2 border-terra bg-terra/[0.06]"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">&#x1F4DD;</span>
-                  <span className="text-earth-text-dark">
-                    <strong className="text-base">Turn this data into action</strong>
-                    <span className="text-sm block sm:inline text-earth-text-body"> — advocacy letters, street redesign mockups, PDF proposals & more</span>
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowSignInModal(true)}
-                  className="px-5 py-2.5 rounded-lg font-bold text-sm text-white transition-all hover:shadow-lg whitespace-nowrap flex-shrink-0 bg-terra"
-                >
-                  Unlock Toolkit — $49
-                </button>
-              </div>
-            )}
 
-            {/* Advocacy Tools — Consolidated Section */}
-            <div id="tools" className="scroll-mt-16">
-              {effectivePremium ? (
-                /* Paid users: tool grid */
-                <div className="rounded-2xl border-2 overflow-hidden border-earth-border bg-white/90">
-                  <div className="px-6 py-6 sm:px-8">
-                    <h3 className="text-lg font-bold mb-1 text-earth-text-dark">Advocacy Tools</h3>
-                    <p className="text-sm mb-5 text-earth-text-body">
-                      Professional tools to advocate for safer, more walkable streets.
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {/* Advocacy Letter */}
-                      <button
-                        onClick={() => { setShowLetterModal(true); showDemoNudge(); }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
-                      >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                          </svg>
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold block text-earth-text-dark">Advocacy Letter</span>
-                          <span className="text-xs text-earth-text-light">Draft data-backed letters to city council or local officials</span>
-                        </div>
-                      </button>
-
-                      {/* Proposal */}
-                      <button
-                        onClick={() => {
-                          const proposalData = {
-                            location, metrics,
-                            compositeScore: compositeScore || undefined,
-                            crashData: crashData || undefined,
-                            demographicData: demographicData || undefined,
-                            localEconomy: osmData ? analyzeLocalEconomy(osmData) : undefined,
-                            rawMetricData: rawMetricData || undefined,
-                            dataQuality: dataQuality || undefined,
-                          };
-                          sessionStorage.setItem('advocacyProposalData', JSON.stringify(proposalData));
-                          window.open('/proposal', '_blank');
-                          showDemoNudge();
-                        }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
-                      >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-                          </svg>
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold block text-earth-text-dark">Proposal</span>
-                          <span className="text-xs text-earth-text-light">Professional PDF with scores, equity data & recommendations</span>
-                        </div>
-                      </button>
-
-                      {/* Street Audit */}
-                      <button
-                        onClick={() => { setShowAuditTool(true); showDemoNudge(); }}
-                        className="flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:shadow-md hover:border-orange-200 cursor-pointer border-earth-border bg-white"
-                      >
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-terra/10">
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M9 11l3 3L22 4" />
-                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-                          </svg>
-                        </div>
-                        <div>
-                          <span className="text-sm font-bold block text-earth-text-dark">Street Audit</span>
-                          <span className="text-xs text-earth-text-light">Walk & document issues — missing crosswalks, broken sidewalks, poor lighting</span>
-                        </div>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* Free users: compact upgrade banner */
-                <div className="rounded-2xl border-2 overflow-hidden border-earth-border bg-[#faf8f5]">
-                  <div className="px-6 py-6 sm:px-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                      <div>
-                        <h3 className="text-lg font-bold text-earth-text-dark">Advocacy Toolkit</h3>
-                        <p className="text-sm mt-0.5 text-earth-text-light">One-time payment, no subscription</p>
-                      </div>
-                      <div className="text-2xl font-bold text-terra">$49</div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-5">
-                      {[
-                        { name: 'Advocacy Letters', desc: 'Draft data-backed letters to city council, DOT, or local officials using your walkability analysis.' },
-                        { name: 'Street Redesign', desc: 'Visualize how your street could look with bike lanes, wider sidewalks, or added trees.' },
-                        { name: 'Formal Proposals', desc: 'Generate professional PDF proposals with scores, equity data, and improvement recommendations.' },
-                        { name: 'Street Audit', desc: 'Walk your street and document issues — missing crosswalks, broken sidewalks, poor lighting.' },
-                        { name: 'Meridian Chatbot', desc: 'Urbanism assistant trained on NACTO, WHO, and global street design standards. Unlimited messages.' },
-                        { name: 'Export & Save', desc: 'Download PDF reports and raw JSON data. Save up to 10 addresses for tracking.' },
-                      ].map((f) => (
-                        <div key={f.name} className="flex items-start gap-2.5 p-3 rounded-lg bg-white/70">
-                          <span className="mt-0.5 flex-shrink-0 text-green-500">&#x2713;</span>
-                          <div>
-                            <span className="text-xs font-semibold block text-earth-text-dark">{f.name}</span>
-                            <span className="text-[11px] leading-snug block mt-0.5 text-earth-text-light">{f.desc}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        onClick={() => setShowSignInModal(true)}
-                        className="px-6 py-3 text-white font-semibold rounded-xl transition-all hover:shadow-lg cursor-pointer border-none bg-terra"
-                      >
-                        Unlock Advocacy Toolkit
-                      </button>
-                      <a
-                        href="/enterprise"
-                        className="px-6 py-3 font-semibold rounded-xl transition-all hover:shadow-md border-2 text-center inline-block border-enterprise-navy text-enterprise-navy bg-transparent"
-                      >
-                        Enterprise Intelligence &rarr;
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Street Audit Tool Overlay */}
-            {showAuditTool && location && effectivePremium && (
-              <Suspense fallback={null}>
-                <StreetAuditTool
-                  address={location.displayName}
-                  metrics={metrics}
-                  compositeScore={compositeScore}
-                  isPremium={effectivePremium}
-                  onClose={() => setShowAuditTool(false)}
-                />
-              </Suspense>
-            )}
 
             {/* --- Tier 4: Reference --- */}
             <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">
@@ -1783,18 +1666,6 @@ function App() {
               )}
             </div>
 
-            {/* Advocacy Chatbot (floating) */}
-            <ErrorBoundary sectionName="Chatbot">
-              <Suspense fallback={null}>
-                <AdvocacyChatbot
-                  location={location}
-                  metrics={metrics}
-                  dataQuality={dataQuality || undefined}
-                  isPremium={effectivePremium}
-                  onUnlock={() => setShowSignInModal(true)}
-                />
-              </Suspense>
-            </ErrorBoundary>
           </div>
         )}
 
@@ -1876,9 +1747,9 @@ function App() {
                           <rect x="26" y="28" width="4" height="10" fill="#4a8a4a"/>
                         </svg>
                       </div>
-                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Verify & Take Action</h3>
+                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Compare & Decide</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Field-verify scores based on what you actually see, download a verified PDF report, share on social media, or upgrade for advocacy tools and street redesign mockups.
+                        Compare neighborhoods side by side, download a PDF report, and share with family or your real estate agent.
                       </p>
                     </div>
                   </div>
@@ -2093,40 +1964,6 @@ function App() {
         )}
       </main>
 
-      {/* Enterprise Banner - visible on landing page */}
-      {!compareMode && !location && !isAnalyzing && (
-        <section className="py-12">
-          <div className="max-w-5xl mx-auto px-6">
-            <a
-              href="/enterprise"
-              className="block rounded-2xl overflow-hidden transition-all hover:shadow-xl group"
-              style={{ background: 'linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #1E40AF 100%)' }}
-            >
-              <div className="px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-wider mb-2 text-enterprise-green-light">
-                    For Governments, Developers & Organizations
-                  </p>
-                  <h3 className="text-2xl md:text-3xl font-bold text-white mb-2">
-                    Need Walkability & Street Intelligence?
-                  </h3>
-                  <p className="text-sm text-gray-300 leading-relaxed max-w-xl">
-                    Interactive dashboards, field audits, citizen advocacy, and 12-metric analysis. Comprehensive street intelligence starting at $50K.
-                  </p>
-                </div>
-                <div className="flex-shrink-0 flex flex-col items-center gap-2">
-                  <span
-                    className="px-8 py-3.5 rounded-lg font-semibold text-white transition group-hover:shadow-lg bg-enterprise-green"
-                  >
-                    Explore Enterprise &rarr;
-                  </span>
-                  <span className="text-xs text-gray-400">Dashboards &middot; Field audits &middot; Citizen advocacy</span>
-                </div>
-              </div>
-            </a>
-          </div>
-        </section>
-      )}
 
       {/* FAQ Section - Only show when no analysis is displayed */}
       {!compareMode && !location && !isAnalyzing && (
@@ -2157,35 +1994,11 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 key walkability metrics, compare mode, composite scoring, and field verification mode are completely free with no sign-up required. Field verification lets you adjust any metric score based on what you actually observe and download a verified PDF report. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine), so our data costs are $0/year. The free tier has unlimited searches and works globally. For advanced features like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment.
+                    Yes! All 8 walkability metrics, compare mode, PDF reports, and field verification are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine). Unlimited searches, works globally in 190+ countries.
                   </p>
                 </div>
               </div>
 
-              {/* FAQ 3 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 3}
-                  aria-controls="faq-3-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    What's your refund policy?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 3 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-3-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    We offer a <strong className="text-green-700">30-day money-back guarantee</strong>. If you're not satisfied with your purchase for any reason, we'll provide a full refund—no questions asked. You can request a refund directly from your Stripe receipt email, or contact us if you need assistance.
-                  </p>
-                </div>
-              </div>
 
               {/* FAQ 4 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
@@ -2207,60 +2020,12 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! The 8 core walkability metrics, compare mode, and field verification mode work instantly without any account. You can adjust scores based on what you see on the ground and download a verified PDF report, all without signing up. Creating a free account gives you access to the Meridian chatbot (12 messages). The Advocacy Toolkit ($49 one-time) unlocks the Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, and data export.
+                    No! All 8 walkability metrics, compare mode, PDF reports, and field verification work instantly without any account. Sign in optionally to save addresses for quick access later.
                   </p>
                 </div>
               </div>
 
-              {/* FAQ 5 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 5 ? null : 5)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 5}
-                  aria-controls="faq-5-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    What's free vs. paid?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 5 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-5-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    <strong className="text-green-700">Yes, the core analysis is 100% free!</strong> All 8 walkability metrics, compare mode, and field verification mode work without any sign-up. You can adjust scores based on ground observation and save a verified PDF. For advanced advocacy tools like the Street Audit Tool, advocacy letters & proposals, and street redesign mockups, the Advocacy Toolkit is available for a one-time $49 payment — no subscription.
-                  </p>
-                </div>
-              </div>
 
-              {/* FAQ 6 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 6 ? null : 6)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 6}
-                  aria-controls="faq-6-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    What do I get with the Advocacy Toolkit?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 6 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-6-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    <strong className="text-gray-900">The Advocacy Toolkit ($49 one-time) unlocks:</strong> Street Audit Tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF &amp; JSON data export, and the ability to save up to 10 addresses. No subscription required. Note: field verification mode and verified PDF reports are free for everyone — no toolkit purchase needed.
-                  </p>
-                </div>
-              </div>
 
               {/* Remaining FAQs - hidden by default */}
               {showAllFaqs && (
@@ -2315,30 +2080,6 @@ function App() {
                 </div>
               </div>
 
-              {/* FAQ 9 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 9 ? null : 9)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 9}
-                  aria-controls="faq-9-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    Can I use this for commercial projects?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 9 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-9-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    The core walkability analysis is free for everyone — no sign-up needed. The Advocacy Toolkit ($49 one-time) unlocks advanced features like the Street Audit Tool, advocacy letters & proposals, street redesign mockups, and unlimited Meridian chatbot. For municipalities and organizations needing custom analysis, contact us for tailored solutions.
-                  </p>
-                </div>
-              </div>
 
               {/* FAQ 10 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
@@ -2397,7 +2138,7 @@ function App() {
                 onClick={() => setShowAllFaqs(!showAllFaqs)}
                 className="w-full py-4 text-sm font-medium transition-colors rounded-lg border border-earth-border hover:bg-white/50 text-earth-text-body"
               >
-                {showAllFaqs ? 'Show fewer questions' : 'Show 5 more questions'}
+                {showAllFaqs ? 'Show fewer questions' : 'Show 3 more questions'}
               </button>
             </div>
           </div>
@@ -2428,30 +2169,25 @@ function App() {
               </div>
             </div>
 
-            {/* Pricing Column */}
-            <div id="pricing">
-              <h4 className="font-bold mb-4 text-earth-border">Pricing</h4>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5 bg-earth-text-muted"></span>
-                  <div>
-                    <span className="font-semibold text-earth-border">Free Tier</span>
-                    <p className="text-xs text-earth-text-muted">8 metrics, compare mode, field verification, 15-min city</p>
-                  </div>
+            {/* Product Column */}
+            <div>
+              <h4 className="font-bold mb-4 text-earth-border">Product</h4>
+              <ul className="space-y-2 text-sm text-earth-text-light">
+                <li className="flex items-center gap-2">
+                  <span className="text-terra">·</span>
+                  Free walkability analysis
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5 bg-terra"></span>
-                  <div>
-                    <span className="font-semibold text-terra">Advocacy Toolkit — $49</span>
-                    <p className="text-xs text-earth-text-muted">Street audit, AI documents, redesign mockups, unlimited chatbot</p>
-                  </div>
+                <li className="flex items-center gap-2">
+                  <span className="text-terra">·</span>
+                  Compare neighborhoods
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="w-2 h-2 rounded-full mt-1.5 bg-enterprise-navy"></span>
-                  <div>
-                    <a href="/enterprise" className="font-semibold transition hover:text-white text-blue-300">Safety & Infrastructure Intelligence</a>
-                    <p className="text-xs text-earth-text-muted">Dashboards, field audits & citizen advocacy from $50K</p>
-                  </div>
+                <li className="flex items-center gap-2">
+                  <span className="text-terra">·</span>
+                  PDF reports & sharing
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-terra">·</span>
+                  <a href="/enterprise" className="transition hover:text-white text-earth-text-light">Enterprise solutions</a>
                 </li>
               </ul>
             </div>
@@ -2533,30 +2269,6 @@ function App() {
         </div>
       </footer>
 
-      {/* Demo nudge toast — appears after using a premium feature in demo */}
-      {demoNudge && (
-        <div
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg border animate-in bg-white border-terra max-w-[420px]"
-        >
-          <span className="text-sm text-earth-text-dark">
-            <strong>Like this?</strong> Get it for your own address.
-          </span>
-          <button
-            onClick={() => { setDemoNudge(false); setShowSignInModal(true); }}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold text-white whitespace-nowrap flex-shrink-0 bg-terra"
-          >
-            Go Premium — $49
-          </button>
-          <button
-            onClick={() => setDemoNudge(false)}
-            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
 
       {/* Demo mode banner */}
       {demoMode && (

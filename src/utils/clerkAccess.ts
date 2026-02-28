@@ -1,8 +1,17 @@
 /**
  * Clerk-based Access Management
- * Free tier = default. Advocate tier = $49 one-time payment (stored in Clerk publicMetadata).
- * Dev mode (localhost) auto-enables advocate tier for testing.
+ * Free tier = default. Advocate tier = $49 one-time. Pro tier = $99 one-time.
+ * Dev mode (localhost) auto-enables pro tier for testing.
  */
+
+// Agent profile stored in Clerk unsafeMetadata (client-writable)
+export interface AgentProfile {
+  name: string;
+  title?: string;
+  company?: string;
+  phone?: string;
+  email?: string;
+}
 
 // User type from useUser() hook
 interface User {
@@ -14,9 +23,14 @@ interface User {
     tier?: string;
     [key: string]: unknown;
   };
+  unsafeMetadata?: {
+    agentProfile?: AgentProfile;
+    proTrialReportsUsed?: number;
+    [key: string]: unknown;
+  };
 }
 
-export type PremiumTier = 'free' | 'advocate';
+export type PremiumTier = 'free' | 'advocate' | 'pro';
 
 export interface AccessInfo {
   tier: PremiumTier;
@@ -25,7 +39,7 @@ export interface AccessInfo {
 }
 
 /**
- * DEV MODE: Automatically enables advocate tier on localhost (development only)
+ * DEV MODE: Automatically enables pro tier on localhost (development only)
  */
 function getDevTierOverride(): PremiumTier | null {
   if (typeof window === 'undefined') return null;
@@ -34,7 +48,7 @@ function getDevTierOverride(): PremiumTier | null {
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
   if (isLocalhost) {
-    return 'advocate';
+    return 'pro';
   }
 
   return null;
@@ -61,12 +75,10 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
   // Check Clerk publicMetadata for paid tier (set by Stripe webhook)
   const email = user.primaryEmailAddress?.emailAddress || null;
   const metadataTier = user.publicMetadata?.tier as PremiumTier | undefined;
+  const validTiers: PremiumTier[] = ['advocate', 'pro'];
+  const tier: PremiumTier = metadataTier && validTiers.includes(metadataTier) ? metadataTier : 'free';
 
-  return {
-    tier: metadataTier === 'advocate' ? 'advocate' : 'free',
-    email,
-    isValid: true,
-  };
+  return { tier, email, isValid: true };
 }
 
 /**
@@ -74,7 +86,15 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
  */
 export function isPremium(user: User | null | undefined): boolean {
   const { tier } = getAccessInfoFromUser(user);
-  return tier === 'advocate';
+  return tier === 'advocate' || tier === 'pro';
+}
+
+/**
+ * Pro = $99 one-time purchase tier.
+ */
+export function isPro(user: User | null | undefined): boolean {
+  const { tier } = getAccessInfoFromUser(user);
+  return tier === 'pro';
 }
 
 /**
@@ -82,4 +102,29 @@ export function isPremium(user: User | null | undefined): boolean {
  */
 export function isSignedIn(user: User | null | undefined): boolean {
   return !!user;
+}
+
+/**
+ * Get agent profile from Clerk unsafeMetadata.
+ */
+export function getAgentProfile(user: User | null | undefined): AgentProfile | null {
+  return (user?.unsafeMetadata?.agentProfile as AgentProfile) || null;
+}
+
+/**
+ * Get count of pro trial reports used.
+ */
+export function getProTrialReportsUsed(user: User | null | undefined): number {
+  return (user?.unsafeMetadata?.proTrialReportsUsed as number) || 0;
+}
+
+/**
+ * Check if user can generate an agent report (is pro, or has trial remaining).
+ */
+export function canGenerateAgentReport(user: User | null | undefined): boolean {
+  const { tier } = getAccessInfoFromUser(user);
+  if (tier === 'pro') return true;
+  if (!user) return false;
+  const used = getProTrialReportsUsed(user);
+  return used < 3;
 }
