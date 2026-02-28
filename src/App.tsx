@@ -1959,6 +1959,62 @@ function App() {
               </div>
             </section>
 
+            {/* Agent Reports CTA */}
+            <section className="py-16 bg-white/60">
+              <div className="max-w-4xl mx-auto px-6">
+                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#d0dbd0', background: 'linear-gradient(135deg, rgba(30,58,95,0.03) 0%, rgba(30,58,95,0.08) 100%)' }}>
+                  <div className="p-8 sm:p-10">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+                      <div className="flex-1">
+                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#1e3a5f' }}>
+                          For Real Estate Agents
+                        </p>
+                        <h3 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+                          Branded Walkability Reports
+                        </h3>
+                        <p className="text-sm leading-relaxed mb-4" style={{ color: '#6b7280' }}>
+                          Put your name on every page. Generate print-ready PDF reports with your branding, contact info, and 8 walkability metrics for any listing. 3 free reports to try, then unlimited for a one-time payment.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <a
+                            href="/?agent=true"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
+                            style={{ backgroundColor: '#1e3a5f' }}
+                          >
+                            Try It Free
+                          </a>
+                          <a
+                            href="https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-sm font-semibold hover:underline"
+                            style={{ color: '#1e3a5f' }}
+                          >
+                            $99 one-time for unlimited &rarr;
+                          </a>
+                        </div>
+                      </div>
+                      <div className="hidden sm:flex flex-col gap-2 flex-shrink-0">
+                        {[
+                          { label: 'Your branding on every page', check: true },
+                          { label: '8 real metrics from satellite data', check: true },
+                          { label: 'Print-ready 3-page PDF', check: true },
+                          { label: 'Any address worldwide', check: true },
+                        ].map(f => (
+                          <div key={f.label} className="flex items-center gap-2 text-sm" style={{ color: '#4a5a4a' }}>
+                            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#1e3a5f' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            {f.label}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Newsletter subscribe */}
             {!demoMode && (
               <section className="py-12">
