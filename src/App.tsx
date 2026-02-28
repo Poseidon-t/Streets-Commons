@@ -234,12 +234,25 @@ function App() {
     }
   }, []);
 
-  // Auto-trigger agent report flow when arriving via ?agent=true (from ForRealEstate / CityPage CTAs)
+  // Auto-trigger agent report flow when arriving via ?agent=true (from ForRealEstate / CityPage / Admin Sales Pipeline)
   useEffect(() => {
     if (pendingAgentReport.current && metrics && location) {
       pendingAgentReport.current = false;
-      // Small delay to let UI settle, then trigger agent report
-      setTimeout(() => handleAgentReportClick(), 500);
+      const params = new URLSearchParams(window.location.search);
+      const urlAgentName = params.get('agentName');
+      // If agent profile provided via URL params (admin sales pipeline), skip modals and generate directly
+      if (urlAgentName) {
+        const profile: AgentProfile = {
+          name: urlAgentName,
+          company: params.get('agentCompany') || '',
+          email: params.get('agentEmail') || '',
+          phone: params.get('agentPhone') || '',
+          title: params.get('agentTitle') || '',
+        };
+        setTimeout(() => generateAgentReport(profile), 500);
+      } else {
+        setTimeout(() => handleAgentReportClick(), 500);
+      }
     }
   }, [metrics, location]);
 

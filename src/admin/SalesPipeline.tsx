@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchLeads, updateLead, addLead, searchAgents } from './adminApi';
+import { fetchLeads, updateLead, addLead, searchAgents, validateEmail, generateReport } from './adminApi';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,6 +22,8 @@ interface QualifiedLead {
   outreachDate?: string;
   responseDate?: string;
   notes?: string;
+  emailValid?: 'valid' | 'invalid' | 'placeholder' | 'unchecked';
+  activeListings?: string;
 }
 
 // ── Constants ───────────────────────────────────────────────────────────────
@@ -65,6 +67,19 @@ Sarath
 SafeStreets — safestreets.streetsandcommons.com`;
 }
 
+// ── Agent Search Links ──────────────────────────────────────────────────────
+
+function getAgentSearchLinks(lead: QualifiedLead) {
+  const name = encodeURIComponent(lead.agentName);
+  const citySlug = lead.city.toLowerCase().replace(/\s+/g, '-');
+  const stateSlug = lead.state.toLowerCase();
+  return {
+    zillow: `https://www.zillow.com/${citySlug}-${stateSlug}/real-estate-agent-reviews/?name=${name}`,
+    realtor: `https://www.realtor.com/realestateagents/${citySlug}_${stateSlug}/${lead.agentName.toLowerCase().replace(/\s+/g, '-')}`,
+    redfin: `https://www.redfin.com/real-estate-agents/${citySlug}-${stateSlug}?q=${name}`,
+  };
+}
+
 // ── Component ───────────────────────────────────────────────────────────────
 
 export default function SalesPipeline() {
@@ -86,6 +101,9 @@ export default function SalesPipeline() {
   const [showFindModal, setShowFindModal] = useState(false);
   const [emailModalLead, setEmailModalLead] = useState<QualifiedLead | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [validating, setValidating] = useState<Set<number>>(new Set());
+  const [validatingAll, setValidatingAll] = useState(false);
+  const [generatingReport, setGeneratingReport] = useState<number | null>(null);
 
   // Load leads
   useEffect(() => {
@@ -132,6 +150,7 @@ export default function SalesPipeline() {
     email_sent: leads.filter(l => l.outreachStatus === 'email_sent').length,
     responded: leads.filter(l => l.outreachStatus === 'responded' || l.outreachStatus === 'followed_up').length,
     converted: leads.filter(l => l.outreachStatus === 'converted').length,
+    validEmails: leads.filter(l => l.emailValid === 'valid').length,
   }), [leads]);
 
   // Handlers
@@ -194,6 +213,62 @@ export default function SalesPipeline() {
     URL.revokeObjectURL(url);
   };
 
+  const handleValidateEmail = async (lead: QualifiedLead) => {
+    setValidating(prev => new Set(prev).add(lead.rank));
+    try {
+      const result = await validateEmail(lead.email);
+      const emailValid = result.status as QualifiedLead['emailValid'];
+      await updateLead(lead.rank, { emailValid });
+      setLeads(prev => prev.map(l => l.rank === lead.rank ? { ...l, emailValid } : l));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setValidating(prev => { const next = new Set(prev); next.delete(lead.rank); return next; });
+    }
+  };
+
+  const handleValidateAll = async () => {
+    setValidatingAll(true);
+    for (const lead of leads) {
+      if (lead.emailValid && lead.emailValid !== 'unchecked') continue;
+      await handleValidateEmail(lead);
+    }
+    setValidatingAll(false);
+  };
+
+  const handleActiveListingsChange = async (rank: number, activeListings: string) => {
+    try {
+      await updateLead(rank, { activeListings });
+      setLeads(prev => prev.map(l => l.rank === rank ? { ...l, activeListings } : l));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const handleGenerateReport = async (lead: QualifiedLead) => {
+    setGeneratingReport(lead.rank);
+    try {
+      const reportData = await generateReport({
+        neighborhood: lead.neighborhood,
+        city: lead.city,
+        state: lead.state,
+        agentProfile: {
+          name: lead.agentName,
+          company: lead.brokerage || undefined,
+          email: lead.email.startsWith('Check') ? undefined : lead.email,
+          phone: lead.phone.startsWith('Check') ? undefined : lead.phone,
+        },
+      });
+      // Store in sessionStorage and open the report view
+      sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
+      window.open('/report/agent', '_blank');
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setGeneratingReport(null);
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────
 
   if (loading) return <div className="text-gray-500">Loading pipeline...</div>;
@@ -207,6 +282,14 @@ export default function SalesPipeline() {
           <p className="text-sm text-gray-500 mt-1">Real estate agent outreach for Pro tier</p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleValidateAll}
+            disabled={validatingAll}
+            className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition disabled:opacity-50"
+            style={{ color: '#2a3a2a' }}
+          >
+            {validatingAll ? 'Validating...' : 'Validate Emails'}
+          </button>
           <button
             onClick={handleExportCSV}
             className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
@@ -239,9 +322,10 @@ export default function SalesPipeline() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         {[
           { label: 'Total Leads', value: stats.total, color: '#2a3a2a' },
+          { label: 'Valid Emails', value: stats.validEmails, color: '#059669' },
           { label: 'Not Started', value: stats.not_started, color: '#6b7280' },
           { label: 'Email Sent', value: stats.email_sent, color: '#1d4ed8' },
           { label: 'Responded', value: stats.responded, color: '#065f46' },
@@ -297,7 +381,7 @@ export default function SalesPipeline() {
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden lg:table-cell">Brokerage</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden xl:table-cell">Listing</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
-              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-24">Actions</th>
+              <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-32">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -307,10 +391,15 @@ export default function SalesPipeline() {
                 lead={lead}
                 expanded={expandedRank === lead.rank}
                 saving={saving === lead.rank}
+                isValidating={validating.has(lead.rank)}
                 onToggle={() => setExpandedRank(expandedRank === lead.rank ? null : lead.rank)}
                 onStatusChange={handleStatusChange}
                 onNotesChange={handleNotesChange}
                 onGenerateEmail={() => setEmailModalLead(lead)}
+                onValidateEmail={() => handleValidateEmail(lead)}
+                onActiveListingsChange={handleActiveListingsChange}
+                onGenerateReport={() => handleGenerateReport(lead)}
+                isGeneratingReport={generatingReport === lead.rank}
               />
             ))}
           </tbody>
@@ -397,21 +486,33 @@ function LeadRow({
   lead,
   expanded,
   saving,
+  isValidating,
   onToggle,
   onStatusChange,
   onNotesChange,
   onGenerateEmail,
+  onValidateEmail,
+  onActiveListingsChange,
+  onGenerateReport,
+  isGeneratingReport,
 }: {
   lead: QualifiedLead;
   expanded: boolean;
   saving: boolean;
+  isValidating: boolean;
   onToggle: () => void;
   onStatusChange: (rank: number, status: OutreachStatus) => void;
   onNotesChange: (rank: number, notes: string) => void;
   onGenerateEmail: () => void;
+  onValidateEmail: () => void;
+  onActiveListingsChange: (rank: number, activeListings: string) => void;
+  onGenerateReport: () => void;
+  isGeneratingReport: boolean;
 }) {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState(lead.notes || '');
+  const [editingListings, setEditingListings] = useState(false);
+  const [listingsValue, setListingsValue] = useState(lead.activeListings || '');
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   const statusCfg = STATUS_CONFIG[lead.outreachStatus];
@@ -424,7 +525,13 @@ function LeadRow({
       >
         <td className="px-4 py-3 text-sm text-gray-400 font-mono">{lead.rank}</td>
         <td className="px-4 py-3">
-          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{lead.agentName}</div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{lead.agentName}</span>
+            {lead.emailValid === 'valid' && <span className="w-2 h-2 rounded-full bg-green-500 inline-block flex-shrink-0" title="Email valid" />}
+            {lead.emailValid === 'invalid' && <span className="w-2 h-2 rounded-full bg-red-500 inline-block flex-shrink-0" title="Email invalid" />}
+            {lead.emailValid === 'placeholder' && <span className="w-2 h-2 rounded-full bg-amber-400 inline-block flex-shrink-0" title="Placeholder email" />}
+            {isValidating && <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse inline-block flex-shrink-0" title="Validating..." />}
+          </div>
           <div className="text-xs text-gray-500 md:hidden">{lead.city}, {lead.state} · {lead.neighborhood}</div>
         </td>
         <td className="px-4 py-3 hidden md:table-cell">
@@ -467,13 +574,23 @@ function LeadRow({
           )}
         </td>
         <td className="px-4 py-3">
-          <button
-            onClick={e => { e.stopPropagation(); onGenerateEmail(); }}
-            className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
-            style={{ color: '#e07850' }}
-          >
-            Email
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={e => { e.stopPropagation(); onGenerateEmail(); }}
+              className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+              style={{ color: '#e07850' }}
+            >
+              Email
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onGenerateReport(); }}
+              disabled={isGeneratingReport}
+              className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition disabled:opacity-50"
+              style={{ color: '#1e3a5f' }}
+            >
+              {isGeneratingReport ? 'Generating...' : 'Report'}
+            </button>
+          </div>
         </td>
       </tr>
       {expanded && (
@@ -486,10 +603,22 @@ function LeadRow({
                 <div className="text-sm">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-gray-400">📧</span>
+                    {lead.emailValid === 'valid' && <span className="text-green-600 text-xs" title="MX records found">✓</span>}
+                    {lead.emailValid === 'invalid' && <span className="text-red-600 text-xs" title="No MX records">✗</span>}
+                    {lead.emailValid === 'placeholder' && <span className="text-amber-500 text-xs" title="Placeholder">⚠</span>}
                     {lead.email.startsWith('Check') ? (
                       <span className="text-amber-600 text-xs">{lead.email}</span>
                     ) : (
                       <a href={`mailto:${lead.email}`} className="text-blue-600 hover:underline">{lead.email}</a>
+                    )}
+                    {(!lead.emailValid || lead.emailValid === 'unchecked') && !lead.email.startsWith('Check') && (
+                      <button
+                        onClick={e => { e.stopPropagation(); onValidateEmail(); }}
+                        disabled={isValidating}
+                        className="text-xs text-blue-600 hover:underline ml-1 disabled:opacity-50"
+                      >
+                        {isValidating ? 'Checking...' : 'Validate'}
+                      </button>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mb-1">
@@ -509,13 +638,66 @@ function LeadRow({
                 </div>
               </div>
 
-              {/* Listing Info */}
+              {/* Listings & Search */}
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-gray-500 uppercase">Listing</h4>
+                <h4 className="text-xs font-semibold text-gray-500 uppercase">Listings</h4>
                 <div className="text-sm text-gray-700">
-                  <div>{lead.sampleListing}</div>
-                  <div className="text-gray-500">{lead.listingPrice}</div>
+                  <div>{lead.sampleListing || '—'}</div>
+                  {lead.listingPrice && <div className="text-xs text-gray-400">{lead.listingPrice}</div>}
                 </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <a href={getAgentSearchLinks(lead).zillow} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition">
+                    Zillow
+                  </a>
+                  <a href={getAgentSearchLinks(lead).realtor} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-50 text-red-700 hover:bg-red-100 transition">
+                    Realtor.com
+                  </a>
+                  <a href={getAgentSearchLinks(lead).redfin} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-50 text-orange-700 hover:bg-orange-100 transition">
+                    Redfin
+                  </a>
+                  {lead.website && (
+                    <a href={lead.website} target="_blank" rel="noreferrer"
+                      className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
+                      Agent Site
+                    </a>
+                  )}
+                </div>
+                {lead.activeListings && !editingListings && (
+                  <div className="mt-1 p-2 bg-green-50 rounded-lg border border-green-200">
+                    <div className="text-xs font-semibold text-green-800 mb-1">Active Listings</div>
+                    <div className="text-xs text-green-700 whitespace-pre-wrap">{lead.activeListings}</div>
+                  </div>
+                )}
+                {editingListings ? (
+                  <div className="mt-1">
+                    <textarea
+                      value={listingsValue}
+                      onChange={e => setListingsValue(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-orange-300 focus:outline-none"
+                      rows={3}
+                      placeholder="Paste listing URLs or notes about active listings..."
+                    />
+                    <div className="flex gap-2 mt-1">
+                      <button
+                        onClick={() => { onActiveListingsChange(lead.rank, listingsValue); setEditingListings(false); }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                        style={{ backgroundColor: '#e07850' }}
+                      >Save</button>
+                      <button onClick={() => setEditingListings(false)}
+                        className="px-3 py-1.5 rounded-lg text-xs text-gray-500 hover:bg-gray-100">Cancel</button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => { setEditingListings(true); setListingsValue(lead.activeListings || ''); }}
+                    className="text-xs text-blue-600 hover:underline mt-1"
+                  >
+                    {lead.activeListings ? 'Edit listings' : '+ Add listings'}
+                  </button>
+                )}
               </div>
 
               {/* Qualification */}

@@ -18,9 +18,13 @@ import { fromUrl } from 'geotiff';
 import Stripe from 'stripe';
 import helmet from 'helmet';
 
+import dns from 'node:dns';
+import { promisify } from 'node:util';
 import multer from 'multer';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+const resolveMx = promisify(dns.resolveMx);
 
 // Get directory name in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -1758,7 +1762,7 @@ app.put('/api/admin/sales/leads/:rank', (req, res) => {
 
   const updates = req.body;
   // Only allow updating specific fields
-  const allowed = ['outreachStatus', 'outreachDate', 'responseDate', 'notes', 'email', 'phone', 'website', 'sampleListing', 'listingPrice', 'agentName', 'brokerage', 'neighborhood', 'qualificationNotes'];
+  const allowed = ['outreachStatus', 'outreachDate', 'responseDate', 'notes', 'email', 'phone', 'website', 'sampleListing', 'listingPrice', 'agentName', 'brokerage', 'neighborhood', 'qualificationNotes', 'emailValid', 'activeListings'];
   for (const key of Object.keys(updates)) {
     if (allowed.includes(key)) {
       leads[idx][key] = updates[key];
@@ -1766,6 +1770,168 @@ app.put('/api/admin/sales/leads/:rank', (req, res) => {
   }
   saveLeads(leads);
   res.json(leads[idx]);
+});
+
+// POST /api/admin/sales/validate-email — validate email format + MX records
+app.post('/api/admin/sales/validate-email', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const { email } = req.body;
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'email is required' });
+  }
+  // Placeholder detection
+  if (/^check\s/i.test(email)) {
+    return res.json({ valid: false, reason: 'Placeholder — not a real email', hasMx: false, status: 'placeholder' });
+  }
+  // Format check
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.json({ valid: false, reason: 'Invalid email format', hasMx: false, status: 'invalid' });
+  }
+  // DNS MX lookup
+  const domain = email.split('@')[1];
+  try {
+    const mxRecords = await resolveMx(domain);
+    if (mxRecords && mxRecords.length > 0) {
+      return res.json({ valid: true, reason: `MX records found (${mxRecords[0].exchange})`, hasMx: true, status: 'valid' });
+    }
+    return res.json({ valid: false, reason: `No MX records for ${domain}`, hasMx: false, status: 'invalid' });
+  } catch (err) {
+    const reason = err.code === 'ENOTFOUND' ? `Domain ${domain} does not exist`
+      : err.code === 'ENODATA' ? `No MX records for ${domain}`
+      : `DNS lookup failed: ${err.message}`;
+    return res.json({ valid: false, reason, hasMx: false, status: 'invalid' });
+  }
+});
+
+// POST /api/admin/sales/generate-report — server-side walkability analysis + report data
+app.post('/api/admin/sales/generate-report', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const { neighborhood, city, state, agentProfile } = req.body;
+  if (!city || !agentProfile?.name) {
+    return res.status(400).json({ error: 'city and agentProfile.name are required' });
+  }
+
+  try {
+    // 1. Geocode the location via Nominatim
+    const searchQuery = neighborhood ? `${neighborhood}, ${city}, ${state}` : `${city}, ${state}`;
+    const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`, {
+      headers: { 'User-Agent': 'SafeStreets/1.0 (safestreets.streetsandcommons.com)' },
+    });
+    const geoData = await geoRes.json();
+    if (!geoData.length) {
+      return res.status(404).json({ error: `Could not geocode "${searchQuery}"` });
+    }
+    const lat = parseFloat(geoData[0].lat);
+    const lon = parseFloat(geoData[0].lon);
+    const displayName = geoData[0].display_name?.split(',').slice(0, 3).join(',').trim() || searchQuery;
+
+    // 2. Fetch OSM data via Overpass
+    const radius = 800;
+    const poiRadius = 1200;
+    const overpassQuery = `[out:json][timeout:25];
+(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];);out body; >; out skel qt;
+(node(around:${poiRadius},${lat},${lon})["amenity"];node(around:${poiRadius},${lat},${lon})["shop"];way(around:${poiRadius},${lat},${lon})["amenity"="school"];way(around:${poiRadius},${lat},${lon})["leisure"="park"];node(around:${poiRadius},${lat},${lon})["public_transport"="stop_position"];node(around:${poiRadius},${lat},${lon})["highway"="bus_stop"];node(around:${poiRadius},${lat},${lon})["railway"="station"];);out center;`;
+
+    const overpassRes = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: `data=${encodeURIComponent(overpassQuery)}`,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    if (!overpassRes.ok) throw new Error(`Overpass HTTP ${overpassRes.status}`);
+    const osmRaw = await overpassRes.json();
+    const elements = osmRaw.elements || [];
+
+    // 3. Process OSM data into categories
+    const crossings = elements.filter(e => e.tags?.highway === 'crossing' || e.tags?.crossing);
+    const streets = elements.filter(e => e.type === 'way' && e.tags?.highway && ['primary','secondary','tertiary','residential','living_street','pedestrian'].includes(e.tags.highway));
+    const sidewalks = elements.filter(e => e.tags?.footway === 'sidewalk' || e.tags?.sidewalk || e.tags?.highway === 'footway');
+    const pois = elements.filter(e => e.tags?.amenity || e.tags?.shop || e.tags?.leisure || e.tags?.railway === 'station');
+
+    // 4. Calculate metrics (same logic as client-side metrics.ts)
+    // Crossing Safety
+    let weightedCrossings = 0;
+    crossings.forEach(c => {
+      const ct = c.tags?.crossing;
+      if (ct === 'traffic_signals') weightedCrossings += 1.0;
+      else if (ct === 'marked' || ct === 'zebra') weightedCrossings += 0.7;
+      else if (ct === 'island') weightedCrossings += 0.6;
+      else if (ct === 'uncontrolled') weightedCrossings += 0.3;
+      else if (ct === 'unmarked') weightedCrossings += 0.1;
+      else weightedCrossings += 0.5;
+    });
+    const estimatedRoadKm = (streets.length * 100) / 1000;
+    const crossingDensity = estimatedRoadKm > 0 ? Math.min(10, (weightedCrossings / estimatedRoadKm / 8) * 10) : 0;
+    const crossingSafety = Math.round(crossingDensity * 10) / 10;
+
+    // Sidewalk Coverage
+    const streetsWithSidewalks = streets.filter(s => { const sw = s.tags?.sidewalk; return sw && sw !== 'no' && sw !== 'none'; });
+    const swCoverage = streets.length > 0 ? (streetsWithSidewalks.length / streets.length) * 100 : 0;
+    const sidewalkCoverage = Math.round(Math.min(10, (swCoverage / 90) * 10) * 10) / 10;
+
+    // Speed Exposure
+    let totalDanger = 0;
+    streets.forEach(s => {
+      let speed = s.tags?.maxspeed ? parseInt(s.tags.maxspeed, 10) : null;
+      const hw = s.tags?.highway;
+      if (!speed || isNaN(speed)) {
+        speed = hw === 'primary' ? 45 : hw === 'secondary' ? 35 : hw === 'tertiary' ? 30 : hw === 'residential' ? 25 : 30;
+      }
+      const lanes = s.tags?.lanes ? parseInt(s.tags.lanes, 10) : (hw === 'primary' ? 4 : 2);
+      totalDanger += Math.pow(speed / 20, 2) * Math.min(2, lanes / 2);
+    });
+    const avgDanger = streets.length > 0 ? totalDanger / streets.length : 3;
+    const speedExposure = Math.round(Math.max(0, Math.min(10, 10 - (avgDanger - 1) * (10 / 7))) * 10) / 10;
+
+    // Destination Access
+    const cats = { education: false, transit: false, shopping: false, healthcare: false, food: false, recreation: false };
+    pois.forEach(p => {
+      if (p.tags?.amenity === 'school' || p.tags?.amenity === 'kindergarten') cats.education = true;
+      if (p.tags?.amenity === 'bus_station' || p.tags?.railway === 'station') cats.transit = true;
+      if (p.tags?.shop) cats.shopping = true;
+      if (p.tags?.amenity === 'hospital' || p.tags?.amenity === 'clinic' || p.tags?.amenity === 'pharmacy') cats.healthcare = true;
+      if (p.tags?.amenity === 'restaurant' || p.tags?.amenity === 'cafe') cats.food = true;
+      if (p.tags?.leisure === 'park' || p.tags?.leisure === 'playground') cats.recreation = true;
+    });
+    const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
+
+    // Night Safety
+    const litStreets = streets.filter(s => s.tags?.lit === 'yes');
+    const unlitStreets = streets.filter(s => s.tags?.lit === 'no');
+    const taggedLit = litStreets.length + unlitStreets.length;
+    let nightSafety = 5;
+    if (taggedLit >= streets.length * 0.1 && taggedLit > 0) {
+      nightSafety = Math.round(Math.min(10, (litStreets.length / taggedLit) * 10) * 10) / 10;
+    } else if (streets.length > 0) {
+      let inferred = 0;
+      streets.forEach(s => {
+        const hw = s.tags?.highway;
+        if (hw === 'primary' || hw === 'secondary') inferred += 0.8;
+        else if (hw === 'tertiary') inferred += 0.5;
+        else if (hw === 'residential') inferred += 0.3;
+      });
+      nightSafety = Math.round(Math.min(6, (inferred / streets.length) * 10) * 10) / 10;
+    }
+
+    // Overall score (OSM-only weighted average)
+    const overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess) / 5) * 10) / 10;
+    const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
+    const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
+
+    // 5. Build report data
+    const reportData = {
+      location: { lat, lon, displayName },
+      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: 0, treeCanopy: 0, thermalComfort: 0, overallScore, label },
+      compositeScore: { overallScore: overallScore * 10, grade, components: [] },
+      dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
+      agentProfile,
+    };
+
+    console.log(`📊 Generated report for ${displayName} (${overallScore}/10 ${grade}) — agent: ${agentProfile.name}`);
+    res.json(reportData);
+  } catch (err) {
+    console.error('Report generation failed:', err);
+    res.status(500).json({ error: `Report generation failed: ${err.message}` });
+  }
 });
 
 // POST /api/admin/sales/leads — add a new lead
