@@ -49,7 +49,6 @@ const getScoreColor = (s: number) => {
 
 const metricsConfig = [
   { key: 'crossingSafety', name: 'Crossing Safety', icon: '🚦', source: 'OpenStreetMap' },
-  { key: 'sidewalkCoverage', name: 'Sidewalk Coverage', icon: '🚶', source: 'OpenStreetMap' },
   { key: 'speedExposure', name: 'Traffic Speed', icon: '🚗', source: 'OpenStreetMap' },
   { key: 'destinationAccess', name: 'Daily Needs', icon: '🏪', source: 'OpenStreetMap' },
   { key: 'nightSafety', name: 'Night Safety', icon: '💡', source: 'OpenStreetMap' },
@@ -131,6 +130,7 @@ export default function AgentReportView() {
       : metrics[key] as number;
 
   const sortedMetrics = metricsConfig
+    .filter(m => (metrics[m.key as keyof WalkabilityMetrics] as number) > 0)
     .map(m => ({ ...m, score: resolveMetric(m.key as MetricKey) }))
     .sort((a, b) => b.score - a.score);
 
@@ -251,7 +251,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Summary</h2>
             <p style={{ fontSize: '0.9375rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers 8 infrastructure and environmental metrics using satellite imagery, OpenStreetMap data, and NASA elevation models.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
+              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using OpenStreetMap data and NASA satellite imagery.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
             </p>
           </div>
 
@@ -287,7 +287,10 @@ export default function AgentReportView() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Detailed Metrics</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {metricsConfig.map(m => {
+            {metricsConfig.filter(m => {
+              const v = metrics[m.key as keyof WalkabilityMetrics] as number;
+              return v > 0 || (fieldMode && fieldData[m.key as MetricKey].adjustedScore !== null);
+            }).map(m => {
               const key = m.key as MetricKey;
               const originalVal = metrics[m.key as keyof WalkabilityMetrics] as number;
               const val = resolveMetric(key);
@@ -439,7 +442,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This walkability assessment analyzes 8 metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
+              This walkability assessment analyzes {sortedMetrics.length} metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
             </p>
           </div>
 
