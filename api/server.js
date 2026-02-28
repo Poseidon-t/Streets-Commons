@@ -1823,20 +1823,43 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const lon = parseFloat(geoData[0].lon);
     const displayName = geoData[0].display_name?.split(',').slice(0, 3).join(',').trim() || searchQuery;
 
-    // 2. Fetch OSM data via Overpass
+    // 2. Fetch OSM data via Overpass (with retry + fallback endpoints)
     const radius = 800;
     const poiRadius = 1200;
-    const overpassQuery = `[out:json][timeout:25];
+    const overpassQuery = `[out:json][timeout:45];
 (node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];);out body; >; out skel qt;
 (node(around:${poiRadius},${lat},${lon})["amenity"];node(around:${poiRadius},${lat},${lon})["shop"];way(around:${poiRadius},${lat},${lon})["amenity"="school"];way(around:${poiRadius},${lat},${lon})["leisure"="park"];node(around:${poiRadius},${lat},${lon})["public_transport"="stop_position"];node(around:${poiRadius},${lat},${lon})["highway"="bus_stop"];node(around:${poiRadius},${lat},${lon})["railway"="station"];);out center;`;
 
-    const overpassRes = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: `data=${encodeURIComponent(overpassQuery)}`,
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    });
-    if (!overpassRes.ok) throw new Error(`Overpass HTTP ${overpassRes.status}`);
-    const osmRaw = await overpassRes.json();
+    const overpassEndpoints = [
+      'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
+    ];
+
+    let osmRaw = null;
+    for (const endpoint of overpassEndpoints) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          if (attempt > 0) await new Promise(r => setTimeout(r, 2000)); // wait 2s before retry
+          console.log(`🗺️  Overpass ${attempt > 0 ? 'retry' : 'attempt'}: ${endpoint}`);
+          const overpassRes = await fetch(endpoint, {
+            method: 'POST',
+            body: `data=${encodeURIComponent(overpassQuery)}`,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            signal: AbortSignal.timeout(50000),
+          });
+          if (!overpassRes.ok) {
+            console.warn(`⚠️  Overpass ${overpassRes.status} from ${endpoint}`);
+            continue;
+          }
+          osmRaw = await overpassRes.json();
+          break;
+        } catch (err) {
+          console.warn(`⚠️  Overpass error (${endpoint}): ${err.message}`);
+        }
+      }
+      if (osmRaw) break;
+    }
+    if (!osmRaw) throw new Error('Overpass API unavailable — all endpoints timed out');
     const elements = osmRaw.elements || [];
 
     // 3. Process OSM data into categories
