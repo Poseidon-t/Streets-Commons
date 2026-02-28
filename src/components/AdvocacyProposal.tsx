@@ -142,7 +142,7 @@ export default function AdvocacyProposal({ isPremium, location, metrics, composi
         <h3 className="font-semibold mb-2" style={{ color: '#2a3a2a' }}>What's Included:</h3>
         <ul className="space-y-1 text-sm" style={{ color: '#4a5a4a' }}>
           <li>✓ 4-component walkability score with letter grade</li>
-          <li>✓ Real crash & fatality data for your area</li>
+          <li>✓ Crash & fatality data for your area</li>
           <li>✓ Calculated economic impact (property, retail, healthcare)</li>
           <li>✓ Local economy analysis with business breakdown</li>
           <li>✓ Data-driven quick wins from lowest-scoring metrics</li>

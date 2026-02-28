@@ -199,7 +199,7 @@ export default function CityPage() {
             Ready to Analyze Your Street in {city.name}?
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
-            Free walkability score for any address. No sign-up required. Powered by real satellite data.
+            Free walkability score for any address. No sign-up required. Powered by satellite data.
           </p>
           <Link
             to={analyzeUrl}

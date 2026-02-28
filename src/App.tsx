@@ -811,7 +811,7 @@ function App() {
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Satellite data for any address. Tree cover, crash history, street network & more. 8 real metrics.
+              Satellite data for any address. Tree cover, crash history, street network & more. 8 verified metrics.
               <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
             </p>
 
@@ -1669,7 +1669,7 @@ function App() {
                   <div className="space-y-3 text-sm text-[#3a4a3a]">
                     <div>
                       <strong className="block mb-1">8 Verified Metrics</strong>
-                      <p className="text-[#4a5a4a]">We analyze crossing safety, sidewalk coverage, traffic speed exposure, daily destinations, street lighting, terrain slope, tree canopy, and thermal comfort using real data from OpenStreetMap, NASA POWER, and Sentinel-2 satellite imagery.</p>
+                      <p className="text-[#4a5a4a]">We analyze crossing safety, sidewalk coverage, traffic speed exposure, daily destinations, street lighting, terrain slope, tree canopy, and thermal comfort using data from OpenStreetMap, NASA POWER, and Sentinel-2 satellite imagery.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Global Standards</strong>
@@ -1752,7 +1752,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Get Instant Analysis</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        8 walkability metrics calculated in seconds using real satellite data and OpenStreetMap infrastructure.
+                        8 walkability metrics calculated in seconds using satellite data and OpenStreetMap infrastructure.
                       </p>
                     </div>
 
@@ -1772,7 +1772,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Compare & Decide</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        Compare neighborhoods side by side, download a PDF report, and share with family or your real estate agent.
+                        Compare neighborhoods side by side, download a PDF report, and share with family or your agent.
                       </p>
                     </div>
                   </div>
@@ -1798,7 +1798,7 @@ function App() {
                   8 Key Metrics, Completely Free
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using real data from NASA, Sentinel-2, and OpenStreetMap. Then field-verify scores based on what you observe on the ground.
+                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using data from NASA, Sentinel-2, and OpenStreetMap. Then field-verify scores based on what you observe on the ground.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1974,7 +1974,7 @@ function App() {
                           Branded Walkability Reports
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                          Your name, company, and contact info on every page. Print-ready PDFs with 8 satellite-powered walkability metrics for any listing.
+                          Your name, company, and contact info on every page. Print-ready PDFs with walkability analysis, 15-minute city scores, 8 infrastructure metrics, crash safety data, and social indicators for any listing.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -2028,7 +2028,7 @@ function App() {
 
                     {/* Feature bar */}
                     <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                      {['Your branding on every page', '8 satellite-powered metrics', 'Print-ready PDF', 'Any address worldwide'].map(f => (
+                      {['Your branding on every page', 'Full walkability analysis', '15-min city + social indicators', 'Print-ready PDF'].map(f => (
                         <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
                           <svg className="w-3.5 h-3.5" style={{ color: '#93c5fd' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

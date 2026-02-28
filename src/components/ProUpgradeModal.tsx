@@ -20,7 +20,7 @@ const PRO_FEATURES = [
   { icon: '📊', name: 'Branded Agent Reports', desc: 'Your name, company & contact on every PDF' },
   { icon: '🏠', name: 'Unlimited Reports', desc: 'Generate reports for every listing' },
   { icon: '🖨️', name: 'Print-Optimized PDFs', desc: '3-page reports ready for clients' },
-  { icon: '📈', name: '8 Walkability Metrics', desc: 'Satellite + infrastructure data' },
+  { icon: '📈', name: 'Full Walkability Analysis', desc: '8 metrics, 15-min city & social indicators' },
 ];
 
 export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgradeModalProps) {

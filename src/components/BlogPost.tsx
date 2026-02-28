@@ -231,7 +231,7 @@ export default function BlogPost() {
             Check Your Street's Walkability Score
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
-            Free analysis using real satellite data. No sign-up required.
+            Free analysis using satellite data. No sign-up required.
           </p>
           <Link
             to="/"

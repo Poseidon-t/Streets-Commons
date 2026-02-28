@@ -43,13 +43,13 @@ const SHARE_TEMPLATES: Record<string, Record<string, TemplateFn[]>> = {
   twitter: {
     critical: [
       (d) => `${d.shortName} scores ${d.score}/10 for walkability. ${ml(d.weakest[0])}: ${d.weakest[1].toFixed(1)}/10.\n\nThat's not an opinion. That's satellite imagery + NACTO standards.\n\nCheck your neighborhood \u2192 ${d.prodUrl}`,
-      (d) => `${d.score}/10.\n\nThat's ${d.shortName}'s walkability score. Measured against WHO and NACTO standards using real satellite data. ${ml(d.weakest[0])} scored ${d.weakest[1].toFixed(1)}.\n\nEvery city publishes goals. This is what's actually built.\n\n${d.prodUrl}`,
+      (d) => `${d.score}/10.\n\nThat's ${d.shortName}'s walkability score. Measured against WHO and NACTO standards using satellite data. ${ml(d.weakest[0])} scored ${d.weakest[1].toFixed(1)}.\n\nEvery city publishes goals. This is what's actually built.\n\n${d.prodUrl}`,
       (d) => `"We're investing in walkability" \u2014 ${d.shortName} city officials\n\n${d.score}/10 \u2014 SafeStreets audit using satellite data + NACTO standards\n\nOne of these is marketing. The other is measurement.\n\n${d.prodUrl}`,
     ],
     poor: [
       (d) => `${d.shortName} walkability: ${d.score}/10.\n\n${ml(d.weakest[0])} scored ${d.weakest[1].toFixed(1)}/10 against NACTO standards.\n\nNot terrible. Not safe. Measurably below global benchmarks.\n\nRun your street \u2192 ${d.prodUrl}`,
       (d) => `${d.score}/10 \u2014 that's ${d.shortName} measured against global street design standards using satellite imagery.\n\nNot great. Not hopeless. Worth knowing.\n\nCheck yours \u2192 ${d.prodUrl}`,
-      (d) => `${d.shortName}: ${d.score}/10 walkability.\n\n${ml(d.weakest[0])}: ${d.weakest[1].toFixed(1)}/10.\n\nYou can't fix what you don't measure. Real satellite data, real standards.\n\n${d.prodUrl}`,
+      (d) => `${d.shortName}: ${d.score}/10 walkability.\n\n${ml(d.weakest[0])}: ${d.weakest[1].toFixed(1)}/10.\n\nYou can't fix what you don't measure. Satellite data, global standards.\n\n${d.prodUrl}`,
     ],
     fair: [
       (d) => `${d.shortName}: ${d.score}/10 walkability. Above average, but ${ml(d.weakest[0])} (${d.weakest[1].toFixed(1)}/10) drags it down.\n\nMeasured with satellite imagery against NACTO standards. Close to good \u2014 not there yet.\n\n${d.prodUrl}`,
@@ -59,21 +59,21 @@ const SHARE_TEMPLATES: Record<string, Record<string, TemplateFn[]>> = {
     good: [
       (d) => `${d.shortName}: ${d.score}/10 walkability. Measurably good.\n\nSatellite imagery + NACTO/WHO standards confirm it. This is what investment looks like in the data.\n\n${d.prodUrl}`,
       (d) => `${d.score}/10. ${d.shortName} is measurably walkable.\n\nSatellite data + global street design standards. Proof that good infrastructure shows up in the numbers.\n\nHow does your neighborhood compare? \u2192 ${d.prodUrl}`,
-      (d) => `${d.shortName}: ${d.score}/10 walkability. Real data, real standards.\n\nEven top-scoring areas have gaps \u2014 here it's ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}.\n\nNo city is finished. Run yours \u2192 ${d.prodUrl}`,
+      (d) => `${d.shortName}: ${d.score}/10 walkability. Satellite data, global standards.\n\nEven top-scoring areas have gaps \u2014 here it's ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}.\n\nNo city is finished. Run yours \u2192 ${d.prodUrl}`,
     ],
   },
   linkedin: {
     critical: [
-      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are 8 verified metrics derived from real geospatial data: crossing safety, sidewalk coverage, traffic speed, daily needs access, night safety, terrain slope, tree canopy (NDVI), and thermal comfort.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
+      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are 8 verified metrics derived from geospatial data: crossing safety, sidewalk coverage, traffic speed, daily needs access, night safety, terrain slope, tree canopy (NDVI), and thermal comfort.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
       (d) => `Policy question: If ${d.shortName} scores ${d.score}/10 on a satellite-verified walkability audit using NACTO and WHO benchmarks, what does that mean for the people who walk there every day?\n\nIt means the gap between stated goals and built infrastructure is measurable. And now it's public.\n\nSafeStreets analyzes any location on Earth using Sentinel-2 imagery, SRTM elevation data, and OpenStreetMap. 8 metrics. Zero self-reported data. Free.\n\n${d.prodUrl}`,
     ],
     poor: [
-      (d) => `I analyzed ${d.shortName}'s walkability using SafeStreets \u2014 a tool that measures 8 verified metrics against NACTO, WHO, and ADA standards using real satellite imagery.\n\nScore: ${d.score}/10.\nKey gap: ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10.\n\nThis puts ${d.shortName} below global benchmarks but within range of meaningful improvement. The data identifies exactly where investment would have the highest impact.\n\nThe tool is free, open-source, and works for any address.\n\n${d.prodUrl}`,
+      (d) => `I analyzed ${d.shortName}'s walkability using SafeStreets \u2014 a tool that measures 8 verified metrics against NACTO, WHO, and ADA standards using satellite imagery.\n\nScore: ${d.score}/10.\nKey gap: ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10.\n\nThis puts ${d.shortName} below global benchmarks but within range of meaningful improvement. The data identifies exactly where investment would have the highest impact.\n\nThe tool is free, open-source, and works for any address.\n\n${d.prodUrl}`,
       (d) => `Most cities claim to prioritize walkability. Few measure it against global standards.\n\n${d.shortName} scores ${d.score}/10 when measured using satellite imagery against NACTO and WHO benchmarks. That's a specific, verifiable number \u2014 not a talking point.\n\nSafeStreets is an open-source tool that brings this analysis to any neighborhood. Because evidence should be available to everyone, not just consultants.\n\n${d.prodUrl}`,
     ],
     fair: [
       (d) => `${d.shortName} scored ${d.score}/10 on a satellite-based walkability audit \u2014 above average, but with clear room for improvement.\n\nThe analysis identified ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10 as the primary gap.\n\nThis is what "close to good" looks like in the data. The difference between a 6 and an 8 is often one or two specific infrastructure investments. Now we can see exactly which ones.\n\nFree and open-source \u2014 ${d.prodUrl}`,
-      (d) => `${d.shortName}'s walkability: ${d.score}/10. Solid, not excellent.\n\nSatellite analysis against NACTO standards shows ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10 is the bottleneck.\n\nA fair score is actually the most interesting \u2014 it means the foundation exists but specific improvements could make a real difference.\n\n${d.prodUrl}`,
+      (d) => `${d.shortName}'s walkability: ${d.score}/10. Solid, not excellent.\n\nSatellite analysis against NACTO standards shows ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10 is the bottleneck.\n\nA fair score is actually the most interesting \u2014 it means the foundation exists but specific improvements could make a measurable difference.\n\n${d.prodUrl}`,
     ],
     good: [
       (d) => `${d.shortName} scored ${d.score}/10 on a satellite-verified walkability audit \u2014 and the data shows why.\n\nStrong performance across NACTO, WHO, and ADA benchmarks. Even here, ${ml(d.weakest[0])} (${d.weakest[1].toFixed(1)}/10) shows where continued investment matters.\n\nThis is what good urban infrastructure looks like when you measure it with satellite imagery instead of surveys.\n\nSafeStreets is free and open-source \u2014 ${d.prodUrl}`,
@@ -82,20 +82,20 @@ const SHARE_TEMPLATES: Record<string, Record<string, TemplateFn[]>> = {
   },
   facebook: {
     critical: [
-      (d) => `I just ran a walkability analysis on ${d.shortName} using a tool that measures real satellite imagery against global street design standards.\n\nScore: ${d.score} out of 10. ${ml(d.weakest[0])} scored ${d.weakest[1].toFixed(1)} out of 10.\n\nThat's not my opinion \u2014 it's what shows up in Sentinel-2 satellite data measured against the same NACTO and WHO standards that cities worldwide use.\n\nThe tool is free and works for any address. If you've ever felt unsafe walking in your neighborhood, now you have the data to prove it.\n\n${d.prodUrl}`,
+      (d) => `I just ran a walkability analysis on ${d.shortName} using a tool that measures satellite imagery against global street design standards.\n\nScore: ${d.score} out of 10. ${ml(d.weakest[0])} scored ${d.weakest[1].toFixed(1)} out of 10.\n\nThat's not my opinion \u2014 it's what shows up in Sentinel-2 satellite data measured against the same NACTO and WHO standards that cities worldwide use.\n\nThe tool is free and works for any address. If you've ever felt unsafe walking in your neighborhood, now you have the data to prove it.\n\n${d.prodUrl}`,
       (d) => `${d.score}/10.\n\nThat's how ${d.shortName} scores on walkability when you measure it with satellite imagery instead of marketing brochures.\n\nSafeStreets uses 8 verified metrics based on international standards. Free, open-source, and designed so anyone can see what the data actually says.\n\nYour neighborhood has a score too \u2014 ${d.prodUrl}`,
     ],
     poor: [
       (d) => `Ran a walkability audit on ${d.shortName} \u2014 score: ${d.score}/10.\n\nThe tool uses satellite imagery and measures against international standards. ${ml(d.weakest[0])} was the weakest at ${d.weakest[1].toFixed(1)}/10.\n\nNot great, but not hopeless. The interesting part is seeing exactly what's wrong and what would fix it. Data beats complaints.\n\nFree for any address: ${d.prodUrl}`,
-      (d) => `Just checked ${d.shortName}'s walkability score: ${d.score}/10.\n\nUsed SafeStreets, which analyzes real satellite imagery against global street design standards. ${ml(d.weakest[0])} came in at ${d.weakest[1].toFixed(1)}/10 \u2014 that's the biggest gap.\n\nThe thing I like: it turns "this street feels unsafe" into actual evidence you can show to your city council.\n\nFree, any address \u2014 ${d.prodUrl}`,
+      (d) => `Just checked ${d.shortName}'s walkability score: ${d.score}/10.\n\nUsed SafeStreets, which analyzes satellite imagery against global street design standards. ${ml(d.weakest[0])} came in at ${d.weakest[1].toFixed(1)}/10 \u2014 that's the biggest gap.\n\nThe thing I like: it turns "this street feels unsafe" into actual evidence you can show to your city council.\n\nFree, any address \u2014 ${d.prodUrl}`,
     ],
     fair: [
-      (d) => `${d.shortName} scores ${d.score}/10 on walkability \u2014 not bad, but ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10 shows there's still work to do.\n\nThe analysis uses satellite imagery measured against NACTO and WHO standards. A fair score means the foundation is there. It also means specific improvements could make a real difference.\n\nCheck your area: ${d.prodUrl}`,
+      (d) => `${d.shortName} scores ${d.score}/10 on walkability \u2014 not bad, but ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10 shows there's still work to do.\n\nThe analysis uses satellite imagery measured against NACTO and WHO standards. A fair score means the foundation is there. It also means specific improvements could make a measurable difference.\n\nCheck your area: ${d.prodUrl}`,
       (d) => `Interesting \u2014 ${d.shortName} scores ${d.score}/10 on walkability when you measure it with actual satellite data instead of guessing.\n\nSafeStreets checks 8 different metrics against international standards. Free for any address.\n\nWorth checking yours: ${d.prodUrl}`,
     ],
     good: [
-      (d) => `${d.shortName}: ${d.score}/10 on walkability. That's genuinely good.\n\nMeasured with satellite imagery against NACTO and WHO standards. Scores like this don't happen by accident \u2014 they reflect real infrastructure investment.\n\nCurious how your neighborhood compares? Free \u2014 ${d.prodUrl}`,
-      (d) => `This is what a ${d.score}/10 walkability score looks like \u2014 ${d.shortName}, measured with real satellite imagery against international street design standards.\n\nGood infrastructure is measurable. SafeStreets checks 8 metrics and it's free for any address.\n\nWorth running on your neighborhood: ${d.prodUrl}`,
+      (d) => `${d.shortName}: ${d.score}/10 on walkability. That's genuinely good.\n\nMeasured with satellite imagery against NACTO and WHO standards. Scores like this don't happen by accident \u2014 they reflect sustained infrastructure investment.\n\nCurious how your neighborhood compares? Free \u2014 ${d.prodUrl}`,
+      (d) => `This is what a ${d.score}/10 walkability score looks like \u2014 ${d.shortName}, measured with satellite imagery against international street design standards.\n\nGood infrastructure is measurable. SafeStreets checks 8 metrics and it's free for any address.\n\nWorth running on your neighborhood: ${d.prodUrl}`,
     ],
   },
 };
@@ -275,7 +275,7 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
     <div className="rounded-xl border p-4 sm:p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Share & Export</h3>
-        <span className="text-[10px]" style={{ color: '#b0a8a0' }}>Every post references real data and global standards</span>
+        <span className="text-[10px]" style={{ color: '#b0a8a0' }}>Every post references verified data and global standards</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

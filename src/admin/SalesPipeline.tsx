@@ -49,7 +49,7 @@ Hi ${firstName},
 
 I noticed you specialize in ${lead.neighborhood}${lead.sampleListing && !lead.sampleListing.startsWith('Check') ? ` — your listing at ${lead.sampleListing} caught my eye` : ''}.
 
-I built SafeStreets, a tool that generates branded walkability reports from satellite + infrastructure data. 8 real metrics (sidewalks, tree cover, crossings, lighting, terrain, etc.) formatted as a 3-page PDF with your name and contact info on every page.
+I built SafeStreets, a tool that generates branded walkability reports from satellite + infrastructure data. Full analysis with 8 metrics (sidewalks, tree cover, crossings, lighting, terrain, etc.), 15-minute city scores, and social indicators — formatted as a PDF with your name and contact info on every page.
 
 Agents in walkable areas like ${lead.neighborhood} are using these to:
 • Differentiate listings beyond generic Walk Score numbers

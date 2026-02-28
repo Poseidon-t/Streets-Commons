@@ -44,7 +44,7 @@ export default function ForRealEstate() {
             <div className="space-y-3">
               {[
                 { icon: '📊', title: 'Your Branding on Every Page', desc: 'Name, title, company, phone, and email' },
-                { icon: '🏠', title: '8 Real Metrics', desc: 'Crossings, sidewalks, tree cover, lighting, terrain & more' },
+                { icon: '🏠', title: 'Full Walkability Analysis', desc: '8 metrics, 15-min city scores & social indicators' },
                 { icon: '🖨️', title: 'Print-Ready PDF', desc: '3-page report optimized for print and email' },
                 { icon: '🌍', title: 'Any Address Worldwide', desc: 'Works for US listings and international properties' },
               ].map(f => (
