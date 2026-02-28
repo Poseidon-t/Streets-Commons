@@ -1960,55 +1960,82 @@ function App() {
             </section>
 
             {/* Agent Reports CTA */}
-            <section className="py-16 bg-white/60">
-              <div className="max-w-4xl mx-auto px-6">
-                <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: '#d0dbd0', background: 'linear-gradient(135deg, rgba(30,58,95,0.03) 0%, rgba(30,58,95,0.08) 100%)' }}>
-                  <div className="p-8 sm:p-10">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-                      <div className="flex-1">
-                        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#1e3a5f' }}>
+            <section className="py-16">
+              <div className="max-w-5xl mx-auto px-6">
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1e3a5f' }}>
+                  <div className="p-8 sm:p-10 lg:p-12">
+                    <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+                      {/* Content */}
+                      <div className="flex-1 text-center lg:text-left">
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#93c5fd' }}>
                           For Real Estate Agents
-                        </p>
-                        <h3 className="text-xl sm:text-2xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+                        </span>
+                        <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
                           Branded Walkability Reports
                         </h3>
-                        <p className="text-sm leading-relaxed mb-4" style={{ color: '#6b7280' }}>
-                          Put your name on every page. Generate print-ready PDF reports with your branding, contact info, and 8 walkability metrics for any listing. 3 free reports to try, then unlimited for a one-time payment.
+                        <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          Your name, company, and contact info on every page. Print-ready PDFs with 8 satellite-powered walkability metrics for any listing.
                         </p>
-                        <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
                             href="/?agent=true"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
-                            style={{ backgroundColor: '#1e3a5f' }}
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg"
+                            style={{ backgroundColor: '#ffffff', color: '#1e3a5f' }}
                           >
-                            Try It Free
+                            Try 3 Free Reports
                           </a>
                           <a
                             href="https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm font-semibold hover:underline"
-                            style={{ color: '#1e3a5f' }}
+                            className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10"
+                            style={{ border: '1.5px solid rgba(255,255,255,0.25)', color: '#ffffff' }}
                           >
-                            $99 one-time for unlimited &rarr;
+                            $99 One-Time &mdash; Unlimited
                           </a>
                         </div>
                       </div>
-                      <div className="hidden sm:flex flex-col gap-2 flex-shrink-0">
-                        {[
-                          { label: 'Your branding on every page', check: true },
-                          { label: '8 real metrics from satellite data', check: true },
-                          { label: 'Print-ready 3-page PDF', check: true },
-                          { label: 'Any address worldwide', check: true },
-                        ].map(f => (
-                          <div key={f.label} className="flex items-center gap-2 text-sm" style={{ color: '#4a5a4a' }}>
-                            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#1e3a5f' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                            {f.label}
+
+                      {/* Mini report preview */}
+                      <div className="hidden lg:block flex-shrink-0">
+                        <div className="w-44 rounded-lg shadow-2xl overflow-hidden transform rotate-2" style={{ backgroundColor: '#ffffff' }}>
+                          <div className="px-4 pt-4 pb-1">
+                            <div className="h-1.5 w-16 rounded bg-gray-200 mb-2" />
+                            <div className="h-1 w-full rounded bg-gray-100 mb-0.5" />
+                            <div className="h-1 w-3/4 rounded bg-gray-100 mb-3" />
+                            <div className="flex gap-2 mb-3">
+                              <div className="h-10 flex-1 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#eef4fb', color: '#1e3a5f' }}>8.4</div>
+                              <div className="h-10 flex-1 rounded bg-green-50 flex items-center justify-center text-xs font-bold text-green-700">A</div>
+                            </div>
+                            <div className="space-y-1.5 mb-3">
+                              {[65, 82, 48, 74, 58, 90, 70, 55].map((w, i) => (
+                                <div key={i} className="flex items-center gap-1.5">
+                                  <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#93c5fd' }} />
+                                  <div className="h-1.5 flex-1 rounded-full bg-gray-100">
+                                    <div className="h-full rounded-full" style={{ width: `${w}%`, backgroundColor: '#1e3a5f', opacity: 0.35 }} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
+                          <div className="px-4 py-2 text-center" style={{ backgroundColor: '#f8fafc' }}>
+                            <div className="h-1 w-12 mx-auto rounded bg-gray-200 mb-0.5" />
+                            <div className="h-0.5 w-16 mx-auto rounded bg-gray-100" />
+                          </div>
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Feature bar */}
+                    <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      {['Your branding on every page', '8 satellite-powered metrics', 'Print-ready PDF', 'Any address worldwide'].map(f => (
+                        <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                          <svg className="w-3.5 h-3.5" style={{ color: '#93c5fd' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {f}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
