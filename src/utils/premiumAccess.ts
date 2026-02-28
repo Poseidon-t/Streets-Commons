@@ -7,7 +7,7 @@ const TOKEN_KEY = 'safestreets_access_token';
 const TIER_KEY = 'safestreets_tier';
 const EMAIL_KEY = 'safestreets_email';
 
-export type PremiumTier = 'free' | 'advocate';
+export type PremiumTier = 'free' | 'pro';
 
 export interface AccessInfo {
   tier: PremiumTier;

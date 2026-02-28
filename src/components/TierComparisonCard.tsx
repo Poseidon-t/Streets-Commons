@@ -18,25 +18,21 @@ const TIERS = [
       { name: 'Compare Mode', included: true },
       { name: 'Field Verification & PDF Reports', included: true },
       { name: 'Meridian Chatbot (12 messages)', included: true },
-      { name: 'Street Audit Tool', included: false },
-      { name: 'Advocacy Letters & Proposals', included: false },
-      { name: 'Street Redesign Mockup', included: false },
-      { name: 'Unlimited Meridian Chatbot', included: false },
     ],
   },
   {
-    name: 'Advocacy Toolkit',
-    price: '$49',
+    name: 'Pro Agent Reports',
+    price: '$99',
     subtitle: 'One-time payment',
     color: '#e07850',
     features: [
       { name: 'Everything in Free', included: true },
-      { name: 'Street Audit Tool', included: true },
-      { name: 'Advocacy Letters & Proposals', included: true },
-      { name: 'Street Redesign Mockup', included: true },
-      { name: 'Unlimited Meridian Chatbot', included: true },
-      { name: 'PDF / JSON Export', included: true },
-      { name: 'Save Up To 10 Addresses', included: true },
+      { name: 'Branded Agent Reports', included: true },
+      { name: 'Full Walkability Analysis', included: true },
+      { name: '15-Min City + Social Indicators', included: true },
+      { name: 'Field Verification in Reports', included: true },
+      { name: 'Print-Ready PDF Export', included: true },
+      { name: 'Your Branding on Every Page', included: true },
     ],
   },
   {
@@ -45,7 +41,7 @@ const TIERS = [
     subtitle: 'For organizations',
     color: '#5090b0',
     features: [
-      { name: 'Everything in Advocacy Toolkit', included: true },
+      { name: 'Everything in Pro', included: true },
       { name: 'Multi-location analysis', included: true },
       { name: 'Custom reporting', included: true },
       { name: 'Priority support', included: true },
@@ -62,7 +58,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
           Unlock More with SafeStreets
         </h3>
         <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
-          Choose the plan that fits your advocacy needs
+          Choose the plan that fits your needs
         </p>
       </div>
 
@@ -73,17 +69,17 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
             className="rounded-xl p-5 flex flex-col"
             style={{
               backgroundColor: 'white',
-              border: tier.name === 'Advocacy Toolkit' ? `2px solid ${tier.color}` : '1px solid #e0dbd0',
+              border: tier.name === 'Pro Agent Reports' ? `2px solid ${tier.color}` : '1px solid #e0dbd0',
             }}
           >
             {/* Header */}
             <div className="text-center mb-4">
-              {tier.name === 'Advocacy Toolkit' && (
+              {tier.name === 'Pro Agent Reports' && (
                 <span
                   className="inline-block px-3 py-0.5 rounded-full text-xs font-bold mb-2 text-white"
                   style={{ backgroundColor: tier.color }}
                 >
-                  Most Popular
+                  For Agents
                 </span>
               )}
               <h4 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{tier.name}</h4>
@@ -111,13 +107,13 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
                 Current plan
               </div>
             )}
-            {tier.name === 'Advocacy Toolkit' && (
+            {tier.name === 'Pro Agent Reports' && (
               <button
                 onClick={onUpgrade}
                 className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg"
                 style={{ backgroundColor: '#e07850' }}
               >
-                Unlock for $49
+                Get Pro for $99
               </button>
             )}
             {tier.name === 'Custom Analysis' && (

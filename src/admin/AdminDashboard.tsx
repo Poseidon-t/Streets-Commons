@@ -7,7 +7,6 @@ interface DayStats {
   analyses?: number;
   chatMessages?: number;
   pdfUploads?: number;
-  advocacyLetters?: number;
   payments?: number;
   shareClicks?: number;
   emailsCaptured?: number;
@@ -144,7 +143,6 @@ export default function AdminDashboard() {
               ['Share clicks', today.shareClicks || 0],
               ['Emails captured', today.emailsCaptured || 0],
               ['PDF uploads', today.pdfUploads || 0],
-              ['Advocacy letters', today.advocacyLetters || 0],
               ['Payments', today.payments || 0],
             ].map(([label, val]) => (
               <div key={label as string} className="flex justify-between py-1.5 border-b border-gray-100 last:border-0 text-sm">

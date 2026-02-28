@@ -161,10 +161,10 @@ export default function BudgetAnalysis({ isPremium, location }: BudgetAnalysisPr
           </p>
           <div className="rounded-xl p-4 mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.06)', border: '2px solid rgba(224,120,80,0.2)' }}>
             <p className="text-sm font-semibold" style={{ color: '#e07850' }}>
-              Advocacy Toolkit — $49 one-time payment
+              Pro Account — $99 one-time payment
             </p>
             <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>
-              Unlock budget analysis, advocacy letters, proposals, and more.
+              Unlock budget analysis, branded reports, and more.
             </p>
           </div>
         </div>

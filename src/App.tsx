@@ -11,9 +11,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-load heavy components (only loaded when needed)
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
-const AdvocacyLetterModal = lazy(() => import('./components/AdvocacyLetterModal'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
-const AdvocacyChatbot = lazy(() => import('./components/AdvocacyChatbot'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const EmailCaptureBanner = lazy(() => import('./components/EmailCaptureBanner'));
@@ -98,7 +96,6 @@ function App() {
 
   // Sign-in modal state (was payment modal — now all features are free)
   const [showSignInModal, setShowSignInModal] = useState(false);
-  const [showLetterModal, setShowLetterModal] = useState(false);
   const [showMethodology, setShowMethodology] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return !localStorage.getItem('safestreets_seen_onboarding'); } catch { return true; }
@@ -189,7 +186,7 @@ function App() {
           const res = await fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`);
           if (!res.ok) return; // Server error — keep polling
           const data = await res.json();
-          if (data.tier === 'advocate' || data.tier === 'pro') {
+          if (data.tier === 'pro') {
             clearInterval(poll);
             // Reload to pick up fresh Clerk user object with updated metadata
             window.location.reload();
@@ -782,8 +779,8 @@ function App() {
               </svg>
               <span className="text-sm font-medium text-green-800">
                 {paymentPollingFailed
-                  ? 'Payment received! Please refresh the page to activate your Advocacy Toolkit.'
-                  : 'Payment successful! Activating your Advocacy Toolkit...'}
+                  ? 'Payment received! Please refresh the page to activate your Pro account.'
+                  : 'Payment successful! Activating your Pro account...'}
               </span>
             </div>
             {paymentPollingFailed ? (

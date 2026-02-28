@@ -16,7 +16,7 @@ function generateSlug(title: string) {
     .slice(0, 80);
 }
 
-const CATEGORIES = ['Safety', 'Real Estate', 'Guide', 'Advocacy', 'Technology', 'Urban Design', 'Street Design', 'Walkability', 'Global Standards', 'Infrastructure Impact', 'Urban Case Studies', 'General'];
+const CATEGORIES = ['Safety', 'Real Estate', 'Guide', 'Technology', 'Urban Design', 'Street Design', 'Walkability', 'Global Standards', 'Infrastructure Impact', 'Urban Case Studies', 'General'];
 
 function ToolbarButton({
   active,

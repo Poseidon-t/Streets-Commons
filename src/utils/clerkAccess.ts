@@ -1,6 +1,6 @@
 /**
  * Clerk-based Access Management
- * Free tier = default. Advocate tier = $49 one-time. Pro tier = $99 one-time.
+ * Free tier = default. Pro tier = $99 one-time.
  * Dev mode (localhost) auto-enables pro tier for testing.
  */
 
@@ -30,7 +30,7 @@ interface User {
   };
 }
 
-export type PremiumTier = 'free' | 'advocate' | 'pro';
+export type PremiumTier = 'free' | 'pro';
 
 export interface AccessInfo {
   tier: PremiumTier;
@@ -75,18 +75,18 @@ export function getAccessInfoFromUser(user: User | null | undefined): AccessInfo
   // Check Clerk publicMetadata for paid tier (set by Stripe webhook)
   const email = user.primaryEmailAddress?.emailAddress || null;
   const metadataTier = user.publicMetadata?.tier as PremiumTier | undefined;
-  const validTiers: PremiumTier[] = ['advocate', 'pro'];
+  const validTiers: PremiumTier[] = ['pro'];
   const tier: PremiumTier = metadataTier && validTiers.includes(metadataTier) ? metadataTier : 'free';
 
   return { tier, email, isValid: true };
 }
 
 /**
- * Premium = paid advocate tier (not just signed in).
+ * Premium = paid pro tier (not just signed in).
  */
 export function isPremium(user: User | null | undefined): boolean {
   const { tier } = getAccessInfoFromUser(user);
-  return tier === 'advocate' || tier === 'pro';
+  return tier === 'pro';
 }
 
 /**

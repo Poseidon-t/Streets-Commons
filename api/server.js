@@ -166,7 +166,6 @@ function ensureTodayExists() {
       analyses: 0,
       chatMessages: 0,
       pdfUploads: 0,
-      advocacyLetters: 0,
       payments: 0,
       topCountries: {},
       topReferrers: {},
@@ -277,9 +276,6 @@ function trackEvent(eventType, req, extra = {}) {
       break;
     case 'pdf':
       today.pdfUploads++;
-      break;
-    case 'advocacy':
-      today.advocacyLetters++;
       break;
     case 'payment':
       today.payments++;
@@ -1813,7 +1809,9 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
 
   try {
     // 1. Geocode the location via Nominatim
-    const searchQuery = neighborhood ? `${neighborhood}, ${city}, ${state}` : `${city}, ${state}`;
+    // Use first neighborhood only (split on / or &) for cleaner geocoding
+    const primaryNeighborhood = neighborhood ? neighborhood.split(/\s*[\/&]\s*/)[0].trim() : '';
+    const searchQuery = primaryNeighborhood ? `${primaryNeighborhood}, ${city}, ${state}` : `${city}, ${state}`;
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`, {
       headers: { 'User-Agent': 'SafeStreets/1.0 (safestreets.streetsandcommons.com)' },
     });
@@ -4277,12 +4275,6 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     // Define pricing
     const pricing = {
-      advocate: {
-        amount: 4900, // $49 in cents
-        name: 'SafeStreets Advocate',
-        description: 'Streetmix, 3DStreet, Policy Reports, Budget Analysis',
-        mode: 'payment',
-      },
       pro: {
         amount: 9900, // $99 one-time
         name: 'SafeStreets Pro — Agent Reports',
@@ -4293,7 +4285,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
 
     const selectedPricing = pricing[tier];
     if (!selectedPricing) {
-      return res.status(400).json({ error: 'Invalid tier. Must be "advocate" or "pro"' });
+      return res.status(400).json({ error: 'Invalid tier. Must be "pro"' });
     }
 
     console.log(`💳 Creating checkout session for ${email} - ${tier} tier (${selectedPricing.mode})`);
@@ -4377,7 +4369,7 @@ app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async
       console.log(`   Location: ${locationName}`);
 
       // Validate tier to prevent metadata tampering
-      const validTiers = ['advocate', 'pro'];
+      const validTiers = ['pro'];
       if (tier && !validTiers.includes(tier)) {
         console.error(`❌ Invalid tier in session metadata: ${tier}`);
         return res.status(400).json({ error: 'Invalid tier in session metadata' });
@@ -4618,93 +4610,7 @@ app.post('/api/contact-inquiry', contactInquiryLimiter, async (req, res) => {
   res.json({ success: true });
 });
 
-// ─── Advocacy Letter Generator (Claude AI) ───────────────────────────────────
-
-const advocacyLetterLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // 10 letters per hour per IP
-  message: { error: 'Too many letter requests. Please try again later.' },
-});
-
-app.post('/api/generate-advocacy-letter', advocacyLetterLimiter, async (req, res) => {
-  // Track advocacy letter generation
-  trackEvent('advocacy', req);
-
-  try {
-    const { location, metrics, authorName, recipientTitle, language } = req.body;
-
-    if (!location || !metrics) {
-      return res.status(400).json({ error: 'Missing location or metrics data' });
-    }
-
-    const groqKey = process.env.GROQ_API_KEY;
-    const geminiKey = process.env.GEMINI_API_KEY;
-    if (!groqKey && !geminiKey) {
-      return res.status(503).json({ error: 'AI letter generation is not configured. Add GROQ_API_KEY or GEMINI_API_KEY.' });
-    }
-
-    // Build a concise metrics summary for the prompt
-    const metricLines = [];
-    if (metrics.crossingSafety !== undefined) metricLines.push(`Crossing Safety: ${metrics.crossingSafety}/10`);
-    if (metrics.sidewalkCoverage !== undefined) metricLines.push(`Sidewalk Coverage: ${metrics.sidewalkCoverage}/10`);
-    if (metrics.speedExposure !== undefined) metricLines.push(`Traffic Speed Safety: ${metrics.speedExposure}/10`);
-    if (metrics.destinationAccess !== undefined) metricLines.push(`Daily Needs Nearby: ${metrics.destinationAccess}/10`);
-    if (metrics.nightSafety !== undefined) metricLines.push(`Night Safety (Lighting): ${metrics.nightSafety}/10`);
-    if (metrics.slope !== undefined) metricLines.push(`Flat Terrain: ${metrics.slope}/10`);
-    if (metrics.treeCanopy !== undefined) metricLines.push(`Shade & Tree Canopy: ${metrics.treeCanopy}/10`);
-    if (metrics.thermalComfort !== undefined) metricLines.push(`Thermal Comfort: ${metrics.thermalComfort}/10`);
-
-    const worstMetrics = Object.entries(metrics)
-      .filter(([k, v]) => typeof v === 'number' && k !== 'overallScore' && v <= 4)
-      .sort((a, b) => a[1] - b[1])
-      .slice(0, 3)
-      .map(([k]) => k);
-
-    const prompt = `Write a formal advocacy letter to a local government official about pedestrian safety and walkability improvements needed at the following location.
-
-LOCATION: ${location.displayName}
-COORDINATES: ${location.lat}, ${location.lon}
-OVERALL WALKABILITY SCORE: ${metrics.overallScore.toFixed(1)}/10 (${metrics.label})
-
-METRIC SCORES:
-${metricLines.join('\n')}
-
-WORST AREAS (scores ≤ 4): ${worstMetrics.length > 0 ? worstMetrics.join(', ') : 'None — all areas are adequate'}
-
-${authorName ? `AUTHOR: ${authorName}` : ''}
-${recipientTitle ? `RECIPIENT: ${recipientTitle}` : 'RECIPIENT: Local City Council / Municipal Authority'}
-
-INSTRUCTIONS:
-- Write a professional, respectful 400-500 word letter
-- Open with the specific location and its walkability score
-- Cite the 2-3 worst metrics with specific numbers
-- Reference relevant standards (WHO, NACTO, ADA) where appropriate
-- Include 2-3 specific, actionable recommendations tied to the worst metrics
-- End with a clear call to action (site visit, public meeting, budget allocation)
-- Use a formal but accessible tone — this should persuade, not lecture
-- Do NOT include placeholder brackets like [Your Name] — write it as a complete letter
-- If an author name is provided, sign with that name; otherwise sign as "A Concerned Resident"
-- Do NOT include a subject line — just the letter body starting with "Dear..."`;
-
-    // Multi-language support
-    const langMap = { es: 'Spanish', fr: 'French', hi: 'Hindi', zh: 'Chinese', ar: 'Arabic', pt: 'Portuguese', th: 'Thai' };
-    if (language && language !== 'en' && langMap[language]) {
-      prompt += `\n\nIMPORTANT: Write the entire letter in ${langMap[language]}. Use culturally appropriate formal conventions for that language.`;
-    }
-
-    const letterText = await callAIWithFallback(prompt, groqKey, geminiKey);
-    if (!letterText) {
-      return res.status(500).json({ error: 'Failed to generate letter. AI services unavailable.' });
-    }
-
-    res.json({ success: true, letter: letterText });
-  } catch (error) {
-    console.error('Advocacy letter generation failed:', error.message);
-    res.status(500).json({ error: 'Failed to generate letter. Please try again.' });
-  }
-});
-
-// ─── Advocacy Chatbot (Anthropic Claude, streaming) ──────────────────────────
+// ─── Meridian Chatbot (Anthropic Claude, streaming) ──────────────────────────
 
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000,

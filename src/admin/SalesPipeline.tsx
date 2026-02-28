@@ -43,29 +43,33 @@ const ALL_STATUSES: OutreachStatus[] = ['not_started', 'email_sent', 'followed_u
 
 function generateEmail(lead: QualifiedLead): string {
   const firstName = lead.agentName.split(' ')[0];
-  return `Subject: Walkability data for your ${lead.neighborhood} listing
+  return `Subject: I ran a walkability report for your ${lead.neighborhood} listing
 
 Hi ${firstName},
 
-I noticed you specialize in ${lead.neighborhood}${lead.sampleListing && !lead.sampleListing.startsWith('Check') ? ` — your listing at ${lead.sampleListing} caught my eye` : ''}.
+I came across your listing${lead.sampleListing && !lead.sampleListing.startsWith('Check') ? ` at ${lead.sampleListing}` : ` in ${lead.neighborhood}`} and ran it through our walkability analysis tool. Here's a sample of what your branded report would look like:
 
-I built SafeStreets, a tool that generates branded walkability reports from satellite + infrastructure data. Full analysis with 8 metrics (sidewalks, tree cover, crossings, lighting, terrain, etc.), 15-minute city scores, and social indicators — formatted as a PDF with your name and contact info on every page.
+https://safestreets.streetsandcommons.com
 
-Agents in walkable areas like ${lead.neighborhood} are using these to:
-• Differentiate listings beyond generic Walk Score numbers
-• Give buyers data that justifies premium pricing
-• Build their personal brand as the "walkability expert" in the area
+The report covers 8 walkability metrics (sidewalks, crossings, shade, safety, transit access), 15-minute city scores, crash data, and social indicators — all from NASA satellite imagery and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
 
-I'd love to generate a free report for one of your current listings so you can see it in action.
+That's the ready-made product — $99 one-time, unlimited reports, 30 seconds to generate.
 
-If walkability data is something you use often, we also build custom dashboards and reports for teams — happy to chat about what would be most useful for your business.
+But here's why I'm actually reaching out:
 
-More info: https://safestreets.streetsandcommons.com/enterprise/real-estate
+We also do custom neighborhood intelligence work. Same satellite and infrastructure data, packaged differently for your workflow — neighborhood comparison sheets for buyer consultations, bulk scoring for your listing pipeline, area intelligence reports for a zip code, or buyer-facing briefs that highlight what matters most (school access, shade, night safety).
+
+If you have a specific way you use neighborhood data to win clients, we can probably build a tool around it.
+
+Would it be worth a 15-minute call to see if there's a fit? Either way, 3 free trial reports are yours to test the standard product:
+
+https://safestreets.streetsandcommons.com/enterprise/real-estate
 
 Best,
 Sarath
-SafeStreets — safestreets.streetsandcommons.com`;
+Streets & Commons — safestreets.streetsandcommons.com`;
 }
+
 
 // ── Agent Search Links ──────────────────────────────────────────────────────
 
@@ -150,7 +154,7 @@ export default function SalesPipeline() {
     email_sent: leads.filter(l => l.outreachStatus === 'email_sent').length,
     responded: leads.filter(l => l.outreachStatus === 'responded' || l.outreachStatus === 'followed_up').length,
     converted: leads.filter(l => l.outreachStatus === 'converted').length,
-    validEmails: leads.filter(l => l.emailValid === 'valid').length,
+    validEmails: leads.filter(l => l.email && l.email.includes('@')).length,
   }), [leads]);
 
   // Handlers

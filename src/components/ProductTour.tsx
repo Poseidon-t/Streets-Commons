@@ -35,13 +35,8 @@ const STEPS: TourStep[] = [
   },
   {
     targetSelector: '#tools',
-    title: 'Advocacy Toolkit \u2726',
-    description: 'Draft letters to officials, generate formal PDF proposals, and run structured street audits — all data-backed.',
-  },
-  {
-    targetSelector: '[aria-label="Open urbanist advocate"]',
-    title: 'Meridian AI Advisor \u2726',
-    description: 'Your urban planning assistant trained on NACTO & WHO standards. Free tier gets 12 messages — premium unlocks unlimited.',
+    title: 'Pro Agent Reports \u2726',
+    description: 'Generate branded walkability reports with your logo, field verification, and print-ready PDF export.',
   },
 ];
 

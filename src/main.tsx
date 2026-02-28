@@ -9,7 +9,6 @@ import App from './App.tsx'
 // Install global error tracking
 installErrorReporter();
 import ReportView from './components/ReportView.tsx'
-import AdvocacyProposalView from './components/AdvocacyProposalView.tsx'
 import CityPage from './components/CityPage.tsx'
 import CityIndex from './components/CityIndex.tsx'
 import BlogIndex from './components/BlogIndex.tsx'
@@ -58,7 +57,6 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/report" element={<ReportView />} />
-          <Route path="/proposal" element={<AdvocacyProposalView />} />
           {/* Programmatic SEO city pages */}
           <Route path="/walkability" element={<CityIndex />} />
           <Route path="/walkability/:citySlug" element={<CityPage />} />
