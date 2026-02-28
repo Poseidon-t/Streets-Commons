@@ -248,6 +248,31 @@ export default function ShareableReportCard({
             </div>
           </div>
 
+          {/* Walker Infographic (compact) */}
+          <div style={{ padding: '8px 0', marginBottom: '6px', borderTop: '1px solid #e0dbd0', borderBottom: '1px solid #e0dbd0' }}>
+            <p style={{ textAlign: 'center', fontSize: '10px', color: '#8a9a8a', marginBottom: '6px' }}>
+              Out of 10 walkers, how many feel safe?
+            </p>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', marginBottom: '4px' }}>
+              {Array.from({ length: Math.max(0, Math.min(10, Math.round(overallScore / 10))) }).map((_, i) => (
+                <span key={`f-${i}`} style={{ fontSize: '16px' }}>🚶</span>
+              ))}
+              {Array.from({ length: 10 - Math.max(0, Math.min(10, Math.round(overallScore / 10))) }).map((_, i) => (
+                <span key={`e-${i}`} style={{ fontSize: '16px', opacity: 0.2, filter: 'grayscale(1)' }}>🚶</span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 600, color: scoreColor }}>
+                {Math.max(0, Math.min(10, Math.round(overallScore / 10)))} feel comfortable
+              </span>
+              {10 - Math.max(0, Math.min(10, Math.round(overallScore / 10))) > 0 && (
+                <span style={{ fontSize: '10px', color: '#9ca3af' }}>
+                  {10 - Math.max(0, Math.min(10, Math.round(overallScore / 10)))} don't feel safe
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Metric Bars */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {METRIC_LABELS.map(({ key, label, icon }) => {

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import type { Location, WalkabilityMetrics, DataQuality } from '../types';
 import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
+import WalkerInfographic from './WalkerInfographic';
 
 export default function ReportView() {
   const [searchParams] = useSearchParams();
@@ -56,8 +57,6 @@ export default function ReportView() {
   const hasAnyAdjustment = METRIC_KEYS.some(k => fieldData[k].adjustedScore !== null);
   const displayScore = fieldMode && fieldOverall ? fieldOverall.overallScore : score;
   const displayLabel = fieldMode && fieldOverall ? fieldOverall.label : metrics.label;
-  const filledWalkers = Math.round(displayScore);
-  const emptyWalkers = 10 - filledWalkers;
 
   const resolveMetric = (key: MetricKey): number =>
     fieldMode && fieldData[key].adjustedScore !== null
@@ -213,16 +212,10 @@ export default function ReportView() {
               {displayLabel}
             </div>
 
-            {/* Walker Icons */}
-            <div className="flex items-center justify-center gap-2 mb-4">
-              {Array.from({ length: filledWalkers }).map((_, i) => (
-                <span key={`filled-${i}`} className={`text-5xl ${getScoreColor(displayScore)}`}>🚶</span>
-              ))}
-              {Array.from({ length: emptyWalkers }).map((_, i) => (
-                <span key={`empty-${i}`} className="text-5xl opacity-20 grayscale">🚶</span>
-              ))}
-            </div>
           </div>
+
+          {/* Walker Infographic */}
+          <WalkerInfographic score={displayScore} />
 
           {/* Executive Summary */}
           <div className="mb-12">

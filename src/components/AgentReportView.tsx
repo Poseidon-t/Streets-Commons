@@ -8,6 +8,7 @@ import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DataQ
 import type { AgentProfile } from '../utils/clerkAccess';
 import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
+import WalkerInfographic from './WalkerInfographic';
 
 interface AgentReportData {
   location: Location;
@@ -242,6 +243,9 @@ export default function AgentReportView() {
               Grade {displayGrade} — {displayLabel}
             </div>
           </div>
+
+          {/* Walker Infographic */}
+          <WalkerInfographic score={displayScore} inline />
 
           {/* Executive Summary */}
           <div style={{ marginBottom: '2rem' }}>

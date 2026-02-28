@@ -1,5 +1,6 @@
 import type { WalkabilityMetrics, CrashData, CountryCrashData, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
+import WalkerInfographic from '../WalkerInfographic';
 
 interface ScoreCardProps {
   metrics: WalkabilityMetrics;
@@ -114,15 +115,6 @@ function CrashSummary({ data }: { data: CrashData }) {
 
 export default function ScoreCard({ metrics, crashData, crashLoading, compositeScore }: ScoreCardProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
-  const filledWalkers = Math.round(score / 10);
-  const emptyWalkers = 10 - filledWalkers;
-
-  const getWalkerColor = (s: number) => {
-    if (s >= 80) return '#22C55E';
-    if (s >= 60) return '#F59E0B';
-    if (s >= 40) return '#F97316';
-    return '#EF4444';
-  };
 
   return (
     <div className="rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 border flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
@@ -136,43 +128,8 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
       {/* Plain Language Summary */}
       <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
 
-      {/* Walker Visualization */}
-      <div className="mt-6 pt-6 border-t" style={{ borderColor: '#e0dbd0' }}>
-        <p className="text-xs text-center mb-3" style={{ color: '#8a9a8a' }}>
-          Out of 10 walkers, how many feel safe?
-        </p>
-
-        <div className="flex items-center justify-center gap-2 mb-2">
-          {Array.from({ length: filledWalkers }).map((_, i) => (
-            <div
-              key={`filled-${i}`}
-              className="text-2xl sm:text-3xl transition-transform hover:scale-110"
-              style={{ color: getWalkerColor(score) }}
-            >
-              🚶
-            </div>
-          ))}
-          {Array.from({ length: emptyWalkers }).map((_, i) => (
-            <div
-              key={`empty-${i}`}
-              className="text-2xl sm:text-3xl opacity-20 grayscale"
-            >
-              🚶
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-center gap-4 text-xs mt-2">
-          <span className="font-semibold" style={{ color: getWalkerColor(score) }}>
-            {filledWalkers} feel comfortable
-          </span>
-          {emptyWalkers > 0 && (
-            <span style={{ color: '#8a9a8a' }}>
-              {emptyWalkers} don't feel safe
-            </span>
-          )}
-        </div>
-      </div>
+      {/* Walker Infographic */}
+      <WalkerInfographic score={score / 10} />
 
       {/* Confidence note while still loading */}
       {compositeScore && compositeScore.confidence < 80 && (

@@ -1910,21 +1910,111 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       nightSafety = Math.round(Math.min(6, (inferred / streets.length) * 10) * 10) / 10;
     }
 
-    // Overall score (OSM-only weighted average)
-    const overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess) / 5) * 10) / 10;
+    // 5. Fetch satellite + crash data in parallel (same APIs the frontend calls)
+    const baseUrl = `http://localhost:${PORT}`;
+    console.log(`🛰️  Fetching satellite & crash data for ${lat}, ${lon}...`);
+
+    const [slopeRes, ndviRes, tempRes, heatRes, crashRes] = await Promise.allSettled([
+      fetch(`${baseUrl}/api/slope?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(15000) }).then(r => r.json()),
+      fetch(`${baseUrl}/api/ndvi?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(15000) }).then(r => r.json()),
+      fetch(`${baseUrl}/api/nasa-power-temperature?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(15000) }).then(r => r.json()),
+      fetch(`${baseUrl}/api/heat-island?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(20000) }).then(r => r.json()),
+      fetch(`${baseUrl}/api/crash-data?lat=${lat}&lon=${lon}&country=US`, { signal: AbortSignal.timeout(20000) }).then(r => r.json()),
+    ]);
+
+    // Score slope (same as frontend scoreSlopeFromDegrees)
+    let slopeScore = 0;
+    if (slopeRes.status === 'fulfilled' && slopeRes.value?.success && slopeRes.value.data?.slope != null) {
+      const deg = slopeRes.value.data.slope;
+      slopeScore = deg <= 2 ? 10 : deg <= 5 ? 8 : deg <= 10 ? 6 : deg <= 15 ? 4 : 2;
+      console.log(`  ✅ Slope: ${deg}° → score ${slopeScore}`);
+    } else {
+      console.log(`  ⚠️  Slope unavailable`);
+    }
+
+    // Score tree canopy (same as frontend scoreTreeCanopy)
+    let treeCanopyScore = 0;
+    if (ndviRes.status === 'fulfilled' && ndviRes.value?.success && ndviRes.value.data?.ndvi != null) {
+      const ndvi = ndviRes.value.data.ndvi;
+      if (ndvi >= 0.6) treeCanopyScore = 10;
+      else if (ndvi >= 0.4) treeCanopyScore = Math.round((5 + ((ndvi - 0.4) / 0.2) * 5) * 10) / 10;
+      else if (ndvi >= 0.2) treeCanopyScore = Math.round(((ndvi - 0.2) / 0.2 * 5) * 10) / 10;
+      console.log(`  ✅ NDVI: ${ndvi.toFixed(3)} → score ${treeCanopyScore}`);
+    } else {
+      console.log(`  ⚠️  NDVI unavailable`);
+    }
+
+    // Score thermal comfort (average of surface temp + heat island, same as frontend)
+    let surfaceTempScore;
+    let heatIslandScore;
+
+    if (tempRes.status === 'fulfilled' && tempRes.value?.success && tempRes.value.data) {
+      const maxTemp = tempRes.value.data.averageMaxTemperature || tempRes.value.data.avgTemp || 25;
+      if (maxTemp <= 25) surfaceTempScore = 10;
+      else if (maxTemp <= 35) surfaceTempScore = 10 - ((maxTemp - 25) / 10) * 5;
+      else if (maxTemp <= 45) surfaceTempScore = 5 - ((maxTemp - 35) / 10) * 5;
+      else surfaceTempScore = 0;
+      console.log(`  ✅ Surface temp: ${maxTemp.toFixed(1)}°C → score ${surfaceTempScore.toFixed(1)}`);
+    } else {
+      console.log(`  ⚠️  Surface temperature unavailable`);
+    }
+
+    if (heatRes.status === 'fulfilled' && heatRes.value?.success && heatRes.value.data?.score != null) {
+      heatIslandScore = heatRes.value.data.score;
+      console.log(`  ✅ Heat island: score ${heatIslandScore}`);
+    } else {
+      console.log(`  ⚠️  Heat island unavailable`);
+    }
+
+    let thermalComfort = 0;
+    if (surfaceTempScore !== undefined && heatIslandScore !== undefined) {
+      thermalComfort = (surfaceTempScore + heatIslandScore) / 2;
+    } else if (surfaceTempScore !== undefined) {
+      thermalComfort = surfaceTempScore;
+    } else if (heatIslandScore !== undefined) {
+      thermalComfort = heatIslandScore;
+    }
+
+    // Extract crash data
+    let crashData = null;
+    if (crashRes.status === 'fulfilled' && crashRes.value?.success && crashRes.value.data) {
+      crashData = crashRes.value.data;
+      console.log(`  ✅ Crash data: ${crashData.totalCrashes ?? 0} crashes`);
+    } else {
+      console.log(`  ⚠️  Crash data unavailable`);
+    }
+
+    // 6. Calculate overall score — full 8-metric weighted formula (same as frontend metrics.ts)
+    const satelliteScores = [slopeScore, treeCanopyScore, surfaceTempScore, heatIslandScore].filter(s => s !== undefined);
+    let overallScore;
+
+    if (satelliteScores.length >= 2) {
+      // Full weighted formula: Safety 55%, Access 10%, Comfort 35%
+      const safetyScore = crossingSafety * 0.15 + sidewalkCoverage * 0.15 +
+                          speedExposure * 0.15 + nightSafety * 0.10 +
+                          destinationAccess * 0.10;
+      overallScore = Math.round(
+        (safetyScore + slopeScore * 0.10 + treeCanopyScore * 0.10 + thermalComfort * 0.15) * 10
+      ) / 10;
+    } else {
+      // Fallback: OSM-only simple average
+      overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess) / 5) * 10) / 10;
+    }
+
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
-    // 5. Build report data
+    // 7. Build full report data (matches frontend sessionStorage format)
     const reportData = {
       location: { lat, lon, displayName },
-      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: 0, treeCanopy: 0, thermalComfort: 0, overallScore, label },
+      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: slopeScore, treeCanopy: treeCanopyScore, thermalComfort: Math.round(thermalComfort * 10) / 10, overallScore, label },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
+      crashData,
       agentProfile,
     };
 
-    console.log(`📊 Generated report for ${displayName} (${overallScore}/10 ${grade}) — agent: ${agentProfile.name}`);
+    console.log(`📊 Generated FULL report for ${displayName} (${overallScore}/10 ${grade}) — agent: ${agentProfile.name} [${satelliteScores.length} satellite metrics]`);
     res.json(reportData);
   } catch (err) {
     console.error('Report generation failed:', err);
