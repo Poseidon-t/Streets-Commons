@@ -1929,85 +1929,77 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       nightSafety = Math.round(Math.min(6, (inferred / streets.length) * 10) * 10) / 10;
     }
 
-    // 5. Fetch satellite + crash data in parallel with 12s total cap
-    //    Whatever data arrives within 12s gets included; the rest falls back to OSM-only
-    const baseUrl = `http://localhost:${PORT}`;
-    console.log(`🛰️  Fetching satellite & crash data for ${lat}, ${lon} (12s cap)...`);
+    // 5. Fetch temperature + crash data directly (no localhost self-calls)
+    console.log(`🛰️  Fetching temperature & crash data for ${lat}, ${lon}...`);
+    let surfaceTempScore, crashData = null;
 
-    let slopeScore = 0, treeCanopyScore = 0, surfaceTempScore, heatIslandScore, crashData = null;
+    const dateEnd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const dateStart = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10).replace(/-/g, '');
 
-    try {
-      const satelliteTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('satellite_timeout')), 12000));
-      const satelliteWork = Promise.allSettled([
-        fetch(`${baseUrl}/api/slope?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-        fetch(`${baseUrl}/api/ndvi?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-        fetch(`${baseUrl}/api/nasa-power-temperature?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-        fetch(`${baseUrl}/api/heat-island?lat=${lat}&lon=${lon}`, { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-        fetch(`${baseUrl}/api/crash-data?lat=${lat}&lon=${lon}&country=US`, { signal: AbortSignal.timeout(10000) }).then(r => r.json()),
-      ]);
+    const [tempResult, crashResult] = await Promise.allSettled([
+      // NASA POWER — direct external call
+      fetch(`https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX&community=RE&longitude=${lon}&latitude=${lat}&start=${dateStart}&end=${dateEnd}&format=JSON`, {
+        signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' },
+      }).then(r => r.json()).catch(() => null),
+      // US crash data — FCC + FARS direct
+      (async () => {
+        try {
+          const fcc = await fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
+          if (!fcc.ok) return null;
+          const fccData = await fcc.json();
+          const r0 = fccData.results?.[0];
+          if (!r0?.state_fips || !r0?.county_fips) return null;
+          const fars = await fetch(`https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCrashesByLocation?fromCaseYear=2018&toCaseYear=2022&state=${r0.state_fips}&county=${r0.county_fips}&format=json`, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
+          if (!fars.ok) return null;
+          const fd = await fars.json();
+          let cr = Array.isArray(fd) ? fd : (fd.Results || fd.results || []);
+          if (cr.length > 0 && Array.isArray(cr[0])) cr = cr.flat();
+          const nearby = [];
+          for (const c of cr) {
+            const cLat = parseFloat(c.LATITUDE || c.latitude || '');
+            const cLon = parseFloat(c.LONGITUD || c.LONGITUDE || '');
+            if (isNaN(cLat) || isNaN(cLon) || cLat === 0) continue;
+            const d = haversineDistance(lat, lon, cLat, cLon);
+            if (d <= 800) nearby.push({ distance: Math.round(d), fatalities: parseInt(c.FATALS || '1', 10), year: parseInt(c.CaseYear || '0', 10), road: c.TWAY_ID || 'Unknown' });
+          }
+          const ym = {}; for (let y = 2018; y <= 2022; y++) ym[y] = { year: y, crashes: 0, fatalities: 0 };
+          for (const c of nearby) { if (ym[c.year]) { ym[c.year].crashes++; ym[c.year].fatalities += c.fatalities; } }
+          const near = nearby.sort((a, b) => a.distance - b.distance)[0];
+          return { type: 'local', totalCrashes: nearby.length, totalFatalities: nearby.reduce((s, c) => s + c.fatalities, 0), yearRange: { from: 2018, to: 2022 }, yearlyBreakdown: Object.values(ym), nearestCrash: near ? { distance: near.distance, year: near.year, fatalities: near.fatalities, road: near.road } : undefined, radiusMeters: 800, dataSource: 'NHTSA FARS' };
+        } catch { return null; }
+      })(),
+    ]);
 
-      const results = await Promise.race([satelliteWork, satelliteTimeout]);
-      const [slopeRes, ndviRes, tempRes, heatRes, crashRes] = results;
-
-      if (slopeRes.status === 'fulfilled' && slopeRes.value?.success && slopeRes.value.data?.slope != null) {
-        const deg = slopeRes.value.data.slope;
-        slopeScore = deg <= 2 ? 10 : deg <= 5 ? 8 : deg <= 10 ? 6 : deg <= 15 ? 4 : 2;
-        console.log(`  ✅ Slope: ${deg}° → ${slopeScore}`);
+    if (tempResult.status === 'fulfilled' && tempResult.value?.properties?.parameter?.T2M_MAX) {
+      const vals = Object.values(tempResult.value.properties.parameter.T2M_MAX).filter(v => v !== -999);
+      if (vals.length) {
+        const avgMax = vals.reduce((a, b) => a + b, 0) / vals.length;
+        surfaceTempScore = avgMax <= 25 ? 10 : avgMax <= 35 ? 10 - ((avgMax - 25) / 10) * 5 : avgMax <= 45 ? 5 - ((avgMax - 35) / 10) * 5 : 0;
+        console.log(`  ✅ Temp: ${avgMax.toFixed(1)}°C → ${surfaceTempScore.toFixed(1)}`);
       }
-      if (ndviRes.status === 'fulfilled' && ndviRes.value?.success && ndviRes.value.data?.ndvi != null) {
-        const ndvi = ndviRes.value.data.ndvi;
-        if (ndvi >= 0.6) treeCanopyScore = 10;
-        else if (ndvi >= 0.4) treeCanopyScore = Math.round((5 + ((ndvi - 0.4) / 0.2) * 5) * 10) / 10;
-        else if (ndvi >= 0.2) treeCanopyScore = Math.round(((ndvi - 0.2) / 0.2 * 5) * 10) / 10;
-        console.log(`  ✅ NDVI: ${ndvi.toFixed(3)} → ${treeCanopyScore}`);
-      }
-      if (tempRes.status === 'fulfilled' && tempRes.value?.success && tempRes.value.data) {
-        const maxTemp = tempRes.value.data.averageMaxTemperature || tempRes.value.data.avgTemp || 25;
-        surfaceTempScore = maxTemp <= 25 ? 10 : maxTemp <= 35 ? 10 - ((maxTemp - 25) / 10) * 5 : maxTemp <= 45 ? 5 - ((maxTemp - 35) / 10) * 5 : 0;
-        console.log(`  ✅ Temp: ${maxTemp.toFixed(1)}°C → ${surfaceTempScore.toFixed(1)}`);
-      }
-      if (heatRes.status === 'fulfilled' && heatRes.value?.success && heatRes.value.data?.score != null) {
-        heatIslandScore = heatRes.value.data.score;
-        console.log(`  ✅ Heat: ${heatIslandScore}`);
-      }
-      if (crashRes.status === 'fulfilled' && crashRes.value?.success && crashRes.value.data) {
-        crashData = crashRes.value.data;
-        console.log(`  ✅ Crashes: ${crashData.totalCrashes ?? 0}`);
-      }
-    } catch (e) {
-      console.log(`  ⏱️  Satellite data timed out (12s cap) — using OSM-only scores`);
+    }
+    if (crashResult.status === 'fulfilled' && crashResult.value) {
+      crashData = crashResult.value;
+      console.log(`  ✅ Crashes: ${crashData.totalCrashes}`);
     }
 
-    // 6. Calculate thermal comfort + overall score
-    let thermalComfort = 0;
-    if (surfaceTempScore !== undefined && heatIslandScore !== undefined) thermalComfort = (surfaceTempScore + heatIslandScore) / 2;
-    else if (surfaceTempScore !== undefined) thermalComfort = surfaceTempScore;
-    else if (heatIslandScore !== undefined) thermalComfort = heatIslandScore;
-
-    const satelliteScores = [slopeScore, treeCanopyScore, surfaceTempScore, heatIslandScore].filter(s => s !== undefined && s !== 0);
-    let overallScore;
-
-    if (satelliteScores.length >= 2) {
-      const safetyScore = crossingSafety * 0.15 + sidewalkCoverage * 0.15 + speedExposure * 0.15 + nightSafety * 0.10 + destinationAccess * 0.10;
-      overallScore = Math.round((safetyScore + slopeScore * 0.10 + treeCanopyScore * 0.10 + thermalComfort * 0.15) * 10) / 10;
-    } else {
-      overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess) / 5) * 10) / 10;
-    }
-
+    // 6. Overall score — OSM metrics + temperature if available
+    const thermalComfort = surfaceTempScore ?? 0;
+    const overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess + thermalComfort) / (surfaceTempScore !== undefined ? 6 : 5)) * 10) / 10;
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
     // 7. Build report data
     const reportData = {
       location: { lat, lon, displayName },
-      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: slopeScore, treeCanopy: treeCanopyScore, thermalComfort: Math.round(thermalComfort * 10) / 10, overallScore, label },
+      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: 0, treeCanopy: 0, thermalComfort: Math.round(thermalComfort * 10) / 10, overallScore, label },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       crashData,
       agentProfile,
     };
 
-    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}) — ${agentProfile.name} [${satelliteScores.length} satellite metrics]`);
+    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}) — ${agentProfile.name}`);
     res.json(reportData);
   } catch (err) {
     console.error('Report generation failed:', err);
