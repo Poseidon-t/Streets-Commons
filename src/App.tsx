@@ -1622,27 +1622,27 @@ function App() {
             </section>
 
             {/* Agent Reports CTA */}
-            <section className="py-16 bg-white/30">
+            <section className="py-12 bg-white/30">
               <div className="max-w-5xl mx-auto px-6">
-                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1e3a5f' }}>
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#2a3a2a' }}>
                   <div className="p-8 sm:p-10 lg:p-12">
                     <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                       {/* Content */}
                       <div className="flex-1 text-center lg:text-left">
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: '#93c5fd' }}>
+                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
                           For Real Estate Agents
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
                           Branded Walkability Reports
                         </h3>
-                        <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                        <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
                           Your name, company, and contact info on every page. Print-ready PDFs with walkability analysis, neighborhood intelligence, 15-minute city scores, and crash safety data for any listing.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
                             href="/?agent=true"
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg"
-                            style={{ backgroundColor: '#ffffff', color: '#1e3a5f' }}
+                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:brightness-110"
+                            style={{ backgroundColor: '#e07850', color: '#ffffff' }}
                           >
                             Try 3 Free Reports
                           </a>
@@ -1651,48 +1651,67 @@ function App() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10"
-                            style={{ border: '1.5px solid rgba(255,255,255,0.25)', color: '#ffffff' }}
+                            style={{ border: '1.5px solid rgba(224,120,80,0.4)', color: '#e8a070' }}
                           >
                             $99 One-Time &mdash; Unlimited
                           </a>
                         </div>
                       </div>
 
-                      {/* Mini report preview */}
+                      {/* Mini report preview - realistic branded report */}
                       <div className="hidden lg:block flex-shrink-0">
-                        <div className="w-44 rounded-lg shadow-2xl overflow-hidden transform rotate-2" style={{ backgroundColor: '#ffffff' }}>
-                          <div className="px-4 pt-4 pb-1">
-                            <div className="h-1.5 w-16 rounded bg-gray-200 mb-2" />
-                            <div className="h-1 w-full rounded bg-gray-100 mb-0.5" />
-                            <div className="h-1 w-3/4 rounded bg-gray-100 mb-3" />
-                            <div className="flex items-baseline justify-center gap-1 mb-3">
-                              <span className="text-2xl font-bold" style={{ color: '#1e3a5f' }}>8.4</span>
-                              <span className="text-xs" style={{ color: '#93a3b8' }}>/10</span>
+                        <div className="w-48 rounded-lg shadow-2xl overflow-hidden transform rotate-2" style={{ backgroundColor: '#ffffff' }}>
+                          {/* Agent branding header */}
+                          <div className="px-4 pt-3 pb-2" style={{ backgroundColor: '#f8f6f1', borderBottom: '2px solid #e07850' }}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#e07850' }} />
+                              <div>
+                                <div className="h-1.5 w-16 rounded" style={{ backgroundColor: '#2a3a2a' }} />
+                                <div className="h-1 w-12 rounded mt-0.5" style={{ backgroundColor: '#8a9a8a' }} />
+                              </div>
                             </div>
+                          </div>
+                          {/* Report content */}
+                          <div className="px-4 pt-3 pb-2">
+                            <div className="h-1 w-24 rounded mb-0.5" style={{ backgroundColor: '#2a3a2a' }} />
+                            <div className="h-0.5 w-16 rounded mb-3" style={{ backgroundColor: '#c0b8a8' }} />
+                            <div className="flex items-baseline justify-center gap-1 mb-3">
+                              <span className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>8.4</span>
+                              <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+                            </div>
+                            {/* Metric rows with names */}
                             <div className="space-y-1.5 mb-3">
-                              {[65, 82, 48, 74, 58, 90, 70, 55].map((w, i) => (
-                                <div key={i} className="flex items-center gap-1.5">
-                                  <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#93c5fd' }} />
-                                  <div className="h-1.5 flex-1 rounded-full bg-gray-100">
-                                    <div className="h-full rounded-full" style={{ width: `${w}%`, backgroundColor: '#1e3a5f', opacity: 0.35 }} />
+                              {[
+                                { name: 'Grid', w: 78 },
+                                { name: 'Trees', w: 65 },
+                                { name: 'Safety', w: 82 },
+                                { name: 'Access', w: 71 },
+                                { name: 'Transit', w: 58 },
+                                { name: 'Health', w: 74 },
+                              ].map((m) => (
+                                <div key={m.name} className="flex items-center gap-1.5">
+                                  <span className="text-[6px] w-6 text-right" style={{ color: '#8a9a8a' }}>{m.name}</span>
+                                  <div className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: '#f0ebe0' }}>
+                                    <div className="h-full rounded-full" style={{ width: `${m.w}%`, backgroundColor: '#4a8a4a', opacity: 0.6 }} />
                                   </div>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          <div className="px-4 py-2 text-center" style={{ backgroundColor: '#f8fafc' }}>
-                            <div className="h-1 w-12 mx-auto rounded bg-gray-200 mb-0.5" />
-                            <div className="h-0.5 w-16 mx-auto rounded bg-gray-100" />
+                          {/* Footer with agent contact */}
+                          <div className="px-4 py-2" style={{ backgroundColor: '#f8f6f1' }}>
+                            <div className="h-0.5 w-14 mx-auto rounded mb-0.5" style={{ backgroundColor: '#c0b8a8' }} />
+                            <div className="h-0.5 w-20 mx-auto rounded" style={{ backgroundColor: '#e0dbd0' }} />
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* Feature bar */}
-                    <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                       {['Your branding on every page', 'Full walkability analysis', '15-min city + social indicators', 'Print-ready PDF'].map(f => (
-                        <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                          <svg className="w-3.5 h-3.5" style={{ color: '#93c5fd' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                          <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                           </svg>
                           {f}
@@ -1706,7 +1725,7 @@ function App() {
 
             {/* Newsletter subscribe */}
             {!demoMode && (
-              <section className="py-12 bg-earth-sage/40">
+              <section className="py-8 bg-earth-sage/40">
                 <div className="max-w-2xl mx-auto px-6">
                   <Suspense fallback={null}>
                     <EmailCaptureBanner
