@@ -778,13 +778,13 @@ function App() {
           <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 lg:pt-16 pb-8">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Left column - Text & Search */}
-              <div className="flex flex-col items-center lg:items-start">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 tracking-tight text-earth-text-dark">
+              <div className="flex flex-col items-center">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 tracking-tight text-earth-text-dark">
                   Is Your Neighborhood{' '}
                   <span className="text-terra">Safe to Walk</span>?
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-lg mb-6 text-earth-text-body">
+                <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
                   The walking experience, the health context, the economic reality.
                   <span className="text-earth-text-light"> Any address. Free, no sign-up.</span>
                 </p>
@@ -818,7 +818,7 @@ function App() {
                         alert('Geolocation is not supported by your browser.');
                       }
                     }}
-                    className="mt-2 block mx-auto lg:mx-0 text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                    className="mt-2 block mx-auto text-sm font-medium text-terra hover:text-terra/80 transition-colors"
                     aria-label="Use my current location"
                   >
                     Use my location
@@ -834,7 +834,7 @@ function App() {
                 </button>
 
                 {/* Trust badges */}
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
+                <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
                   <span className="text-xs sm:text-sm text-earth-text-light">
                     <span className="text-earth-green font-semibold">12</span> data layers
                   </span>
@@ -850,7 +850,7 @@ function App() {
               </div>
 
               {/* Right column - Preview Card */}
-              <div className="flex justify-center lg:justify-end">
+              <div className="flex justify-center">
                 <div className="w-full max-w-md">
                   <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5">
                     {/* Header */}
