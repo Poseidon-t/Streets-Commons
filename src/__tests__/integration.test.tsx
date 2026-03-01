@@ -107,15 +107,6 @@ vi.mock('../services/heatisland', () => ({
   fetchHeatIsland: vi.fn(() => Promise.resolve(null)),
 }));
 
-// Mock premium access utilities
-vi.mock('../utils/premiumAccess', () => ({
-  getAccessInfo: vi.fn(() => ({
-    hasAccess: false,
-    isPremium: false,
-    isTrial: false,
-    analysesRemaining: 3,
-  })),
-}));
 
 vi.mock('../utils/clerkAccess', () => ({
   isPremium: vi.fn(() => false),

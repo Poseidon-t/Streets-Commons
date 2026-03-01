@@ -20,7 +20,7 @@ const PRO_FEATURES = [
   { icon: '📊', name: 'Branded Agent Reports', desc: 'Your name, company & contact on every PDF' },
   { icon: '🏠', name: 'Unlimited Reports', desc: 'Generate reports for every listing' },
   { icon: '🖨️', name: 'Print-Optimized PDFs', desc: '3-page reports ready for clients' },
-  { icon: '📈', name: 'Full Walkability Analysis', desc: '8 metrics, 15-min city & social indicators' },
+  { icon: '📈', name: 'Full Walkability Analysis', desc: '12 data layers, 15-min city & neighborhood intelligence' },
 ];
 
 export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgradeModalProps) {
@@ -130,14 +130,14 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgrade
               <div className="text-4xl mb-3">📊</div>
               <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Generate Agent Report</h2>
               <p className="text-sm text-[#8a9a8a]">
-                You have <strong className="text-[#1e3a5f]">{trialsRemaining} free report{trialsRemaining !== 1 ? 's' : ''}</strong> remaining.
+                You have <strong className="text-[#e07850]">{trialsRemaining} free report{trialsRemaining !== 1 ? 's' : ''}</strong> remaining.
               </p>
             </div>
 
             <button
               onClick={onReady}
               className="w-full py-3 rounded-xl font-bold text-white text-base transition-all hover:opacity-90 mb-3"
-              style={{ backgroundColor: '#1e3a5f' }}
+              style={{ backgroundColor: '#e07850' }}
             >
               Generate Free Report
             </button>
@@ -146,7 +146,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgrade
               <button
                 onClick={handleSubscribe}
                 disabled={loading}
-                className="text-sm font-medium text-[#1e3a5f] hover:underline disabled:opacity-50"
+                className="text-sm font-medium text-[#e07850] hover:underline disabled:opacity-50"
               >
                 {loading ? 'Redirecting...' : 'Or get unlimited — $99 one-time'}
               </button>
@@ -194,7 +194,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgrade
               onClick={handleSubscribe}
               disabled={loading}
               className="w-full py-4 rounded-xl font-bold text-white text-lg transition-all hover:opacity-90 disabled:opacity-60"
-              style={{ backgroundColor: '#1e3a5f' }}
+              style={{ backgroundColor: '#e07850' }}
             >
               {loading ? 'Redirecting to checkout...' : 'Get Pro — $99 One-Time'}
             </button>

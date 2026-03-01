@@ -3,7 +3,6 @@ import AddressInput from './components/streetcheck/AddressInput';
 import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import Map from './components/Map';
-import ActivationHandler from './components/ActivationHandler';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -33,7 +32,6 @@ import { fetchCrashData } from './services/crashdata';
 import { fetchPopulationDensity } from './services/populationDensity';
 import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
-import { getAccessInfo } from './utils/premiumAccess';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { isPremium, isPro, canGenerateAgentReport, getAgentProfile, getProTrialReportsUsed } from './utils/clerkAccess';
 import type { AgentProfile } from './utils/clerkAccess';
@@ -76,15 +74,12 @@ function App() {
   const { user, isSignedIn } = useUser();
   const userIsPremium = isPremium(user);
 
-  // Backward compatibility with magic link system
-  const accessInfo = getAccessInfo();
-
   // Demo mode + product tour
   const [demoMode, setDemoMode] = useState(false);
   const [showTour, setShowTour] = useState(false);
 
-  // Effective premium: real premium OR demo mode (used for 6 of 8 gates)
-  const effectivePremium = userIsPremium || accessInfo.tier !== 'free' || demoMode;
+  // Effective premium: real premium OR demo mode
+  const effectivePremium = userIsPremium || demoMode;
 
   // Compare mode state
   const [location1, setLocation1] = useState<AnalysisData | null>(null);
@@ -194,6 +189,22 @@ function App() {
       }
     }
   }, [metrics, location]);
+
+  // Auto-open upgrade modal when arriving via ?upgrade=pro (from ForRealEstate / landing CTA)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('upgrade') === 'pro') {
+      if (isSignedIn) {
+        setShowProUpgradeModal(true);
+      } else {
+        setShowSignInModal(true);
+      }
+      // Clean URL
+      params.delete('upgrade');
+      const clean = params.toString();
+      window.history.replaceState({}, '', clean ? `?${clean}` : window.location.pathname);
+    }
+  }, [isSignedIn]);
 
   // Dynamic page title — updates when analysis loads
   useEffect(() => {
@@ -604,9 +615,6 @@ function App() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #f2f0eb 30%, #eef5f0 60%, #f0ede8 100%)' }}>
-      {/* Activation Handler - Processes magic link tokens */}
-      <ActivationHandler />
-
       {/* Sign-In Modal */}
       <PaymentModalWithAuth
         isOpen={showSignInModal}
@@ -704,15 +712,20 @@ function App() {
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
             <a href="/enterprise" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Enterprise</a>
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: 'w-9 h-9 rounded-full border-2 border-gray-300 shadow-sm',
-                  userButtonPopoverCard: 'shadow-xl',
-                },
-              }}
-            />
+            <div className="flex items-center gap-1.5">
+              {isSignedIn && userIsPremium && (
+                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: '#e07850' }}>Pro</span>
+              )}
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: 'w-9 h-9 rounded-full border-2 border-gray-300 shadow-sm',
+                    userButtonPopoverCard: 'shadow-xl',
+                  },
+                }}
+              />
+            </div>
             {/* Mobile hamburger menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -1646,15 +1659,13 @@ function App() {
                           >
                             Try 3 Free Reports
                           </a>
-                          <a
-                            href="https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10"
-                            style={{ border: '1.5px solid rgba(224,120,80,0.4)', color: '#e8a070' }}
+                          <button
+                            onClick={() => isSignedIn ? setShowProUpgradeModal(true) : setShowSignInModal(true)}
+                            className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10 cursor-pointer"
+                            style={{ border: '1.5px solid rgba(224,120,80,0.4)', color: '#e8a070', background: 'transparent' }}
                           >
                             $99 One-Time &mdash; Unlimited
-                          </a>
+                          </button>
                         </div>
                       </div>
 

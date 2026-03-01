@@ -28,15 +28,13 @@ export default function ForRealEstate() {
                 >
                   Try It Free — 3 Reports
                 </Link>
-                <a
-                  href="https://buy.stripe.com/7sY5kD8XD7VL3FAgYo2Fa08"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to="/?upgrade=pro"
                   className="inline-flex items-center text-xs font-medium hover:underline"
-                  style={{ color: '#1e3a5f' }}
+                  style={{ color: '#e07850' }}
                 >
                   Or get unlimited — $99 one-time &rarr;
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -44,7 +42,7 @@ export default function ForRealEstate() {
             <div className="space-y-3">
               {[
                 { icon: '📊', title: 'Your Branding on Every Page', desc: 'Name, title, company, phone, and email' },
-                { icon: '🏠', title: 'Full Walkability Analysis', desc: '8 metrics, 15-min city scores & social indicators' },
+                { icon: '🏠', title: 'Full Walkability Analysis', desc: '12 data layers, 15-min city & neighborhood intelligence' },
                 { icon: '🖨️', title: 'Print-Ready PDF', desc: '3-page report optimized for print and email' },
                 { icon: '🌍', title: 'Any Address Worldwide', desc: 'Works for US listings and international properties' },
               ].map(f => (
