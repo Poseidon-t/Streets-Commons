@@ -1478,60 +1478,28 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {/* Step 1 */}
-                  <div className="text-center relative">
-                    <div className="relative mb-4">
-                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#e07850' }}>1</span>
-                      <img
-                        src="/screenshots/step-1-search.png"
-                        alt="Search any address with autocomplete suggestions"
-                        className="w-full rounded-xl shadow-md border"
-                        style={{ borderColor: '#e0dbd0' }}
-                        loading="lazy"
-                      />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                  {[
+                    { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'Search any address with autocomplete suggestions', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
+                    { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Walkability score with map and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and safety data calculated in seconds.' },
+                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: '6 walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: '6 scored metrics, neighborhood intelligence, health data, and flood risk.' },
+                  ].map((step) => (
+                    <div key={step.num} className="text-center">
+                      <div className="relative mb-4">
+                        <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: step.color }}>{step.num}</span>
+                        <div className="overflow-hidden rounded-xl shadow-md border" style={{ borderColor: '#e0dbd0', aspectRatio: '4/3' }}>
+                          <img
+                            src={step.src}
+                            alt={step.alt}
+                            className="w-full h-full object-cover object-top"
+                            loading="lazy"
+                          />
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-bold text-earth-text-dark mb-1">{step.title}</h3>
+                      <p className="text-earth-text-body text-sm leading-relaxed">{step.desc}</p>
                     </div>
-                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Search Any Location</h3>
-                    <p className="text-earth-text-body text-sm leading-relaxed">
-                      Enter any address, city, or place worldwide. Works in 190+ countries.
-                    </p>
-                  </div>
-
-                  {/* Step 2 */}
-                  <div className="text-center relative">
-                    <div className="relative mb-4">
-                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#4a8a4a' }}>2</span>
-                      <img
-                        src="/screenshots/step-2-analysis.png"
-                        alt="Walkability score with map and metric breakdown"
-                        className="w-full rounded-xl shadow-md border"
-                        style={{ borderColor: '#e0dbd0' }}
-                        loading="lazy"
-                      />
-                    </div>
-                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Get Instant Analysis</h3>
-                    <p className="text-earth-text-body text-sm leading-relaxed">
-                      Walkability score, crash data, and neighborhood intelligence in seconds.
-                    </p>
-                  </div>
-
-                  {/* Step 3 */}
-                  <div className="text-center relative">
-                    <div className="relative mb-4">
-                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#2a3a2a' }}>3</span>
-                      <img
-                        src="/screenshots/step-3-compare.png"
-                        alt="Side-by-side neighborhood comparison"
-                        className="w-full rounded-xl shadow-md border"
-                        style={{ borderColor: '#e0dbd0' }}
-                        loading="lazy"
-                      />
-                    </div>
-                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Compare & Decide</h3>
-                    <p className="text-earth-text-body text-sm leading-relaxed">
-                      Compare neighborhoods side by side and share with family or your agent.
-                    </p>
-                  </div>
+                  ))}
                 </div>
 
                 {/* CTA */}
