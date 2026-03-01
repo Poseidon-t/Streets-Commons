@@ -8,6 +8,7 @@ import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DataQ
 import type { AgentProfile } from '../utils/clerkAccess';
 import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
+import { generateNeighborhoodNarrative } from '../utils/neighborhoodNarrative';
 import WalkerInfographic from './WalkerInfographic';
 
 interface PercentileData {
@@ -512,112 +513,39 @@ export default function AgentReportView() {
             </div>
           )}
 
-          {/* Neighborhood Intelligence */}
+          {/* Neighborhood Intelligence — Narrative Commentary */}
           {data.neighborhoodIntel && (() => {
             const ni = data.neighborhoodIntel!;
             const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.economics || ni.health || ni.flood;
             if (!hasData) return null;
+            const narrativeParagraphs = generateNeighborhoodNarrative({
+              ni,
+              locationName: data.location.displayName || '',
+              overallScore: displayScore,
+              metrics: data.metrics,
+            });
+            if (narrativeParagraphs.length === 0) return null;
+
+            // Collect data sources for attribution
+            const sources: string[] = [];
+            if (ni.commute) sources.push('Census ACS');
+            if (ni.transit || ni.parks || ni.food) sources.push('OpenStreetMap');
+            if (ni.economics) sources.push('Census ACS');
+            if (ni.health) sources.push('CDC PLACES');
+            if (ni.flood) sources.push('FEMA NFHL');
+            const uniqueSources = [...new Set(sources)];
+
             return (
               <div style={{ marginBottom: '2.5rem' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Neighborhood Intelligence</h2>
-
-                {/* Getting Around */}
-                {(ni.commute || ni.transit) && (
-                  <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm, marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Getting Around</div>
-                    {ni.commute && (
-                      <div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.walkPct}%</strong> walk</div>
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.bikePct}%</strong> bike</div>
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.transitPct}%</strong> transit</div>
-                        </div>
-                        {ni.commute.altModePct != null && (
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted, marginTop: '0.25rem' }}>
-                            <strong style={{ color: C.text }}>{ni.commute.altModePct}%</strong> of residents commute without a car
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    {ni.transit && ni.transit.totalStops > 0 && (
-                      <div style={{ fontSize: '0.8125rem', color: C.textMuted }}>
-                        {ni.transit.busStops > 0 && `${ni.transit.busStops} bus stop${ni.transit.busStops !== 1 ? 's' : ''}`}
-                        {ni.transit.busStops > 0 && ni.transit.railStations > 0 && ' and '}
-                        {ni.transit.railStations > 0 && `${ni.transit.railStations} rail station${ni.transit.railStations !== 1 ? 's' : ''}`}
-                        {' within 1.2 km'}
-                      </div>
-                    )}
+                <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
+                  {narrativeParagraphs.map((p, i) => (
+                    <p key={i} style={{ fontSize: '0.875rem', color: C.textMuted, lineHeight: 1.7, marginBottom: i < narrativeParagraphs.length - 1 ? '0.875rem' : 0 }}>{p}</p>
+                  ))}
+                  <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.5rem' }}>
+                    Sources: {uniqueSources.join(', ')}
                   </div>
-                )}
-
-                {/* Daily Needs */}
-                {(ni.parks || ni.food) && (
-                  <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm, marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Daily Needs</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      {ni.parks && (
-                        <div>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Parks & Green Spaces</div>
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}>
-                            {ni.parks.totalGreenSpaces} green space{ni.parks.totalGreenSpaces !== 1 ? 's' : ''}
-                            {ni.parks.nearestParkMeters !== null && `, nearest ${ni.parks.nearestParkMeters}m`}
-                          </div>
-                        </div>
-                      )}
-                      {ni.food && (
-                        <div>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Food Access</div>
-                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}>
-                            {ni.food.supermarkets} supermarket{ni.food.supermarkets !== 1 ? 's' : ''}, {ni.food.groceryStores} grocery
-                            {ni.food.isFoodDesert && <span style={{ color: C.red, fontWeight: 600 }}> — food desert</span>}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Economics */}
-                {ni.economics && (ni.economics.medianIncome || ni.economics.medianHomeValue) && (
-                  <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm, marginBottom: '1rem' }}>
-                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Neighborhood Economics</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      {ni.economics.medianIncome && (
-                        <div>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Median Household Income</div>
-                          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: brandAccent }}>${ni.economics.medianIncome.toLocaleString()}</div>
-                        </div>
-                      )}
-                      {ni.economics.medianHomeValue && (
-                        <div>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Median Home Value</div>
-                          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: brandAccent }}>${ni.economics.medianHomeValue.toLocaleString()}</div>
-                        </div>
-                      )}
-                    </div>
-                    <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.5rem' }}>Source: Census ACS 2022</div>
-                  </div>
-                )}
-
-                {/* Health & Safety */}
-                {(ni.health || ni.flood) && (
-                  <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
-                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Health & Safety</div>
-                    {ni.health && (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                        {ni.health.obesity !== null && <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.health.obesity}%</strong> obesity</div>}
-                        {ni.health.diabetes !== null && <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.health.diabetes}%</strong> diabetes</div>}
-                        {ni.health.physicalInactivity !== null && <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.health.physicalInactivity}%</strong> inactive</div>}
-                      </div>
-                    )}
-                    {ni.flood && (
-                      <div style={{ fontSize: '0.8125rem', color: ni.flood.isHighRisk ? C.red : C.green, fontWeight: 600 }}>
-                        Flood Zone {ni.flood.floodZone}: {ni.flood.isHighRisk ? 'High Risk' : 'Minimal Risk'}
-                      </div>
-                    )}
-                    <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.5rem' }}>Sources: CDC PLACES, FEMA NFHL</div>
-                  </div>
-                )}
+                </div>
               </div>
             );
           })()}
