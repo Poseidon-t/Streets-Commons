@@ -745,255 +745,164 @@ function App() {
         )}
       </header>
 
-      {/* Hero Section - Light earthy aesthetic */}
+      {/* Hero Section - Side-by-side with topographic texture */}
       {!compareMode && !location && !isAnalyzing && (
         <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
-          <div className="relative flex-1 flex flex-col items-center px-6 pt-8 md:pt-12 pb-6 z-10">
-            {/* Headline */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 tracking-tight text-earth-text-dark">
-              Is Your Neighborhood{' '}
-              <span className="text-terra">Safe to Walk</span>?
-            </h1>
+          {/* Topographic contour background */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.06 }}>
+            <defs>
+              <pattern id="topoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                <path d="M 100 10 Q 140 30, 180 25 Q 195 60, 170 90 Q 150 120, 100 110 Q 50 100, 30 70 Q 15 40, 50 20 Q 70 10, 100 10 Z" fill="none" stroke="#4a8a4a" strokeWidth="1"/>
+                <path d="M 100 30 Q 130 45, 160 40 Q 175 65, 155 85 Q 140 100, 100 95 Q 65 88, 50 65 Q 38 48, 60 35 Q 75 28, 100 30 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.8"/>
+                <path d="M 100 50 Q 120 58, 140 55 Q 150 70, 135 80 Q 125 88, 100 85 Q 78 80, 70 65 Q 64 55, 78 50 Q 88 46, 100 50 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.6"/>
+                <path d="M 100 65 Q 112 68, 120 66 Q 125 73, 118 78 Q 112 82, 100 80 Q 90 78, 85 72 Q 82 67, 90 65 Q 95 63, 100 65 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#topoPattern)"/>
+          </svg>
 
-            <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              The walking experience, the health context, the economic reality.
-              <span className="text-earth-text-light"> Any address. Free, no sign-up.</span>
-            </p>
+          {/* Two-column hero layout */}
+          <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 md:pt-16 pb-8">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+              {/* Left column - Text & Search */}
+              <div className="flex flex-col items-center md:items-start">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center md:text-left mb-4 tracking-tight text-earth-text-dark">
+                  Is Your Neighborhood{' '}
+                  <span className="text-terra">Safe to Walk</span>?
+                </h1>
 
-            {/* Search Box */}
-            <div className="w-full max-w-xl mb-4">
-              <div className="search-box-light bg-white rounded-2xl">
-                <AddressInput
-                  onSelect={handleLocationSelect}
-                  placeholder="Enter any address worldwide..."
-                />
-              </div>
-              <button
-                onClick={() => {
-                  if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                      (position) => {
-                        const { latitude, longitude } = position.coords;
-                        handleLocationSelect({
-                          lat: latitude,
-                          lon: longitude,
-                          displayName: 'My Current Location',
-                        });
-                      },
-                      (error) => {
-                        console.error('Geolocation error:', error);
-                        alert('Unable to get your location. Please enter an address manually.');
+                <p className="text-base sm:text-lg md:text-xl text-center md:text-left max-w-lg mb-6 text-earth-text-body">
+                  The walking experience, the health context, the economic reality.
+                  <span className="text-earth-text-light"> Any address. Free, no sign-up.</span>
+                </p>
+
+                {/* Search Box */}
+                <div className="w-full max-w-xl mb-4">
+                  <div className="search-box-light bg-white rounded-2xl">
+                    <AddressInput
+                      onSelect={handleLocationSelect}
+                      placeholder="Enter any address worldwide..."
+                    />
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                          (position) => {
+                            const { latitude, longitude } = position.coords;
+                            handleLocationSelect({
+                              lat: latitude,
+                              lon: longitude,
+                              displayName: 'My Current Location',
+                            });
+                          },
+                          (error) => {
+                            console.error('Geolocation error:', error);
+                            alert('Unable to get your location. Please enter an address manually.');
+                          }
+                        );
+                      } else {
+                        alert('Geolocation is not supported by your browser.');
                       }
-                    );
-                  } else {
-                    alert('Geolocation is not supported by your browser.');
-                  }
-                }}
-                className="mt-2 block mx-auto text-sm font-medium text-terra hover:text-terra/80 transition-colors"
-                aria-label="Use my current location"
-              >
-                Use my location
-              </button>
-            </div>
-
-            <button
-              onClick={activateDemoMode}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-terra/30 text-terra font-semibold text-sm rounded-xl hover:bg-terra/10 hover:border-terra/50 transition-all mb-4"
-            >
-              <span className="text-base">&#9654;</span>
-              Watch Demo &mdash; Portland, OR
-            </button>
-
-            {/* Trust badges */}
-            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
-              <span className="text-xs sm:text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">12</span> data layers
-              </span>
-              <span className="text-earth-text-light hidden sm:inline">·</span>
-              <span className="text-xs sm:text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">190+</span> countries
-              </span>
-              <span className="text-earth-text-light hidden sm:inline">·</span>
-              <span className="text-xs sm:text-sm text-earth-text-light">
-                Powered by <span className="text-earth-green font-semibold">NASA</span>, <span className="text-earth-green font-semibold">Census</span> & <span className="text-earth-green font-semibold">CDC</span>
-              </span>
-            </div>
-
-          </div>
-
-          {/* Analysis Preview Card */}
-          <div className="w-full max-w-md mx-auto px-6">
-            <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 transform rotate-1 hover:rotate-0 transition-transform duration-500">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">📍</span>
-                  <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Portland, OR</span>
+                    }}
+                    className="mt-2 block mx-auto md:mx-0 text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                    aria-label="Use my current location"
+                  >
+                    Use my location
+                  </button>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.2</span>
-                  <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+
+                <button
+                  onClick={activateDemoMode}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-terra/30 text-terra font-semibold text-sm rounded-xl hover:bg-terra/10 hover:border-terra/50 transition-all mb-5"
+                >
+                  <span className="text-base">&#9654;</span>
+                  Watch Demo &mdash; Portland, OR
+                </button>
+
+                {/* Trust badges */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4">
+                  <span className="text-xs sm:text-sm text-earth-text-light">
+                    <span className="text-earth-green font-semibold">12</span> data layers
+                  </span>
+                  <span className="text-earth-text-light hidden sm:inline">·</span>
+                  <span className="text-xs sm:text-sm text-earth-text-light">
+                    <span className="text-earth-green font-semibold">190+</span> countries
+                  </span>
+                  <span className="text-earth-text-light hidden sm:inline">·</span>
+                  <span className="text-xs sm:text-sm text-earth-text-light">
+                    Powered by <span className="text-earth-green font-semibold">NASA</span>, <span className="text-earth-green font-semibold">Census</span> & <span className="text-earth-green font-semibold">CDC</span>
+                  </span>
                 </div>
               </div>
-              {/* Score bar */}
-              <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
-                <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
-              </div>
-              {/* 6 metrics grid */}
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                {[
-                  { icon: '🔀', name: 'Street Grid', score: '7.8' },
-                  { icon: '⛰️', name: 'Terrain', score: '8.2' },
-                  { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
-                  { icon: '🚨', name: 'Crashes', score: '5.9' },
-                  { icon: '🏪', name: 'Destinations', score: '7.1' },
-                  { icon: '👥', name: 'Population', score: '6.8' },
-                ].map(m => (
-                  <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-                    <span className="text-xs" style={{ color: '#6a7a6a' }}>{m.icon} {m.name}</span>
-                    <span className="text-xs font-bold" style={{ color: '#2a3a2a' }}>{m.score}</span>
+
+              {/* Right column - Preview Card */}
+              <div className="flex justify-center md:justify-end">
+                <div className="w-full max-w-md">
+                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">📍</span>
+                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Portland, OR</span>
+                      </div>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.2</span>
+                        <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+                      </div>
+                    </div>
+                    {/* Score bar */}
+                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
+                      <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
+                    </div>
+                    {/* 6 metrics grid */}
+                    <div className="grid grid-cols-2 gap-2 mb-4">
+                      {[
+                        { icon: '🔀', name: 'Street Grid', score: '7.8' },
+                        { icon: '⛰️', name: 'Terrain', score: '8.2' },
+                        { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
+                        { icon: '🚨', name: 'Crashes', score: '5.9' },
+                        { icon: '🏪', name: 'Destinations', score: '7.1' },
+                        { icon: '👥', name: 'Population', score: '6.8' },
+                      ].map(m => (
+                        <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
+                          <span className="text-xs" style={{ color: '#6a7a6a' }}>{m.icon} {m.name}</span>
+                          <span className="text-xs font-bold" style={{ color: '#2a3a2a' }}>{m.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Neighborhood Intelligence preview */}
+                    <div className="border-t pt-3 space-y-2.5" style={{ borderColor: '#e0dbd0' }}>
+                      <div>
+                        <p className="text-xs font-semibold mb-1.5" style={{ color: '#2a3a2a' }}>Getting Around</p>
+                        <div className="flex h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+                          <div className="h-full" style={{ width: '28%', backgroundColor: '#22c55e' }} title="Walk 28%" />
+                          <div className="h-full" style={{ width: '8%', backgroundColor: '#3b82f6' }} title="Bike 8%" />
+                          <div className="h-full" style={{ width: '12%', backgroundColor: '#8b5cf6' }} title="Transit 12%" />
+                          <div className="h-full" style={{ width: '15%', backgroundColor: '#06b6d4' }} title="WFH 15%" />
+                        </div>
+                        <div className="flex gap-3 mt-1">
+                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟢 28% walk</span>
+                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🔵 8% bike</span>
+                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟣 12% transit</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🛒 3 supermarkets</span>
+                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🌳 5 parks</span>
+                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>🌊 Low risk</span>
+                      </div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              {/* Neighborhood Intelligence preview */}
-              <div className="border-t pt-3 space-y-2.5" style={{ borderColor: '#e0dbd0' }}>
-                <div>
-                  <p className="text-xs font-semibold mb-1.5" style={{ color: '#2a3a2a' }}>Getting Around</p>
-                  <div className="flex h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
-                    <div className="h-full" style={{ width: '28%', backgroundColor: '#22c55e' }} title="Walk 28%" />
-                    <div className="h-full" style={{ width: '8%', backgroundColor: '#3b82f6' }} title="Bike 8%" />
-                    <div className="h-full" style={{ width: '12%', backgroundColor: '#8b5cf6' }} title="Transit 12%" />
-                    <div className="h-full" style={{ width: '15%', backgroundColor: '#06b6d4' }} title="WFH 15%" />
-                  </div>
-                  <div className="flex gap-3 mt-1">
-                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟢 28% walk</span>
-                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🔵 8% bike</span>
-                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟣 12% transit</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🛒 3 supermarkets</span>
-                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🌳 5 parks</span>
-                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>🌊 Low risk</span>
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Compact street illustration */}
-          <div className="w-full max-w-3xl mx-auto px-6 mt-6 opacity-50">
-            <svg viewBox="20 0 560 100" className="w-full" preserveAspectRatio="xMidYMid meet">
-                {/* Ground */}
-                <rect x="20" y="85" width="560" height="15" fill="#d5e5d5"/>
-                <rect x="20" y="83" width="560" height="3" fill="#a09585"/>
-
-                {/* Left Building */}
-                <rect x="40" y="30" width="45" height="53" fill="#e8ddd0" rx="2"/>
-                <rect x="46" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="62" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="46" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="62" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                {/* Right Building */}
-                <rect x="515" y="30" width="45" height="53" fill="#e0d5c8" rx="2"/>
-                <rect x="521" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="537" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="521" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
-                <rect x="537" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
-
-                {/* Left Sidewalk */}
-                <rect x="95" y="68" width="40" height="15" fill="#d8d0c5"/>
-                {/* Person walking left */}
-                <g>
-                  <circle cx="115" cy="58" r="3.5" fill="#f0d0b0"/>
-                  <rect x="112" y="61.5" width="6" height="8" fill="#e07850" rx="1"/>
-                  <rect x="112" y="69.5" width="2.5" height="5" fill="#5a6570"/>
-                  <rect x="115.5" y="69.5" width="2.5" height="5" fill="#5a6570"/>
-                </g>
-
-                {/* Left Green + Tree */}
-                <rect x="135" y="68" width="35" height="15" fill="#7aaa6a"/>
-                <rect x="149" y="40" width="5" height="28" fill="#8a7050"/>
-                <ellipse cx="152" cy="30" rx="16" ry="18" fill="#5a9a4a"/>
-                <ellipse cx="145" cy="36" rx="10" ry="12" fill="#6aaa5a"/>
-                <ellipse cx="158" cy="34" rx="9" ry="11" fill="#5aaa50"/>
-
-                {/* Left Bike Lane */}
-                <rect x="170" y="68" width="35" height="15" fill="#e08060"/>
-                {/* Cyclist */}
-                <circle cx="185" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
-                <circle cx="195" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
-                <path d="M 185 67 L 190 57 L 195 67" stroke="#3a7090" strokeWidth="1.5" fill="none"/>
-                <circle cx="190" cy="54" r="3" fill="#f0d0b0"/>
-
-                {/* Left Drive Lane */}
-                <rect x="205" y="68" width="70" height="15" fill="#5a5a5a"/>
-                <rect x="238" y="68" width="2" height="15" fill="white" opacity="0.3"/>
-                {/* Bus */}
-                <rect x="215" y="50" width="35" height="18" fill="#4aaa4a" rx="3"/>
-                <rect x="220" y="54" width="10" height="11" fill="#c8e8f0" rx="1"/>
-                <rect x="233" y="54" width="10" height="11" fill="#c8e8f0" rx="1"/>
-                <ellipse cx="222" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
-                <ellipse cx="242" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
-
-                {/* Center Median */}
-                <rect x="275" y="68" width="50" height="15" fill="#5a9a5a"/>
-                <ellipse cx="290" cy="66" rx="6" ry="5" fill="#6aaa5a"/>
-                <ellipse cx="300" cy="64" rx="7" ry="6" fill="#5a9a4a"/>
-                <ellipse cx="315" cy="66" rx="6" ry="5" fill="#6aaa5a"/>
-
-                {/* Right Drive Lane */}
-                <rect x="325" y="68" width="70" height="15" fill="#5a5a5a"/>
-                <rect x="358" y="68" width="2" height="15" fill="white" opacity="0.3"/>
-                {/* Car */}
-                <rect x="340" y="56" width="28" height="12" fill="#e8e8e8" rx="3"/>
-                <rect x="345" y="52" width="18" height="8" fill="#b8d8e8" rx="2"/>
-                <ellipse cx="346" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
-                <ellipse cx="362" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
-
-                {/* Right Bike Lane */}
-                <rect x="395" y="68" width="35" height="15" fill="#e08060"/>
-                {/* Cyclist */}
-                <circle cx="410" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
-                <circle cx="420" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
-                <path d="M 410 67 L 415 57 L 420 67" stroke="#3a7090" strokeWidth="1.5" fill="none"/>
-                <circle cx="415" cy="54" r="3" fill="#e8c8a0"/>
-
-                {/* Right Green + Tree */}
-                <rect x="430" y="68" width="35" height="15" fill="#7aaa6a"/>
-                <rect x="445" y="40" width="5" height="28" fill="#8a7050"/>
-                <ellipse cx="448" cy="30" rx="16" ry="18" fill="#5a9a4a"/>
-                <ellipse cx="441" cy="36" rx="10" ry="12" fill="#6aaa5a"/>
-                <ellipse cx="455" cy="34" rx="9" ry="11" fill="#5aaa50"/>
-
-                {/* Right Sidewalk */}
-                <rect x="465" y="68" width="40" height="15" fill="#d8d0c5"/>
-                {/* Person walking right */}
-                <g>
-                  <circle cx="485" cy="58" r="3.5" fill="#e8c8a0"/>
-                  <rect x="482" y="61.5" width="6" height="8" fill="#d07080" rx="1"/>
-                  <rect x="482" y="69.5" width="2.5" height="5" fill="#5a6570"/>
-                  <rect x="485.5" y="69.5" width="2.5" height="5" fill="#5a6570"/>
-                </g>
-
-                {/* Zone Labels */}
-                <g style={{ fontFamily: "'Space Mono', monospace", fontSize: '6px' }} fill="#8a9a8a">
-                  <text x="115" y="96" textAnchor="middle">WALK</text>
-                  <text x="152" y="96" textAnchor="middle">GREEN</text>
-                  <text x="187" y="96" textAnchor="middle">BIKE</text>
-                  <text x="240" y="96" textAnchor="middle">DRIVE</text>
-                  <text x="300" y="96" textAnchor="middle">MEDIAN</text>
-                  <text x="360" y="96" textAnchor="middle">DRIVE</text>
-                  <text x="413" y="96" textAnchor="middle">BIKE</text>
-                  <text x="448" y="96" textAnchor="middle">GREEN</text>
-                  <text x="485" y="96" textAnchor="middle">WALK</text>
-                </g>
-            </svg>
           </div>
 
           {/* Credibility & Data Sources - centered */}
-          <div className="flex flex-col items-center px-6 pb-8">
+          <div className="relative z-10 flex flex-col items-center px-6 pb-8">
             {/* Credibility Marker */}
-            <div className="flex items-center justify-center gap-2 mt-6 mb-4 px-4 py-2 rounded-full bg-earth-green/[0.08]">
+            <div className="flex items-center justify-center gap-2 mb-4 px-4 py-2 rounded-full bg-earth-green/[0.08]">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
               </svg>
