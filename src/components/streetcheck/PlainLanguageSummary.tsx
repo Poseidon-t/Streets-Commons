@@ -4,11 +4,9 @@ const METRIC_LABELS: Record<string, string> = {
   crossingSafety: 'crossing safety',
   sidewalkCoverage: 'sidewalk coverage',
   speedExposure: 'traffic speed safety',
-  nightSafety: 'nighttime lighting',
   destinationAccess: 'access to daily needs',
   slope: 'terrain accessibility',
   treeCanopy: 'shade and tree canopy',
-  thermalComfort: 'heat comfort',
 };
 
 function getWorstMetrics(metrics: WalkabilityMetrics, count: number): string[] {
