@@ -1877,18 +1877,121 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     });
     const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
 
-    // 5. Fetch temperature + crash data directly (no localhost self-calls)
-    console.log(`🛰️  Fetching temperature & crash data for ${lat}, ${lon}...`);
-    let surfaceTempScore, crashData = null;
+    // 5. Fetch slope, tree canopy, crash data, and other layers in parallel
+    console.log(`🛰️  Fetching slope, NDVI, crash data for ${lat}, ${lon}...`);
+    let crashData = null;
+    let slopeScore = 0;
+    let treeCanopyScore = 0;
 
-    const dateEnd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const dateStart = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10).replace(/-/g, '');
-
-    const [tempResult, crashResult, fccResult, floodResult] = await Promise.allSettled([
-      // NASA POWER — direct external call
-      fetch(`https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX&community=RE&longitude=${lon}&latitude=${lat}&start=${dateStart}&end=${dateEnd}&format=JSON`, {
-        signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' },
-      }).then(r => r.json()).catch(() => null),
+    const [slopeResult, ndviResult, crashResult, fccResult, floodResult] = await Promise.allSettled([
+      // NASADEM slope calculation
+      (async () => {
+        try {
+          const slopeOffset = 0.0003;
+          async function getElevAt(la, lo) {
+            const buf = 100 / 111000;
+            const bb = [lo - buf, la - buf, lo + buf, la + buf];
+            const sr = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ collections: ['nasadem'], bbox: bb, limit: 1 }),
+              signal: AbortSignal.timeout(15000),
+            });
+            if (!sr.ok) return null;
+            const sd = await sr.json();
+            if (!sd.features?.length) return null;
+            const asset = sd.features[0].assets?.elevation;
+            if (!asset) return null;
+            const signRes = await fetch(`https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(asset.href)}`);
+            if (!signRes.ok) return null;
+            const signed = await signRes.json();
+            const tiff = await fromUrl(signed.href);
+            const image = await tiff.getImage();
+            const [minX, minY, maxX, maxY] = image.getBoundingBox();
+            const w = image.getWidth(), h = image.getHeight();
+            const px = Math.floor(((lo - minX) / (maxX - minX)) * w);
+            const py = Math.floor(((maxY - la) / (maxY - minY)) * h);
+            if (px < 0 || px >= w || py < 0 || py >= h) return null;
+            const data = await image.readRasters({ window: [px, py, px + 1, py + 1] });
+            return data[0][0];
+          }
+          const [eC, eN, eS, eE, eW] = await Promise.all([
+            getElevAt(lat, lon), getElevAt(lat + slopeOffset, lon), getElevAt(lat - slopeOffset, lon),
+            getElevAt(lat, lon + slopeOffset), getElevAt(lat, lon - slopeOffset),
+          ]);
+          if (eC == null || eN == null || eS == null || eE == null || eW == null) return { score: 5, slope: 0 };
+          const cellSize = 30;
+          const dz_dx = (eE - eW) / (2 * cellSize);
+          const dz_dy = (eN - eS) / (2 * cellSize);
+          const slopeDeg = Math.atan(Math.sqrt(dz_dx * dz_dx + dz_dy * dz_dy)) * (180 / Math.PI);
+          const sc = slopeDeg < 2 ? 10 : slopeDeg < 5 ? 8 : slopeDeg < 10 ? 6 : slopeDeg < 15 ? 4 : 2;
+          console.log(`  ✅ Slope: ${slopeDeg.toFixed(2)}° → ${sc}/10`);
+          return { score: sc, slope: Math.round(slopeDeg * 100) / 100 };
+        } catch (e) { console.warn('⚠️  Slope failed:', e.message); return { score: 5, slope: 0 }; }
+      })(),
+      // Sentinel-2 NDVI tree canopy
+      (async () => {
+        try {
+          const ndviRadius = 0.007;
+          const bb = [lon - ndviRadius, lat - ndviRadius, lon + ndviRadius, lat + ndviRadius];
+          const today = new Date();
+          const startDate = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
+          const sr = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              collections: ['sentinel-2-l2a'], bbox: bb,
+              datetime: `${startDate.toISOString().split('T')[0]}/${today.toISOString().split('T')[0]}`,
+              limit: 20, query: { 'eo:cloud_cover': { lt: 15 } },
+            }),
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!sr.ok) return { score: 5, ndvi: null };
+          const sd = await sr.json();
+          if (!sd.features?.length) return { score: 5, ndvi: null };
+          sd.features.sort((a, b) => (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100));
+          const best = sd.features[0];
+          const b08 = best.assets.B08, b04 = best.assets.B04;
+          if (!b08 || !b04) return { score: 5, ndvi: null };
+          const signingEp = 'https://planetarycomputer.microsoft.com/api/sas/v1/sign';
+          const [s08, s04] = await Promise.all([
+            fetch(`${signingEp}?href=${encodeURIComponent(b08.href)}`).then(r => r.json()),
+            fetch(`${signingEp}?href=${encodeURIComponent(b04.href)}`).then(r => r.json()),
+          ]);
+          const [tB08, tB04] = await Promise.all([fromUrl(s08.href), fromUrl(s04.href)]);
+          const [iB08, iB04] = await Promise.all([tB08.getImage(), tB04.getImage()]);
+          const w = iB08.getWidth(), h = iB08.getHeight();
+          const origin = iB08.getOrigin(), imgRes = iB08.getResolution();
+          const utm = latLonToUTM(lat, lon);
+          const tX = Math.round((utm.easting - origin[0]) / imgRes[0]);
+          const tY = Math.round((utm.northing - origin[1]) / imgRes[1]);
+          if (tX < 0 || tX >= w || tY < 0 || tY >= h) return { score: 5, ndvi: null };
+          const sz = 80, half = 40;
+          const x0 = Math.max(0, tX - half), y0 = Math.max(0, tY - half);
+          const x1 = Math.min(w, x0 + sz), y1 = Math.min(h, y0 + sz);
+          const [dB08, dB04] = await Promise.all([
+            iB08.readRasters({ window: [x0, y0, x1, y1] }),
+            iB04.readRasters({ window: [x0, y0, x1, y1] }),
+          ]);
+          const nirV = dB08[0], redV = dB04[0];
+          let ndviSum = 0, valid = 0;
+          for (let i = 0; i < nirV.length; i++) {
+            const nir = nirV[i], red = redV[i];
+            if (nir > 0 && red > 0 && nir < 10000 && red < 10000) {
+              const ndvi = (nir - red) / (nir + red);
+              if (ndvi >= -1 && ndvi <= 1) { ndviSum += ndvi; valid++; }
+            }
+          }
+          if (valid === 0) return { score: 5, ndvi: null };
+          const avgNDVI = ndviSum / valid;
+          let sc;
+          if (avgNDVI < 0) sc = 0;
+          else if (avgNDVI < 0.2) sc = Math.round((avgNDVI / 0.2) * 2 * 10) / 10;
+          else if (avgNDVI < 0.4) sc = Math.round(((avgNDVI - 0.2) / 0.2) * 5 * 10) / 10;
+          else if (avgNDVI < 0.6) sc = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
+          else sc = 10;
+          console.log(`  ✅ NDVI: ${avgNDVI.toFixed(3)} → ${sc}/10`);
+          return { score: sc, ndvi: parseFloat(avgNDVI.toFixed(3)) };
+        } catch (e) { console.warn('⚠️  NDVI failed:', e.message); return { score: 5, ndvi: null }; }
+      })(),
       // US crash data — FCC + FARS direct
       (async () => {
         try {
@@ -1926,13 +2029,11 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       }).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
 
-    if (tempResult.status === 'fulfilled' && tempResult.value?.properties?.parameter?.T2M_MAX) {
-      const vals = Object.values(tempResult.value.properties.parameter.T2M_MAX).filter(v => v !== -999);
-      if (vals.length) {
-        const avgMax = vals.reduce((a, b) => a + b, 0) / vals.length;
-        surfaceTempScore = avgMax <= 25 ? 10 : avgMax <= 35 ? 10 - ((avgMax - 25) / 10) * 5 : avgMax <= 45 ? 5 - ((avgMax - 35) / 10) * 5 : 0;
-        console.log(`  ✅ Temp: ${avgMax.toFixed(1)}°C → ${surfaceTempScore.toFixed(1)}`);
-      }
+    if (slopeResult.status === 'fulfilled' && slopeResult.value) {
+      slopeScore = slopeResult.value.score;
+    }
+    if (ndviResult.status === 'fulfilled' && ndviResult.value) {
+      treeCanopyScore = ndviResult.value.score;
     }
     if (crashResult.status === 'fulfilled' && crashResult.value) {
       crashData = crashResult.value;
@@ -2002,8 +2103,8 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       flood: floodData,
     };
 
-    // 6. Overall score — average of available metrics
-    const available = [destinationAccess].filter(s => s > 0);
+    // 6. Overall score — average of all 3 metrics
+    const available = [destinationAccess, slopeScore, treeCanopyScore].filter(s => s > 0);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
@@ -2013,7 +2114,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     // 7. Build report data
     const reportData = {
       location: { lat, lon, displayName },
-      metrics: { destinationAccess, slope: 0, treeCanopy: 0, overallScore, label },
+      metrics: { destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore, overallScore, label },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       crashData,
