@@ -94,7 +94,7 @@ async function fetchSatelliteNDVI(lat: number, lon: number): Promise<number | nu
 
   try {
     const response = await fetch(`${apiUrl}/api/ndvi?lat=${lat}&lon=${lon}`, {
-      signal: AbortSignal.timeout(8000), // 8 second timeout
+      signal: AbortSignal.timeout(15000), // 15 second timeout — satellite GeoTIFF processing can be slow
     });
 
     if (!response.ok) {
@@ -128,7 +128,7 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
   console.log(`Fetching tree canopy data for ${lat.toFixed(4)}, ${lon.toFixed(4)}...`);
 
   try {
-    // Use real Sentinel-2 satellite NDVI only — no OSM fallback
+    // Try real Sentinel-2 satellite NDVI first
     const satelliteNDVI = await fetchSatelliteNDVI(lat, lon);
 
     if (satelliteNDVI !== null) {
@@ -136,12 +136,14 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
       return satelliteNDVI;
     }
 
-    // Satellite unavailable — return null (metric shows as unavailable)
-    console.log('Satellite NDVI unavailable for this location');
-    return null;
+    // Satellite unavailable — fall back to OSM green space estimation
+    console.log('Satellite NDVI unavailable, falling back to OSM estimation');
+    const osmNDVI = await estimateNDVIFromOSM(lat, lon);
+    console.log(`🌿 OSM estimated NDVI: ${osmNDVI.toFixed(2)}`);
+    return osmNDVI;
   } catch (error) {
     console.error('Failed to fetch tree canopy data:', error);
-    return null;
+    return 0.3; // Reasonable default rather than null
   }
 }
 
