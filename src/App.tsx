@@ -762,7 +762,7 @@ function App() {
       {!compareMode && !location && !isAnalyzing && (
         <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
           {/* Topographic contour background */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.06 }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.03 }}>
             <defs>
               <pattern id="topoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
                 <path d="M 100 10 Q 140 30, 180 25 Q 195 60, 170 90 Q 150 120, 100 110 Q 50 100, 30 70 Q 15 40, 50 20 Q 70 10, 100 10 Z" fill="none" stroke="#4a8a4a" strokeWidth="1"/>
@@ -775,16 +775,16 @@ function App() {
           </svg>
 
           {/* Two-column hero layout */}
-          <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 md:pt-16 pb-8">
-            <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
+          <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 lg:pt-16 pb-8">
+            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
               {/* Left column - Text & Search */}
-              <div className="flex flex-col items-center md:items-start">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center md:text-left mb-4 tracking-tight text-earth-text-dark">
+              <div className="flex flex-col items-center lg:items-start">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 tracking-tight text-earth-text-dark">
                   Is Your Neighborhood{' '}
                   <span className="text-terra">Safe to Walk</span>?
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl text-center md:text-left max-w-lg mb-6 text-earth-text-body">
+                <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-lg mb-6 text-earth-text-body">
                   The walking experience, the health context, the economic reality.
                   <span className="text-earth-text-light"> Any address. Free, no sign-up.</span>
                 </p>
@@ -818,7 +818,7 @@ function App() {
                         alert('Geolocation is not supported by your browser.');
                       }
                     }}
-                    className="mt-2 block mx-auto md:mx-0 text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                    className="mt-2 block mx-auto lg:mx-0 text-sm font-medium text-terra hover:text-terra/80 transition-colors"
                     aria-label="Use my current location"
                   >
                     Use my location
@@ -834,7 +834,7 @@ function App() {
                 </button>
 
                 {/* Trust badges */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4">
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4">
                   <span className="text-xs sm:text-sm text-earth-text-light">
                     <span className="text-earth-green font-semibold">12</span> data layers
                   </span>
@@ -850,7 +850,7 @@ function App() {
               </div>
 
               {/* Right column - Preview Card */}
-              <div className="flex justify-center md:justify-end">
+              <div className="flex justify-center lg:justify-end">
                 <div className="w-full max-w-md">
                   <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5">
                     {/* Header */}
