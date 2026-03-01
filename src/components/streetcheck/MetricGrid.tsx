@@ -1,6 +1,7 @@
-import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, CrashData } from '../../types';
+import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, CrashData, NeighborhoodIntelligence } from '../../types';
 import EconomicContextSection from './EconomicContextSection';
 import EquityContextSection from './EquityContextSection';
+import NeighborhoodIntelSection from './NeighborhoodIntelSection';
 import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
 
 interface MetricGridProps {
@@ -12,6 +13,7 @@ interface MetricGridProps {
   demographicLoading?: boolean;
   osmData?: OSMData | null;
   crashData?: CrashData | null;
+  neighborhoodIntel?: NeighborhoodIntelligence | null;
 }
 
 function getScoreColor(score: number): string {
@@ -20,6 +22,44 @@ function getScoreColor(score: number): string {
   if (score >= 4) return '#eab308';
   if (score >= 2) return '#f97316';
   return '#ef4444';
+}
+
+function getInsight(key: string, score: number): string {
+  if (score <= 0) return '';
+  switch (key) {
+    case 'streetGrid':
+      return score >= 8 ? 'Well-connected streets, easy to navigate'
+        : score >= 6 ? 'Good street network with some dead ends'
+        : score >= 4 ? 'Some connectivity gaps'
+        : 'Limited route options, many dead ends';
+    case 'slope':
+      return score >= 8 ? 'Mostly flat, easy walking'
+        : score >= 6 ? 'Gentle slopes, manageable terrain'
+        : score >= 4 ? 'Hilly in spots — plan your routes'
+        : 'Steep terrain, challenging on foot';
+    case 'treeCanopy':
+      return score >= 8 ? 'Lush canopy, shaded walks'
+        : score >= 6 ? 'Good shade coverage'
+        : score >= 4 ? 'Some shade, but exposed stretches'
+        : 'Minimal shade — hot in summer';
+    case 'crashHistory':
+      return score >= 8 ? 'Very few recorded incidents'
+        : score >= 6 ? 'Below-average crash rate'
+        : score >= 4 ? 'Moderate crash history nearby'
+        : 'Elevated pedestrian safety concern';
+    case 'destinations':
+      return score >= 8 ? 'Shops, dining, services within walking distance'
+        : score >= 6 ? 'Most daily needs accessible on foot'
+        : score >= 4 ? 'Some amenities nearby, car helpful'
+        : 'Few walkable destinations';
+    case 'populationDensity':
+      return score >= 8 ? 'Urban density supports walkable services'
+        : score >= 6 ? 'Moderate density, mixed use'
+        : score >= 4 ? 'Suburban density'
+        : 'Low density, spread-out area';
+    default:
+      return '';
+  }
 }
 
 interface MetricDef {
@@ -88,6 +128,7 @@ const METRICS: MetricDef[] = [
 function MetricCardSimple({ def, score, isLoading }: { def: MetricDef; score: number; isLoading: boolean }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
+  const insight = getInsight(def.key, score);
 
   return (
     <div
@@ -95,7 +136,7 @@ function MetricCardSimple({ def, score, isLoading }: { def: MetricDef; score: nu
       style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-20">
+        <div className="flex items-center justify-center h-24">
           <div className="animate-pulse flex items-center gap-2">
             <span className="text-xl">{def.icon}</span>
             <span className="text-sm" style={{ color: '#8a9a8a' }}>Loading {def.name}...</span>
@@ -103,29 +144,31 @@ function MetricCardSimple({ def, score, isLoading }: { def: MetricDef; score: nu
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-lg">{def.icon}</span>
               <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{def.name}</span>
             </div>
             <span className="text-lg font-bold" style={{ color }}>{displayScore}</span>
           </div>
-          <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+          <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: '#f0ebe0' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.max(score * 10, 2)}%`, backgroundColor: color }}
             />
           </div>
-          <div className="mt-2 text-xs" style={{ color: '#8a9a8a' }}>
-            {def.source}
-          </div>
+          {insight && (
+            <div className="text-xs leading-snug" style={{ color: '#6a7a6a' }}>
+              {insight}
+            </div>
+          )}
         </>
       )}
     </div>
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, crashData }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, crashData, neighborhoodIntel }: MetricGridProps) {
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-6" style={{ color: '#2a3a2a' }}>
@@ -141,6 +184,9 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           );
         })}
       </div>
+
+      {/* Neighborhood Intelligence */}
+      <NeighborhoodIntelSection neighborhoodIntel={neighborhoodIntel ?? null} />
 
       {/* Equity Context */}
       {demographicData && (

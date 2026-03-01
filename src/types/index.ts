@@ -193,6 +193,79 @@ export interface InternationalDemographicData {
 
 export type DemographicData = USCensusData | InternationalDemographicData;
 
+// --- Neighborhood Intelligence Data ---
+
+/** Census ACS commute mode data (tract-level) */
+export interface CommuteData {
+  totalWorkers: number;
+  walkPct: number;
+  bikePct: number;
+  transitPct: number;
+  carpoolPct: number;
+  wfhPct: number;
+  zeroCar: number;        // % of households with 0 vehicles
+  totalHouseholds: number;
+}
+
+/** CDC PLACES tract-level health outcomes */
+export interface CDCHealthData {
+  tractFips: string;
+  obesity: number | null;
+  diabetes: number | null;
+  physicalInactivity: number | null;
+  mentalHealth: number | null;
+  asthma: number | null;
+  dataYear: number;
+  dataSource: 'CDC PLACES';
+}
+
+/** FEMA National Flood Hazard Layer */
+export interface FloodRiskData {
+  floodZone: string;
+  isHighRisk: boolean;
+  description: string;
+  dataSource: 'FEMA NFHL';
+}
+
+/** Transit access computed from OSM data */
+export interface TransitAccessData {
+  busStops: number;
+  railStations: number;
+  totalStops: number;
+  score: number;
+}
+
+/** Park/green space access computed from OSM data */
+export interface ParkAccessData {
+  parks: number;
+  playgrounds: number;
+  gardens: number;
+  totalGreenSpaces: number;
+  nearestParkMeters: number | null;
+  score: number;
+}
+
+/** Food access computed from OSM data */
+export interface FoodAccessData {
+  supermarkets: number;
+  groceryStores: number;
+  convenienceStores: number;
+  totalFoodStores: number;
+  nearestSupermarketMeters: number | null;
+  isFoodDesert: boolean;
+  score: number;
+}
+
+/** Aggregated neighborhood intelligence */
+export interface NeighborhoodIntelligence {
+  commute: CommuteData | null;
+  transit: TransitAccessData | null;
+  parks: ParkAccessData | null;
+  food: FoodAccessData | null;
+  health: CDCHealthData | null;
+  flood: FloodRiskData | null;
+}
+
 /** Computed economic impact estimates */
 export interface EconomicImpact {
   propertyValuePremium: number | null;

@@ -1936,7 +1936,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const dateEnd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const dateStart = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10).replace(/-/g, '');
 
-    const [tempResult, crashResult] = await Promise.allSettled([
+    const [tempResult, crashResult, fccResult, floodResult] = await Promise.allSettled([
       // NASA POWER — direct external call
       fetch(`https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M_MAX&community=RE&longitude=${lon}&latitude=${lat}&start=${dateStart}&end=${dateEnd}&format=JSON`, {
         signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' },
@@ -1968,6 +1968,14 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
           return { type: 'local', totalCrashes: nearby.length, totalFatalities: nearby.reduce((s, c) => s + c.fatalities, 0), yearRange: { from: 2018, to: 2022 }, yearlyBreakdown: Object.values(ym), nearestCrash: near ? { distance: near.distance, year: near.year, fatalities: near.fatalities, road: near.road } : undefined, radiusMeters: 800, dataSource: 'NHTSA FARS' };
         } catch { return null; }
       })(),
+      // FCC Census geocode (for CDC health data)
+      fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
+        signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' },
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
+      // FEMA Flood Risk
+      fetch(`https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=false&f=json`, {
+        signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'SafeStreets/1.0' },
+      }).then(r => r.ok ? r.json() : null).catch(() => null),
     ]);
 
     if (tempResult.status === 'fulfilled' && tempResult.value?.properties?.parameter?.T2M_MAX) {
@@ -1983,6 +1991,69 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       console.log(`  ✅ Crashes: ${crashData.totalCrashes}`);
     }
 
+    // 5b. Neighborhood Intelligence — transit/park/food from OSM elements + CDC + FEMA
+    const niTransit = { busStops: 0, railStations: 0, totalStops: 0, score: 0 };
+    const niParks = { parks: 0, playgrounds: 0, gardens: 0, totalGreenSpaces: 0, nearestParkMeters: null, score: 0 };
+    const niFood = { supermarkets: 0, groceryStores: 0, convenienceStores: 0, totalFoodStores: 0, nearestSupermarketMeters: null, isFoodDesert: true, score: 0 };
+
+    for (const el of elements) {
+      const t = el.tags || {};
+      // Transit
+      if (t.railway === 'station' || t.railway === 'halt' || t.station === 'subway' || t.station === 'light_rail') niTransit.railStations++;
+      else if (t.highway === 'bus_stop' || t.amenity === 'bus_station' || (t.public_transport === 'stop_position' && !t.railway)) niTransit.busStops++;
+      // Parks
+      if (t.leisure === 'park' || t.leisure === 'nature_reserve' || t.landuse === 'recreation_ground') niParks.parks++;
+      else if (t.leisure === 'playground') niParks.playgrounds++;
+      else if (t.leisure === 'garden') niParks.gardens++;
+      // Food
+      if (t.shop === 'supermarket') niFood.supermarkets++;
+      else if (t.shop === 'grocery' || t.shop === 'greengrocer') niFood.groceryStores++;
+      else if (t.shop === 'convenience' || t.shop === 'general') niFood.convenienceStores++;
+    }
+    niTransit.totalStops = niTransit.busStops + niTransit.railStations;
+    niTransit.score = Math.min(10, Math.round((Math.min(niTransit.busStops / 15 * 7, 7) + Math.min(niTransit.railStations * 3, 6)) * 10) / 10);
+    niParks.totalGreenSpaces = niParks.parks + niParks.playgrounds + niParks.gardens;
+    niParks.score = Math.round(Math.min(10, niParks.totalGreenSpaces / 5 * 10) * 10) / 10;
+    niFood.totalFoodStores = niFood.supermarkets + niFood.groceryStores + niFood.convenienceStores;
+    niFood.isFoodDesert = niFood.supermarkets === 0;
+    niFood.score = Math.round(Math.min(10, (niFood.supermarkets / 3 * 4 + niFood.groceryStores / 3 * 2)) * 10) / 10;
+
+    // Flood risk from FEMA
+    let floodData = null;
+    if (floodResult.status === 'fulfilled' && floodResult.value?.features) {
+      const zone = floodResult.value.features?.[0]?.attributes?.FLD_ZONE || 'X';
+      const highRiskZones = ['A', 'AE', 'AH', 'AO', 'AR', 'V', 'VE'];
+      floodData = { floodZone: zone, isHighRisk: highRiskZones.includes(zone), description: zone === 'X' ? 'Minimal flood risk' : `Flood zone ${zone}`, dataSource: 'FEMA NFHL' };
+    }
+
+    // CDC health data (chained on FCC result for tract FIPS)
+    let healthData = null;
+    if (fccResult.status === 'fulfilled' && fccResult.value?.results?.[0]?.block_fips) {
+      const blockFips = fccResult.value.results[0].block_fips;
+      const tractFips = blockFips.substring(0, 11);
+      try {
+        const cdcRes = await fetch(`https://data.cdc.gov/resource/cwsq-ngmh.json?locationid=${tractFips}&$limit=50`, {
+          signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' },
+        });
+        if (cdcRes.ok) {
+          const cdcRows = await cdcRes.json();
+          if (cdcRows.length > 0) {
+            const getMeasure = (id) => { const r = cdcRows.find(r => r.measureid === id || r.measure_id === id); return r ? parseFloat(r.data_value) || null : null; };
+            healthData = { tractFips, obesity: getMeasure('OBESITY'), diabetes: getMeasure('DIABETES'), physicalInactivity: getMeasure('LPA'), mentalHealth: getMeasure('MHLTH'), asthma: getMeasure('CASTHMA'), dataYear: 2023, dataSource: 'CDC PLACES' };
+          }
+        }
+      } catch { /* non-critical */ }
+    }
+
+    const neighborhoodIntel = {
+      commute: null, // Commute data comes from demographics endpoint (not called here)
+      transit: niTransit.totalStops > 0 ? niTransit : null,
+      parks: niParks.totalGreenSpaces > 0 ? niParks : null,
+      food: niFood.totalFoodStores > 0 ? niFood : null,
+      health: healthData,
+      flood: floodData,
+    };
+
     // 6. Overall score — OSM metrics + temperature if available
     const thermalComfort = surfaceTempScore ?? 0;
     const overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess + thermalComfort) / (surfaceTempScore !== undefined ? 6 : 5)) * 10) / 10;
@@ -1996,6 +2067,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       crashData,
+      neighborhoodIntel,
       agentProfile,
     };
 
@@ -3766,18 +3838,28 @@ app.get('/api/demographics', async (req, res) => {
 
       // Step 2: Query Census ACS 5-Year (single batched request)
       const variables = [
-        'B19013_001E', // Median household income
-        'B25077_001E', // Median home value
-        'B23025_005E', // Unemployed
-        'B23025_002E', // In labor force
-        'B17001_002E', // Below poverty
-        'B17001_001E', // Total (for poverty rate)
-        'B01002_001E', // Median age
-        'B15003_022E', // Bachelor's degree
-        'B15003_023E', // Master's degree
-        'B15003_024E', // Professional degree
-        'B15003_025E', // Doctorate
-        'B15003_001E', // Total (for education rate)
+        'B19013_001E', // [0] Median household income
+        'B25077_001E', // [1] Median home value
+        'B23025_005E', // [2] Unemployed
+        'B23025_002E', // [3] In labor force
+        'B17001_002E', // [4] Below poverty
+        'B17001_001E', // [5] Total (for poverty rate)
+        'B01002_001E', // [6] Median age
+        'B15003_022E', // [7] Bachelor's degree
+        'B15003_023E', // [8] Master's degree
+        'B15003_024E', // [9] Professional degree
+        'B15003_025E', // [10] Doctorate
+        'B15003_001E', // [11] Total (for education rate)
+        // Commute mode (ACS Table B08301)
+        'B08301_001E', // [12] Total commuters
+        'B08301_019E', // [13] Walked to work
+        'B08301_018E', // [14] Bicycle
+        'B08301_010E', // [15] Public transit
+        'B08301_003E', // [16] Carpooled
+        'B08301_021E', // [17] Worked from home
+        // Vehicle availability (ACS Table B08201)
+        'B08201_002E', // [18] 0-vehicle households
+        'B08201_001E', // [19] Total households
       ].join(',');
 
       let censusUrl = `https://api.census.gov/data/2022/acs/acs5?get=${variables}&for=tract:${tractCode}&in=state:${stateFips}&in=county:${countyFips}`;
@@ -3830,6 +3912,31 @@ app.get('/api/demographics', async (req, res) => {
         ? Math.round(((bachelors + (masters || 0) + (professional || 0) + (doctorate || 0)) / totalEducation) * 1000) / 10
         : null;
 
+      // Commute mode data
+      const totalCommuters = parse(row[12]);
+      const walked = parse(row[13]);
+      const biked = parse(row[14]);
+      const transit = parse(row[15]);
+      const carpooled = parse(row[16]);
+      const wfh = parse(row[17]);
+      const zeroCarHH = parse(row[18]);
+      const totalHH = parse(row[19]);
+
+      const pct = (num, denom) => (num !== null && denom !== null && denom > 0)
+        ? Math.round((num / denom) * 1000) / 10
+        : 0;
+
+      const commute = (totalCommuters !== null && totalCommuters > 0) ? {
+        totalWorkers: totalCommuters,
+        walkPct: pct(walked, totalCommuters),
+        bikePct: pct(biked, totalCommuters),
+        transitPct: pct(transit, totalCommuters),
+        carpoolPct: pct(carpooled, totalCommuters),
+        wfhPct: pct(wfh, totalCommuters),
+        zeroCar: pct(zeroCarHH, totalHH),
+        totalHouseholds: totalHH || 0,
+      } : null;
+
       const result = {
         type: 'us',
         tractFips: `${stateFips}${countyFips}${tractCode}`,
@@ -3839,6 +3946,7 @@ app.get('/api/demographics', async (req, res) => {
         povertyRate,
         medianAge: (medianAge && medianAge > 0 && medianAge < 120) ? medianAge : null,
         bachelorOrHigherPct,
+        commute,
         dataSource: 'US Census Bureau ACS 5-Year',
         year: 2022,
       };
@@ -3922,6 +4030,152 @@ app.get('/api/demographics', async (req, res) => {
   } catch (error) {
     console.error('❌ Error fetching demographics:', error);
     // Graceful degradation — return null data, not 500
+    res.json({ success: true, data: null });
+  }
+});
+
+// =====================
+// CDC PLACES HEALTH DATA
+// =====================
+
+const cdcCache = new Map();
+const CDC_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+app.get('/api/cdc-health', async (req, res) => {
+  try {
+    const { tractFips } = req.query;
+    if (!tractFips || !/^\d{11}$/.test(tractFips)) {
+      return res.status(400).json({ error: 'Missing or invalid tractFips (must be 11 digits)' });
+    }
+
+    const cacheKey = `cdc:${tractFips}`;
+    const cached = cdcCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CDC_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+
+    console.log(`🏥 Fetching CDC PLACES data for tract: ${tractFips}`);
+
+    const url = `https://data.cdc.gov/resource/cwsq-ngmh.json?locationid=${tractFips}&$limit=50`;
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'SafeStreets/2.0' },
+    });
+
+    if (!response.ok) throw new Error(`CDC API returned ${response.status}`);
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      cdcCache.set(cacheKey, { data: null, timestamp: Date.now() });
+      return res.json({ success: true, data: null });
+    }
+
+    // CDC PLACES returns one row per measure per tract
+    const getValue = (measureId) => {
+      const row = data.find(r => r.measureid === measureId || r.measure_id === measureId);
+      if (!row) return null;
+      const val = parseFloat(row.data_value);
+      return isNaN(val) ? null : Math.round(val * 10) / 10;
+    };
+
+    const result = {
+      tractFips,
+      obesity: getValue('OBESITY'),
+      diabetes: getValue('DIABETES'),
+      physicalInactivity: getValue('LPA'),
+      mentalHealth: getValue('MHLTH'),
+      asthma: getValue('CASTHMA'),
+      dataYear: 2023,
+      dataSource: 'CDC PLACES',
+    };
+
+    console.log(`✅ CDC PLACES: obesity=${result.obesity}%, diabetes=${result.diabetes}%`);
+    cdcCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.error('❌ Error fetching CDC health data:', error);
+    res.json({ success: true, data: null });
+  }
+});
+
+// =====================
+// FEMA FLOOD RISK
+// =====================
+
+const floodCache = new Map();
+const FLOOD_CACHE_TTL = 24 * 60 * 60 * 1000;
+
+app.get('/api/flood-risk', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
+    }
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+
+    const cacheKey = `flood:${latNum.toFixed(4)},${lonNum.toFixed(4)}`;
+    const cached = floodCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < FLOOD_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+
+    console.log(`🌊 Fetching FEMA flood data for: ${latNum}, ${lonNum}`);
+
+    const femaUrl = `https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?geometry=${lonNum},${latNum}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=false&f=json`;
+
+    const response = await fetch(femaUrl, {
+      signal: AbortSignal.timeout(15000),
+      headers: { 'User-Agent': 'SafeStreets/2.0' },
+    });
+
+    if (!response.ok) throw new Error(`FEMA API returned ${response.status}`);
+    const data = await response.json();
+
+    if (!data.features || data.features.length === 0) {
+      // No flood data = likely outside NFHL coverage or minimal risk
+      const result = {
+        floodZone: 'X',
+        isHighRisk: false,
+        description: 'Minimal flood risk — outside mapped flood hazard areas',
+        dataSource: 'FEMA NFHL',
+      };
+      floodCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return res.json({ success: true, data: result });
+    }
+
+    const zone = data.features[0].attributes.FLD_ZONE || 'X';
+    const highRiskZones = ['A', 'AE', 'AH', 'AO', 'AR', 'V', 'VE'];
+    const moderateZones = ['B', 'X500', 'D'];
+    const isHighRisk = highRiskZones.includes(zone);
+    const isModerate = moderateZones.includes(zone);
+
+    const descriptions = {
+      A: 'High risk — 1% annual flood chance (100-year floodplain)',
+      AE: 'High risk — 1% annual flood chance with base flood elevations',
+      AH: 'High risk — shallow flooding (1-3 feet)',
+      AO: 'High risk — sheet flow flooding (1-3 feet)',
+      V: 'High risk — coastal flood zone with wave action',
+      VE: 'High risk — coastal flood zone with base flood elevations',
+      X: 'Minimal flood risk',
+      D: 'Undetermined risk — possible but not analyzed',
+    };
+
+    const result = {
+      floodZone: zone,
+      isHighRisk,
+      description: descriptions[zone] || (isModerate ? 'Moderate flood risk — 0.2% annual chance' : `Flood zone ${zone}`),
+      dataSource: 'FEMA NFHL',
+    };
+
+    console.log(`✅ FEMA flood: zone=${zone}, highRisk=${isHighRisk}`);
+    floodCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.error('❌ Error fetching flood risk:', error);
     res.json({ success: true, data: null });
   }
 });

@@ -313,7 +313,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
       </div>
       ${compositeScore ? `<div style="text-align:center;margin-bottom:24px;padding:10px;background:#f8f6f1;border-radius:10px">
         <span style="font-size:0.85em;color:#5a6a5a">Satellite Walkability Score: </span>
-        <strong style="color:#e07850;font-size:1.1em">${compositeScore.overallScore}/100 (${compositeScore.grade})</strong></div>` : ''}
+        <strong style="color:#e07850;font-size:1.1em">${(compositeScore.overallScore / 10).toFixed(1)}/10</strong></div>` : ''}
       ${issueHtml}
       <h2 style="margin:28px 0 12px;color:#2a3a2a">Full Audit Results</h2>
       ${catHtml}
@@ -351,8 +351,8 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
               {compositeScore && (
                 <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.08)', border: '1px solid rgba(224,120,80,0.2)' }}>
                   <span className="text-sm" style={{ color: '#5a6a5a' }}>Satellite Score</span>
-                  <span className="text-lg font-bold" style={{ color: '#e07850' }}>{compositeScore.overallScore}</span>
-                  <span className="text-sm font-semibold" style={{ color: '#5a6a5a' }}>/ 100</span>
+                  <span className="text-lg font-bold" style={{ color: '#e07850' }}>{(compositeScore.overallScore / 10).toFixed(1)}</span>
+                  <span className="text-sm font-semibold" style={{ color: '#5a6a5a' }}>/10</span>
                 </div>
               )}
             </div>

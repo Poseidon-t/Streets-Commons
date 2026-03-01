@@ -128,7 +128,7 @@ export default function ShareableReportCard({
 
   const handleShareTwitter = () => {
     const url = `https://safestreets.streetsandcommons.com/?lat=${location.lat}&lon=${location.lon}&name=${encodeURIComponent(location.displayName)}`;
-    const text = `My street in ${shortName} scored ${displayScore}/10 for walkability${grade ? ` (${grade})` : ''}. Check yours for free:`;
+    const text = `My street in ${shortName} scored ${displayScore}/10 for walkability. Check yours for free:`;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
       '_blank'
@@ -220,21 +220,15 @@ export default function ShareableReportCard({
             </div>
 
             <div>
-              {grade && (
-                <div style={{
-                  display: 'inline-block',
-                  padding: '4px 12px',
-                  borderRadius: '8px',
-                  fontWeight: 700,
-                  fontSize: '18px',
-                  color: 'white',
-                  backgroundColor: scoreColor,
-                  marginBottom: '4px',
-                }}>
-                  Grade: {grade}
-                </div>
-              )}
-              <div style={{ fontSize: '13px', color: '#5a6a5a', marginTop: '4px' }}>
+              <div style={{
+                display: 'inline-block',
+                padding: '4px 12px',
+                borderRadius: '8px',
+                fontWeight: 700,
+                fontSize: '16px',
+                color: scoreColor,
+                backgroundColor: `${scoreColor}15`,
+              }}>
                 {overallScore >= 80 ? 'Highly Walkable' :
                  overallScore >= 60 ? 'Moderately Walkable' :
                  overallScore >= 40 ? 'Car-Dependent' :

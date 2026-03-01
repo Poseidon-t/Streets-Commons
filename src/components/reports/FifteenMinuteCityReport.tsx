@@ -41,13 +41,13 @@ function getScoreBg(score: number): string {
   return 'bg-red-50 border-red-200';
 }
 
-function getGrade(score: number): { letter: string; label: string } {
-  if (score >= 90) return { letter: 'A+', label: 'Exceptional' };
-  if (score >= 80) return { letter: 'A', label: 'Excellent' };
-  if (score >= 70) return { letter: 'B', label: 'Good' };
-  if (score >= 60) return { letter: 'C', label: 'Fair' };
-  if (score >= 50) return { letter: 'D', label: 'Needs Work' };
-  return { letter: 'F', label: 'Poor' };
+function getLabel(score: number): string {
+  if (score >= 90) return 'Exceptional';
+  if (score >= 80) return 'Excellent';
+  if (score >= 70) return 'Good';
+  if (score >= 60) return 'Fair';
+  if (score >= 50) return 'Needs Work';
+  return 'Poor';
 }
 
 function getWalkTime(meters: number): string {
@@ -81,7 +81,7 @@ export default function FifteenMinuteCityReport() {
   }
 
   const { score, location } = data;
-  const grade = getGrade(score.overallScore);
+  const label = getLabel(score.overallScore);
   const availableServices = Object.values(score.serviceScores).filter(s => s.available).length;
   const totalServices = Object.keys(score.serviceScores).length;
 
@@ -121,22 +121,15 @@ export default function FifteenMinuteCityReport() {
 
         {/* Hero Score Card */}
         <div className={`rounded-2xl border-2 p-6 mb-6 text-center ${getScoreBg(score.overallScore)}`}>
-          <div className="flex items-center justify-center gap-8">
+          <div className="flex flex-col items-center">
             {/* Big Score */}
-            <div>
+            <div className="flex items-baseline gap-1">
               <div className={`text-7xl font-black ${getScoreColor(score.overallScore)}`}>
-                {score.overallScore}
+                {(score.overallScore / 10).toFixed(1)}
               </div>
-              <div className="text-gray-500 text-sm">out of 100</div>
+              <div className="text-2xl text-gray-400 font-medium">/10</div>
             </div>
-
-            {/* Grade Badge */}
-            <div className="text-center">
-              <div className={`text-5xl font-black ${getScoreColor(score.overallScore)}`}>
-                {grade.letter}
-              </div>
-              <div className={`font-semibold ${getScoreColor(score.overallScore)}`}>{grade.label}</div>
-            </div>
+            <div className={`font-semibold mt-1 ${getScoreColor(score.overallScore)}`}>{label}</div>
           </div>
 
           {/* One-liner summary */}

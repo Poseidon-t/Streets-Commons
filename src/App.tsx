@@ -40,7 +40,10 @@ import type { AgentProfile } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
 import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData } from './types';
+import { fetchCDCHealth } from './services/cdcHealth';
+import { fetchFloodRisk } from './services/floodRisk';
+import { computeTransitAccess, computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -67,6 +70,7 @@ function App() {
   const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
   const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
   const [demographicLoading, setDemographicLoading] = useState(false);
+  const [neighborhoodIntel, setNeighborhoodIntel] = useState<NeighborhoodIntelligence | null>(null);
 
   // Premium access - Clerk integration
   const { user, isSignedIn } = useUser();
@@ -101,9 +105,6 @@ function App() {
     try { return !localStorage.getItem('safestreets_seen_onboarding'); } catch { return true; }
   });
 
-  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
-  const [paymentPollingFailed, setPaymentPollingFailed] = useState(false);
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
@@ -111,20 +112,10 @@ function App() {
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
-  const [demoNudge, setDemoNudge] = useState(false);
-  const demoNudgeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
-
-  // Show demo upgrade nudge after using a premium feature
-  const showDemoNudge = () => {
-    if (!demoMode) return;
-    if (demoNudgeTimer.current) clearTimeout(demoNudgeTimer.current);
-    setDemoNudge(true);
-    demoNudgeTimer.current = setTimeout(() => setDemoNudge(false), 6000);
-  };
 
   // Capture UTM params on mount
   useEffect(() => { captureUTMParams(); }, []);
@@ -158,55 +149,6 @@ function App() {
     const timer = setTimeout(() => setMeridianQuote(null), 12000);
     return () => clearTimeout(timer);
   }, [metrics, MERIDIAN_QUOTES]);
-
-  // Payment return flow: detect ?payment=success, poll for confirmation, reload
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const paymentStatus = params.get('payment');
-
-    // Clean URL params regardless of outcome
-    const cleanUrl = () => {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('payment');
-      url.searchParams.delete('tier');
-      window.history.replaceState({}, '', url.toString());
-    };
-
-    if (paymentStatus === 'success' && user?.id) {
-      setShowPaymentSuccess(true);
-      cleanUrl();
-
-      const apiUrl = import.meta.env.VITE_API_URL || '';
-      let attempts = 0;
-      const maxAttempts = 30; // 30 × 2s = 60s
-
-      const poll = setInterval(async () => {
-        attempts++;
-        try {
-          const res = await fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`);
-          if (!res.ok) return; // Server error — keep polling
-          const data = await res.json();
-          if (data.tier === 'pro') {
-            clearInterval(poll);
-            // Reload to pick up fresh Clerk user object with updated metadata
-            window.location.reload();
-          }
-        } catch {
-          // Network error — keep polling
-        }
-        if (attempts >= maxAttempts) {
-          clearInterval(poll);
-          setPaymentPollingFailed(true);
-        }
-      }, 2000);
-
-      return () => clearInterval(poll);
-    } else if (paymentStatus === 'cancelled') {
-      cleanUrl();
-    } else if (paymentStatus) {
-      cleanUrl();
-    }
-  }, [user?.id]);
 
   // Load from URL on mount
   useEffect(() => {
@@ -283,6 +225,7 @@ function App() {
     setPopulationDensityScore(undefined);
     setDemographicData(null);
     setDemographicLoading(false);
+    setNeighborhoodIntel(null);
 
     // Cancel any in-flight satellite fetches from previous location
     if (satelliteAbortRef.current) {
@@ -404,8 +347,6 @@ function App() {
   const exitDemoMode = () => {
     setDemoMode(false);
     setShowTour(false);
-    setDemoNudge(false);
-    if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; }
     setLocation(null);
     setMetrics(null);
     setCompositeScore(null);
@@ -414,6 +355,7 @@ function App() {
     setCrashLoading(false);
     setDemographicData(null);
     setDemographicLoading(false);
+    setNeighborhoodIntel(null);
     setRawMetricData({});
     setOsmData(null);
     setSatelliteLoaded(new Set());
@@ -440,6 +382,8 @@ function App() {
     populationDensity: fetchPopulationDensity(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
     demographics: fetchDemographicData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
+      .catch(() => null),
+    floodRisk: fetchFloodRisk(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
   });
 
@@ -561,6 +505,39 @@ function App() {
       setDemographicData(result);
       setDemographicLoading(false);
       markLoaded('demographics');
+
+      // Extract commute data from demographics response
+      const commute = (result?.type === 'us' && (result as any).commute) ? (result as any).commute : null;
+
+      // Update neighborhood intel with commute data
+      setNeighborhoodIntel(prev => ({ ...prev, commute, transit: prev?.transit ?? null, parks: prev?.parks ?? null, food: prev?.food ?? null, health: prev?.health ?? null, flood: prev?.flood ?? null }));
+
+      // Chain CDC health fetch using tract FIPS
+      if (result?.type === 'us' && result.tractFips) {
+        fetchCDCHealth(result.tractFips).then(health => {
+          if (abortController.signal.aborted) return;
+          setNeighborhoodIntel(prev => prev ? { ...prev, health } : { commute: null, transit: null, parks: null, food: null, health, flood: null });
+        });
+      }
+    });
+
+    // Compute transit, park, food access from existing OSM data (immediate, no API call)
+    const transit = computeTransitAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
+    const parks = computeParkAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
+    const food = computeFoodAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
+    setNeighborhoodIntel(prev => ({
+      commute: prev?.commute ?? null,
+      transit,
+      parks,
+      food,
+      health: prev?.health ?? null,
+      flood: prev?.flood ?? null,
+    }));
+
+    // Flood risk (parallel fetch)
+    promises.floodRisk.then(flood => {
+      if (abortController.signal.aborted) return;
+      setNeighborhoodIntel(prev => prev ? { ...prev, flood } : { commute: null, transit: null, parks: null, food: null, health: null, flood });
     });
   };
 
@@ -618,6 +595,7 @@ function App() {
       compositeScore,
       dataQuality,
       crashData,
+      neighborhoodIntel,
       agentProfile: profile,
     };
     sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
@@ -700,8 +678,6 @@ function App() {
               setLocation2(null);
               setDemoMode(false);
               setShowTour(false);
-              setDemoNudge(false);
-              if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; }
               setMobileMenuOpen(false);
               setShowSignInModal(false);
               window.history.pushState({}, '', window.location.pathname);
@@ -724,7 +700,7 @@ function App() {
             {!isSignedIn && (
               <button onClick={() => setShowSignInModal(true)} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body cursor-pointer bg-transparent border-none">Sign In</button>
             )}
-            <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
+            <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
             <a href="/enterprise" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Enterprise</a>
@@ -760,7 +736,7 @@ function App() {
           <div className="sm:hidden border-t border-earth-border bg-earth-cream px-6 py-3 space-y-2">
             <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
             <a href="/learn" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Learn</a>
-            <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setDemoNudge(false); if (demoNudgeTimer.current) { clearTimeout(demoNudgeTimer.current); demoNudgeTimer.current = null; } setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); } setMobileMenuOpen(false); }}>FAQ</a>
+            <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); } setMobileMenuOpen(false); }}>FAQ</a>
             <a href="/enterprise" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Enterprise</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
@@ -769,47 +745,19 @@ function App() {
         )}
       </header>
 
-      {/* Payment success banner */}
-      {showPaymentSuccess && (
-        <div className="bg-green-50 border-b border-green-200 px-4 py-3">
-          <div className="max-w-3xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-sm font-medium text-green-800">
-                {paymentPollingFailed
-                  ? 'Payment received! Please refresh the page to activate your Pro account.'
-                  : 'Payment successful! Activating your Pro account...'}
-              </span>
-            </div>
-            {paymentPollingFailed ? (
-              <button
-                onClick={() => window.location.reload()}
-                className="text-sm font-bold text-green-700 hover:text-green-900 underline"
-              >
-                Refresh now
-              </button>
-            ) : (
-              <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Hero Section - Light earthy aesthetic */}
       {!compareMode && !location && !isAnalyzing && (
         <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
           <div className="relative flex-1 flex flex-col items-center px-6 pt-8 md:pt-12 pb-6 z-10">
             {/* Headline */}
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-4 tracking-tight text-earth-text-dark">
-              Is Your Street{' '}
+              Is Your Neighborhood{' '}
               <span className="text-terra">Safe to Walk</span>?
             </h1>
 
             <p className="text-base sm:text-lg md:text-xl text-center max-w-lg mb-6 text-earth-text-body">
-              Satellite data for any address. Tree cover, crash history, street network & more. 8 verified metrics.
-              <span className="text-earth-text-light"> Free, instant, no sign-up.</span>
+              The walking experience, the health context, the economic reality.
+              <span className="text-earth-text-light"> Any address. Free, no sign-up.</span>
             </p>
 
             {/* Search Box */}
@@ -859,7 +807,7 @@ function App() {
             {/* Trust badges */}
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 mb-6">
               <span className="text-xs sm:text-sm text-earth-text-light">
-                Powered by <span className="text-earth-green font-semibold">NASA</span> & <span className="text-earth-green font-semibold">Sentinel-2</span>
+                <span className="text-earth-green font-semibold">12</span> data layers
               </span>
               <span className="text-earth-text-light hidden sm:inline">·</span>
               <span className="text-xs sm:text-sm text-earth-text-light">
@@ -867,273 +815,182 @@ function App() {
               </span>
               <span className="text-earth-text-light hidden sm:inline">·</span>
               <span className="text-xs sm:text-sm text-earth-text-light">
-                <span className="text-earth-green font-semibold">8</span> data-driven metrics
+                Powered by <span className="text-earth-green font-semibold">NASA</span>, <span className="text-earth-green font-semibold">Census</span> & <span className="text-earth-green font-semibold">CDC</span>
               </span>
             </div>
 
+            {/* Social proof */}
+            <p className="text-xs text-earth-text-light text-center mt-1 mb-4">
+              Powered by 10+ government data sources
+            </p>
+
           </div>
 
-          {/* Street Cross-Section + Plan View Illustration */}
-          <div className="w-full max-w-5xl mx-auto px-6 opacity-80">
-            <svg viewBox="0 0 800 320" className="w-full" preserveAspectRatio="xMidYMid meet">
-                {/* ==================== SECTION VIEW (TOP) ==================== */}
+          {/* Analysis Preview Card */}
+          <div className="w-full max-w-md mx-auto px-6">
+            <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📍</span>
+                  <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Portland, OR</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.2</span>
+                  <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+                </div>
+              </div>
+              {/* Score bar */}
+              <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
+                <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
+              </div>
+              {/* 6 metrics grid */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {[
+                  { icon: '🔀', name: 'Street Grid', score: '7.8' },
+                  { icon: '⛰️', name: 'Terrain', score: '8.2' },
+                  { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
+                  { icon: '🚨', name: 'Crashes', score: '5.9' },
+                  { icon: '🏪', name: 'Destinations', score: '7.1' },
+                  { icon: '👥', name: 'Population', score: '6.8' },
+                ].map(m => (
+                  <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
+                    <span className="text-xs" style={{ color: '#6a7a6a' }}>{m.icon} {m.name}</span>
+                    <span className="text-xs font-bold" style={{ color: '#2a3a2a' }}>{m.score}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Neighborhood Intelligence preview */}
+              <div className="border-t pt-3 space-y-2.5" style={{ borderColor: '#e0dbd0' }}>
+                <div>
+                  <p className="text-xs font-semibold mb-1.5" style={{ color: '#2a3a2a' }}>Getting Around</p>
+                  <div className="flex h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+                    <div className="h-full" style={{ width: '28%', backgroundColor: '#22c55e' }} title="Walk 28%" />
+                    <div className="h-full" style={{ width: '8%', backgroundColor: '#3b82f6' }} title="Bike 8%" />
+                    <div className="h-full" style={{ width: '12%', backgroundColor: '#8b5cf6' }} title="Transit 12%" />
+                    <div className="h-full" style={{ width: '15%', backgroundColor: '#06b6d4' }} title="WFH 15%" />
+                  </div>
+                  <div className="flex gap-3 mt-1">
+                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟢 28% walk</span>
+                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🔵 8% bike</span>
+                    <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟣 12% transit</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🛒 3 supermarkets</span>
+                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🌳 5 parks</span>
+                  <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>🌊 Low risk</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                {/* Sky */}
-                <rect x="0" y="0" width="800" height="145" fill="#c8e4f0"/>
-
-                {/* Clouds */}
-                <ellipse cx="150" cy="35" rx="40" ry="20" fill="white" opacity="0.9"/>
-                <ellipse cx="180" cy="40" rx="30" ry="16" fill="white" opacity="0.9"/>
-                <ellipse cx="120" cy="43" rx="25" ry="14" fill="white" opacity="0.9"/>
-                <ellipse cx="550" cy="30" rx="45" ry="22" fill="white" opacity="0.85"/>
-                <ellipse cx="585" cy="37" rx="32" ry="18" fill="white" opacity="0.85"/>
-                <ellipse cx="515" cy="40" rx="28" ry="15" fill="white" opacity="0.85"/>
-
-                {/* Sun */}
-                <circle cx="680" cy="45" r="32" fill="#f9d423"/>
-                <circle cx="680" cy="45" r="42" fill="#f9d423" opacity="0.2"/>
+          {/* Compact street illustration */}
+          <div className="w-full max-w-3xl mx-auto px-6 mt-6 opacity-50">
+            <svg viewBox="20 0 560 100" className="w-full" preserveAspectRatio="xMidYMid meet">
+                {/* Ground */}
+                <rect x="20" y="85" width="560" height="15" fill="#d5e5d5"/>
+                <rect x="20" y="83" width="560" height="3" fill="#a09585"/>
 
                 {/* Left Building */}
-                <rect x="20" y="50" width="70" height="95" fill="#e8ddd0" rx="2"/>
-                <rect x="28" y="62" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="56" y="62" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="28" y="96" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="56" y="96" width="20" height="26" fill="#a0c8d8" rx="2"/>
-
+                <rect x="40" y="30" width="45" height="53" fill="#e8ddd0" rx="2"/>
+                <rect x="46" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="62" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="46" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="62" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
                 {/* Right Building */}
-                <rect x="710" y="50" width="70" height="95" fill="#e0d5c8" rx="2"/>
-                <rect x="722" y="62" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="750" y="62" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="722" y="96" width="20" height="26" fill="#a0c8d8" rx="2"/>
-                <rect x="750" y="96" width="20" height="26" fill="#a0c8d8" rx="2"/>
-
-                {/* Ground line */}
-                <rect x="0" y="145" width="800" height="3" fill="#a09585"/>
+                <rect x="515" y="30" width="45" height="53" fill="#e0d5c8" rx="2"/>
+                <rect x="521" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="537" y="38" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="521" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
+                <rect x="537" y="58" width="12" height="14" fill="#a0c8d8" rx="1"/>
 
                 {/* Left Sidewalk */}
-                <rect x="90" y="132" width="60" height="16" fill="#d8d0c5"/>
-
-                {/* People on left sidewalk */}
+                <rect x="95" y="68" width="40" height="15" fill="#d8d0c5"/>
+                {/* Person walking left */}
                 <g>
-                  <circle cx="112" cy="114" r="5" fill="#f5d5b5"/>
-                  <rect x="108" y="119" width="8" height="12" fill="#e07850" rx="2"/>
-                  <rect x="108" y="131" width="3" height="8" fill="#5a6570"/>
-                  <rect x="113" y="131" width="3" height="8" fill="#5a6570"/>
-                </g>
-                <g>
-                  <circle cx="138" cy="116" r="4" fill="#e8c8a8"/>
-                  <rect x="135" y="120" width="6" height="10" fill="#5090b0" rx="2"/>
-                  <rect x="135" y="130" width="2" height="8" fill="#4a5560"/>
-                  <rect x="139" y="130" width="2" height="8" fill="#4a5560"/>
+                  <circle cx="115" cy="58" r="3.5" fill="#f0d0b0"/>
+                  <rect x="112" y="61.5" width="6" height="8" fill="#e07850" rx="1"/>
+                  <rect x="112" y="69.5" width="2.5" height="5" fill="#5a6570"/>
+                  <rect x="115.5" y="69.5" width="2.5" height="5" fill="#5a6570"/>
                 </g>
 
-                {/* Left Green */}
-                <rect x="150" y="132" width="50" height="16" fill="#7aaa6a"/>
-
-                {/* Tree 1 */}
-                <rect x="171" y="70" width="8" height="62" fill="#8a7050"/>
-                <ellipse cx="175" cy="50" rx="30" ry="32" fill="#5a9a4a"/>
-                <ellipse cx="162" cy="60" rx="18" ry="22" fill="#6aaa5a"/>
-                <ellipse cx="188" cy="57" rx="16" ry="20" fill="#5aaa50"/>
-                <ellipse cx="175" cy="42" rx="14" ry="18" fill="#7aba6a"/>
-
-                {/* Street light left */}
-                <rect x="155" y="88" width="3" height="44" fill="#7a7a7a"/>
-                <rect x="149" y="84" width="15" height="6" fill="#8a8a8a" rx="1"/>
-                <rect x="151" y="79" width="11" height="6" fill="#fff8e0" rx="1"/>
+                {/* Left Green + Tree */}
+                <rect x="135" y="68" width="35" height="15" fill="#7aaa6a"/>
+                <rect x="149" y="40" width="5" height="28" fill="#8a7050"/>
+                <ellipse cx="152" cy="30" rx="16" ry="18" fill="#5a9a4a"/>
+                <ellipse cx="145" cy="36" rx="10" ry="12" fill="#6aaa5a"/>
+                <ellipse cx="158" cy="34" rx="9" ry="11" fill="#5aaa50"/>
 
                 {/* Left Bike Lane */}
-                <rect x="200" y="132" width="55" height="16" fill="#e08060"/>
-
-                {/* Cyclist left */}
-                <g>
-                  <circle cx="220" cy="134" r="9" fill="none" stroke="#4a4a4a" strokeWidth="2"/>
-                  <circle cx="240" cy="134" r="9" fill="none" stroke="#4a4a4a" strokeWidth="2"/>
-                  <path d="M 220 134 L 230 118 L 240 134" stroke="#3a7090" strokeWidth="2" fill="none"/>
-                  <line x1="230" y1="118" x2="230" y2="107" stroke="#3a7090" strokeWidth="2"/>
-                  <circle cx="230" cy="102" r="5" fill="#f0d0b0"/>
-                  <rect x="227" y="107" width="6" height="9" fill="#3090c0" rx="1"/>
-                </g>
+                <rect x="170" y="68" width="35" height="15" fill="#e08060"/>
+                {/* Cyclist */}
+                <circle cx="185" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
+                <circle cx="195" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
+                <path d="M 185 67 L 190 57 L 195 67" stroke="#3a7090" strokeWidth="1.5" fill="none"/>
+                <circle cx="190" cy="54" r="3" fill="#f0d0b0"/>
 
                 {/* Left Drive Lane */}
-                <rect x="255" y="132" width="95" height="16" fill="#5a5a5a"/>
-
+                <rect x="205" y="68" width="70" height="15" fill="#5a5a5a"/>
+                <rect x="238" y="68" width="2" height="15" fill="white" opacity="0.3"/>
                 {/* Bus */}
-                <g>
-                  <rect x="268" y="90" width="65" height="42" fill="#4aaa4a" rx="4"/>
-                  <rect x="268" y="90" width="65" height="9" fill="#3a9a3a" rx="4"/>
-                  <rect x="274" y="97" width="18" height="26" fill="#c8e8f0" rx="1"/>
-                  <rect x="296" y="97" width="18" height="26" fill="#c8e8f0" rx="1"/>
-                  <rect x="318" y="97" width="8" height="26" fill="#c8e8f0" rx="1"/>
-                  <ellipse cx="282" cy="135" rx="7" ry="4" fill="#2a2a2a"/>
-                  <ellipse cx="318" cy="135" rx="7" ry="4" fill="#2a2a2a"/>
-                  <rect x="272" y="92" width="22" height="4" fill="white" opacity="0.9" rx="1"/>
-                </g>
+                <rect x="215" y="50" width="35" height="18" fill="#4aaa4a" rx="3"/>
+                <rect x="220" y="54" width="10" height="11" fill="#c8e8f0" rx="1"/>
+                <rect x="233" y="54" width="10" height="11" fill="#c8e8f0" rx="1"/>
+                <ellipse cx="222" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
+                <ellipse cx="242" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
 
                 {/* Center Median */}
-                <rect x="350" y="132" width="100" height="16" fill="#5a9a5a"/>
-                <ellipse cx="375" cy="130" rx="8" ry="6" fill="#6aaa5a"/>
-                <ellipse cx="400" cy="128" rx="10" ry="8" fill="#5a9a4a"/>
-                <ellipse cx="425" cy="130" rx="8" ry="6" fill="#6aaa5a"/>
+                <rect x="275" y="68" width="50" height="15" fill="#5a9a5a"/>
+                <ellipse cx="290" cy="66" rx="6" ry="5" fill="#6aaa5a"/>
+                <ellipse cx="300" cy="64" rx="7" ry="6" fill="#5a9a4a"/>
+                <ellipse cx="315" cy="66" rx="6" ry="5" fill="#6aaa5a"/>
 
                 {/* Right Drive Lane */}
-                <rect x="450" y="132" width="95" height="16" fill="#5a5a5a"/>
-
+                <rect x="325" y="68" width="70" height="15" fill="#5a5a5a"/>
+                <rect x="358" y="68" width="2" height="15" fill="white" opacity="0.3"/>
                 {/* Car */}
-                <g>
-                  <rect x="472" y="106" width="50" height="26" fill="#e8e8e8" rx="4"/>
-                  <rect x="479" y="99" width="35" height="14" fill="#b8d8e8" rx="3"/>
-                  <ellipse cx="484" cy="135" rx="7" ry="4" fill="#2a2a2a"/>
-                  <ellipse cx="510" cy="135" rx="7" ry="4" fill="#2a2a2a"/>
-                </g>
+                <rect x="340" y="56" width="28" height="12" fill="#e8e8e8" rx="3"/>
+                <rect x="345" y="52" width="18" height="8" fill="#b8d8e8" rx="2"/>
+                <ellipse cx="346" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
+                <ellipse cx="362" cy="69" rx="4" ry="2.5" fill="#2a2a2a"/>
 
                 {/* Right Bike Lane */}
-                <rect x="545" y="132" width="55" height="16" fill="#e08060"/>
+                <rect x="395" y="68" width="35" height="15" fill="#e08060"/>
+                {/* Cyclist */}
+                <circle cx="410" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
+                <circle cx="420" cy="67" r="5" fill="none" stroke="#4a4a4a" strokeWidth="1.5"/>
+                <path d="M 410 67 L 415 57 L 420 67" stroke="#3a7090" strokeWidth="1.5" fill="none"/>
+                <circle cx="415" cy="54" r="3" fill="#e8c8a0"/>
 
-                {/* Cyclist right */}
-                <g>
-                  <circle cx="560" cy="134" r="9" fill="none" stroke="#4a4a4a" strokeWidth="2"/>
-                  <circle cx="580" cy="134" r="9" fill="none" stroke="#4a4a4a" strokeWidth="2"/>
-                  <path d="M 560 134 L 570 118 L 580 134" stroke="#3a7090" strokeWidth="2" fill="none"/>
-                  <line x1="570" y1="118" x2="570" y2="107" stroke="#3a7090" strokeWidth="2"/>
-                  <circle cx="570" cy="102" r="5" fill="#e8c8a0"/>
-                  <rect x="567" y="107" width="6" height="9" fill="#e06050" rx="1"/>
-                </g>
-
-                {/* Right Green */}
-                <rect x="600" y="132" width="50" height="16" fill="#7aaa6a"/>
-
-                {/* Tree 2 */}
-                <rect x="621" y="70" width="8" height="62" fill="#8a7050"/>
-                <ellipse cx="625" cy="50" rx="30" ry="32" fill="#5a9a4a"/>
-                <ellipse cx="612" cy="60" rx="18" ry="22" fill="#6aaa5a"/>
-                <ellipse cx="638" cy="57" rx="16" ry="20" fill="#5aaa50"/>
-                <ellipse cx="625" cy="42" rx="14" ry="18" fill="#7aba6a"/>
-
-                {/* Street light right */}
-                <rect x="642" y="88" width="3" height="44" fill="#7a7a7a"/>
-                <rect x="636" y="84" width="15" height="6" fill="#8a8a8a" rx="1"/>
-                <rect x="638" y="79" width="11" height="6" fill="#fff8e0" rx="1"/>
+                {/* Right Green + Tree */}
+                <rect x="430" y="68" width="35" height="15" fill="#7aaa6a"/>
+                <rect x="445" y="40" width="5" height="28" fill="#8a7050"/>
+                <ellipse cx="448" cy="30" rx="16" ry="18" fill="#5a9a4a"/>
+                <ellipse cx="441" cy="36" rx="10" ry="12" fill="#6aaa5a"/>
+                <ellipse cx="455" cy="34" rx="9" ry="11" fill="#5aaa50"/>
 
                 {/* Right Sidewalk */}
-                <rect x="650" y="132" width="60" height="16" fill="#d8d0c5"/>
-
-                {/* Bench + person right */}
-                <rect x="665" y="125" width="25" height="5" fill="#9a7a5a" rx="1"/>
-                <rect x="668" y="130" width="3" height="8" fill="#8a6a4a"/>
-                <rect x="684" y="130" width="3" height="8" fill="#8a6a4a"/>
-                <circle cx="677" cy="114" r="5" fill="#f0d0b0"/>
-                <rect x="673" y="119" width="8" height="7" fill="#7090b0" rx="1"/>
-
+                <rect x="465" y="68" width="40" height="15" fill="#d8d0c5"/>
                 {/* Person walking right */}
                 <g>
-                  <circle cx="698" cy="116" r="4" fill="#e8c8a0"/>
-                  <rect x="695" y="120" width="6" height="10" fill="#d07080" rx="1"/>
-                  <rect x="695" y="130" width="2" height="8" fill="#5a6570"/>
-                  <rect x="699" y="130" width="2" height="8" fill="#5a6570"/>
+                  <circle cx="485" cy="58" r="3.5" fill="#e8c8a0"/>
+                  <rect x="482" y="61.5" width="6" height="8" fill="#d07080" rx="1"/>
+                  <rect x="482" y="69.5" width="2.5" height="5" fill="#5a6570"/>
+                  <rect x="485.5" y="69.5" width="2.5" height="5" fill="#5a6570"/>
                 </g>
 
-                {/* ==================== PLAN VIEW (BOTTOM) ==================== */}
-
-                {/* Plan background */}
-                <rect x="0" y="160" width="800" height="160" fill="#d5e5d5"/>
-
-                {/* Building footprints */}
-                <rect x="20" y="165" width="70" height="150" fill="#c8c0b5"/>
-                <rect x="710" y="165" width="70" height="150" fill="#c8c0b5"/>
-
-                {/* Left Sidewalk (plan) */}
-                <rect x="90" y="165" width="60" height="150" fill="#e8e0d8"/>
-                <line x1="115" y1="165" x2="115" y2="315" stroke="#d8d0c8" strokeWidth="1"/>
-                <line x1="135" y1="165" x2="135" y2="315" stroke="#d8d0c8" strokeWidth="1"/>
-                <ellipse cx="110" cy="200" rx="4" ry="4" fill="#e07850"/>
-                <ellipse cx="135" cy="255" rx="4" ry="4" fill="#5090b0"/>
-                <ellipse cx="120" cy="300" rx="4" ry="4" fill="#90b080"/>
-
-                {/* Left Green (plan) */}
-                <rect x="150" y="165" width="50" height="150" fill="#7aaa6a"/>
-                <ellipse cx="175" cy="210" rx="26" ry="26" fill="#5a9a4a"/>
-                <ellipse cx="175" cy="210" rx="16" ry="16" fill="#6aaa5a"/>
-                <ellipse cx="175" cy="280" rx="22" ry="22" fill="#5a9a4a"/>
-                <ellipse cx="175" cy="280" rx="14" ry="14" fill="#6aaa5a"/>
-
-                {/* Left Bike (plan) */}
-                <rect x="200" y="165" width="55" height="150" fill="#e08060"/>
-                <circle cx="227" cy="210" r="9" fill="none" stroke="white" strokeWidth="2" opacity="0.8"/>
-                <path d="M 227 250 L 227 280 M 222 272 L 227 280 L 232 272" stroke="white" strokeWidth="2" opacity="0.8"/>
-
-                {/* Left Drive (plan) */}
-                <rect x="255" y="165" width="95" height="150" fill="#6a6a6a"/>
-                <rect x="300" y="165" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="188" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="211" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="234" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="257" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="280" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="300" y="303" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="265" y="205" width="28" height="58" fill="#4aaa4a" rx="3"/>
-                <rect x="268" y="210" width="22" height="10" fill="#c8e8f0" rx="1"/>
-
-                {/* Center Median (plan) */}
-                <rect x="350" y="165" width="100" height="150" fill="#5a9a5a"/>
-                <ellipse cx="375" cy="200" rx="10" ry="10" fill="#6aaa5a"/>
-                <ellipse cx="400" cy="240" rx="14" ry="14" fill="#5a9a4a"/>
-                <ellipse cx="425" cy="280" rx="10" ry="10" fill="#6aaa5a"/>
-                <ellipse cx="400" cy="305" rx="8" ry="8" fill="#5a9a4a"/>
-
-                {/* Right Drive (plan) */}
-                <rect x="450" y="165" width="95" height="150" fill="#6a6a6a"/>
-                <rect x="496" y="165" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="188" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="211" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="234" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="257" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="280" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="496" y="303" width="3" height="12" fill="white" opacity="0.8"/>
-                <rect x="462" y="245" width="22" height="42" fill="#e8e8e8" rx="3"/>
-                <rect x="465" y="250" width="16" height="9" fill="#b8d8e8" rx="1"/>
-
-                {/* Right Bike (plan) */}
-                <rect x="545" y="165" width="55" height="150" fill="#e08060"/>
-                <circle cx="572" cy="265" r="9" fill="none" stroke="white" strokeWidth="2" opacity="0.8"/>
-                <path d="M 572 225 L 572 195 M 567 203 L 572 195 L 577 203" stroke="white" strokeWidth="2" opacity="0.8"/>
-
-                {/* Right Green (plan) */}
-                <rect x="600" y="165" width="50" height="150" fill="#7aaa6a"/>
-                <ellipse cx="625" cy="210" rx="26" ry="26" fill="#5a9a4a"/>
-                <ellipse cx="625" cy="210" rx="16" ry="16" fill="#6aaa5a"/>
-                <ellipse cx="625" cy="280" rx="22" ry="22" fill="#5a9a4a"/>
-                <ellipse cx="625" cy="280" rx="14" ry="14" fill="#6aaa5a"/>
-
-                {/* Right Sidewalk (plan) */}
-                <rect x="650" y="165" width="60" height="150" fill="#e8e0d8"/>
-                <line x1="670" y1="165" x2="670" y2="315" stroke="#d8d0c8" strokeWidth="1"/>
-                <line x1="690" y1="165" x2="690" y2="315" stroke="#d8d0c8" strokeWidth="1"/>
-                <ellipse cx="665" cy="210" rx="4" ry="4" fill="#d07080"/>
-                <ellipse cx="690" cy="260" rx="4" ry="4" fill="#7090b0"/>
-                <ellipse cx="675" cy="300" rx="4" ry="4" fill="#90a060"/>
-                <rect x="655" y="235" width="5" height="18" fill="#9a7a5a" rx="1"/>
-
-                {/* Crosswalk */}
-                <rect x="200" y="165" width="400" height="3" fill="white"/>
-                <rect x="200" y="172" width="400" height="3" fill="white"/>
-                <rect x="200" y="179" width="400" height="3" fill="white"/>
-
-                {/* Street lights from above */}
-                <circle cx="160" cy="310" r="3" fill="#fff8d0" stroke="#aaa" strokeWidth="1"/>
-                <circle cx="640" cy="310" r="3" fill="#fff8d0" stroke="#aaa" strokeWidth="1"/>
-
                 {/* Zone Labels */}
-                <g style={{ fontFamily: "'Space Mono', monospace", fontSize: '7px' }} fill="#5a6a5a">
-                  <text x="120" y="157" textAnchor="middle">WALK</text>
-                  <text x="175" y="157" textAnchor="middle">GREEN</text>
-                  <text x="227" y="157" textAnchor="middle">BIKE</text>
-                  <text x="302" y="157" textAnchor="middle">DRIVE</text>
-                  <text x="400" y="157" textAnchor="middle">MEDIAN</text>
-                  <text x="497" y="157" textAnchor="middle">DRIVE</text>
-                  <text x="572" y="157" textAnchor="middle">BIKE</text>
-                  <text x="625" y="157" textAnchor="middle">GREEN</text>
-                  <text x="680" y="157" textAnchor="middle">WALK</text>
+                <g style={{ fontFamily: "'Space Mono', monospace", fontSize: '6px' }} fill="#8a9a8a">
+                  <text x="115" y="96" textAnchor="middle">WALK</text>
+                  <text x="152" y="96" textAnchor="middle">GREEN</text>
+                  <text x="187" y="96" textAnchor="middle">BIKE</text>
+                  <text x="240" y="96" textAnchor="middle">DRIVE</text>
+                  <text x="300" y="96" textAnchor="middle">MEDIAN</text>
+                  <text x="360" y="96" textAnchor="middle">DRIVE</text>
+                  <text x="413" y="96" textAnchor="middle">BIKE</text>
+                  <text x="448" y="96" textAnchor="middle">GREEN</text>
+                  <text x="485" y="96" textAnchor="middle">WALK</text>
                 </g>
             </svg>
           </div>
@@ -1152,7 +1009,7 @@ function App() {
 
             {/* Data Sources */}
             <div className="flex flex-wrap justify-center gap-2">
-              {['Sentinel-2 Satellite', 'OpenStreetMap', 'NASADEM Elevation', 'GSDG Standards'].map((source) => (
+              {['NASA & Sentinel-2', 'US Census & CDC', 'OpenStreetMap', 'FEMA & NHTSA'].map((source) => (
                 <div
                   key={source}
                   className="source-tag-light flex items-center gap-2 px-3 py-1.5 rounded-full bg-earth-green/10 border border-earth-green/20"
@@ -1603,7 +1460,7 @@ function App() {
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} neighborhoodIntel={neighborhoodIntel} />
             </div>
 
             {/* Share + Export — right after metrics so users can act immediately */}
@@ -1749,7 +1606,7 @@ function App() {
                       </div>
                       <h3 className="text-xl font-bold text-earth-text-dark mb-2">Get Instant Analysis</h3>
                       <p className="text-earth-text-body text-sm leading-relaxed">
-                        8 walkability metrics calculated in seconds using satellite data and OpenStreetMap infrastructure.
+                        Walkability and neighborhood intelligence calculated in seconds from satellite and government data.
                       </p>
                     </div>
 
@@ -1788,169 +1645,73 @@ function App() {
               </div>
             </section>
 
-            {/* What You Get - Free Tier Features */}
+            {/* What You'll Learn */}
             <section className="py-16 bg-earth-sage/60">
               <div className="max-w-5xl mx-auto px-6">
                 <h2 className="text-3xl font-bold text-center mb-4 text-earth-text-dark">
-                  8 Key Metrics, Completely Free
+                  What You'll Learn
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  No credit card required. No sign-up. Get satellite-powered walkability analysis instantly using data from NASA, Sentinel-2, and OpenStreetMap. Then field-verify scores based on what you observe on the ground.
+                  12 data layers from satellite imagery and government sources — completely free, no sign-up required.
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {/* Street Crossings */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-teal-50 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <path d="M8 32 L56 32" stroke="#0d9488" strokeWidth="3" strokeLinecap="round"/>
-                        <path d="M32 8 L32 56" stroke="#0d9488" strokeWidth="3" strokeLinecap="round"/>
-                        <rect x="26" y="26" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <rect x="26" y="30" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <rect x="26" y="34" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <rect x="34" y="26" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <rect x="34" y="30" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <rect x="34" y="34" width="4" height="2" fill="#0d9488" rx="0.5"/>
-                        <circle cx="22" cy="28" r="3" fill="#1e293b"/>
-                        <path d="M22 31 L22 38 M19 34 L25 34 M22 38 L19 44 M22 38 L25 44" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Walkability Metrics */}
+                  <div>
+                    <h3 className="text-lg font-bold text-earth-text-dark mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-earth-green/10 flex items-center justify-center text-sm">🚶</span>
+                      Walkability Metrics
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        { icon: '🔀', name: 'Street Grid', desc: 'Street connectivity and route options', source: 'OpenStreetMap' },
+                        { icon: '⛰️', name: 'Terrain', desc: 'Elevation and slope difficulty', source: 'NASA SRTM' },
+                        { icon: '🌳', name: 'Tree Canopy', desc: 'Shade and vegetation coverage', source: 'Sentinel-2' },
+                        { icon: '🚨', name: 'Crash History', desc: 'Pedestrian crash data', source: 'NHTSA / WHO' },
+                        { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
+                        { icon: '👥', name: 'Population', desc: 'Density and urban context', source: 'GHS-POP' },
+                      ].map(item => (
+                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                          <span className="text-base mt-0.5">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-sm font-bold text-gray-900">{item.name}</span>
+                              <span className="text-[10px] text-gray-400">{item.source}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Crossing Safety</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Pedestrian crossings weighted by protection level — signalized crossings count more than unmarked ones. Data from OpenStreetMap.</p>
                   </div>
 
-                  {/* Daily Needs */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <rect x="8" y="24" width="18" height="20" fill="#6366f1" opacity="0.2" rx="2"/>
-                        <rect x="23" y="18" width="18" height="26" fill="#6366f1" opacity="0.3" rx="2"/>
-                        <rect x="38" y="22" width="18" height="22" fill="#6366f1" opacity="0.2" rx="2"/>
-                        <text x="17" y="38" textAnchor="middle" fill="#6366f1" fontSize="12">🛒</text>
-                        <text x="32" y="35" textAnchor="middle" fill="#6366f1" fontSize="12">🏫</text>
-                        <text x="47" y="37" textAnchor="middle" fill="#6366f1" fontSize="12">🏥</text>
-                        <path d="M8 48 L56 48" stroke="#6366f1" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
+                  {/* Neighborhood Intelligence */}
+                  <div>
+                    <h3 className="text-lg font-bold text-earth-text-dark mb-4 flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-lg bg-earth-green/10 flex items-center justify-center text-sm">🏘️</span>
+                      Neighborhood Intelligence
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        { icon: '🚗', name: 'Commute Patterns', desc: 'How residents get to work', source: 'US Census ACS' },
+                        { icon: '🚌', name: 'Transit Access', desc: 'Bus stops and rail stations nearby', source: 'OpenStreetMap' },
+                        { icon: '🌳', name: 'Park Access', desc: 'Green spaces and playgrounds', source: 'OpenStreetMap' },
+                        { icon: '🛒', name: 'Food Access', desc: 'Supermarkets and food desert detection', source: 'OpenStreetMap' },
+                        { icon: '🏥', name: 'Health Outcomes', desc: 'Obesity, diabetes, asthma rates', source: 'CDC PLACES' },
+                        { icon: '🌊', name: 'Flood Risk', desc: 'FEMA flood zone classification', source: 'FEMA NFHL' },
+                      ].map(item => (
+                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                          <span className="text-base mt-0.5">{item.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-sm font-bold text-gray-900">{item.name}</span>
+                              <span className="text-[10px] text-gray-400">{item.source}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Daily Needs</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Access to groceries, healthcare, transit, schools, and restaurants within walking distance from OpenStreetMap data.</p>
-                  </div>
-
-                  {/* Sidewalk Coverage */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <rect x="8" y="44" width="48" height="12" fill="#3b82f6" opacity="0.15" rx="2"/>
-                        <rect x="8" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
-                        <rect x="22" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
-                        <rect x="36" y="44" width="12" height="12" fill="#3b82f6" opacity="0.4" rx="1"/>
-                        <circle cx="14" cy="16" r="3" fill="#1e293b"/>
-                        <path d="M14 19 L14 28 M11 23 L17 23 M14 28 L11 34 M14 28 L17 34" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
-                        <circle cx="50" cy="16" r="3" fill="#1e293b"/>
-                        <path d="M50 19 L50 28 M47 23 L53 23 M50 28 L47 34 M50 28 L53 34" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Sidewalk Coverage</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Percentage of streets with documented sidewalks from OpenStreetMap tags. Missing sidewalks force pedestrians into traffic.</p>
-                  </div>
-
-                  {/* Traffic Speed */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-red-50 flex items-center justify-center group-hover:bg-red-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <path d="M8 48 L56 48" stroke="#ef4444" strokeWidth="3" strokeLinecap="round"/>
-                        <path d="M8 40 L56 40" stroke="#ef4444" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4,3"/>
-                        <path d="M8 32 L56 32" stroke="#ef4444" strokeWidth="3" strokeLinecap="round"/>
-                        <path d="M40 36 L52 36" stroke="#ef4444" strokeWidth="6" opacity="0.3" strokeLinecap="round"/>
-                        <text x="32" y="22" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="bold">45mph</text>
-                        <circle cx="18" cy="36" r="3" fill="#1e293b"/>
-                        <path d="M18 39 L18 48" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Traffic Speed</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Speed limits and lane counts from OpenStreetMap. High-speed, multi-lane roads are exponentially more dangerous for pedestrians.</p>
-                  </div>
-
-                  {/* Night Safety */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <rect x="8" y="8" width="48" height="48" fill="#1e293b" opacity="0.15" rx="4"/>
-                        <circle cx="20" cy="28" r="10" fill="#a855f7" opacity="0.2"/>
-                        <circle cx="44" cy="28" r="10" fill="#a855f7" opacity="0.2"/>
-                        <rect x="18" y="16" width="4" height="20" fill="#a855f7" rx="2"/>
-                        <rect x="42" y="16" width="4" height="20" fill="#a855f7" rx="2"/>
-                        <path d="M20 36 L20 52" stroke="#64748b" strokeWidth="2"/>
-                        <path d="M44 36 L44 52" stroke="#64748b" strokeWidth="2"/>
-                        <path d="M8 52 L56 52" stroke="#64748b" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Night Safety</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Street lighting coverage from OpenStreetMap lit tags. Well-lit streets are critical for pedestrian safety after dark.</p>
-                  </div>
-
-                  {/* Thermal Comfort */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        <rect x="28" y="8" width="8" height="40" rx="4" fill="#f97316" opacity="0.2"/>
-                        <rect x="30" y="20" width="4" height="28" rx="2" fill="#f97316"/>
-                        <circle cx="32" cy="50" r="8" fill="#f97316" opacity="0.3"/>
-                        <circle cx="32" cy="50" r="5" fill="#f97316"/>
-                        <path d="M12 20 L20 20" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M12 32 L20 32" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M44 20 L52 20" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M44 32 L52 32" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Thermal Comfort</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Consolidated surface temperature and urban heat island analysis from NASA POWER and Sentinel-2 satellite data.</p>
-                  </div>
-
-                  {/* Terrain Slope */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Elevation profile */}
-                        <path d="M8 52 L20 40 L32 44 L44 28 L56 32 L56 52 Z" fill="#f59e0b" opacity="0.2"/>
-                        <path d="M8 52 L20 40 L32 44 L44 28 L56 32" stroke="#f59e0b" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                        {/* Measurement marks */}
-                        <path d="M20 40 L20 52" stroke="#1e293b" strokeWidth="1" strokeDasharray="2,2"/>
-                        <path d="M44 28 L44 52" stroke="#1e293b" strokeWidth="1" strokeDasharray="2,2"/>
-                        {/* Person on slope */}
-                        <circle cx="38" cy="34" r="3" fill="#1e293b"/>
-                        <path d="M38 37 L38 44 M35 40 L41 40 M38 44 L35 50 M38 44 L41 50" stroke="#1e293b" strokeWidth="1.5" strokeLinecap="round"/>
-                        {/* Percentage label */}
-                        <text x="48" y="24" fill="#f59e0b" fontSize="8" fontWeight="bold">5%</text>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Terrain Slope</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Walking difficulty based on elevation changes. Steep hills can be barriers for accessibility and comfortable walking.</p>
-                  </div>
-
-                  {/* Tree Canopy */}
-                  <div className="group bg-white p-6 rounded-2xl border border-gray-200 hover:border-terra hover:shadow-lg transition-all">
-                    <div className="w-16 h-16 mb-4 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-                      <svg viewBox="0 0 64 64" className="w-10 h-10">
-                        {/* Street cross-section with trees */}
-                        <rect x="8" y="48" width="48" height="8" fill="#64748b" opacity="0.3"/>
-                        {/* Sidewalk */}
-                        <rect x="8" y="44" width="10" height="4" fill="#94a3b8"/>
-                        <rect x="46" y="44" width="10" height="4" fill="#94a3b8"/>
-                        {/* Tree canopy coverage */}
-                        <ellipse cx="16" cy="28" rx="12" ry="14" fill="#10b981" opacity="0.7"/>
-                        <ellipse cx="48" cy="28" rx="12" ry="14" fill="#10b981" opacity="0.7"/>
-                        <ellipse cx="32" cy="24" rx="14" ry="16" fill="#10b981"/>
-                        {/* Tree trunks */}
-                        <rect x="14" y="36" width="4" height="12" fill="#854d0e"/>
-                        <rect x="46" y="36" width="4" height="12" fill="#854d0e"/>
-                        <rect x="30" y="34" width="4" height="14" fill="#854d0e"/>
-                        {/* Shade on street */}
-                        <ellipse cx="32" cy="52" rx="20" ry="3" fill="#10b981" opacity="0.2"/>
-                      </svg>
-                    </div>
-                    <h3 className="font-bold text-gray-900 mb-2">Tree Canopy</h3>
-                    <p className="text-sm text-gray-600 leading-relaxed">Vegetation coverage from Sentinel-2 satellite imagery. Tree shade reduces heat stress and makes walking more pleasant.</p>
                   </div>
                 </div>
               </div>
@@ -1971,7 +1732,7 @@ function App() {
                           Branded Walkability Reports
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                          Your name, company, and contact info on every page. Print-ready PDFs with walkability analysis, 15-minute city scores, 8 infrastructure metrics, crash safety data, and social indicators for any listing.
+                          Your name, company, and contact info on every page. Print-ready PDFs with walkability analysis, neighborhood intelligence, 15-minute city scores, and crash safety data for any listing.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -2097,12 +1858,64 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 8 walkability metrics, compare mode, PDF reports, and field verification are completely free with no sign-up required. We use 100% free data sources (NASA POWER, OpenStreetMap, Sentinel-2 satellite imagery via Google Earth Engine). Unlimited searches, works globally in 190+ countries.
+                    Yes! All 12 data layers, compare mode, field verification, and neighborhood intelligence are completely free with no sign-up required. We use open government data (NASA, US Census, CDC, FEMA, OpenStreetMap). Unlimited searches, works globally in 190+ countries.
                   </p>
                 </div>
               </div>
 
+              {/* FAQ 2 */}
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+                <button
+                  onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 2}
+                  aria-controls="faq-2-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    How is this different from Walk Score?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 2 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-2-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood &mdash; terrain, shade, crash history, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
+                  </p>
+                </div>
+              </div>
 
+              {/* FAQ 3 */}
+              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+                <button
+                  onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 3}
+                  aria-controls="faq-3-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    What does Neighborhood Intelligence show?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 3 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-3-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    Beyond walkability scores, Neighborhood Intelligence shows how people actually live in an area: <strong>commute patterns</strong> (walk, bike, transit, car split from Census data), <strong>transit access</strong> (bus stops and rail stations nearby), <strong>park and food access</strong> (including food desert detection), <strong>health outcomes</strong> (obesity, diabetes, asthma rates vs. US averages from CDC), and <strong>flood risk</strong> (FEMA flood zone classification). For US addresses, this data updates automatically from federal sources.
+                  </p>
+                </div>
+              </div>
+
+              {/* Remaining FAQs - hidden by default */}
+              {showAllFaqs && (
+              <>
               {/* FAQ 4 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
@@ -2112,7 +1925,7 @@ function App() {
                   aria-controls="faq-4-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Do I need to create an account?
+                    Where does the data come from?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 4 ? '−' : '+'}
@@ -2123,113 +1936,57 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    No! All 8 walkability metrics, compare mode, PDF reports, and field verification work instantly without any account. Sign in optionally to save addresses for quick access later.
+                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>NASADEM</strong> (terrain), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>NHTSA FARS</strong> (US crash data), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international safety data). These are the same sources used by governments and research institutions.
                   </p>
                 </div>
               </div>
 
-
-
-              {/* Remaining FAQs - hidden by default */}
-              {showAllFaqs && (
-              <>
-              {/* FAQ 7 */}
+              {/* FAQ 5 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
-                  onClick={() => setOpenFaq(openFaq === 7 ? null : 7)}
+                  onClick={() => setOpenFaq(openFaq === 5 ? null : 5)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 7}
-                  aria-controls="faq-7-content"
+                  aria-expanded={openFaq === 5}
+                  aria-controls="faq-5-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    How accurate is the satellite data?
+                    Does it work outside the US?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 7 ? '−' : '+'}
+                    {openFaq === 5 ? '−' : '+'}
                   </span>
                 </button>
                 <div
-                  id="faq-7-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
+                  id="faq-5-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use publicly available scientific and government data sources: <strong>OpenStreetMap</strong> (community-maintained street infrastructure — crossings, sidewalks, speed limits, lanes, lighting), <strong>Sentinel-2</strong> satellite imagery (10m resolution vegetation and heat data), <strong>NASADEM</strong> (NASA elevation model), <strong>NASA POWER</strong> (regional temperature data), <strong>NHTSA FARS</strong> (US fatal crash locations), and <strong>WHO Global Health Observatory</strong> (country-level road traffic death rates). These are the same sources used by governments and research institutions worldwide. However, remote data has limitations — OpenStreetMap coverage varies by location, and satellite/climate data is regional, not street-level. That's exactly why we built <strong>field verification mode</strong>: open the full report, toggle "Field Verify," and adjust any score based on what you actually observe. Your verified report can be saved as PDF for presentations or advocacy.
+                    Yes! Walkability analysis works globally in 190+ countries using satellite data and OpenStreetMap. Neighborhood Intelligence features like commute data, health outcomes, and flood risk are US-only (powered by Census, CDC, and FEMA). International locations still get full walkability, transit, park, and food access analysis.
                   </p>
                 </div>
               </div>
 
-              {/* FAQ 8 */}
+              {/* FAQ 6 */}
               <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
                 <button
-                  onClick={() => setOpenFaq(openFaq === 8 ? null : 8)}
+                  onClick={() => setOpenFaq(openFaq === 6 ? null : 6)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 8}
-                  aria-controls="faq-8-content"
+                  aria-expanded={openFaq === 6}
+                  aria-controls="faq-6-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Does it work in my city/country?
+                    Can real estate agents use this?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 8 ? '−' : '+'}
+                    {openFaq === 6 ? '−' : '+'}
                   </span>
                 </button>
                 <div
-                  id="faq-8-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 8 ? 'block' : 'hidden'}`}
+                  id="faq-6-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! SafeStreets works globally with coverage in 190+ countries. Satellite data is available worldwide, though analysis quality depends on OpenStreetMap data completeness in your area. Major cities in the US, Europe, Japan, and Australia have excellent coverage.
-                  </p>
-                </div>
-              </div>
-
-
-              {/* FAQ 10 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 10 ? null : 10)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 10}
-                  aria-controls="faq-10-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    What design standards do you follow?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 10 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-10-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 10 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    SafeStreets follows the <strong>Global Street Design Guide (GSDG)</strong>, developed by NACTO and the Global Designing Cities Initiative. The GSDG is used by 500+ cities worldwide and provides evidence-based standards for walkable, safe streets. Our metrics align with GSDG recommendations for sidewalk widths, pedestrian crossing distances, green infrastructure, and universal accessibility.
-                  </p>
-                </div>
-              </div>
-
-              {/* FAQ 11 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 11 ? null : 11)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 11}
-                  aria-controls="faq-11-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    What is the Traffic Fatalities card?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 11 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-11-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 11 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    For <strong>US addresses</strong>, we show real fatal crash data within 800 meters of your location from the <strong>NHTSA Fatality Analysis Reporting System (FARS)</strong>, covering 2018-2022. This includes crash count, fatalities, yearly breakdown, and nearest fatal crash location. For <strong>international addresses</strong>, we show your country's road traffic death rate per 100,000 people from the <strong>WHO Global Health Observatory</strong>. This data is informational context &mdash; it does not affect the walkability score. FARS only tracks fatal crashes, not injuries.
+                    Yes! Agents can generate branded walkability reports with their name, company, and contact info for any property listing. The first 3 reports are free. Unlimited reports are available with a Pro account ($99 one-time). Every Walk Score point adds approximately $3,500 to home value &mdash; give your buyers the data they need.
                   </p>
                 </div>
               </div>
@@ -2264,7 +2021,7 @@ function App() {
                 <h3 className="text-xl font-bold text-terra">SafeStreets</h3>
               </div>
               <p className="text-sm mb-4 leading-relaxed text-earth-text-light">
-                Satellite-powered walkability analysis. Analyze street infrastructure, terrain, and environmental conditions anywhere on Earth.
+                Neighborhood intelligence powered by satellite and government data. Walkability, transit, safety, health, and daily amenities for any address.
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs bg-earth-green/[0.15] border border-earth-green/25 text-earth-green-light">
                 <span className="w-1.5 h-1.5 rounded-full bg-earth-green-light"></span>
