@@ -20,10 +20,10 @@ const mockOSMData: OSMData = {
     { id: 22, tags: { highway: 'tertiary' } },
   ],
   pois: [
-    { id: 30, tags: { amenity: 'school' } },
-    { id: 31, tags: { shop: 'convenience' } },
-    { id: 32, tags: { amenity: 'restaurant' } },
-    { id: 33, tags: { leisure: 'park' } },
+    { id: 30, lat: 18.7885, lon: 98.9855, tags: { amenity: 'school' } },
+    { id: 31, lat: 18.7886, lon: 98.9856, tags: { shop: 'convenience' } },
+    { id: 32, lat: 18.7887, lon: 98.9857, tags: { amenity: 'restaurant' } },
+    { id: 33, lat: 18.7889, lon: 98.9859, tags: { leisure: 'park' } },
   ],
   nodes: new Map(),
 };
@@ -56,6 +56,8 @@ const richOSMData: OSMData = {
   })),
   pois: Array.from({ length: 25 }, (_, i) => ({
     id: 300 + i,
+    lat: 18.7885 + i * 0.0002,
+    lon: 98.9855 + i * 0.0002,
     tags: { amenity: ['school', 'bus_station', 'hospital', 'restaurant', 'cafe'][i % 5], shop: i % 3 === 0 ? 'supermarket' : undefined, leisure: i % 4 === 0 ? 'park' : undefined },
   })),
   nodes: new Map(),

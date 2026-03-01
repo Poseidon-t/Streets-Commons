@@ -4,68 +4,103 @@ interface NeighborhoodIntelSectionProps {
   neighborhoodIntel: NeighborhoodIntelligence | null;
 }
 
-// --- Insight generators ---
-
-function getCommuteInsight(c: CommuteData): { text: string; tone: Tone } {
-  const altPct = c.walkPct + c.bikePct + c.transitPct;
-  if (altPct >= 30) return { text: `${Math.round(altPct)}% walk, bike, or take transit — car-optional`, tone: 'positive' };
-  if (altPct >= 15) return { text: `${Math.round(altPct)}% use alternatives to driving`, tone: 'neutral' };
-  return { text: `Most residents drive — ${Math.round(100 - c.wfhPct - altPct)}% commute by car`, tone: 'warning' };
+function getScoreColor(score: number): string {
+  if (score >= 8) return '#22c55e';
+  if (score >= 6) return '#84cc16';
+  if (score >= 4) return '#eab308';
+  if (score >= 2) return '#f97316';
+  return '#ef4444';
 }
 
-function getTransitInsight(t: TransitAccessData): { text: string; tone: Tone } {
-  if (t.railStations > 0) return { text: `Rail access plus ${t.busStops} bus stop${t.busStops !== 1 ? 's' : ''}`, tone: 'positive' };
-  if (t.busStops >= 5) return { text: `${t.busStops} bus stops within walking distance`, tone: 'positive' };
-  if (t.busStops >= 2) return { text: `Limited transit — ${t.busStops} bus stops nearby`, tone: 'neutral' };
-  if (t.totalStops > 0) return { text: `Only ${t.totalStops} transit stop nearby`, tone: 'warning' };
-  return { text: 'No transit stops within walking distance', tone: 'warning' };
+// --- Context generators (one-line summaries) ---
+
+function getCommuteContext(c: CommuteData): string {
+  const altPct = Math.round(c.walkPct + c.bikePct + c.transitPct);
+  if (altPct >= 30) return `${altPct}% of residents walk, bike, or take transit — this is a car-optional neighborhood.`;
+  if (altPct >= 15) return `${altPct}% use alternatives to driving. Car ownership is still common.`;
+  return `Most residents drive — only ${altPct}% walk, bike, or take transit.`;
 }
 
-function getParkInsight(p: ParkAccessData): { text: string; tone: Tone } {
-  if (p.nearestParkMeters !== null && p.nearestParkMeters <= 300 && p.totalGreenSpaces >= 3)
-    return { text: `${p.totalGreenSpaces} green spaces, nearest ${p.nearestParkMeters}m`, tone: 'positive' };
-  if (p.totalGreenSpaces >= 2)
-    return { text: `${p.totalGreenSpaces} green spaces nearby`, tone: 'neutral' };
-  if (p.totalGreenSpaces === 1)
-    return { text: `One green space found${p.nearestParkMeters ? ` (${p.nearestParkMeters}m)` : ''}`, tone: 'neutral' };
-  return { text: 'No parks found within walking distance', tone: 'warning' };
+function getTransitContext(t: TransitAccessData): string {
+  if (t.railStations > 0 && t.busStops >= 5) return `Strong transit access — rail plus ${t.busStops} bus stops within walking distance.`;
+  if (t.railStations > 0) return `Rail access available, plus ${t.busStops} bus stop${t.busStops !== 1 ? 's' : ''}.`;
+  if (t.busStops >= 5) return `${t.busStops} bus stops nearby — decent bus service.`;
+  if (t.busStops >= 2) return `Limited transit — only ${t.busStops} bus stops nearby.`;
+  return 'No transit stops within walking distance — car-dependent for commuting.';
 }
 
-function getFoodInsight(f: FoodAccessData): { text: string; tone: Tone } {
-  if (f.isFoodDesert) return { text: 'Food desert — no supermarket within 800m', tone: 'warning' };
-  if (f.supermarkets >= 2) return { text: `${f.supermarkets} supermarkets nearby`, tone: 'positive' };
-  if (f.supermarkets === 1) return { text: '1 supermarket nearby', tone: 'neutral' };
-  if (f.groceryStores > 0) return { text: `${f.groceryStores} grocery stores, no supermarket`, tone: 'neutral' };
-  return { text: 'Limited food stores in area', tone: 'warning' };
+function getNearbyContext(parks: ParkAccessData | null, food: FoodAccessData | null): string {
+  const parts: string[] = [];
+  if (parks && parks.totalGreenSpaces > 0) {
+    parts.push(`${parks.totalGreenSpaces} green space${parks.totalGreenSpaces !== 1 ? 's' : ''}`);
+  }
+  if (food && food.supermarkets > 0) {
+    parts.push(`${food.supermarkets} supermarket${food.supermarkets !== 1 ? 's' : ''}`);
+  }
+  if (food?.isFoodDesert) return 'Food desert — no supermarket within 800m walking distance.';
+  if (parts.length > 0) return `${parts.join(' and ')} within walking distance.`;
+  return 'Limited amenities nearby.';
 }
 
-function getHealthInsight(h: CDCHealthData): { text: string; tone: Tone } {
-  let better = 0; let worse = 0;
-  if (h.obesity !== null) { if (h.obesity < 32) better++; else worse++; }
-  if (h.diabetes !== null) { if (h.diabetes < 11) better++; else worse++; }
-  if (h.physicalInactivity !== null) { if (h.physicalInactivity < 26) better++; else worse++; }
-  if (better > worse) return { text: `Healthier than average — ${better} of ${better + worse} beat US norms`, tone: 'positive' };
-  if (better === worse) return { text: 'Community health near national average', tone: 'neutral' };
-  return { text: `${worse} health indicators above US average`, tone: 'warning' };
+function getHealthContext(h: CDCHealthData): string {
+  let better = 0; let total = 0;
+  if (h.obesity !== null) { total++; if (h.obesity < 32) better++; }
+  if (h.diabetes !== null) { total++; if (h.diabetes < 11) better++; }
+  if (h.physicalInactivity !== null) { total++; if (h.physicalInactivity < 26) better++; }
+  if (h.asthma !== null) { total++; if (h.asthma < 10) better++; }
+  if (better > total / 2) return `Healthier than average — ${better} of ${total} indicators beat US norms.`;
+  if (better === Math.floor(total / 2)) return 'Community health near national average.';
+  return `${total - better} health indicator${total - better !== 1 ? 's' : ''} above US average — a concern for active living.`;
 }
 
-function getFloodInsight(f: FloodRiskData): { text: string; tone: Tone } {
-  if (f.isHighRisk) return { text: `High flood risk — Zone ${f.floodZone}`, tone: 'warning' };
-  if (f.floodZone === 'X') return { text: 'Minimal flood risk', tone: 'positive' };
-  return { text: `Moderate flood risk — Zone ${f.floodZone}`, tone: 'neutral' };
+// --- Section score calculators ---
+
+function getTransitScore(commute: CommuteData | null, transit: TransitAccessData | null): number {
+  if (transit) return transit.score;
+  if (commute) {
+    const altPct = commute.walkPct + commute.bikePct + commute.transitPct;
+    return Math.min(10, altPct / 5);
+  }
+  return 0;
 }
 
-type Tone = 'positive' | 'neutral' | 'warning';
+function getNearbyScore(parks: ParkAccessData | null, food: FoodAccessData | null): number {
+  const scores: number[] = [];
+  if (parks) scores.push(parks.score);
+  if (food) scores.push(food.score);
+  if (scores.length === 0) return 0;
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
 
-const TONE = {
-  positive: { dot: '#22c55e', bg: 'rgba(34,197,94,0.08)', text: '#15803d' },
-  neutral: { dot: '#f59e0b', bg: 'rgba(245,158,11,0.08)', text: '#92400e' },
-  warning: { dot: '#ef4444', bg: 'rgba(239,68,68,0.08)', text: '#b91c1c' },
-};
+function getHealthScore(health: CDCHealthData | null, flood: FloodRiskData | null): number {
+  let total = 0; let count = 0;
+  if (health) {
+    let better = 0; let indicators = 0;
+    if (health.obesity !== null) { indicators++; if (health.obesity < 32) better++; }
+    if (health.diabetes !== null) { indicators++; if (health.diabetes < 11) better++; }
+    if (health.physicalInactivity !== null) { indicators++; if (health.physicalInactivity < 26) better++; }
+    if (health.asthma !== null) { indicators++; if (health.asthma < 10) better++; }
+    if (indicators > 0) { total += (better / indicators) * 10; count++; }
+  }
+  if (flood) {
+    total += flood.isHighRisk ? 2 : flood.floodZone === 'X' ? 9 : 5;
+    count++;
+  }
+  return count > 0 ? total / count : 0;
+}
 
 // ==========================================
 // VISUAL INFOGRAPHIC COMPONENTS
 // ==========================================
+
+function SectionScoreBadge({ score }: { score: number }) {
+  const color = getScoreColor(score);
+  return (
+    <span className="text-sm font-bold ml-auto" style={{ color }}>
+      {score.toFixed(1)}
+    </span>
+  );
+}
 
 /** Horizontal stacked bar showing commute mode split */
 function CommuteBar({ commute }: { commute: CommuteData }) {
@@ -81,7 +116,6 @@ function CommuteBar({ commute }: { commute: CommuteData }) {
 
   return (
     <div>
-      {/* The stacked bar */}
       <div className="flex rounded-full overflow-hidden h-5 mb-3" style={{ backgroundColor: '#f0ebe0' }}>
         {segments.map((seg, i) => (
           <div
@@ -92,7 +126,6 @@ function CommuteBar({ commute }: { commute: CommuteData }) {
           />
         ))}
       </div>
-      {/* Legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {segments.filter(s => s.pct >= 1).map((seg, i) => (
           <div key={i} className="flex items-center gap-1.5">
@@ -139,7 +172,7 @@ function TransitBadges({ transit }: { transit: TransitAccessData }) {
   );
 }
 
-/** Amenity icon cards — visual count with emoji */
+/** Amenity icon cards */
 function AmenityCard({ icon, count, label, distance }: { icon: string; count: number; label: string; distance?: string }) {
   const hasItems = count > 0;
   return (
@@ -159,7 +192,7 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
   );
 }
 
-/** Health comparison bar — horizontal bar with marker for "this area" vs US avg */
+/** Health comparison bar */
 function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: number; usAvg: number; maxVal: number }) {
   const isBetter = value < usAvg;
   const barColor = isBetter ? '#22c55e' : '#ef4444';
@@ -173,12 +206,10 @@ function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: numb
         <span className="text-xs font-bold" style={{ color: barColor }}>{value}%</span>
       </div>
       <div className="relative h-3 rounded-full overflow-visible" style={{ backgroundColor: '#f0ebe0' }}>
-        {/* Value bar */}
         <div
           className="h-full rounded-full transition-all duration-700"
           style={{ width: `${Math.max(barWidth, 2)}%`, backgroundColor: barColor }}
         />
-        {/* US Average marker */}
         <div
           className="absolute top-0 h-full flex items-center"
           style={{ left: `${avgPosition}%` }}
@@ -195,7 +226,7 @@ function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: numb
   );
 }
 
-/** Flood risk visual badge — large, color-coded, unmissable */
+/** Flood risk badge */
 function FloodBadge({ flood }: { flood: FloodRiskData }) {
   const isHigh = flood.isHighRisk;
   const isMinimal = flood.floodZone === 'X';
@@ -224,17 +255,6 @@ function FloodBadge({ flood }: { flood: FloodRiskData }) {
   );
 }
 
-/** Insight pill — compact colored pill for quick-scan strip */
-function InsightPill({ text, tone }: { text: string; tone: Tone }) {
-  const c = TONE[tone];
-  return (
-    <div className="flex items-start gap-2 py-1.5">
-      <div className="mt-1.5 flex-shrink-0 h-2 w-2 rounded-full" style={{ backgroundColor: c.dot }} />
-      <span className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>{text}</span>
-    </div>
-  );
-}
-
 // ==========================================
 // MAIN COMPONENT
 // ==========================================
@@ -246,17 +266,10 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
   const hasAnyData = commute || transit || parks || food || health || flood;
   if (!hasAnyData) return null;
 
-  // Collect insights for the quick-scan strip
-  const insights: { text: string; tone: Tone }[] = [];
-  if (commute) insights.push(getCommuteInsight(commute));
-  if (transit) insights.push(getTransitInsight(transit));
-  if (parks) insights.push(getParkInsight(parks));
-  if (food) insights.push(getFoodInsight(food));
-  if (health) insights.push(getHealthInsight(health));
-  if (flood) insights.push(getFloodInsight(flood));
-
-  const positiveCount = insights.filter(i => i.tone === 'positive').length;
-  const warningCount = insights.filter(i => i.tone === 'warning').length;
+  // Calculate section scores
+  const transitSectionScore = getTransitScore(commute, transit);
+  const nearbySectionScore = getNearbyScore(parks, food);
+  const healthSectionScore = getHealthScore(health, flood);
 
   return (
     <div className="w-full mt-8">
@@ -264,45 +277,44 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
         Neighborhood Intelligence
       </h2>
       <p className="text-sm mb-5" style={{ color: '#8a9a8a' }}>
-        {positiveCount > warningCount
-          ? `${positiveCount} strengths identified — a well-served neighborhood`
-          : positiveCount === warningCount
-          ? 'A mixed picture — some strengths, some gaps'
-          : `${warningCount} area${warningCount !== 1 ? 's' : ''} to be aware of`}
+        Beyond the walkability score — what daily life looks like here.
       </p>
 
-      {/* Quick-scan insight strip */}
-      <div className="rounded-xl border p-4 mb-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-        {insights.map((insight, i) => (
-          <InsightPill key={i} text={insight.text} tone={insight.tone} />
-        ))}
-      </div>
-
-      {/* Visual infographic cards */}
       <div className="space-y-4">
 
-        {/* ── Getting Around ── */}
+        {/* Getting Around */}
         {(commute || transit) && (
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">🚶</span>
               <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>How People Get Around</span>
+              <SectionScoreBadge score={transitSectionScore} />
             </div>
+            {/* Context line */}
+            <p className="text-xs mb-4" style={{ color: '#6a7a6a' }}>
+              {commute ? getCommuteContext(commute) : transit ? getTransitContext(transit) : ''}
+            </p>
+
             {commute && <CommuteBar commute={commute} />}
             {transit && <TransitBadges transit={transit} />}
             <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#b0bab0', borderColor: '#f0ebe0' }}>
-              Census ACS · OpenStreetMap
+              {commute ? 'Census ACS' : ''}{commute && transit ? ' · ' : ''}{transit ? 'OpenStreetMap' : ''}
             </div>
           </div>
         )}
 
-        {/* ── What's Nearby ── */}
+        {/* What's Nearby */}
         {(parks || food) && (
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">📍</span>
               <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>What's Nearby</span>
+              <SectionScoreBadge score={nearbySectionScore} />
             </div>
+            <p className="text-xs mb-4" style={{ color: '#6a7a6a' }}>
+              {getNearbyContext(parks, food)}
+            </p>
+
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {parks && (
                 <>
@@ -342,13 +354,19 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           </div>
         )}
 
-        {/* ── Health & Environment ── */}
+        {/* Health & Environment */}
         {(health || flood) && (
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">❤️</span>
               <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>Health & Environment</span>
+              <SectionScoreBadge score={healthSectionScore} />
             </div>
+            {health && (
+              <p className="text-xs mb-4" style={{ color: '#6a7a6a' }}>
+                {getHealthContext(health)}
+              </p>
+            )}
 
             {health && (
               <div className="mb-4">

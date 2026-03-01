@@ -142,38 +142,68 @@ function calculateSpeedExposure(data: OSMData): number {
 
 /**
  * Metric 4: Destination Access
- * Variety of destination types within 800m
+ * Density and proximity of 6 destination categories within walking distance.
+ * Each category scored by: how many exist (density) + how close the nearest is (proximity).
  * Source: OSM amenity, shop, leisure tags
  */
-function calculateDestinationAccess(data: OSMData): number {
-  const categories = {
-    education: false,
-    transit: false,
-    shopping: false,
-    healthcare: false,
-    food: false,
-    recreation: false,
+function calculateDestinationAccess(data: OSMData, centerLat: number, centerLon: number): number {
+  // Get coordinates of a POI element (node has lat/lon, way may have center)
+  function getPoiCoords(poi: any): { lat: number; lon: number } | null {
+    if (poi.lat !== undefined && poi.lon !== undefined) return { lat: poi.lat, lon: poi.lon };
+    if (poi.center?.lat !== undefined && poi.center?.lon !== undefined) return { lat: poi.center.lat, lon: poi.center.lon };
+    return null;
+  }
+
+  // Categorize each POI
+  type Category = 'education' | 'transit' | 'shopping' | 'healthcare' | 'food' | 'recreation';
+  const categoryPOIs: Record<Category, number[]> = {
+    education: [],
+    transit: [],
+    shopping: [],
+    healthcare: [],
+    food: [],
+    recreation: [],
   };
 
-  data.pois.forEach(poi => {
+  for (const poi of data.pois) {
+    const coords = getPoiCoords(poi);
+    if (!coords) continue;
+    const dist = calculateDistance(centerLat, centerLon, coords.lat, coords.lon);
+
     if (poi.tags?.amenity === 'school' || poi.tags?.amenity === 'kindergarten')
-      categories.education = true;
+      categoryPOIs.education.push(dist);
     if (poi.tags?.amenity === 'bus_station' || poi.tags?.railway === 'station')
-      categories.transit = true;
+      categoryPOIs.transit.push(dist);
     if (poi.tags?.shop)
-      categories.shopping = true;
+      categoryPOIs.shopping.push(dist);
     if (poi.tags?.amenity === 'hospital' || poi.tags?.amenity === 'clinic' || poi.tags?.amenity === 'pharmacy')
-      categories.healthcare = true;
+      categoryPOIs.healthcare.push(dist);
     if (poi.tags?.amenity === 'restaurant' || poi.tags?.amenity === 'cafe' || poi.tags?.amenity === 'bar')
-      categories.food = true;
+      categoryPOIs.food.push(dist);
     if (poi.tags?.leisure === 'park' || poi.tags?.leisure === 'playground' || poi.tags?.leisure === 'sports_centre')
-      categories.recreation = true;
-  });
+      categoryPOIs.recreation.push(dist);
+  }
 
-  const typeCount = Object.values(categories).filter(Boolean).length;
+  // Score each category by density + proximity
+  let totalCategoryScore = 0;
+  const maxRadius = 1200; // meters
 
-  // Score: 6 types = 10, 3 types = 5, 0 = 0
-  const score = Math.min(10, (typeCount / 6) * 10);
+  for (const distances of Object.values(categoryPOIs)) {
+    if (distances.length === 0) continue;
+
+    const count = distances.length;
+    const nearest = Math.min(...distances);
+
+    // Density: saturates at 3 POIs (diminishing returns)
+    const density = Math.min(count / 3, 1);
+    // Proximity: linear decay — 1.0 at 0m, 0.0 at 1200m
+    const proximity = Math.max(0, 1 - nearest / maxRadius);
+    // Proximity matters more (60%) than raw count (40%)
+    totalCategoryScore += density * 0.4 + proximity * 0.6;
+  }
+
+  // 6 categories, each max 1.0 → scale to 0-10
+  const score = Math.min(10, (totalCategoryScore / 6) * 10);
   return Math.round(score * 10) / 10;
 }
 
@@ -254,7 +284,7 @@ export function calculateMetrics(
   const crossingSafety = calculateCrossingSafety(data, centerLat, centerLon);
   const sidewalkCoverage = calculateSidewalkCoverage(data);
   const speedExposure = calculateSpeedExposure(data);
-  const destinationAccess = calculateDestinationAccess(data);
+  const destinationAccess = calculateDestinationAccess(data, centerLat, centerLon);
   const nightSafety = calculateNightSafety(data);
 
   // 3 satellite/comfort metrics (loaded progressively)

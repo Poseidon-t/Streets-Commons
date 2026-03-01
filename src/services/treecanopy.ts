@@ -149,25 +149,23 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
  * Score tree canopy for walkability
  * Higher NDVI = more vegetation/trees = better walkability (shade, air quality)
  *
- * Scoring:
- * - NDVI ≥ 0.6 (dense trees) = 10 points
- * - NDVI 0.4-0.6 (moderate vegetation) = 5-10 points
- * - NDVI < 0.4 (sparse/none) = 0-5 points
+ * Scoring (aligned with backend /api/ndvi):
+ * - NDVI < 0:    0 (water/bare soil)
+ * - NDVI 0-0.2:  0-2 (sparse)
+ * - NDVI 0.2-0.4: 0-5 (moderate)
+ * - NDVI 0.4-0.6: 5-10 (healthy)
+ * - NDVI ≥ 0.6:  10 (dense)
  */
 export function scoreTreeCanopy(ndvi: number): number {
-  if (ndvi >= 0.6) {
-    // Dense vegetation/trees: 10 points
-    return 10;
-  } else if (ndvi >= 0.4) {
-    // Moderate vegetation: scale from 5 to 10
-    const score = 5 + ((ndvi - 0.4) / 0.2) * 5;
-    return Math.round(score * 10) / 10;
-  } else if (ndvi >= 0.2) {
-    // Sparse vegetation: scale from 0 to 5
-    const score = (ndvi - 0.2) / 0.2 * 5;
-    return Math.round(score * 10) / 10;
-  } else {
-    // No vegetation
+  if (ndvi < 0) {
     return 0;
+  } else if (ndvi < 0.2) {
+    return Math.round((ndvi / 0.2) * 2 * 10) / 10;
+  } else if (ndvi < 0.4) {
+    return Math.round(((ndvi - 0.2) / 0.2) * 5 * 10) / 10;
+  } else if (ndvi < 0.6) {
+    return Math.round((5 + ((ndvi - 0.4) / 0.2) * 5) * 10) / 10;
+  } else {
+    return 10;
   }
 }

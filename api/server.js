@@ -2864,6 +2864,46 @@ app.get('/api/slope', async (req, res) => {
   }
 });
 
+// --- UTM conversion helper for Sentinel-2 pixel mapping ---
+function latLonToUTM(lat, lon) {
+  const zone = Math.floor((lon + 180) / 6) + 1;
+  const a = 6378137; // WGS84 semi-major axis
+  const f = 1 / 298.257223563;
+  const e = Math.sqrt(2 * f - f * f);
+  const e2 = (e * e) / (1 - e * e);
+  const k0 = 0.9996;
+
+  const latRad = lat * Math.PI / 180;
+  const lon0 = ((zone - 1) * 6 - 180 + 3) * Math.PI / 180;
+
+  const N = a / Math.sqrt(1 - e * e * Math.sin(latRad) * Math.sin(latRad));
+  const T = Math.tan(latRad) * Math.tan(latRad);
+  const C = e2 * Math.cos(latRad) * Math.cos(latRad);
+  const A = Math.cos(latRad) * (lon * Math.PI / 180 - lon0);
+
+  const M = a * (
+    (1 - e*e/4 - 3*e*e*e*e/64 - 5*e*e*e*e*e*e/256) * latRad
+    - (3*e*e/8 + 3*e*e*e*e/32 + 45*e*e*e*e*e*e/1024) * Math.sin(2*latRad)
+    + (15*e*e*e*e/256 + 45*e*e*e*e*e*e/1024) * Math.sin(4*latRad)
+    - (35*e*e*e*e*e*e/3072) * Math.sin(6*latRad)
+  );
+
+  const easting = k0 * N * (
+    A + (1-T+C)*A*A*A/6 + (5-18*T+T*T+72*C-58*e2)*A*A*A*A*A/120
+  ) + 500000;
+
+  let northing = k0 * (
+    M + N * Math.tan(latRad) * (
+      A*A/2 + (5-T+9*C+4*C*C)*A*A*A*A/24
+      + (61-58*T+T*T+600*C-330*e2)*A*A*A*A*A*A/720
+    )
+  );
+
+  if (lat < 0) northing += 10000000;
+
+  return { easting, northing, zone };
+}
+
 // Sentinel-2 NDVI API - Calculate vegetation index for tree canopy
 app.get('/api/ndvi', async (req, res) => {
   try {
@@ -2875,17 +2915,16 @@ app.get('/api/ndvi', async (req, res) => {
       });
     }
 
-    // Validate coordinates
     if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
       return res.status(400).json({ error: 'Invalid coordinates' });
     }
 
-    console.log(`🌳 Calculating NDVI for: ${lat}, ${lon}`);
-
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lon);
 
-    // Define 800m radius bounding box (approximately 0.007 degrees)
+    console.log(`🌳 Calculating NDVI for: ${latitude}, ${longitude}`);
+
+    // 800m radius bounding box for STAC search
     const radius = 0.007;
     const bbox = [
       longitude - radius,
@@ -2894,24 +2933,22 @@ app.get('/api/ndvi', async (req, res) => {
       latitude + radius,
     ];
 
-    // Search for recent Sentinel-2 imagery (last 60 days, cloud-free)
+    // Search last 365 days (not 60) to find best imagery across seasons
     const today = new Date();
-    const startDate = new Date(today.getTime() - 60 * 24 * 60 * 60 * 1000); // 60 days ago
+    const startDate = new Date(today.getTime() - 365 * 24 * 60 * 60 * 1000);
 
     const stacSearchUrl = 'https://planetarycomputer.microsoft.com/api/stac/v1/search';
     const searchBody = {
       collections: ['sentinel-2-l2a'],
       bbox: bbox,
       datetime: `${startDate.toISOString().split('T')[0]}/${today.toISOString().split('T')[0]}`,
-      limit: 10,
+      limit: 20,
       query: {
-        'eo:cloud_cover': {
-          lt: 20, // Less than 20% cloud cover
-        },
+        'eo:cloud_cover': { lt: 15 },
       },
     };
 
-    console.log(`📡 Searching Sentinel-2 imagery...`);
+    console.log(`📡 Searching Sentinel-2 imagery (last 365 days, <15% cloud)...`);
     const stacResponse = await fetch(stacSearchUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2925,94 +2962,113 @@ app.get('/api/ndvi', async (req, res) => {
     const stacData = await stacResponse.json();
 
     if (!stacData.features || stacData.features.length === 0) {
-      console.log('⚠️  No recent Sentinel-2 imagery found');
+      console.log('⚠️  No Sentinel-2 imagery found');
       return res.status(200).json({
         success: true,
         data: {
           ndvi: null,
-          score: 5, // Default neutral score
+          score: 5,
           category: 'No Data',
           dataQuality: 'estimated',
-          message: 'No recent cloud-free satellite imagery available',
+          message: 'No cloud-free satellite imagery available for this location',
         },
       });
     }
 
-    // Get the most recent image
-    const mostRecentImage = stacData.features[0];
-    console.log(`✅ Found Sentinel-2 image from ${mostRecentImage.properties.datetime}`);
+    // Sort by cloud cover (ascending) and pick the clearest image
+    stacData.features.sort((a, b) =>
+      (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100)
+    );
+    const bestImage = stacData.features[0];
+    console.log(`✅ Best image: ${bestImage.properties.datetime} (${bestImage.properties['eo:cloud_cover']}% cloud)`);
 
-    console.log(`📡 Fetching NIR and Red visual band (lower resolution for speed)...`);
+    // Use B08 (NIR 10m) + B04 (Red 10m) — SAME resolution, no mismatch
+    const b08Asset = bestImage.assets.B08;
+    const b04Asset = bestImage.assets.B04;
 
-    // Use B8A (Narrow NIR at 20m resolution) and B04 (Red at 10m but we can downsample)
-    // to reduce data transfer size
-    const b8aAsset = mostRecentImage.assets.B8A; // Narrow NIR at 20m resolution (smaller file)
-    const b04Asset = mostRecentImage.assets.B04; // Red at 10m
-
-    if (!b8aAsset || !b04Asset) {
-      throw new Error('Missing required spectral bands');
+    if (!b08Asset || !b04Asset) {
+      throw new Error('Missing required spectral bands (B08, B04)');
     }
 
-    // Sign the asset URLs
+    // Sign the asset URLs for Planetary Computer access
     const signingEndpoint = 'https://planetarycomputer.microsoft.com/api/sas/v1/sign';
-
-    const [b8aSignedResponse, b04SignedResponse] = await Promise.all([
-      fetch(`${signingEndpoint}?href=${encodeURIComponent(b8aAsset.href)}`),
+    const [b08SignedResponse, b04SignedResponse] = await Promise.all([
+      fetch(`${signingEndpoint}?href=${encodeURIComponent(b08Asset.href)}`),
       fetch(`${signingEndpoint}?href=${encodeURIComponent(b04Asset.href)}`),
     ]);
 
-    const b8aSigned = await b8aSignedResponse.json();
+    const b08Signed = await b08SignedResponse.json();
     const b04Signed = await b04SignedResponse.json();
 
-    // Read GeoTIFF bands with timeout increase
-    const [tiffB8A, tiffB04] = await Promise.all([
-      fromUrl(b8aSigned.href),
+    // Open COGs (Cloud Optimized GeoTIFFs) — only fetches needed tiles
+    const [tiffB08, tiffB04] = await Promise.all([
+      fromUrl(b08Signed.href),
       fromUrl(b04Signed.href),
     ]);
 
-    const [imageB8A, imageB04] = await Promise.all([
-      tiffB8A.getImage(),
+    const [imageB08, imageB04] = await Promise.all([
+      tiffB08.getImage(),
       tiffB04.getImage(),
     ]);
 
-    // Get image metadata
-    const width = imageB8A.getWidth();
-    const height = imageB8A.getHeight();
+    const width = imageB08.getWidth();
+    const height = imageB08.getHeight();
 
-    // Read a small center sample (100x100 pixels at 20m = 2km x 2km area)
-    const sampleSize = 100;
-    const centerX = Math.floor(width / 2);
-    const centerY = Math.floor(height / 2);
-    const x0 = Math.max(0, centerX - Math.floor(sampleSize / 2));
-    const y0 = Math.max(0, centerY - Math.floor(sampleSize / 2));
+    // Convert lat/lon to pixel coordinates using image geo-transform
+    const origin = imageB08.getOrigin();       // [utmX, utmY] of top-left pixel
+    const resolution = imageB08.getResolution(); // [xRes, yRes] (yRes is negative)
+    const utm = latLonToUTM(latitude, longitude);
+
+    const targetX = Math.round((utm.easting - origin[0]) / resolution[0]);
+    const targetY = Math.round((utm.northing - origin[1]) / resolution[1]);
+
+    console.log(`📐 Target pixel: (${targetX}, ${targetY}) in ${width}x${height} image`);
+
+    // Validate pixel is within the image
+    if (targetX < 0 || targetX >= width || targetY < 0 || targetY >= height) {
+      console.log('⚠️  Target location falls outside the Sentinel-2 tile');
+      return res.status(200).json({
+        success: true,
+        data: {
+          ndvi: null,
+          score: 5,
+          category: 'No Data',
+          dataQuality: 'estimated',
+          message: 'Location falls outside available satellite tile',
+        },
+      });
+    }
+
+    // Sample 80x80 pixels centered on target (800m x 800m at 10m resolution)
+    const sampleSize = 80;
+    const halfSample = Math.floor(sampleSize / 2);
+    const x0 = Math.max(0, targetX - halfSample);
+    const y0 = Math.max(0, targetY - halfSample);
     const x1 = Math.min(width, x0 + sampleSize);
     const y1 = Math.min(height, y0 + sampleSize);
 
-    console.log(`📐 Sampling ${x1-x0}x${y1-y0} pixels from center of ${width}x${height} image`);
+    console.log(`📐 Sampling ${x1-x0}x${y1-y0} pixels at user's location`);
 
-    // Read small windows from both bands
-    const [dataB8A, dataB04] = await Promise.all([
-      imageB8A.readRasters({ window: [x0, y0, x1, y1] }),
+    // Read pixel windows from both bands (same resolution = aligned pixels)
+    const [dataB08, dataB04] = await Promise.all([
+      imageB08.readRasters({ window: [x0, y0, x1, y1] }),
       imageB04.readRasters({ window: [x0, y0, x1, y1] }),
     ]);
 
-    const nirValues = dataB8A[0];
+    const nirValues = dataB08[0];
     const redValues = dataB04[0];
 
     let ndviSum = 0;
     let validPixels = 0;
 
-    // Calculate NDVI for the sample
     for (let i = 0; i < nirValues.length; i++) {
       const nir = nirValues[i];
       const red = redValues[i];
 
-      // Skip invalid pixels (nodata, clouds, water)
-      // Sentinel-2 L2A values are scaled 0-10000
+      // Sentinel-2 L2A surface reflectance: 0-10000 scale
+      // Skip nodata, clouds, saturated pixels
       if (nir > 0 && red > 0 && nir < 10000 && red < 10000) {
         const ndvi = (nir - red) / (nir + red);
-
-        // Valid NDVI range: -1 to 1
         if (ndvi >= -1 && ndvi <= 1) {
           ndviSum += ndvi;
           validPixels++;
@@ -3035,16 +3091,11 @@ app.get('/api/ndvi', async (req, res) => {
     }
 
     const avgNDVI = ndviSum / validPixels;
-    console.log(`✅ Processed ${validPixels}/${nirValues.length} pixels, avg NDVI: ${avgNDVI.toFixed(3)}`);
+    const pixelCoverage = (validPixels / nirValues.length * 100).toFixed(0);
+    console.log(`✅ NDVI: ${avgNDVI.toFixed(3)} from ${validPixels}/${nirValues.length} pixels (${pixelCoverage}% valid)`);
 
-    // Score NDVI (0-10 scale)
-    // NDVI ranges: -1 to 1
-    // -1 to 0: Water/bare soil (0 points)
-    // 0 to 0.2: Low vegetation (2 points)
-    // 0.2 to 0.4: Moderate vegetation (5 points)
-    // 0.4 to 0.6: Healthy vegetation (7 points)
-    // 0.6 to 1.0: Dense/very healthy vegetation (10 points)
-
+    // Score NDVI (0-10 scale) — authoritative scoring curve
+    // Aligned with frontend scoreTreeCanopy() thresholds
     let score;
     let category;
 
@@ -3052,20 +3103,20 @@ app.get('/api/ndvi', async (req, res) => {
       score = 0;
       category = 'No Vegetation';
     } else if (avgNDVI < 0.2) {
-      score = Math.round((avgNDVI / 0.2) * 2);
+      score = Math.round((avgNDVI / 0.2) * 2 * 10) / 10;
       category = 'Sparse Vegetation';
     } else if (avgNDVI < 0.4) {
-      score = Math.round(2 + ((avgNDVI - 0.2) / 0.2) * 3);
+      score = Math.round(((avgNDVI - 0.2) / 0.2) * 5 * 10) / 10;
       category = 'Moderate Vegetation';
     } else if (avgNDVI < 0.6) {
-      score = Math.round(5 + ((avgNDVI - 0.4) / 0.2) * 2);
+      score = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
       category = 'Healthy Vegetation';
     } else {
-      score = Math.round(7 + ((avgNDVI - 0.6) / 0.4) * 3);
+      score = 10;
       category = 'Dense Vegetation';
     }
 
-    console.log(`✅ NDVI: ${avgNDVI.toFixed(3)} (${category})`);
+    console.log(`🌳 Score: ${score}/10 (${category})`);
 
     res.json({
       success: true,
@@ -3073,12 +3124,14 @@ app.get('/api/ndvi', async (req, res) => {
         ndvi: parseFloat(avgNDVI.toFixed(3)),
         score: score,
         category: category,
-        imageDate: mostRecentImage.properties.datetime,
-        cloudCover: mostRecentImage.properties['eo:cloud_cover'],
+        imageDate: bestImage.properties.datetime,
+        cloudCover: bestImage.properties['eo:cloud_cover'],
         validPixels: validPixels,
         totalPixels: nirValues.length,
+        pixelCoverage: `${pixelCoverage}%`,
         location: { lat: latitude, lon: longitude },
         dataSource: 'Sentinel-2 L2A (Microsoft Planetary Computer)',
+        bands: 'B08 (NIR 10m) + B04 (Red 10m)',
         dataQuality: 'verified',
         timestamp: new Date().toISOString(),
       },
