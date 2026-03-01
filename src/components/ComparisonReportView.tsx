@@ -69,7 +69,7 @@ const metricsConfig = [
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
   { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / OSM' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
-  { key: 'populationDensity', name: 'Population', icon: '👥', source: 'US Census' },
+  { key: 'commuteMode', name: 'Commute Mode', icon: '🚶', source: 'Census ACS' },
 ] as const;
 
 const API_URL = import.meta.env.VITE_API_URL || '';

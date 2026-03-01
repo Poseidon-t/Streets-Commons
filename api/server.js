@@ -2104,62 +2104,61 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       fetch(`https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=false&f=json`, {
         signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'SafeStreets/1.0' },
       }).then(r => r.ok ? r.json() : null).catch(() => null),
-      // Population density via US Census Bureau API (tract-level)
-      // Uses FCC block_fips to derive tract, then queries Census 2020 for population + land area
+      // Census ACS — commute mode, socioeconomic data, population (for density classification)
+      // B08301: Means of Transportation to Work, B19013: Median Income, B25077: Median Home Value, B01003: Total Pop
       withTimeout((async () => {
         try {
-          const fccPop = await fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
+          const fccCensus = await fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
             signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' },
           });
-          if (!fccPop.ok) return { score: 50, density: null };
-          const fccPopData = await fccPop.json();
-          const blk = fccPopData.results?.[0];
-          if (!blk?.block_fips || !blk.state_fips || !blk.county_fips) return { score: 50, density: null };
-          // Extract tract FIPS (first 11 digits of block_fips: 2 state + 3 county + 6 tract)
+          if (!fccCensus.ok) return null;
+          const fccCensusData = await fccCensus.json();
+          const blk = fccCensusData.results?.[0];
+          if (!blk?.block_fips || !blk.state_fips || !blk.county_fips) return null;
           const tractFips = blk.block_fips.substring(5, 11);
-          // Query Census 2020 for tract population
-          const censusRes = await fetch(
-            `https://api.census.gov/data/2020/dec/dhc?get=P1_001N&for=tract:${tractFips}&in=state:${blk.state_fips}&in=county:${blk.county_fips.substring(2)}`,
+          const countyFips = blk.county_fips.substring(2);
+          const acsRes = await fetch(
+            `https://api.census.gov/data/2022/acs/acs5?get=B08301_001E,B08301_019E,B08301_018E,B08301_010E,B19013_001E,B25077_001E,B01003_001E&for=tract:${tractFips}&in=state:${blk.state_fips}&in=county:${countyFips}`,
             { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' } }
           );
-          if (!censusRes.ok) return { score: 50, density: null };
-          const censusData = await censusRes.json();
-          // Response: [["P1_001N","state","county","tract"], ["3672","06","075","016200"]]
-          const tractPop = censusData?.[1]?.[0] ? parseInt(censusData[1][0], 10) : 0;
-          if (!tractPop || tractPop <= 0) return { score: 50, density: null };
-          // Estimate tract area from FCC bbox (census blocks ~= tract subdivision)
-          // Use bbox to estimate local block area, then scale up
+          if (!acsRes.ok) return null;
+          const acsData = await acsRes.json();
+          const row = acsData?.[1];
+          if (!row) return null;
+          const totalCommuters = parseInt(row[0], 10) || 0;
+          const walked = parseInt(row[1], 10) || 0;
+          const biked = parseInt(row[2], 10) || 0;
+          const transit = parseInt(row[3], 10) || 0;
+          const medianIncome = parseInt(row[4], 10) || null;
+          const medianHomeValue = parseInt(row[5], 10) || null;
+          const totalPop = parseInt(row[6], 10) || 0;
+          const altMode = walked + biked + transit;
+          const altPct = totalCommuters > 0 ? Math.round((altMode / totalCommuters) * 1000) / 10 : 0;
+          const walkPct = totalCommuters > 0 ? Math.round((walked / totalCommuters) * 1000) / 10 : 0;
+          const bikePct = totalCommuters > 0 ? Math.round((biked / totalCommuters) * 1000) / 10 : 0;
+          const transitPct = totalCommuters > 0 ? Math.round((transit / totalCommuters) * 1000) / 10 : 0;
+          // Commute mode score (0-10): % of commuters using walk/bike/transit
+          let commuteScore;
+          if (altPct >= 50) commuteScore = 10;
+          else if (altPct >= 35) commuteScore = 8.5;
+          else if (altPct >= 20) commuteScore = 7;
+          else if (altPct >= 10) commuteScore = 5.5;
+          else if (altPct >= 5) commuteScore = 4;
+          else commuteScore = 2;
+          commuteScore = Math.round(commuteScore * 10) / 10;
+          // Estimate density for internal percentile context (urban/suburban/rural)
+          const blockPop = blk.block_pop_2020 || 100;
           const bbox = blk.bbox;
-          if (bbox && bbox.length === 4) {
+          let estDensity = totalPop > 0 ? Math.round(totalPop / 2.5) : 1000; // fallback avg
+          if (bbox && bbox.length === 4 && blockPop > 0) {
             const cosLat = Math.cos(lat * Math.PI / 180);
-            const widthKm = Math.abs(bbox[2] - bbox[0]) * 111.32 * cosLat;
-            const heightKm = Math.abs(bbox[3] - bbox[1]) * 111.32;
-            const blockAreaKm2 = widthKm * heightKm;
-            // Census tracts typically contain 30-80 blocks; use pop ratio to estimate tract area
-            const blockPop = blk.block_pop_2020 || 100;
-            const tractAreaKm2 = blockAreaKm2 * (tractPop / Math.max(blockPop, 1));
-            const popDensity = Math.round(tractPop / Math.max(tractAreaKm2, 0.01));
-            let popSc;
-            if (popDensity > 10000) popSc = 100;
-            else if (popDensity > 5000) popSc = 85;
-            else if (popDensity > 2000) popSc = 65;
-            else if (popDensity > 500) popSc = 40;
-            else popSc = 20;
-            console.log(`  ✅ Population: ${popDensity} people/km² (tract pop ${tractPop}) → ${popSc}/100`);
-            return { score: popSc, density: popDensity };
+            const blockArea = Math.abs(bbox[2] - bbox[0]) * 111.32 * cosLat * Math.abs(bbox[3] - bbox[1]) * 111.32;
+            if (blockArea > 0) estDensity = Math.round(totalPop / (blockArea * (totalPop / Math.max(blockPop, 1))));
           }
-          // Fallback: estimate density from tract population alone (avg tract ~2.5 km²)
-          const estDensity = Math.round(tractPop / 2.5);
-          let popSc2;
-          if (estDensity > 10000) popSc2 = 100;
-          else if (estDensity > 5000) popSc2 = 85;
-          else if (estDensity > 2000) popSc2 = 65;
-          else if (estDensity > 500) popSc2 = 40;
-          else popSc2 = 20;
-          console.log(`  ✅ Population: ~${estDensity} people/km² (est, tract pop ${tractPop}) → ${popSc2}/100`);
-          return { score: popSc2, density: estDensity };
-        } catch (e) { console.warn('⚠️  Population density failed:', e.message); return { score: 50, density: null }; }
-      })(), 25000, { score: 50, density: null }),
+          console.log(`  ✅ Commute: ${altPct}% walk/bike/transit → ${commuteScore}/10 | Income: $${medianIncome?.toLocaleString()} | Home: $${medianHomeValue?.toLocaleString()}`);
+          return { commuteScore, walkPct, bikePct, transitPct, altPct, medianIncome, medianHomeValue, totalPop, estDensity, dataSource: 'Census ACS 2022' };
+        } catch (e) { console.warn('⚠️  Census ACS failed:', e.message); return null; }
+      })(), 25000, null),
     ]);
 
     if (slopeResult.status === 'fulfilled' && slopeResult.value) {
@@ -2227,11 +2226,27 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       } catch { /* non-critical */ }
     }
 
+    // Extract Census ACS socioeconomic data for neighborhood intelligence
+    const acsResult = popResult.status === 'fulfilled' ? popResult.value : null;
+    const economics = acsResult ? {
+      medianIncome: acsResult.medianIncome,
+      medianHomeValue: acsResult.medianHomeValue,
+      dataSource: 'Census ACS 2022',
+    } : null;
+    const commuteDetail = acsResult ? {
+      walkPct: acsResult.walkPct,
+      bikePct: acsResult.bikePct,
+      transitPct: acsResult.transitPct,
+      altModePct: acsResult.altPct,
+      dataSource: 'Census ACS 2022',
+    } : null;
+
     const neighborhoodIntel = {
-      commute: null, // Commute data comes from demographics endpoint (not called here)
+      commute: commuteDetail,
       transit: niTransit.totalStops > 0 ? niTransit : null,
       parks: niParks.totalGreenSpaces > 0 ? niParks : null,
       food: niFood.totalFoodStores > 0 ? niFood : null,
+      economics,
       health: healthData,
       flood: floodData,
     };
@@ -2280,15 +2295,17 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     }
     console.log(`  ✅ Crash History: ${crashHistoryScore}/10 (${crashScoreSource})`);
 
-    // 7. Population Density score (0-10)
-    let populationDensityScore = 5; // default: neutral (data unavailable)
-    if (popResult.status === 'fulfilled' && popResult.value && popResult.value.score > 0) {
-      populationDensityScore = Math.round(popResult.value.score / 10 * 10) / 10; // 0-100 → 0-10
+    // 7. Commute Mode score (0-10) — % walking/biking/transit from Census ACS
+    let commuteModeScore = 5; // default: neutral (data unavailable)
+    let censusAcsData = null;
+    if (popResult.status === 'fulfilled' && popResult.value) {
+      censusAcsData = popResult.value;
+      commuteModeScore = censusAcsData.commuteScore;
     }
-    console.log(`  ✅ Population: ${populationDensityScore}/10${popResult.status !== 'fulfilled' || !popResult.value?.score ? ' (default — API unavailable)' : ''}`);
+    console.log(`  ✅ Commute Mode: ${commuteModeScore}/10${!censusAcsData ? ' (default — Census ACS unavailable)' : ` (${censusAcsData.altPct}% walk/bike/transit)`}`);
 
     // 8. Overall score — average of all 6 metrics
-    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, crashHistoryScore, populationDensityScore].filter(s => s > 0);
+    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, crashHistoryScore, commuteModeScore].filter(s => s > 0);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
@@ -2302,7 +2319,9 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       suburban: { p10: 1.5, p25: 2.5, p50: 4.0, p75: 5.5, p90: 7.0 },
       rural:    { p10: 0.5, p25: 1.0, p50: 2.0, p75: 3.0, p90: 4.5 },
     };
-    const popContext = populationDensityScore >= 6 ? 'urban' : populationDensityScore >= 3 ? 'suburban' : 'rural';
+    // Use estimated density from Census ACS for context classification (internal only)
+    const estDensity = censusAcsData?.estDensity || 1000;
+    const popContext = estDensity >= 5000 ? 'urban' : estDensity >= 500 ? 'suburban' : 'rural';
     const ref = PERCENTILE_REFS[popContext];
     // Linear interpolation between reference percentile points
     function interpolatePercentile(score, ref) {
@@ -2332,7 +2351,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       location: { lat, lon, displayName },
       metrics: {
         destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore,
-        streetGrid: streetGridScore, crashHistory: crashHistoryScore, populationDensity: populationDensityScore,
+        streetGrid: streetGridScore, crashHistory: crashHistoryScore, commuteMode: commuteModeScore,
         overallScore, label,
       },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },

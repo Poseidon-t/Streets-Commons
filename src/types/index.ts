@@ -13,7 +13,8 @@ export interface WalkabilityMetrics {
   treeCanopy: number; // From Sentinel-2 NDVI data
   streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
   crashHistory?: number; // NHTSA FARS / WHO road fatality data
-  populationDensity?: number; // GHS-POP satellite population grid
+  populationDensity?: number; // GHS-POP satellite population grid (legacy, main app)
+  commuteMode?: number; // Census ACS walk/bike/transit commute share
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }
@@ -252,12 +253,20 @@ export interface FoodAccessData {
   score: number;
 }
 
+/** Socioeconomic data from Census ACS */
+export interface EconomicsData {
+  medianIncome: number | null;
+  medianHomeValue: number | null;
+  dataSource: string;
+}
+
 /** Aggregated neighborhood intelligence */
 export interface NeighborhoodIntelligence {
   commute: CommuteData | null;
   transit: TransitAccessData | null;
   parks: ParkAccessData | null;
   food: FoodAccessData | null;
+  economics?: EconomicsData | null;
   health: CDCHealthData | null;
   flood: FloodRiskData | null;
 }

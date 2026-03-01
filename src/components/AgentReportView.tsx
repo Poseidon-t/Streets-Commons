@@ -61,7 +61,7 @@ const metricsConfig = [
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
   { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / OSM' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
-  { key: 'populationDensity', name: 'Population', icon: '👥', source: 'US Census' },
+  { key: 'commuteMode', name: 'Commute Mode', icon: '🚶', source: 'Census ACS' },
 ] as const;
 
 const API_URL = import.meta.env.VITE_API_URL || '';
@@ -515,7 +515,7 @@ export default function AgentReportView() {
           {/* Neighborhood Intelligence */}
           {data.neighborhoodIntel && (() => {
             const ni = data.neighborhoodIntel!;
-            const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.health || ni.flood;
+            const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.economics || ni.health || ni.flood;
             if (!hasData) return null;
             return (
               <div style={{ marginBottom: '2.5rem' }}>
@@ -526,13 +526,17 @@ export default function AgentReportView() {
                   <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm, marginBottom: '1rem' }}>
                     <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Getting Around</div>
                     {ni.commute && (
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.walkPct}%</strong> walk</div>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.bikePct}%</strong> bike</div>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.transitPct}%</strong> transit</div>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.wfhPct}%</strong> WFH</div>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.carpoolPct}%</strong> carpool</div>
-                        <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.zeroCar}%</strong> no car</div>
+                      <div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.walkPct}%</strong> walk</div>
+                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.bikePct}%</strong> bike</div>
+                          <div style={{ fontSize: '0.8125rem', color: C.textMuted }}><strong style={{ color: C.text }}>{ni.commute.transitPct}%</strong> transit</div>
+                        </div>
+                        {ni.commute.altModePct != null && (
+                          <div style={{ fontSize: '0.8125rem', color: C.textMuted, marginTop: '0.25rem' }}>
+                            <strong style={{ color: C.text }}>{ni.commute.altModePct}%</strong> of residents commute without a car
+                          </div>
+                        )}
                       </div>
                     )}
                     {ni.transit && ni.transit.totalStops > 0 && (
@@ -570,6 +574,28 @@ export default function AgentReportView() {
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {/* Economics */}
+                {ni.economics && (ni.economics.medianIncome || ni.economics.medianHomeValue) && (
+                  <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm, marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text, marginBottom: '0.75rem' }}>Neighborhood Economics</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      {ni.economics.medianIncome && (
+                        <div>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Median Household Income</div>
+                          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: brandAccent }}>${ni.economics.medianIncome.toLocaleString()}</div>
+                        </div>
+                      )}
+                      {ni.economics.medianHomeValue && (
+                        <div>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: C.text, marginBottom: '0.25rem' }}>Median Home Value</div>
+                          <div style={{ fontSize: '1.125rem', fontWeight: 700, color: brandAccent }}>${ni.economics.medianHomeValue.toLocaleString()}</div>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.5rem' }}>Source: Census ACS 2022</div>
                   </div>
                 )}
 
