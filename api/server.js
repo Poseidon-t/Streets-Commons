@@ -2086,13 +2086,13 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
             body: JSON.stringify({ collections: ['ghs-pop'], bbox: popBbox, limit: 1, sortby: [{ field: 'datetime', direction: 'desc' }] }),
             signal: AbortSignal.timeout(15000),
           });
-          if (!popSr.ok) return { score: 0, density: null };
+          if (!popSr.ok) return { score: 50, density: null };
           const popSd = await popSr.json();
-          if (!popSd.features?.length) return { score: 0, density: null };
+          if (!popSd.features?.length) return { score: 50, density: null };
           const popAsset = popSd.features[0].assets?.population_count || popSd.features[0].assets?.data;
-          if (!popAsset) return { score: 0, density: null };
+          if (!popAsset) return { score: 50, density: null };
           const popSignRes = await fetch(`https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(popAsset.href)}`);
-          if (!popSignRes.ok) return { score: 0, density: null };
+          if (!popSignRes.ok) return { score: 50, density: null };
           const popSigned = await popSignRes.json();
           const popTiff = await fromUrl(popSigned.href);
           const popImage = await popTiff.getImage();
@@ -2100,7 +2100,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
           const pW = popImage.getWidth(), pH = popImage.getHeight();
           const pPx = Math.floor(((lon - pMinX) / (pMaxX - pMinX)) * pW);
           const pPy = Math.floor(((pMaxY - lat) / (pMaxY - pMinY)) * pH);
-          if (pPx < 0 || pPx >= pW || pPy < 0 || pPy >= pH) return { score: 0, density: null };
+          if (pPx < 0 || pPx >= pW || pPy < 0 || pPy >= pH) return { score: 50, density: null };
           const pR = 2;
           const pData = await popImage.readRasters({ window: [Math.max(0, pPx - pR), Math.max(0, pPy - pR), Math.min(pW, pPx + pR + 1), Math.min(pH, pPy + pR + 1)] });
           const pVals = pData[0];
@@ -2117,8 +2117,8 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
           else popSc = 20;
           console.log(`  ✅ Population: ${popDensity} people/km² → ${popSc}/100`);
           return { score: popSc, density: popDensity };
-        } catch (e) { console.warn('⚠️  Population density failed:', e.message); return { score: 0, density: null }; }
-      })(), 30000, { score: 0, density: null }),
+        } catch (e) { console.warn('⚠️  Population density failed:', e.message); return { score: 50, density: null }; }
+      })(), 30000, { score: 50, density: null }),
     ]);
 
     if (slopeResult.status === 'fulfilled' && slopeResult.value) {
@@ -2196,7 +2196,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     };
 
     // 6. Crash History score (0-10) from crash data (same as compositeScore.ts)
-    let crashHistoryScore = 0;
+    let crashHistoryScore = 5; // default: neutral (data unavailable)
     if (crashData) {
       if (crashData.type === 'local') {
         const years = crashData.yearRange.to - crashData.yearRange.from + 1;
@@ -2208,14 +2208,15 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
         const crashScore100 = rate <= 3 ? 95 : rate <= 6 ? 80 : rate <= 10 ? 60 : rate <= 15 ? 40 : 20;
         crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
       }
-      console.log(`  ✅ Crash History: ${crashHistoryScore}/10`);
     }
+    console.log(`  ✅ Crash History: ${crashHistoryScore}/10${!crashData ? ' (default — API unavailable)' : ''}`);
 
     // 7. Population Density score (0-10)
-    let populationDensityScore = 0;
-    if (popResult.status === 'fulfilled' && popResult.value) {
+    let populationDensityScore = 5; // default: neutral (data unavailable)
+    if (popResult.status === 'fulfilled' && popResult.value && popResult.value.score > 0) {
       populationDensityScore = Math.round(popResult.value.score / 10 * 10) / 10; // 0-100 → 0-10
     }
+    console.log(`  ✅ Population: ${populationDensityScore}/10${popResult.status !== 'fulfilled' || !popResult.value?.score ? ' (default — API unavailable)' : ''}`);
 
     // 8. Overall score — average of all 6 metrics
     const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, crashHistoryScore, populationDensityScore].filter(s => s > 0);

@@ -130,7 +130,6 @@ export default function AgentReportView() {
       : (metrics[key as keyof WalkabilityMetrics] as number ?? 0);
 
   const sortedMetrics = metricsConfig
-    .filter(m => (metrics[m.key as keyof WalkabilityMetrics] as number) > 0)
     .map(m => ({ ...m, score: resolveMetric(m.key as MetricKey) }))
     .sort((a, b) => b.score - a.score);
 
@@ -286,13 +285,10 @@ export default function AgentReportView() {
         <div className="page-break-after">
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Detailed Metrics</h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            {metricsConfig.filter(m => {
-              const v = metrics[m.key as keyof WalkabilityMetrics] as number;
-              return v > 0 || (fieldMode && fieldData[m.key as MetricKey].adjustedScore !== null);
-            }).map(m => {
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+            {metricsConfig.map(m => {
               const key = m.key as MetricKey;
-              const originalVal = metrics[m.key as keyof WalkabilityMetrics] as number;
+              const originalVal = (metrics[m.key as keyof WalkabilityMetrics] as number) ?? 0;
               const val = resolveMetric(key);
               const color = getScoreColor(val);
               const isAdjusted = fieldData[key].adjustedScore !== null;
