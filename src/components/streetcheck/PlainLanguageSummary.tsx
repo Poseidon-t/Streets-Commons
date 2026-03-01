@@ -1,14 +1,19 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 
 const METRIC_LABELS: Record<string, string> = {
+  crossingSafety: 'crossing safety',
+  sidewalkCoverage: 'sidewalk coverage',
+  speedExposure: 'traffic speed safety',
+  nightSafety: 'nighttime lighting',
   destinationAccess: 'access to daily needs',
   slope: 'terrain accessibility',
   treeCanopy: 'shade and tree canopy',
+  thermalComfort: 'heat comfort',
 };
 
 function getWorstMetrics(metrics: WalkabilityMetrics, count: number): string[] {
   const entries = Object.entries(metrics)
-    .filter(([k, v]) => typeof v === 'number' && k !== 'overallScore' && METRIC_LABELS[k])
+    .filter(([k, v]) => typeof v === 'number' && k !== 'overallScore' && k !== 'label' && METRIC_LABELS[k] && (v as number) > 0)
     .sort((a, b) => (a[1] as number) - (b[1] as number))
     .slice(0, count);
   return entries.map(([k]) => METRIC_LABELS[k]);

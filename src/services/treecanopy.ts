@@ -73,12 +73,13 @@ async function estimateNDVIFromOSM(lat: number, lon: number): Promise<number> {
     const data = result.data || result;
     const greenSpaces = data.elements || [];
 
-    // Rough estimation based on green space coverage
-    if (greenSpaces.length >= 10) return 0.6; // Dense vegetation
-    if (greenSpaces.length >= 5) return 0.5; // Moderate-high
-    if (greenSpaces.length >= 2) return 0.4; // Moderate
-    if (greenSpaces.length >= 1) return 0.3; // Sparse
-    return 0.2; // Very sparse
+    // Conservative estimation — OSM green space count is a rough proxy
+    // Cap at 0.45 (score ~6) since polygon count doesn't measure actual canopy density
+    if (greenSpaces.length >= 10) return 0.45; // Many green spaces
+    if (greenSpaces.length >= 5) return 0.40; // Good green coverage
+    if (greenSpaces.length >= 2) return 0.35; // Some green spaces
+    if (greenSpaces.length >= 1) return 0.30; // Sparse
+    return 0.20; // Very sparse
   } catch (error) {
     console.error('OSM estimation failed:', error);
     return 0.3; // Default
