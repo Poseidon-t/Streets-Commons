@@ -2104,49 +2104,62 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       fetch(`https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=false&f=json`, {
         signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'SafeStreets/1.0' },
       }).then(r => r.ok ? r.json() : null).catch(() => null),
-      // GHS-POP Population Density (30s timeout)
+      // Population density via US Census Bureau API (tract-level)
+      // Uses FCC block_fips to derive tract, then queries Census 2020 for population + land area
       withTimeout((async () => {
         try {
-          const popBuffer = 0.005;
-          const popBbox = [lon - popBuffer, lat - popBuffer, lon + popBuffer, lat + popBuffer];
-          const popSr = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ collections: ['ghs-pop'], bbox: popBbox, limit: 1, sortby: [{ field: 'datetime', direction: 'desc' }] }),
-            signal: AbortSignal.timeout(15000),
+          const fccPop = await fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
+            signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' },
           });
-          if (!popSr.ok) return { score: 50, density: null };
-          const popSd = await popSr.json();
-          if (!popSd.features?.length) return { score: 50, density: null };
-          const popAsset = popSd.features[0].assets?.population_count || popSd.features[0].assets?.data;
-          if (!popAsset) return { score: 50, density: null };
-          const popSignRes = await fetch(`https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(popAsset.href)}`);
-          if (!popSignRes.ok) return { score: 50, density: null };
-          const popSigned = await popSignRes.json();
-          const popTiff = await fromUrl(popSigned.href);
-          const popImage = await popTiff.getImage();
-          const [pMinX, pMinY, pMaxX, pMaxY] = popImage.getBoundingBox();
-          const pW = popImage.getWidth(), pH = popImage.getHeight();
-          const pPx = Math.floor(((lon - pMinX) / (pMaxX - pMinX)) * pW);
-          const pPy = Math.floor(((pMaxY - lat) / (pMaxY - pMinY)) * pH);
-          if (pPx < 0 || pPx >= pW || pPy < 0 || pPy >= pH) return { score: 50, density: null };
-          const pR = 2;
-          const pData = await popImage.readRasters({ window: [Math.max(0, pPx - pR), Math.max(0, pPy - pR), Math.min(pW, pPx + pR + 1), Math.min(pH, pPy + pR + 1)] });
-          const pVals = pData[0];
-          let pSum = 0, pValid = 0;
-          for (let i = 0; i < pVals.length; i++) { if (pVals[i] > 0 && pVals[i] < 1e6) { pSum += pVals[i]; pValid++; } }
-          const avgPop = pValid > 0 ? pSum / pValid : 0;
-          const popDensity = Math.round(avgPop / 0.01);
-          // Score 0-100 same as population-density endpoint
-          let popSc;
-          if (popDensity > 10000) popSc = 100;
-          else if (popDensity > 5000) popSc = 85;
-          else if (popDensity > 2000) popSc = 65;
-          else if (popDensity > 500) popSc = 40;
-          else popSc = 20;
-          console.log(`  ✅ Population: ${popDensity} people/km² → ${popSc}/100`);
-          return { score: popSc, density: popDensity };
+          if (!fccPop.ok) return { score: 50, density: null };
+          const fccPopData = await fccPop.json();
+          const blk = fccPopData.results?.[0];
+          if (!blk?.block_fips || !blk.state_fips || !blk.county_fips) return { score: 50, density: null };
+          // Extract tract FIPS (first 11 digits of block_fips: 2 state + 3 county + 6 tract)
+          const tractFips = blk.block_fips.substring(5, 11);
+          // Query Census 2020 for tract population
+          const censusRes = await fetch(
+            `https://api.census.gov/data/2020/dec/dhc?get=P1_001N&for=tract:${tractFips}&in=state:${blk.state_fips}&in=county:${blk.county_fips.substring(2)}`,
+            { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' } }
+          );
+          if (!censusRes.ok) return { score: 50, density: null };
+          const censusData = await censusRes.json();
+          // Response: [["P1_001N","state","county","tract"], ["3672","06","075","016200"]]
+          const tractPop = censusData?.[1]?.[0] ? parseInt(censusData[1][0], 10) : 0;
+          if (!tractPop || tractPop <= 0) return { score: 50, density: null };
+          // Estimate tract area from FCC bbox (census blocks ~= tract subdivision)
+          // Use bbox to estimate local block area, then scale up
+          const bbox = blk.bbox;
+          if (bbox && bbox.length === 4) {
+            const cosLat = Math.cos(lat * Math.PI / 180);
+            const widthKm = Math.abs(bbox[2] - bbox[0]) * 111.32 * cosLat;
+            const heightKm = Math.abs(bbox[3] - bbox[1]) * 111.32;
+            const blockAreaKm2 = widthKm * heightKm;
+            // Census tracts typically contain 30-80 blocks; use pop ratio to estimate tract area
+            const blockPop = blk.block_pop_2020 || 100;
+            const tractAreaKm2 = blockAreaKm2 * (tractPop / Math.max(blockPop, 1));
+            const popDensity = Math.round(tractPop / Math.max(tractAreaKm2, 0.01));
+            let popSc;
+            if (popDensity > 10000) popSc = 100;
+            else if (popDensity > 5000) popSc = 85;
+            else if (popDensity > 2000) popSc = 65;
+            else if (popDensity > 500) popSc = 40;
+            else popSc = 20;
+            console.log(`  ✅ Population: ${popDensity} people/km² (tract pop ${tractPop}) → ${popSc}/100`);
+            return { score: popSc, density: popDensity };
+          }
+          // Fallback: estimate density from tract population alone (avg tract ~2.5 km²)
+          const estDensity = Math.round(tractPop / 2.5);
+          let popSc2;
+          if (estDensity > 10000) popSc2 = 100;
+          else if (estDensity > 5000) popSc2 = 85;
+          else if (estDensity > 2000) popSc2 = 65;
+          else if (estDensity > 500) popSc2 = 40;
+          else popSc2 = 20;
+          console.log(`  ✅ Population: ~${estDensity} people/km² (est, tract pop ${tractPop}) → ${popSc2}/100`);
+          return { score: popSc2, density: estDensity };
         } catch (e) { console.warn('⚠️  Population density failed:', e.message); return { score: 50, density: null }; }
-      })(), 30000, { score: 50, density: null }),
+      })(), 25000, { score: 50, density: null }),
     ]);
 
     if (slopeResult.status === 'fulfilled' && slopeResult.value) {
@@ -2223,21 +2236,49 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       flood: floodData,
     };
 
-    // 6. Crash History score (0-10) from crash data (same as compositeScore.ts)
+    // 6. Crash History score (0-10) — FARS data if available, else OSM infrastructure safety proxy
     let crashHistoryScore = 5; // default: neutral (data unavailable)
+    let crashScoreSource = 'default';
     if (crashData) {
       if (crashData.type === 'local') {
         const years = crashData.yearRange.to - crashData.yearRange.from + 1;
         const fatalitiesPerYear = years > 0 ? crashData.totalFatalities / years : crashData.totalFatalities;
         const crashScore100 = fatalitiesPerYear === 0 ? 100 : fatalitiesPerYear <= 1 ? 80 : fatalitiesPerYear <= 3 ? 60 : fatalitiesPerYear <= 5 ? 40 : 20;
         crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
+        crashScoreSource = 'NHTSA FARS';
       } else if (crashData.type === 'country') {
         const rate = crashData.deathRatePer100k;
         const crashScore100 = rate <= 3 ? 95 : rate <= 6 ? 80 : rate <= 10 ? 60 : rate <= 15 ? 40 : 20;
         crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
+        crashScoreSource = 'WHO';
       }
     }
-    console.log(`  ✅ Crash History: ${crashHistoryScore}/10${!crashData ? ' (default — API unavailable)' : ''}`);
+    // Fallback: OSM infrastructure safety proxy (crossings, sidewalks, road types)
+    if (!crashData || crashScoreSource === 'default') {
+      const totalStreets = Math.max(streets.length, 1);
+      const crossingRatio = crossings.length / totalStreets;
+      const sidewalkRatio = sidewalks.length / totalStreets;
+      const highSpeedRoads = streets.filter(s => s.tags?.highway === 'primary' || s.tags?.highway === 'secondary').length;
+      const highSpeedRatio = highSpeedRoads / totalStreets;
+      // Base score 5, adjust up for good infrastructure, down for dangerous roads
+      let safetyScore = 5;
+      if (crossingRatio > 0.4) safetyScore += 2;
+      else if (crossingRatio > 0.2) safetyScore += 1.5;
+      else if (crossingRatio > 0.1) safetyScore += 1;
+      else if (crossingRatio > 0.03) safetyScore += 0.5;
+      if (sidewalkRatio > 0.4) safetyScore += 2;
+      else if (sidewalkRatio > 0.2) safetyScore += 1.5;
+      else if (sidewalkRatio > 0.1) safetyScore += 1;
+      else if (sidewalkRatio > 0.03) safetyScore += 0.5;
+      // Penalize for high-speed roads
+      if (highSpeedRatio > 0.3) safetyScore -= 2;
+      else if (highSpeedRatio > 0.15) safetyScore -= 1;
+      else if (highSpeedRatio > 0.05) safetyScore -= 0.5;
+      crashHistoryScore = Math.round(Math.min(10, Math.max(0, safetyScore)) * 10) / 10;
+      crashScoreSource = 'OSM infrastructure';
+      crashData = { type: 'infrastructure', totalCrashes: 0, totalFatalities: 0, crossings: crossings.length, sidewalks: sidewalks.length, streets: streets.length, highSpeedRoads, safetyScore: crashHistoryScore, dataSource: 'OpenStreetMap (infrastructure proxy)' };
+    }
+    console.log(`  ✅ Crash History: ${crashHistoryScore}/10 (${crashScoreSource})`);
 
     // 7. Population Density score (0-10)
     let populationDensityScore = 5; // default: neutral (data unavailable)

@@ -67,9 +67,9 @@ const metricsConfig = [
   { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
   { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
-  { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / WHO' },
+  { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / OSM' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
-  { key: 'populationDensity', name: 'Population', icon: '👥', source: 'GHS-POP' },
+  { key: 'populationDensity', name: 'Population', icon: '👥', source: 'US Census' },
 ] as const;
 
 const API_URL = import.meta.env.VITE_API_URL || '';
