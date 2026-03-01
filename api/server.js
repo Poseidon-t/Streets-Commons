@@ -1832,17 +1832,12 @@ app.post('/api/admin/sales/validate-email', async (req, res) => {
   }
 });
 
-// POST /api/admin/sales/generate-report — server-side walkability analysis + report data
-app.post('/api/admin/sales/generate-report', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
-  const { neighborhood, city, state, agentProfile } = req.body;
-  if (!city || !agentProfile?.name) {
-    return res.status(400).json({ error: 'city and agentProfile.name are required' });
-  }
+// ════════════════════════════════════════════════════
+// REPORT GENERATION — Reusable core function
+// ════════════════════════════════════════════════════
 
-  try {
+async function generateReportForLocation(neighborhood, city, state, agentProfile) {
     // 1. Geocode the location via Nominatim
-    // Use first neighborhood only (split on / or &) for cleaner geocoding
     const primaryNeighborhood = neighborhood ? neighborhood.split(/\s*[\/&]\s*/)[0].trim() : '';
     const searchQuery = primaryNeighborhood ? `${primaryNeighborhood}, ${city}, ${state}` : `${city}, ${state}`;
     const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`, {
@@ -1850,7 +1845,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     });
     const geoData = await geoRes.json();
     if (!geoData.length) {
-      return res.status(404).json({ error: `Could not geocode "${searchQuery}"` });
+      throw new Error(`Could not geocode "${searchQuery}"`);
     }
     const lat = parseFloat(geoData[0].lat);
     const lon = parseFloat(geoData[0].lon);
@@ -2291,71 +2286,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     };
     console.log(`  📊 Percentile: ${percentileValue}th (${popContext})`);
 
-    // 9. AI-generated neighborhood narrative
-    let narrative = null;
-    const anthropicKey = process.env.ANTHROPIC_API_KEY;
-    if (anthropicKey) {
-      try {
-        console.log(`  🤖 Generating neighborhood narrative...`);
-        const transitInfo = niTransit.totalStops > 0 ? `${niTransit.totalStops} transit stops nearby` : 'Limited transit access';
-        const parkInfo = niParks.totalGreenSpaces > 0 ? `${niParks.totalGreenSpaces} parks/green spaces` : 'Few green spaces';
-        const foodInfo = niFood.totalFoodStores > 0 ? `${niFood.totalFoodStores} food stores` : 'Limited food retail';
-
-        const narrativePrompt = `You are writing a neighborhood walkability narrative for a real estate client report. Write 2-3 short paragraphs (150-200 words total) that describe the walkability of this location in a warm, professional tone suitable for a home buyer.
-
-LOCATION: ${displayName}
-
-WALKABILITY SCORES (0-10 scale):
-- Overall: ${overallScore}/10 (${label})
-- Street Grid connectivity: ${streetGridScore}/10
-- Terrain/Slope: ${slopeScore}/10
-- Tree Canopy: ${treeCanopyScore}/10
-- Crash History (safety): ${crashHistoryScore}/10
-- Destinations (amenities): ${destinationAccess}/10
-- Population Density: ${populationDensityScore}/10
-
-NEIGHBORHOOD DATA:
-- ${transitInfo}
-- ${parkInfo}
-- ${foodInfo}
-- Infrastructure: ${streets.length} streets, ${crossings.length} crossings, ${sidewalks.length} sidewalks mapped
-
-GUIDELINES:
-- Reference the SPECIFIC scores and data — don't be generic
-- Highlight the strongest and weakest metrics naturally
-- Frame everything from a buyer's perspective (daily life, convenience, family-friendliness)
-- Be honest but constructive — even low scores should mention what IS available
-- Do NOT use the word "walkability" more than once
-- Output ONLY the narrative text, no headers or formatting`;
-
-        const narrativeRes = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': anthropicKey,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-6',
-            max_tokens: 500,
-            temperature: 0.7,
-            messages: [{ role: 'user', content: narrativePrompt }],
-          }),
-        });
-
-        if (narrativeRes.ok) {
-          const narrativeResult = await narrativeRes.json();
-          narrative = narrativeResult.content?.[0]?.text?.trim() || null;
-          if (narrative) console.log(`  ✅ Narrative generated (${narrative.length} chars)`);
-        } else {
-          console.warn(`  ⚠️ Narrative generation failed: ${narrativeRes.status}`);
-        }
-      } catch (narrativeErr) {
-        console.warn(`  ⚠️ Narrative generation error:`, narrativeErr.message);
-      }
-    }
-
-    // 10. Build report data
+    // 9. Build report data
     const reportData = {
       location: { lat, lon, displayName },
       metrics: {
@@ -2368,11 +2299,22 @@ GUIDELINES:
       crashData,
       neighborhoodIntel,
       agentProfile,
-      narrative,
       percentile,
     };
 
     console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}, ${available.length} metrics) — ${agentProfile.name}`);
+    return reportData;
+}
+
+// POST /api/admin/sales/generate-report — single location report
+app.post('/api/admin/sales/generate-report', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const { neighborhood, city, state, agentProfile } = req.body;
+  if (!city || !agentProfile?.name) {
+    return res.status(400).json({ error: 'city and agentProfile.name are required' });
+  }
+  try {
+    const reportData = await generateReportForLocation(neighborhood, city, state, agentProfile);
     res.json(reportData);
   } catch (err) {
     console.error('Report generation failed:', err);
@@ -2380,16 +2322,67 @@ GUIDELINES:
   }
 });
 
+// POST /api/admin/sales/generate-comparison — compare 2-4 neighborhoods
+app.post('/api/admin/sales/generate-comparison', async (req, res) => {
+  if (!requireAdminKey(req, res)) return;
+  const { neighborhoods, agentProfile } = req.body;
+  if (!Array.isArray(neighborhoods) || neighborhoods.length < 2 || neighborhoods.length > 4) {
+    return res.status(400).json({ error: '2-4 neighborhoods required' });
+  }
+  if (!agentProfile?.name) {
+    return res.status(400).json({ error: 'agentProfile.name is required' });
+  }
+
+  try {
+    console.log(`🏘️  Comparison: ${neighborhoods.length} neighborhoods for ${agentProfile.name}`);
+    const results = await Promise.allSettled(
+      neighborhoods.map(n => generateReportForLocation(n.neighborhood, n.city, n.state, agentProfile))
+    );
+
+    const comparisonData = {
+      type: 'comparison',
+      neighborhoods: results.map((r, i) => ({
+        reportData: r.status === 'fulfilled' ? r.value : null,
+        status: r.status === 'fulfilled' ? 'success' : 'failed',
+        error: r.status === 'rejected' ? r.reason?.message || 'Generation failed' : undefined,
+        input: neighborhoods[i],
+      })),
+      agentProfile,
+      generatedAt: new Date().toISOString(),
+    };
+
+    const successful = comparisonData.neighborhoods.filter(n => n.status === 'success');
+    console.log(`📊 Comparison: ${successful.length}/${neighborhoods.length} succeeded — ${agentProfile.name}`);
+
+    if (successful.length === 0) {
+      return res.status(500).json({ error: 'All neighborhood reports failed to generate' });
+    }
+
+    res.json(comparisonData);
+  } catch (err) {
+    console.error('Comparison generation failed:', err);
+    res.status(500).json({ error: `Comparison generation failed: ${err.message}` });
+  }
+});
+
 // ════════════════════════════════════════════════════
 // SHAREABLE REPORTS
 // ════════════════════════════════════════════════════
 
-// POST /api/reports — save a report and get a shareable URL
+// POST /api/reports — save a report (single or comparison) and get a shareable URL
 app.post('/api/reports', (req, res) => {
   try {
     const { reportData } = req.body;
-    if (!reportData?.location || !reportData?.metrics) {
-      return res.status(400).json({ error: 'Missing reportData with location and metrics' });
+    const isComparison = reportData?.type === 'comparison';
+
+    if (isComparison) {
+      if (!reportData.neighborhoods?.length || reportData.neighborhoods.length < 2) {
+        return res.status(400).json({ error: 'Comparison requires 2+ neighborhoods' });
+      }
+    } else {
+      if (!reportData?.location || !reportData?.metrics) {
+        return res.status(400).json({ error: 'Missing reportData with location and metrics' });
+      }
     }
 
     const id = generateReportId();
@@ -2397,6 +2390,7 @@ app.post('/api/reports', (req, res) => {
     db.reports.push({
       id,
       reportData,
+      type: isComparison ? 'comparison' : 'single',
       createdAt: new Date().toISOString(),
       viewCount: 0,
       leads: [],
@@ -2404,7 +2398,10 @@ app.post('/api/reports', (req, res) => {
     db.count = db.reports.length;
     saveReports(db);
 
-    console.log(`📄 Report saved: ${id} — ${reportData.location.displayName}`);
+    const label = isComparison
+      ? `${reportData.neighborhoods.filter(n => n.status === 'success').length} neighborhoods compared`
+      : reportData.location.displayName;
+    console.log(`📄 Report saved: ${id} — ${label}`);
     res.json({ id, shareUrl: `/r/${id}` });
   } catch (err) {
     console.error('Failed to save report:', err);

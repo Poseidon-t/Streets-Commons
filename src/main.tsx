@@ -18,6 +18,7 @@ import LearnIndex from './components/LearnIndex.tsx'
 import { FifteenMinuteCityReport } from './components/reports'
 import AgentReportView from './components/AgentReportView'
 import SharedReportView from './components/SharedReportView'
+const ComparisonReportView = lazy(() => import('./components/ComparisonReportView'))
 
 // Enterprise marketing pages (lazy-loaded)
 const EnterpriseLayout = lazy(() => import('./enterprise/EnterpriseLayout'))
@@ -69,6 +70,11 @@ createRoot(document.getElementById('root')!).render(
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
           <Route path="/report/agent" element={<AgentReportView />} />
+          <Route path="/report/comparison" element={
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-gray-400">Loading comparison...</div></div>}>
+              <ComparisonReportView />
+            </Suspense>
+          } />
           {/* Shareable reports */}
           <Route path="/r/:reportId" element={<SharedReportView />} />
           {/* Enterprise marketing pages */}

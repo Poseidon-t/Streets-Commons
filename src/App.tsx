@@ -1599,10 +1599,10 @@ function App() {
                           For Real Estate Agents
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-                          Branded Walkability Reports
+                          Compare Neighborhoods for Your Buyers
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                          Your name, company, and contact info on every page. Print-ready PDFs with walkability analysis, neighborhood intelligence, 15-minute city scores, and crash safety data for any listing.
+                          Help buyers choose the right neighborhood with side-by-side walkability comparisons. Your branding on every page, shareable links with lead capture, and data buyers can't find on Zillow.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -1673,7 +1673,7 @@ function App() {
 
                     {/* Feature bar */}
                     <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      {['Your branding on every page', 'Full walkability analysis', '15-min city + social indicators', 'Print-ready PDF'].map(f => (
+                      {['Compare 2-4 neighborhoods side-by-side', 'Shareable links with lead capture', 'Your logo & brand colors', 'Walkability value premium estimates'].map(f => (
                         <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                           <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -1942,7 +1942,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! Agents can generate branded walkability reports with their name, company, and contact info for any property listing. The first 3 reports are free. Unlimited reports are available with a Pro account ($99 one-time). Every Walk Score point adds approximately $3,500 to home value &mdash; give your buyers the data they need.
+                    Yes! Pro agents can compare 2-4 neighborhoods side-by-side with branded reports, shareable links with lead capture, and walkability value premium estimates. The first 3 reports are free. Unlimited reports and comparisons are available with a Pro account ($99 one-time). Every Walk Score point adds approximately $3,500 to home value &mdash; give your buyers the data they need.
                   </p>
                 </div>
               </div>

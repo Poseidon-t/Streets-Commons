@@ -17,10 +17,10 @@ interface ProUpgradeModalProps {
 }
 
 const PRO_FEATURES = [
-  { icon: '📊', name: 'Branded Agent Reports', desc: 'Your name, company & contact on every PDF' },
-  { icon: '🏠', name: 'Unlimited Reports', desc: 'Generate reports for every listing' },
-  { icon: '🖨️', name: 'Print-Optimized PDFs', desc: '3-page reports ready for clients' },
-  { icon: '📈', name: 'Full Walkability Analysis', desc: '12 data layers, 15-min city & neighborhood intelligence' },
+  { icon: '📊', name: 'Neighborhood Comparisons', desc: 'Side-by-side analysis of 2-4 neighborhoods for buyer consultations' },
+  { icon: '🏠', name: 'Branded Agent Reports', desc: 'Your logo, brand colors & contact on every page' },
+  { icon: '🔗', name: 'Shareable Links + Lead Capture', desc: 'Send reports to buyers and capture their contact info' },
+  { icon: '📈', name: 'Walkability Value Premiums', desc: 'Dollar estimates of walkability impact on home value' },
 ];
 
 export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgradeModalProps) {

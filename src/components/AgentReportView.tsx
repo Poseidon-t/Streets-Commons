@@ -24,7 +24,6 @@ interface AgentReportData {
   crashData?: CrashData;
   neighborhoodIntel?: NeighborhoodIntelligence;
   agentProfile: AgentProfile;
-  narrative?: string | null;
   percentile?: PercentileData | null;
 }
 
@@ -332,18 +331,6 @@ export default function AgentReportView() {
               This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using OpenStreetMap data and NASA satellite imagery.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
             </p>
           </div>
-
-          {/* AI Neighborhood Narrative */}
-          {data.narrative && (
-            <div style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: `linear-gradient(135deg, ${C.bgWarm}, #f5f0e8)`, borderRadius: '1rem', borderLeft: `4px solid ${brandAccent}` }}>
-              <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: brandAccent, marginBottom: '1rem', fontWeight: 700 }}>Neighborhood Overview</h3>
-              {data.narrative.split('\n\n').map((para, i) => (
-                <p key={i} style={{ fontSize: '0.9375rem', color: C.text, lineHeight: 1.8, marginBottom: i < data.narrative!.split('\n\n').length - 1 ? '0.75rem' : 0 }}>
-                  {para}
-                </p>
-              ))}
-            </div>
-          )}
 
           {/* Strengths & Concerns */}
           {strengths.length > 0 && (

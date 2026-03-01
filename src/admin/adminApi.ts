@@ -82,3 +82,5 @@ export const validateEmail = (email: string) =>
   adminFetch('/api/admin/sales/validate-email', { method: 'POST', body: JSON.stringify({ email }) });
 export const generateReport = (params: { neighborhood: string; city: string; state: string; agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string } }) =>
   adminFetch('/api/admin/sales/generate-report', { method: 'POST', body: JSON.stringify(params) });
+export const generateComparison = (params: { neighborhoods: Array<{ neighborhood: string; city: string; state: string }>; agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string } }) =>
+  adminFetch('/api/admin/sales/generate-comparison', { method: 'POST', body: JSON.stringify(params) });

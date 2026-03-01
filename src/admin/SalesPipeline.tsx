@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchLeads, updateLead, addLead, searchAgents, validateEmail, generateReport } from './adminApi';
+import { fetchLeads, updateLead, addLead, searchAgents, validateEmail, generateReport, generateComparison } from './adminApi';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -108,6 +108,8 @@ export default function SalesPipeline() {
   const [validating, setValidating] = useState<Set<number>>(new Set());
   const [validatingAll, setValidatingAll] = useState(false);
   const [generatingReport, setGeneratingReport] = useState<number | null>(null);
+  const [selectedLeads, setSelectedLeads] = useState<Set<number>>(new Set());
+  const [generatingComparison, setGeneratingComparison] = useState(false);
 
   // Load leads
   useEffect(() => {
@@ -294,6 +296,57 @@ export default function SalesPipeline() {
     }
   };
 
+  const toggleLeadSelection = (rank: number) => {
+    setSelectedLeads(prev => {
+      const next = new Set(prev);
+      if (next.has(rank)) next.delete(rank);
+      else if (next.size < 4) next.add(rank);
+      return next;
+    });
+  };
+
+  const handleGenerateComparison = async () => {
+    const selected = leads.filter(l => selectedLeads.has(l.rank));
+    if (selected.length < 2) return;
+    setGeneratingComparison(true);
+    const reportWindow = window.open('about:blank', '_blank');
+    try {
+      const comparisonData = await generateComparison({
+        neighborhoods: selected.map(l => ({ neighborhood: l.neighborhood, city: l.city, state: l.state })),
+        agentProfile: {
+          name: selected[0].agentName,
+          company: selected[0].brokerage || undefined,
+          email: selected[0].email.startsWith('Check') ? undefined : selected[0].email,
+          phone: selected[0].phone.startsWith('Check') ? undefined : selected[0].phone,
+        },
+      });
+      sessionStorage.setItem('agentComparisonData', JSON.stringify(comparisonData));
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const saveRes = await fetch(`${apiUrl}/api/reports`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportData: comparisonData }),
+        });
+        if (saveRes.ok) {
+          const { shareUrl } = await saveRes.json();
+          sessionStorage.setItem('agentComparisonShareUrl', shareUrl);
+        }
+      } catch { /* non-critical */ }
+      if (reportWindow && !reportWindow.closed) {
+        reportWindow.location.href = '/report/comparison';
+      } else {
+        window.location.href = '/report/comparison';
+      }
+    } catch (err) {
+      setError((err as Error).message);
+      if (reportWindow && !reportWindow.closed) reportWindow.close();
+    } finally {
+      setGeneratingComparison(false);
+      setSelectedLeads(new Set());
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────
 
   if (loading) return <div className="text-gray-500">Loading pipeline...</div>;
@@ -395,11 +448,30 @@ export default function SalesPipeline() {
         <span className="text-xs text-gray-400">{filtered.length} of {leads.length} leads</span>
       </div>
 
+      {/* Compare Bar */}
+      {selectedLeads.size >= 2 && (
+        <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-between">
+          <span className="text-sm text-blue-800 font-medium">{selectedLeads.size} neighborhoods selected</span>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setSelectedLeads(new Set())} className="text-xs text-blue-600 hover:underline">Clear</button>
+            <button
+              onClick={handleGenerateComparison}
+              disabled={generatingComparison}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: '#1e3a5f' }}
+            >
+              {generatingComparison ? 'Generating...' : `Compare ${selectedLeads.size} Neighborhoods`}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Leads Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 text-left">
+              <th className="px-2 py-3 w-8"></th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase w-10">#</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Agent</th>
               <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase hidden md:table-cell">Location</th>
@@ -425,6 +497,8 @@ export default function SalesPipeline() {
                 onActiveListingsChange={handleActiveListingsChange}
                 onGenerateReport={() => handleGenerateReport(lead)}
                 isGeneratingReport={generatingReport === lead.rank}
+                isSelected={selectedLeads.has(lead.rank)}
+                onToggleSelect={() => toggleLeadSelection(lead.rank)}
               />
             ))}
           </tbody>
@@ -520,6 +594,8 @@ function LeadRow({
   onActiveListingsChange,
   onGenerateReport,
   isGeneratingReport,
+  isSelected,
+  onToggleSelect,
 }: {
   lead: QualifiedLead;
   expanded: boolean;
@@ -533,6 +609,8 @@ function LeadRow({
   onActiveListingsChange: (rank: number, activeListings: string) => void;
   onGenerateReport: () => void;
   isGeneratingReport: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }) {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesValue, setNotesValue] = useState(lead.notes || '');
@@ -548,6 +626,14 @@ function LeadRow({
         className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition"
         onClick={onToggle}
       >
+        <td className="px-2 py-3 text-center" onClick={e => e.stopPropagation()}>
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onToggleSelect}
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+          />
+        </td>
         <td className="px-4 py-3 text-sm text-gray-400 font-mono">{lead.rank}</td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-1.5">
