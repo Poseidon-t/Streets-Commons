@@ -1,14 +1,9 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 
 const METRIC_LABELS: Record<string, string> = {
-  crossingSafety: 'crossing safety',
-  sidewalkCoverage: 'sidewalk coverage',
-  speedExposure: 'traffic speed protection',
   destinationAccess: 'access to daily needs',
-  nightSafety: 'street lighting',
   slope: 'terrain accessibility',
   treeCanopy: 'shade and tree canopy',
-  thermalComfort: 'thermal comfort',
 };
 
 function getWorstMetrics(metrics: WalkabilityMetrics, count: number): string[] {

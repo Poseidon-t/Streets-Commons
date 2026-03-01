@@ -1,11 +1,13 @@
 /**
  * 4-Component Walkability Scoring (0-100 + A-F Grade)
  *
+ * Only high-accuracy (>90% ground-truth) metrics are scored:
+ *
  * Components:
- *   Network Design        35%  — intersection density, block length, network density, dead-end ratio
- *   Environmental Comfort 25%  — tree canopy, building density (NDBI), thermal comfort
- *   Safety                25%  — speed exposure, crossing safety, night safety, crash severity
- *   Density Context       15%  — population density
+ *   Network Design   35%  — intersection density, block length, network density, dead-end ratio (OSM topology)
+ *   Environment      25%  — tree canopy (Sentinel-2 NDVI), slope (NASADEM)
+ *   Safety           15%  — crash data (NHTSA FARS / WHO)
+ *   Accessibility    25%  — population density (GHS-POP), destination access (OSM POIs)
  *
  * Each sub-metric is 0-100. Components are weighted averages of their sub-metrics.
  * Overall = weighted sum of components → 0-100 + letter grade.
@@ -128,70 +130,60 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environmental Comfort (25%) =====
+  // ===== 2. Environment (25%) — Tree Canopy + Slope =====
   const treeScore = scale10to100(legacy.treeCanopy);
-  const thermalScore = scale10to100(legacy.thermalComfort);
+  const slopeScore = scale10to100(legacy.slope);
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy', score: treeScore, weight: 0.50 },
-    { name: 'Building Density', score: buildingDensityScore ?? 0, rawValue: buildingDensityScore !== undefined ? `NDBI` : undefined, weight: 0.30 },
-    { name: 'Thermal Comfort', score: thermalScore, weight: 0.20 },
+    { name: 'Tree Canopy', score: treeScore, weight: 0.60 },
+    { name: 'Terrain', score: slopeScore, weight: 0.40 },
   ];
 
-  // Only include metrics that have real data
   const envItems = [
-    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.50 },
-    { score: buildingDensityScore !== undefined ? buildingDensityScore : null, weight: 0.30 },
-    { score: legacy.thermalComfort > 0 ? thermalScore : null, weight: 0.20 },
+    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.60 },
+    { score: legacy.slope > 0 ? slopeScore : null, weight: 0.40 },
   ];
   const envScore = weightedAvg(envItems);
 
   const environmentalComfort: ComponentScore = {
-    label: 'Environmental Comfort',
+    label: 'Environment',
     score: Math.round(envScore),
     weight: 0.25,
     metrics: envMetrics,
   };
 
-  // ===== 3. Safety (25%) =====
-  const speedScore = scale10to100(legacy.speedExposure);
-  const crossingScore = scale10to100(legacy.crossingSafety);
-  const nightScore = scale10to100(legacy.nightSafety);
+  // ===== 3. Safety (15%) — Crash Data only =====
   const crashScore = scoreCrashData(crashData ?? null);
 
   const safetyMetrics: SubMetric[] = [
-    { name: 'Speed Exposure', score: speedScore, weight: 0.25 },
-    { name: 'Crossing Safety', score: crossingScore, weight: 0.25 },
-    { name: 'Night Safety', score: nightScore, weight: 0.25 },
-    { name: 'Crash Data', score: crashScore ?? 0, weight: 0.25 },
+    { name: 'Crash History', score: crashScore ?? 0, weight: 1.0 },
   ];
-
-  const safetyItems = [
-    { score: speedScore, weight: 0.25 },
-    { score: crossingScore, weight: 0.25 },
-    { score: nightScore, weight: 0.25 },
-    { score: crashScore, weight: 0.25 },
-  ];
-  const safetyScore = weightedAvg(safetyItems);
 
   const safety: ComponentScore = {
     label: 'Safety',
-    score: Math.round(safetyScore),
-    weight: 0.25,
+    score: Math.round(crashScore ?? 0),
+    weight: 0.15,
     metrics: safetyMetrics,
   };
 
-  // ===== 4. Density Context (15%) =====
+  // ===== 4. Accessibility (25%) — Population Density + Destinations =====
   const popScore = populationDensityScore ?? 0;
+  const destScore = scale10to100(legacy.destinationAccess);
 
   const densityMetrics: SubMetric[] = [
-    { name: 'Population Density', score: popScore, weight: 1.0 },
+    { name: 'Population Density', score: popScore, weight: 0.50 },
+    { name: 'Nearby Destinations', score: destScore, weight: 0.50 },
+  ];
+
+  const densityItems = [
+    { score: popScore > 0 ? popScore : null, weight: 0.50 },
+    { score: legacy.destinationAccess > 0 ? destScore : null, weight: 0.50 },
   ];
 
   const densityContext: ComponentScore = {
-    label: 'Density Context',
-    score: Math.round(popScore),
-    weight: 0.15,
+    label: 'Accessibility',
+    score: Math.round(weightedAvg(densityItems)),
+    weight: 0.25,
     metrics: densityMetrics,
   };
 

@@ -32,16 +32,10 @@ export default function CompareView({
     return score1 > score2 ? 'left' : 'right';
   };
 
-  // 8 core metrics + overall
   const metrics = [
-    { name: 'Crossing Safety', score1: metrics1.crossingSafety, score2: metrics2.crossingSafety },
-    { name: 'Sidewalks', score1: metrics1.sidewalkCoverage, score2: metrics2.sidewalkCoverage },
-    { name: 'Traffic Speed', score1: metrics1.speedExposure, score2: metrics2.speedExposure },
-    { name: 'Daily Needs', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
-    { name: 'Night Safety', score1: metrics1.nightSafety, score2: metrics2.nightSafety },
-    { name: 'Terrain Slope', score1: metrics1.slope, score2: metrics2.slope },
+    { name: 'Destinations', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
+    { name: 'Terrain', score1: metrics1.slope, score2: metrics2.slope },
     { name: 'Tree Canopy', score1: metrics1.treeCanopy, score2: metrics2.treeCanopy },
-    { name: 'Thermal Comfort', score1: metrics1.thermalComfort, score2: metrics2.thermalComfort },
     { name: 'Overall Score', score1: metrics1.overallScore, score2: metrics2.overallScore },
   ];
 

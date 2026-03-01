@@ -36,14 +36,9 @@ function getBarColor(score: number): string {
 }
 
 const METRIC_LABELS: { key: keyof WalkabilityMetrics; label: string; icon: string }[] = [
-  { key: 'sidewalkCoverage', label: 'Sidewalks', icon: '🚶' },
-  { key: 'crossingSafety', label: 'Crossings', icon: '🚦' },
-  { key: 'speedExposure', label: 'Traffic Safety', icon: '🛡️' },
-  { key: 'nightSafety', label: 'Lighting', icon: '💡' },
-  { key: 'treeCanopy', label: 'Tree Cover', icon: '🌳' },
-  { key: 'slope', label: 'Terrain', icon: '⛰️' },
-  { key: 'thermalComfort', label: 'Temperature', icon: '🌡️' },
   { key: 'destinationAccess', label: 'Destinations', icon: '🏪' },
+  { key: 'slope', label: 'Terrain', icon: '⛰️' },
+  { key: 'treeCanopy', label: 'Tree Cover', icon: '🌳' },
 ];
 
 export default function ShareableReportCard({

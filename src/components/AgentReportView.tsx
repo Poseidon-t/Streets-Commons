@@ -48,13 +48,9 @@ const getScoreColor = (s: number) => {
 };
 
 const metricsConfig = [
-  { key: 'crossingSafety', name: 'Crossing Safety', icon: '🚦', source: 'OpenStreetMap' },
-  { key: 'speedExposure', name: 'Traffic Speed', icon: '🚗', source: 'OpenStreetMap' },
-  { key: 'destinationAccess', name: 'Daily Needs', icon: '🏪', source: 'OpenStreetMap' },
-  { key: 'nightSafety', name: 'Night Safety', icon: '💡', source: 'OpenStreetMap' },
-  { key: 'slope', name: 'Flat Routes', icon: '⛰️', source: 'NASA SRTM' },
+  { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
+  { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
-  { key: 'thermalComfort', name: 'Thermal Comfort', icon: '🌡️', source: 'NASA POWER' },
 ] as const;
 
 export default function AgentReportView() {

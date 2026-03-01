@@ -85,14 +85,9 @@ export default function ReportView() {
   };
 
   const metricsArray: { name: string; score: number; icon: string; description: string; key: MetricKey }[] = [
-    { name: 'Crossing Safety', score: metrics.crossingSafety, icon: '🚦', description: 'Protected pedestrian crossings (OpenStreetMap)', key: 'crossingSafety' },
-    { name: 'Sidewalks', score: metrics.sidewalkCoverage, icon: '🚶\u200D♀️', description: 'Streets with sidewalk coverage (OpenStreetMap)', key: 'sidewalkCoverage' },
-    { name: 'Traffic Speed', score: metrics.speedExposure, icon: '🚗', description: 'Traffic speed and lane safety (OpenStreetMap)', key: 'speedExposure' },
-    { name: 'Daily Needs', score: metrics.destinationAccess, icon: '🏪', description: 'Essential services within walking distance (OpenStreetMap)', key: 'destinationAccess' },
-    { name: 'Night Safety', score: metrics.nightSafety, icon: '💡', description: 'Street lighting coverage (OpenStreetMap)', key: 'nightSafety' },
-    { name: 'Flat Routes', score: metrics.slope, icon: '⛰️', description: 'Terrain difficulty (NASA SRTM)', key: 'slope' },
+    { name: 'Destinations', score: metrics.destinationAccess, icon: '🏪', description: 'Essential services within walking distance (OpenStreetMap)', key: 'destinationAccess' },
+    { name: 'Terrain', score: metrics.slope, icon: '⛰️', description: 'Terrain difficulty (NASA SRTM)', key: 'slope' },
     { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌳', description: 'Shade from trees (Sentinel-2 NDVI)', key: 'treeCanopy' },
-    { name: 'Thermal Comfort', score: metrics.thermalComfort, icon: '🌡️', description: 'Walking temperature comfort (NASA POWER + Sentinel-2)', key: 'thermalComfort' },
   ];
 
   // Resolved metrics (using field-adjusted scores when active)

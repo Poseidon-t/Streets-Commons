@@ -11,8 +11,7 @@ export type MetricKey =
   | 'thermalComfort';
 
 export const METRIC_KEYS: MetricKey[] = [
-  'crossingSafety', 'sidewalkCoverage', 'speedExposure', 'destinationAccess',
-  'nightSafety', 'slope', 'treeCanopy', 'thermalComfort',
+  'destinationAccess', 'slope', 'treeCanopy',
 ];
 
 export interface FieldEntry {
@@ -40,23 +39,15 @@ export function recalculateScore(
 ): { overallScore: number; label: WalkabilityMetrics['label'] } {
   const r = (key: MetricKey): number => fieldData[key].adjustedScore ?? original[key];
 
-  const safetyScore = r('crossingSafety') * 0.15 + r('sidewalkCoverage') * 0.15 +
-    r('speedExposure') * 0.15 + r('nightSafety') * 0.10 + r('destinationAccess') * 0.10;
-
-  // Check if satellite data was available in original analysis
-  const hasSatellite = [original.slope, original.treeCanopy, original.thermalComfort]
-    .filter(s => s > 0).length >= 2;
-
-  let overallScore: number;
-  if (hasSatellite) {
-    overallScore = Math.round(
-      (safetyScore + r('slope') * 0.10 + r('treeCanopy') * 0.10 + r('thermalComfort') * 0.15) * 10
-    ) / 10;
-  } else {
-    overallScore = Math.round(
-      ((r('crossingSafety') + r('sidewalkCoverage') + r('speedExposure') + r('nightSafety') + r('destinationAccess')) / 5) * 10
-    ) / 10;
+  // Simple average of the 3 field-verifiable metrics
+  const available: number[] = [];
+  for (const key of METRIC_KEYS) {
+    const val = r(key);
+    if (val > 0) available.push(val);
   }
+  const overallScore = available.length > 0
+    ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
+    : original.overallScore;
 
   const label: WalkabilityMetrics['label'] =
     overallScore >= 8 ? 'Excellent' :
