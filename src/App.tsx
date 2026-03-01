@@ -1478,65 +1478,59 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                {/* Steps with connecting line */}
-                <div className="relative">
-                  {/* Connecting line (hidden on mobile) */}
-                  <div className="hidden md:block absolute top-16 left-1/6 right-1/6 h-0.5" style={{ background: 'linear-gradient(to right, #e0dbd0, #e07850, #e0dbd0)' }}></div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {/* Step 1 */}
-                    <div className="text-center relative">
-                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg relative z-10" style={{ background: 'linear-gradient(135deg, #e07850, #c86040)' }}>
-                        <svg viewBox="0 0 48 48" className="w-10 h-10">
-                          <circle cx="24" cy="20" r="8" fill="none" stroke="white" strokeWidth="2.5"/>
-                          <path d="M24 12 L24 16 M24 24 L24 28 M16 20 L20 20 M28 20 L32 20" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                          <path d="M24 28 L24 40" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                          <circle cx="24" cy="40" r="3" fill="white"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Search Any Location</h3>
-                      <p className="text-earth-text-body text-sm leading-relaxed">
-                        Enter any address, city, or place worldwide. Our system works globally with coverage in 190+ countries.
-                      </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {/* Step 1 */}
+                  <div className="text-center relative">
+                    <div className="relative mb-4">
+                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#e07850' }}>1</span>
+                      <img
+                        src="/screenshots/step-1-search.png"
+                        alt="Search any address with autocomplete suggestions"
+                        className="w-full rounded-xl shadow-md border"
+                        style={{ borderColor: '#e0dbd0' }}
+                        loading="lazy"
+                      />
                     </div>
+                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Search Any Location</h3>
+                    <p className="text-earth-text-body text-sm leading-relaxed">
+                      Enter any address, city, or place worldwide. Works in 190+ countries.
+                    </p>
+                  </div>
 
-                    {/* Step 2 */}
-                    <div className="text-center relative">
-                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg relative z-10" style={{ background: 'linear-gradient(135deg, #4a8a4a, #3a7a3a)' }}>
-                        <svg viewBox="0 0 48 48" className="w-10 h-10">
-                          <rect x="8" y="28" width="6" height="12" fill="white" opacity="0.6" rx="1"/>
-                          <rect x="17" y="20" width="6" height="20" fill="white" opacity="0.8" rx="1"/>
-                          <rect x="26" y="14" width="6" height="26" fill="white" rx="1"/>
-                          <rect x="35" y="22" width="6" height="18" fill="white" opacity="0.7" rx="1"/>
-                          <circle cx="36" cy="10" r="4" fill="white"/>
-                          <path d="M32 10 L28 14 M40 10 L44 14 M36 6 L36 2" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Get Instant Analysis</h3>
-                      <p className="text-earth-text-body text-sm leading-relaxed">
-                        Walkability and neighborhood intelligence calculated in seconds from satellite and government data.
-                      </p>
+                  {/* Step 2 */}
+                  <div className="text-center relative">
+                    <div className="relative mb-4">
+                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#4a8a4a' }}>2</span>
+                      <img
+                        src="/screenshots/step-2-analysis.png"
+                        alt="Walkability score with map and metric breakdown"
+                        className="w-full rounded-xl shadow-md border"
+                        style={{ borderColor: '#e0dbd0' }}
+                        loading="lazy"
+                      />
                     </div>
+                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Get Instant Analysis</h3>
+                    <p className="text-earth-text-body text-sm leading-relaxed">
+                      Walkability score, crash data, and neighborhood intelligence in seconds.
+                    </p>
+                  </div>
 
-                    {/* Step 3 */}
-                    <div className="text-center relative">
-                      <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-lg relative z-10" style={{ background: 'linear-gradient(135deg, #2a3a2a, #1a2a1a)' }}>
-                        <svg viewBox="0 0 48 48" className="w-10 h-10">
-                          <rect x="10" y="6" width="28" height="36" fill="white" rx="2"/>
-                          <rect x="14" y="12" width="12" height="2" fill="#2a3a2a"/>
-                          <rect x="14" y="18" width="20" height="1.5" fill="#2a3a2a" opacity="0.5"/>
-                          <rect x="14" y="22" width="18" height="1.5" fill="#2a3a2a" opacity="0.5"/>
-                          <rect x="14" y="26" width="16" height="1.5" fill="#2a3a2a" opacity="0.5"/>
-                          <rect x="14" y="30" width="4" height="8" fill="#4a8a4a" opacity="0.6"/>
-                          <rect x="20" y="32" width="4" height="6" fill="#4a8a4a" opacity="0.8"/>
-                          <rect x="26" y="28" width="4" height="10" fill="#4a8a4a"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-xl font-bold text-earth-text-dark mb-2">Compare & Decide</h3>
-                      <p className="text-earth-text-body text-sm leading-relaxed">
-                        Compare neighborhoods side by side, download a PDF report, and share with family or your agent.
-                      </p>
+                  {/* Step 3 */}
+                  <div className="text-center relative">
+                    <div className="relative mb-4">
+                      <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: '#2a3a2a' }}>3</span>
+                      <img
+                        src="/screenshots/step-3-compare.png"
+                        alt="Side-by-side neighborhood comparison"
+                        className="w-full rounded-xl shadow-md border"
+                        style={{ borderColor: '#e0dbd0' }}
+                        loading="lazy"
+                      />
                     </div>
+                    <h3 className="text-lg font-bold text-earth-text-dark mb-1">Compare & Decide</h3>
+                    <p className="text-earth-text-body text-sm leading-relaxed">
+                      Compare neighborhoods side by side and share with family or your agent.
+                    </p>
                   </div>
                 </div>
 
