@@ -74,7 +74,7 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
       weight: 0.15,
       metrics: [
         { name: 'Destination Access', score: 84, rawValue: '156 POIs', weight: 0.4 },
-        { name: 'Population Density', score: 72, rawValue: '4,850/km²', weight: 0.35 },
+        { name: 'Commute Mode', score: 72, rawValue: '38% car-free', weight: 0.35 },
         { name: 'Transit Proximity', score: 81, rawValue: '8 stops nearby', weight: 0.25 },
       ],
     },

@@ -871,7 +871,7 @@ function App() {
                         { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
                         { icon: '🚨', name: 'Crashes', score: '5.9' },
                         { icon: '🏪', name: 'Destinations', score: '7.1' },
-                        { icon: '👥', name: 'Population', score: '6.8' },
+                        { icon: '🚶', name: 'Commute Mode', score: '6.8' },
                       ].map(m => (
                         <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
                           <span className="text-xs" style={{ color: '#6a7a6a' }}>{m.icon} {m.name}</span>
@@ -1539,7 +1539,7 @@ function App() {
                         { icon: '🌳', name: 'Tree Canopy', desc: 'Shade and vegetation coverage', source: 'Sentinel-2' },
                         { icon: '🚨', name: 'Crash History', desc: 'Pedestrian crash data', source: 'NHTSA / WHO' },
                         { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
-                        { icon: '👥', name: 'Population', desc: 'Density and urban context', source: 'GHS-POP' },
+                        { icon: '🚶', name: 'Commute Mode', desc: 'Walk, bike, and transit commute share', source: 'Census ACS' },
                       ].map(item => (
                         <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-earth-border/60">
                           <span className="text-base mt-0.5">{item.icon}</span>

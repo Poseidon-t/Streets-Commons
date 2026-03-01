@@ -51,7 +51,7 @@ I came across your listing${lead.sampleListing && !lead.sampleListing.startsWith
 
 https://safestreets.streetsandcommons.com
 
-The report covers 6 walkability metrics (street connectivity, terrain, tree canopy, crash history, nearby destinations, population density), neighborhood intelligence (commute patterns, health data, flood risk), and equity context — all from NASA satellite imagery, US Census, CDC, and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
+The report covers 6 walkability metrics (street connectivity, terrain, tree canopy, crash history, nearby destinations, commute mode), neighborhood intelligence (commute patterns, economics, health data, flood risk), and equity context, all from NASA satellite imagery, US Census, CDC, and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
 
 That's the ready-made product — $99 one-time, unlimited reports, 30 seconds to generate.
 

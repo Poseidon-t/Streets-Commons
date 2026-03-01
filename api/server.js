@@ -3890,7 +3890,7 @@ app.get('/api/heat-island', async (req, res) => {
 });
 
 // ====================
-// POPULATION DENSITY
+// COMMUTE MODE (replaces Population Density — GHS-POP removed from Planetary Computer)
 // ====================
 
 app.get('/api/population-density', async (req, res) => {
@@ -3905,127 +3905,88 @@ app.get('/api/population-density', async (req, res) => {
 
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lon);
-    console.log(`👥 Fetching population density for: ${latitude}, ${longitude}`);
 
-    // Search GHS-POP (Global Human Settlement Population) via Planetary Computer
-    const buffer = 0.005; // ~500m
-    const bbox = [longitude - buffer, latitude - buffer, longitude + buffer, latitude + buffer];
+    // Step 1: FCC Census API → tract FIPS
+    const fccRes = await fetch(
+      `https://geo.fcc.gov/api/census/area?lat=${latitude}&lon=${longitude}&format=json`,
+      { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' } }
+    );
+    if (!fccRes.ok) throw new Error(`FCC API returned ${fccRes.status}`);
+    const fccData = await fccRes.json();
+    const blk = fccData.results?.[0];
 
-    const stacSearchUrl = 'https://planetarycomputer.microsoft.com/api/stac/v1/search';
-    const searchBody = {
-      collections: ['ghs-pop'],
-      bbox,
-      limit: 1,
-      sortby: [{ field: 'datetime', direction: 'desc' }],
-    };
-
-    const stacResponse = await fetch(stacSearchUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(searchBody),
-    });
-
-    if (!stacResponse.ok) throw new Error(`STAC search failed: ${stacResponse.statusText}`);
-    const stacData = await stacResponse.json();
-
-    if (!stacData.features || stacData.features.length === 0) {
-      console.log('⚠️  No GHS-POP data found, using fallback estimate');
+    if (!blk?.block_fips) {
+      // Non-US location or no coverage
       return res.json({
         success: true,
-        data: {
-          populationDensity: null,
-          score: 50,
-          category: 'No Data',
-          dataSource: 'GHS-POP (no coverage)',
-          dataQuality: 'estimated',
-        },
+        data: { score: 50, category: 'No Data', dataSource: 'Census ACS (no coverage)' },
       });
     }
 
-    const feature = stacData.features[0];
-    const populationAsset = feature.assets?.population_count || feature.assets?.data;
-    if (!populationAsset) {
-      throw new Error('No population count asset in GHS-POP feature');
-    }
+    const stateFips = blk.state_fips;
+    const countyFips = blk.county_fips.substring(2);
+    const tractFips = blk.block_fips.substring(5, 11);
 
-    // Sign URL
-    const signingEndpoint = `https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(populationAsset.href)}`;
-    const signResponse = await fetch(signingEndpoint);
-    if (!signResponse.ok) throw new Error('Failed to sign URL');
-    const signedData = await signResponse.json();
+    // Step 2: Census ACS — commute mode (B08301), income (B19013), home value (B25077), population (B01003)
+    const acsUrl = `https://api.census.gov/data/2022/acs/acs5?get=B08301_001E,B08301_019E,B08301_018E,B08301_010E,B19013_001E,B25077_001E,B01003_001E&for=tract:${tractFips}&in=state:${stateFips}&in=county:${countyFips}`;
+    const acsRes = await fetch(acsUrl, { signal: AbortSignal.timeout(15000) });
 
-    // Read GeoTIFF
-    const tiff = await fromUrl(signedData.href);
-    const image = await tiff.getImage();
-    const geoBbox = image.getBoundingBox();
-    const [minX, minY, maxX, maxY] = geoBbox;
-    const width = image.getWidth();
-    const height = image.getHeight();
+    if (!acsRes.ok) throw new Error(`Census ACS returned ${acsRes.status}`);
+    const acsJson = await acsRes.json();
 
-    const pixelX = Math.floor(((longitude - minX) / (maxX - minX)) * width);
-    const pixelY = Math.floor(((maxY - latitude) / (maxY - minY)) * height);
-
-    if (pixelX < 0 || pixelX >= width || pixelY < 0 || pixelY >= height) {
+    if (!acsJson || acsJson.length < 2) {
       return res.json({
         success: true,
-        data: { populationDensity: null, score: 50, category: 'Out of Bounds', dataQuality: 'estimated' },
+        data: { score: 50, category: 'No Data', dataSource: 'Census ACS (no tract data)' },
       });
     }
 
-    // Read a small window around the point
-    const sampleR = 2;
-    const x0 = Math.max(0, pixelX - sampleR);
-    const y0 = Math.max(0, pixelY - sampleR);
-    const x1 = Math.min(width, pixelX + sampleR + 1);
-    const y1 = Math.min(height, pixelY + sampleR + 1);
+    const row = acsJson[1];
+    const totalWorkers = parseInt(row[0]) || 0;
+    const walkCount = parseInt(row[1]) || 0;
+    const bikeCount = parseInt(row[2]) || 0;
+    const transitCount = parseInt(row[3]) || 0;
+    const medianIncome = parseInt(row[4]) || null;
+    const medianHomeValue = parseInt(row[5]) || null;
+    const totalPop = parseInt(row[6]) || 0;
 
-    const rasterData = await image.readRasters({ window: [x0, y0, x1, y1] });
-    const values = rasterData[0];
+    const pct = (n) => totalWorkers > 0 ? Math.round(n / totalWorkers * 1000) / 10 : 0;
+    const walkPct = pct(walkCount);
+    const bikePct = pct(bikeCount);
+    const transitPct = pct(transitCount);
+    const altPct = Math.round((walkPct + bikePct + transitPct) * 10) / 10;
 
-    // GHS-POP gives population count per ~100m cell → people/km² ≈ value × 100
-    let sum = 0;
-    let validCount = 0;
-    for (let i = 0; i < values.length; i++) {
-      const v = values[i];
-      if (v > 0 && v < 1e6) { // filter nodata
-        sum += v;
-        validCount++;
-      }
-    }
+    // Score: same as agent report scoring
+    let score;
+    if (altPct >= 50) score = 100;
+    else if (altPct >= 35) score = 85;
+    else if (altPct >= 20) score = 70;
+    else if (altPct >= 10) score = 55;
+    else if (altPct >= 5) score = 40;
+    else score = 20;
 
-    // Average population per cell, scaled to per km²
-    // GHS-POP R2023 uses 100m grid → 1 cell = 0.01 km² → density = count / 0.01
-    const avgPopPerCell = validCount > 0 ? sum / validCount : 0;
-    const populationDensity = Math.round(avgPopPerCell / 0.01);
-
-    // Score: higher density = better walkability context
-    let score, category;
-    if (populationDensity > 10000) { score = 100; category = 'Very High Density'; }
-    else if (populationDensity > 5000) { score = 85; category = 'High Density'; }
-    else if (populationDensity > 2000) { score = 65; category = 'Medium Density'; }
-    else if (populationDensity > 500) { score = 40; category = 'Low Density'; }
-    else { score = 20; category = 'Very Low Density'; }
-
-    console.log(`✅ Population Density: ${populationDensity} people/km² (${category})`);
+    const category = altPct >= 40 ? 'Strong Car-Optional' :
+      altPct >= 20 ? 'Good Alternatives' :
+      altPct >= 10 ? 'Some Alternatives' : 'Car-Dependent';
 
     res.json({
       success: true,
       data: {
-        populationDensity,
         score,
         category,
-        dataSource: 'GHS-POP R2023 (European Commission JRC)',
+        walkPct, bikePct, transitPct, altPct,
+        medianIncome, medianHomeValue, totalPop,
+        dataSource: 'Census ACS 2022',
         dataQuality: 'verified',
-        location: { lat: latitude, lon: longitude },
-        timestamp: new Date().toISOString(),
       },
     });
 
   } catch (error) {
-    console.error('❌ Error fetching population density:', error);
-    res.status(500).json({
-      error: error.message || 'Failed to fetch population density',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    console.error('Error fetching commute mode:', error.message);
+    // Graceful fallback instead of 500
+    res.json({
+      success: true,
+      data: { score: 50, category: 'No Data', dataSource: 'Census ACS (unavailable)' },
     });
   }
 });
@@ -4178,29 +4139,41 @@ app.get('/api/crash-data', async (req, res) => {
       const farsController = new AbortController();
       const farsTimeout = setTimeout(() => farsController.abort(), 15000);
 
-      const farsResponse = await fetch(farsUrl, {
-        signal: farsController.signal,
-        headers: { 'User-Agent': 'SafeStreets/1.0' },
-      });
-      clearTimeout(farsTimeout);
+      let farsOk = false;
+      try {
+        const farsResponse = await fetch(farsUrl, {
+          signal: farsController.signal,
+          headers: { 'User-Agent': 'SafeStreets/1.0' },
+        });
+        clearTimeout(farsTimeout);
 
-      if (!farsResponse.ok) {
-        throw new Error(`FARS API returned ${farsResponse.status}`);
+        if (!farsResponse.ok) {
+          console.warn(`FARS API returned ${farsResponse.status}, falling back to no data`);
+        } else {
+          const farsData = await farsResponse.json();
+
+          // FARS returns { Results: [{ ... }] } or array depending on format
+          crashes = Array.isArray(farsData) ? farsData :
+            (farsData.Results || farsData.results || []);
+
+          // Flatten if nested arrays
+          if (crashes.length > 0 && Array.isArray(crashes[0])) {
+            crashes = crashes.flat();
+          }
+
+          farsCache.set(cacheKey, { data: crashes, timestamp: Date.now() });
+          console.log(`FARS: ${crashes.length} total crashes in ${countyName} (${fromYear}-${toYear})`);
+          farsOk = true;
+        }
+      } catch (farsErr) {
+        clearTimeout(farsTimeout);
+        console.warn('FARS API unavailable:', farsErr.message);
       }
 
-      const farsData = await farsResponse.json();
-
-      // FARS returns { Results: [{ ... }] } or array depending on format
-      crashes = Array.isArray(farsData) ? farsData :
-        (farsData.Results || farsData.results || []);
-
-      // Flatten if nested arrays
-      if (crashes.length > 0 && Array.isArray(crashes[0])) {
-        crashes = crashes.flat();
+      if (!farsOk) {
+        // FARS unavailable — return null so frontend can use OSM fallback
+        return res.json({ success: true, data: null });
       }
-
-      farsCache.set(cacheKey, { data: crashes, timestamp: Date.now() });
-      console.log(`✅ FARS: ${crashes.length} total crashes in ${countyName} (${fromYear}-${toYear})`);
     }
 
     // Step 3: Filter crashes within 800m
@@ -5903,7 +5876,7 @@ app.listen(PORT, () => {
   console.log(`   🏔️  NASADEM Slope: GET /api/slope`);
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
-  console.log(`   👥 Population Density: GET /api/population-density`);
+  console.log(`   🚶 Commute Mode: GET /api/population-density`);
   console.log(`   🚨 Crash Data: GET /api/crash-data (FARS + WHO)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);

@@ -166,12 +166,12 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: safetyMetrics,
   };
 
-  // ===== 4. Accessibility (25%) — Population Density + Destinations =====
+  // ===== 4. Accessibility (25%) — Commute Mode + Destinations =====
   const popScore = populationDensityScore ?? 0;
   const destScore = scale10to100(legacy.destinationAccess);
 
   const densityMetrics: SubMetric[] = [
-    { name: 'Population Density', score: popScore, weight: 0.50 },
+    { name: 'Commute Mode', score: popScore, weight: 0.50 },
     { name: 'Nearby Destinations', score: destScore, weight: 0.50 },
   ];
 

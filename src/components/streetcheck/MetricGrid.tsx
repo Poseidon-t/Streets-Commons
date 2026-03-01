@@ -54,10 +54,10 @@ function getInsight(key: string, score: number): string {
         : score >= 4 ? 'Some amenities nearby, car helpful'
         : 'Few walkable destinations';
     case 'populationDensity':
-      return score >= 8 ? 'Urban density supports walkable services'
-        : score >= 6 ? 'Moderate density, mixed use'
-        : score >= 4 ? 'Suburban density'
-        : 'Low density, spread-out area';
+      return score >= 8 ? 'Most residents walk, bike, or take transit'
+        : score >= 6 ? 'Good share of car-free commuters'
+        : score >= 4 ? 'Some alternative commuters'
+        : 'Mostly car-dependent area';
     default:
       return '';
   }
@@ -124,14 +124,14 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : 'Very few destinations within walking distance. Most errands require driving.',
   },
   populationDensity: {
-    what: 'How many people live in this area, measured from satellite-derived population data at 100m resolution.',
-    how: 'GHS-POP grid data averaged over a 500m area. Higher density neighborhoods tend to support more walkable services and transit.',
-    source: 'Global Human Settlement Population (European Commission)',
+    what: 'What share of residents commute by walking, biking, or public transit instead of driving.',
+    how: 'Census ACS 5-year estimates for the census tract. Walk, bike, and transit commuter percentages combined into an alternative mode share.',
+    source: 'US Census Bureau American Community Survey 2022',
     getMeans: (s) =>
-      s >= 8 ? 'High density — enough people to support frequent transit, diverse shops, and walkable services.'
-      : s >= 6 ? 'Moderate density with mixed land use. Some walkable services, but not all needs met on foot.'
-      : s >= 4 ? 'Suburban density — services are more spread out and may require driving for some trips.'
-      : 'Low density, spread-out area. Most services require a car to reach.',
+      s >= 8 ? 'Strong car-optional neighborhood. Most residents can and do commute without a car.'
+      : s >= 6 ? 'Good share of alternative commuters. Walking, biking, and transit are viable options here.'
+      : s >= 4 ? 'Some residents use alternatives to driving, but the car remains dominant for most trips.'
+      : 'Mostly car-dependent. Very few residents walk, bike, or take transit to work.',
   },
 };
 
@@ -189,13 +189,16 @@ const METRICS: MetricDef[] = [
   },
   {
     key: 'populationDensity',
-    name: 'Population',
-    icon: '👥',
-    source: 'GHS-POP',
+    name: 'Commute Mode',
+    icon: '🚶',
+    source: 'Census ACS',
     satKey: 'populationDensity',
     getScore: (_m, cs) => {
-      const popMetric = cs?.components.densityContext.metrics.find(m => m.name === 'Population Density');
-      return popMetric ? popMetric.score / 10 : 0;
+      const popMetric = cs?.components.densityContext.metrics.find(m => m.name === 'Commute Mode');
+      if (popMetric) return popMetric.score / 10;
+      // Fallback: check for legacy name
+      const legacy = cs?.components.densityContext.metrics.find(m => m.name === 'Population Density');
+      return legacy ? legacy.score / 10 : 0;
     },
   },
 ];
