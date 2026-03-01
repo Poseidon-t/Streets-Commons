@@ -1883,9 +1883,13 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     let slopeScore = 0;
     let treeCanopyScore = 0;
 
+    // Helper: race a promise against a timeout (prevents GeoTIFF hangs)
+    const withTimeout = (promise, ms, fallback) =>
+      Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
+
     const [slopeResult, ndviResult, crashResult, fccResult, floodResult] = await Promise.allSettled([
-      // NASADEM slope calculation
-      (async () => {
+      // NASADEM slope calculation (30s timeout)
+      withTimeout((async () => {
         try {
           const slopeOffset = 0.0003;
           async function getElevAt(la, lo) {
@@ -1927,9 +1931,9 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
           console.log(`  ✅ Slope: ${slopeDeg.toFixed(2)}° → ${sc}/10`);
           return { score: sc, slope: Math.round(slopeDeg * 100) / 100 };
         } catch (e) { console.warn('⚠️  Slope failed:', e.message); return { score: 5, slope: 0 }; }
-      })(),
-      // Sentinel-2 NDVI tree canopy
-      (async () => {
+      })(), 30000, { score: 5, slope: 0 }),
+      // Sentinel-2 NDVI tree canopy (45s timeout)
+      withTimeout((async () => {
         try {
           const ndviRadius = 0.007;
           const bb = [lon - ndviRadius, lat - ndviRadius, lon + ndviRadius, lat + ndviRadius];
@@ -1991,7 +1995,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
           console.log(`  ✅ NDVI: ${avgNDVI.toFixed(3)} → ${sc}/10`);
           return { score: sc, ndvi: parseFloat(avgNDVI.toFixed(3)) };
         } catch (e) { console.warn('⚠️  NDVI failed:', e.message); return { score: 5, ndvi: null }; }
-      })(),
+      })(), 45000, { score: 5, ndvi: null }),
       // US crash data — FCC + FARS direct
       (async () => {
         try {

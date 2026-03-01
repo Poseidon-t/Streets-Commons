@@ -251,6 +251,10 @@ export default function SalesPipeline() {
 
   const handleGenerateReport = async (lead: QualifiedLead) => {
     setGeneratingReport(lead.rank);
+    // Open window immediately in click context to avoid popup blockers.
+    // The async API call below breaks the user-gesture chain, so browsers
+    // would block window.open() if we waited until after the fetch.
+    const reportWindow = window.open('about:blank', '_blank');
     try {
       const reportData = await generateReport({
         neighborhood: lead.neighborhood,
@@ -263,11 +267,15 @@ export default function SalesPipeline() {
           phone: lead.phone.startsWith('Check') ? undefined : lead.phone,
         },
       });
-      // Store in sessionStorage and open the report view
       sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
-      window.open('/report/agent', '_blank');
+      if (reportWindow && !reportWindow.closed) {
+        reportWindow.location.href = '/report/agent';
+      } else {
+        window.location.href = '/report/agent';
+      }
     } catch (err) {
       setError((err as Error).message);
+      if (reportWindow && !reportWindow.closed) reportWindow.close();
     } finally {
       setGeneratingReport(null);
     }
