@@ -797,41 +797,42 @@ function App() {
                       placeholder="Enter any address worldwide..."
                     />
                   </div>
-                  <button
-                    onClick={() => {
-                      if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(
-                          (position) => {
-                            const { latitude, longitude } = position.coords;
-                            handleLocationSelect({
-                              lat: latitude,
-                              lon: longitude,
-                              displayName: 'My Current Location',
-                            });
-                          },
-                          (error) => {
-                            console.error('Geolocation error:', error);
-                            alert('Unable to get your location. Please enter an address manually.');
-                          }
-                        );
-                      } else {
-                        alert('Geolocation is not supported by your browser.');
-                      }
-                    }}
-                    className="mt-2 block mx-auto lg:mx-0 text-sm font-medium text-terra hover:text-terra/80 transition-colors"
-                    aria-label="Use my current location"
-                  >
-                    Use my location
-                  </button>
+                  <div className="flex items-center gap-3 mt-2">
+                    <button
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                              const { latitude, longitude } = position.coords;
+                              handleLocationSelect({
+                                lat: latitude,
+                                lon: longitude,
+                                displayName: 'My Current Location',
+                              });
+                            },
+                            (error) => {
+                              console.error('Geolocation error:', error);
+                              alert('Unable to get your location. Please enter an address manually.');
+                            }
+                          );
+                        } else {
+                          alert('Geolocation is not supported by your browser.');
+                        }
+                      }}
+                      className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                      aria-label="Use my current location"
+                    >
+                      📍 Use my location
+                    </button>
+                    <span className="text-earth-text-light text-sm">·</span>
+                    <button
+                      onClick={activateDemoMode}
+                      className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                    >
+                      ▶ Watch Demo
+                    </button>
+                  </div>
                 </div>
-
-                <button
-                  onClick={activateDemoMode}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 border border-terra/30 text-terra font-semibold text-sm rounded-xl hover:bg-terra/10 hover:border-terra/50 transition-all mb-5"
-                >
-                  <span className="text-base">&#9654;</span>
-                  Watch Demo &mdash; Portland, OR
-                </button>
 
                 {/* Trust badges */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 max-w-xl">
