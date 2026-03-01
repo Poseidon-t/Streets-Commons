@@ -5,14 +5,9 @@ import type { WalkabilityMetrics } from '../../types';
 // These mirror the logic from ShareButtons.tsx
 
 const METRIC_LABELS: Record<string, string> = {
-  'crossing safety': 'crossing safety',
-  'sidewalk coverage': 'sidewalk coverage',
-  'traffic speed': 'traffic speed safety',
   'daily needs access': 'daily needs access',
-  'night safety': 'well-lit streets',
   terrain: 'terrain accessibility',
   'tree canopy': 'tree canopy coverage',
-  'thermal comfort': 'thermal comfort',
 };
 const ml = (key: string): string => METRIC_LABELS[key] || key;
 
@@ -21,14 +16,9 @@ const getRange = (s: number): 'critical' | 'poor' | 'fair' | 'good' =>
 
 function findWeakestMetric(metrics: WalkabilityMetrics): [string, number] {
   const entries: [string, number | undefined][] = [
-    ['crossing safety', metrics.crossingSafety],
-    ['sidewalk coverage', metrics.sidewalkCoverage],
-    ['traffic speed', metrics.speedExposure],
     ['daily needs access', metrics.destinationAccess],
-    ['night safety', metrics.nightSafety],
     ['terrain', metrics.slope],
     ['tree canopy', metrics.treeCanopy],
-    ['thermal comfort', metrics.thermalComfort],
   ];
   return entries
     .filter((e): e is [string, number] => typeof e[1] === 'number')
@@ -63,9 +53,8 @@ describe('Share Text Generation Logic', () => {
 
   describe('metric label mapping', () => {
     it('should map all known metric keys to human-readable labels', () => {
-      expect(ml('crossing safety')).toBe('crossing safety');
+      expect(ml('daily needs access')).toBe('daily needs access');
       expect(ml('tree canopy')).toBe('tree canopy coverage');
-      expect(ml('night safety')).toBe('well-lit streets');
       expect(ml('terrain')).toBe('terrain accessibility');
     });
 
@@ -77,15 +66,10 @@ describe('Share Text Generation Logic', () => {
   describe('weakest metric detection', () => {
     it('should find the metric with the lowest score', () => {
       const metrics: WalkabilityMetrics = {
-        crossingSafety: 5,
-        sidewalkCoverage: 7,
-        speedExposure: 6,
         destinationAccess: 6,
-        nightSafety: 4,
         slope: 8,
         treeCanopy: 2, // Weakest
-        thermalComfort: 5,
-        overallScore: 5.8,
+        overallScore: 5.3,
         label: 'Fair',
       };
       const [name, score] = findWeakestMetric(metrics);
@@ -95,14 +79,9 @@ describe('Share Text Generation Logic', () => {
 
     it('should handle all zeros', () => {
       const metrics: WalkabilityMetrics = {
-        crossingSafety: 0,
-        sidewalkCoverage: 0,
-        speedExposure: 0,
         destinationAccess: 0,
-        nightSafety: 0,
         slope: 0,
         treeCanopy: 0,
-        thermalComfort: 0,
         overallScore: 0,
         label: 'Critical',
       };

@@ -219,7 +219,7 @@ export default function ReportView() {
             </h3>
 
             <p className="text-base text-gray-700 mb-4 leading-relaxed">
-              This walkability assessment analyzes eight critical factors that determine pedestrian experience and safety in {location.city || location.displayName}. The overall score of {displayScore.toFixed(1)}/10 indicates {displayLabel.toLowerCase()} with notable strengths and areas for improvement.
+              This walkability assessment analyzes key factors that determine pedestrian experience and safety in {location.city || location.displayName}. The overall score of {displayScore.toFixed(1)}/10 indicates {displayLabel.toLowerCase()} with notable strengths and areas for improvement.
             </p>
 
             <p className="text-base text-gray-700 mb-6 leading-relaxed">
@@ -262,7 +262,7 @@ export default function ReportView() {
           </h2>
 
           <p className="text-base text-gray-700 mb-8">
-            Eight factors that determine how pleasant and safe it is to walk here:
+            Key factors that determine how pleasant and safe it is to walk here:
           </p>
 
           <div className="space-y-6">
@@ -411,10 +411,9 @@ export default function ReportView() {
               <p className="text-sm text-gray-600 mb-4">National Association of City Transportation Officials</p>
               <div className="space-y-3">
                 {[
-                  { label: 'Safe Crossing Density (≤200m spacing)', key: 'crossingSafety' as MetricKey, threshold: 7 },
-                  { label: 'Sidewalk Coverage', key: 'sidewalkCoverage' as MetricKey, threshold: 7 },
                   { label: 'Street Shading & Microclimate', key: 'treeCanopy' as MetricKey, threshold: 7 },
                   { label: 'Accessible Terrain (≤5% grade)', key: 'slope' as MetricKey, threshold: 7 },
+                  { label: 'Daily Needs Access', key: 'destinationAccess' as MetricKey, threshold: 7 },
                 ].map(item => {
                   const val = resolveMetric(item.key);
                   return (
@@ -435,9 +434,8 @@ export default function ReportView() {
               <p className="text-sm text-gray-600 mb-4">NACTO in collaboration with Global Designing Cities Initiative</p>
               <div className="space-y-3">
                 {[
-                  { label: 'Traffic Speed Safety (≤25mph urban)', key: 'speedExposure' as MetricKey, threshold: 7 },
-                  { label: 'Urban Heat Management', key: 'thermalComfort' as MetricKey, threshold: 7 },
-                  { label: 'Night Safety (Street Lighting)', key: 'nightSafety' as MetricKey, threshold: 7 },
+                  { label: 'Street Shading & Tree Coverage', key: 'treeCanopy' as MetricKey, threshold: 7 },
+                  { label: 'Accessible Terrain', key: 'slope' as MetricKey, threshold: 7 },
                 ].map(item => {
                   const val = resolveMetric(item.key);
                   return (
@@ -458,10 +456,9 @@ export default function ReportView() {
               <p className="text-sm text-gray-600 mb-4">Institute for Transportation & Development Policy (ITDP)</p>
               <div className="space-y-3">
                 {[
-                  { label: 'Protected Pedestrian Crossings', key: 'crossingSafety' as MetricKey, threshold: 6 },
                   { label: '15-Minute City (Services Access)', key: 'destinationAccess' as MetricKey, threshold: 7 },
-                  { label: 'Walking Comfort (Thermal)', key: 'thermalComfort' as MetricKey, threshold: 6 },
                   { label: 'Terrain Accessibility (≤5% grade)', key: 'slope' as MetricKey, threshold: 7 },
+                  { label: 'Tree Canopy & Shade', key: 'treeCanopy' as MetricKey, threshold: 6 },
                 ].map(item => {
                   const val = resolveMetric(item.key);
                   return (

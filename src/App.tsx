@@ -272,7 +272,6 @@ function App() {
         fetchedOsmData,
         selectedLocation.lat,
         selectedLocation.lon,
-        undefined, undefined, undefined, undefined, undefined
       );
       const quality = assessDataQuality(fetchedOsmData);
 
@@ -432,9 +431,6 @@ function App() {
         selectedLocation.lon,
         scores.slope,
         scores.ndvi,
-        scores.surfaceTemp,
-        scores.airQuality,
-        scores.heatIsland
       );
       setMetrics(updatedMetrics);
       setRawMetricData({ ...raw });
@@ -476,7 +472,6 @@ function App() {
         raw.temperature = result.tempCelsius;
         scores.surfaceTemp = result.score;
       }
-      if (scores.heatIsland !== undefined) markLoaded('thermalComfort');
       recalc();
     });
     promises.airQuality.then(result => {
@@ -496,7 +491,6 @@ function App() {
           markLoaded('buildingDensity');
         }
       }
-      if (scores.surfaceTemp !== undefined) markLoaded('thermalComfort');
       recalc();
     });
     promises.populationDensity.then(result => {
@@ -1101,7 +1095,6 @@ function App() {
                             fetchedOsmData,
                             selectedLocation.lat,
                             selectedLocation.lon,
-                            undefined, undefined, undefined, undefined, undefined
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
@@ -1127,8 +1120,7 @@ function App() {
                               fetchedOsmData,
                               selectedLocation.lat,
                               selectedLocation.lon,
-                              scores.slope, scores.ndvi, scores.surfaceTemp,
-                              scores.airQuality, scores.heatIsland
+                              scores.slope, scores.ndvi,
                             );
                             const composite = calculateCompositeScore({
                               legacy: updated,
@@ -1183,7 +1175,6 @@ function App() {
                             fetchedOsmData,
                             selectedLocation.lat,
                             selectedLocation.lon,
-                            undefined, undefined, undefined, undefined, undefined
                           );
                           const quality = assessDataQuality(fetchedOsmData);
 
@@ -1209,8 +1200,7 @@ function App() {
                               fetchedOsmData,
                               selectedLocation.lat,
                               selectedLocation.lon,
-                              scores.slope, scores.ndvi, scores.surfaceTemp,
-                              scores.airQuality, scores.heatIsland
+                              scores.slope, scores.ndvi,
                             );
                             const composite = calculateCompositeScore({
                               legacy: updated,
@@ -1856,7 +1846,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Beyond walkability scores, Neighborhood Intelligence shows how people actually live in an area: <strong>commute patterns</strong> (walk, bike, transit, car split from Census data), <strong>transit access</strong> (bus stops and rail stations nearby), <strong>park and food access</strong> (including food desert detection), <strong>health outcomes</strong> (obesity, diabetes, asthma rates vs. US averages from CDC), and <strong>flood risk</strong> (FEMA flood zone classification). For US addresses, this data updates automatically from federal sources.
+                    Beyond walkability scores, Neighborhood Intelligence shows how people actually live in an area: <strong>transit access</strong> (bus stops and rail stations nearby), <strong>park and food access</strong> (including food desert detection). For US locations, you also get <strong>commute patterns</strong> (walk, bike, transit, car split from Census ACS), <strong>health outcomes</strong> (obesity, diabetes, asthma, physical inactivity rates vs. US averages from CDC PLACES), and <strong>flood risk</strong> (FEMA flood zone classification). All data updates automatically from federal and open sources.
                   </p>
                 </div>
               </div>
@@ -1958,8 +1948,14 @@ function App() {
                   id="faq-8-content"
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 8 ? 'block' : 'hidden'}`}
                 >
+                  <p className="mb-3">
+                    Yes! The core walkability analysis (6 metric scores, overall score, compare mode) works globally in 190+ countries using satellite data and OpenStreetMap.
+                  </p>
+                  <p className="mb-3">
+                    <strong>US locations get extra data layers</strong> powered by federal sources: <strong>commute patterns</strong> (walk/bike/transit/car split from Census ACS), <strong>tract-level demographics</strong> (income, poverty rate, education from Census ACS), <strong>street-level crash data</strong> (pedestrian fatalities within 800m from NHTSA FARS), <strong>community health</strong> (obesity, diabetes, asthma, physical inactivity rates from CDC PLACES), and <strong>flood risk</strong> (FEMA flood zone classification).
+                  </p>
                   <p>
-                    Yes! Walkability analysis works globally in 190+ countries using satellite data and OpenStreetMap. Neighborhood Intelligence features like commute data, health outcomes, and flood risk are US-only (powered by Census, CDC, and FEMA). International locations still get full walkability, transit, park, and food access analysis.
+                    <strong>International locations</strong> still get full walkability scores, transit stops, parks, food access, and equity context &mdash; plus country-level data from the World Bank (GDP, unemployment) and WHO (road safety rates). The 6 core metrics work identically everywhere.
                   </p>
                 </div>
               </div>

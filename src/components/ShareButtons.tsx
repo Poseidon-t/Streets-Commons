@@ -127,13 +127,8 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
 
   // Find weakest metric for dynamic messaging
   const metricEntries: [string, number | undefined][] = [
-    ['crossing safety', metrics.crossingSafety],
-    ['sidewalks', metrics.sidewalkCoverage],
-    ['traffic speed safety', metrics.speedExposure],
     ['daily needs access', metrics.destinationAccess],
-    ['night safety', metrics.nightSafety],
     ['tree canopy', metrics.treeCanopy],
-    ['thermal comfort', metrics.thermalComfort],
     ['terrain', metrics.slope],
   ];
   const weakest: [string, number] = metricEntries
@@ -228,14 +223,9 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
       metrics: {
         overallScore: metrics.overallScore,
         label: metrics.label,
-        crossingSafety: metrics.crossingSafety,
-        sidewalkCoverage: metrics.sidewalkCoverage,
-        speedExposure: metrics.speedExposure,
         destinationAccess: metrics.destinationAccess,
-        nightSafety: metrics.nightSafety,
         slope: metrics.slope,
         treeCanopy: metrics.treeCanopy,
-        thermalComfort: metrics.thermalComfort,
       },
       timestamp: new Date().toISOString(),
       tool: 'SafeStreets',

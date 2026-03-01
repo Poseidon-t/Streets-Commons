@@ -8,16 +8,9 @@ export interface Location {
 }
 
 export interface WalkabilityMetrics {
-  // Safety metrics (OSM infrastructure)
-  crossingSafety: number; // Crossing density weighted by protection level
-  sidewalkCoverage: number; // Percentage of streets with sidewalk tags
-  speedExposure: number; // Traffic speed + lane count danger score (inverted: high = safe)
-  destinationAccess: number; // OSM amenity/shop/leisure POIs
-  nightSafety: number; // Street lighting coverage from OSM lit tags
-  // Comfort metrics (satellite/elevation)
+  destinationAccess: number; // OSM amenity/shop/leisure POIs (density + proximity)
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
-  thermalComfort: number; // Consolidated surfaceTemp + heatIsland
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }

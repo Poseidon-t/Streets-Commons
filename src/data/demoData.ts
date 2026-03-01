@@ -24,15 +24,10 @@ export const DEMO_LOCATION: Location = {
 };
 
 export const DEMO_METRICS: WalkabilityMetrics = {
-  crossingSafety: 7.2,
-  sidewalkCoverage: 6.8,
-  speedExposure: 5.9,
   destinationAccess: 8.4,
-  nightSafety: 6.1,
   slope: 7.8,
   treeCanopy: 5.2,
-  thermalComfort: 4.6,
-  overallScore: 6.5,
+  overallScore: 7.1,
   label: 'Good',
 };
 
@@ -86,15 +81,10 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
   },
   confidence: 82,
   legacy: {
-    crossingSafety: 7.2,
-    sidewalkCoverage: 6.8,
-    speedExposure: 5.9,
     destinationAccess: 8.4,
-    nightSafety: 6.1,
     slope: 7.8,
     treeCanopy: 5.2,
-    thermalComfort: 4.6,
-    overallScore: 6.5,
+    overallScore: 7.1,
     label: 'Good',
   },
 };

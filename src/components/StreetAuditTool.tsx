@@ -33,7 +33,7 @@ interface Category {
 
 const CATEGORIES: Category[] = [
   {
-    id: 'sidewalks', name: 'Sidewalks & Paths', metricKey: 'sidewalkCoverage',
+    id: 'sidewalks', name: 'Sidewalks & Paths', metricKey: 'overallScore',
     items: [
       { id: 'sw-1', label: 'Sidewalk on both sides', hint: 'Is there a continuous paved path on both sides of the street?' },
       { id: 'sw-2', label: 'Width for two people', hint: 'Can two adults walk side by side without stepping off?' },
@@ -42,7 +42,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'crossings', name: 'Crossings', metricKey: 'crossingSafety',
+    id: 'crossings', name: 'Crossings', metricKey: 'overallScore',
     items: [
       { id: 'cx-1', label: 'Marked crosswalks present', hint: 'Are crosswalks clearly painted where you need to cross?' },
       { id: 'cx-2', label: 'Pedestrian signals working', hint: 'Walk/don\'t-walk signals at intersections?' },
@@ -51,7 +51,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'traffic', name: 'Traffic & Speed', metricKey: 'speedExposure',
+    id: 'traffic', name: 'Traffic & Speed', metricKey: 'overallScore',
     items: [
       { id: 'tr-1', label: 'Traffic speed feels safe', hint: 'Do vehicles pass at a comfortable speed for walking?' },
       { id: 'tr-2', label: 'Traffic calming features', hint: 'Speed bumps, narrow lanes, raised crossings, or bollards?' },
@@ -67,7 +67,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'lighting', name: 'Lighting', metricKey: 'nightSafety',
+    id: 'lighting', name: 'Lighting', metricKey: 'overallScore',
     items: [
       { id: 'lt-1', label: 'Street lighting adequate', hint: 'Enough lights for safe evening or night walking?' },
       { id: 'lt-2', label: 'No dark spots or blind corners', hint: 'Any unlit alleys, hidden turns, or shadowy areas?' },

@@ -1865,40 +1865,6 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const pois = elements.filter(e => e.tags?.amenity || e.tags?.shop || e.tags?.leisure || e.tags?.railway === 'station');
 
     // 4. Calculate metrics (same logic as client-side metrics.ts)
-    // Crossing Safety
-    let weightedCrossings = 0;
-    crossings.forEach(c => {
-      const ct = c.tags?.crossing;
-      if (ct === 'traffic_signals') weightedCrossings += 1.0;
-      else if (ct === 'marked' || ct === 'zebra') weightedCrossings += 0.7;
-      else if (ct === 'island') weightedCrossings += 0.6;
-      else if (ct === 'uncontrolled') weightedCrossings += 0.3;
-      else if (ct === 'unmarked') weightedCrossings += 0.1;
-      else weightedCrossings += 0.5;
-    });
-    const estimatedRoadKm = (streets.length * 100) / 1000;
-    const crossingDensity = estimatedRoadKm > 0 ? Math.min(10, (weightedCrossings / estimatedRoadKm / 8) * 10) : 0;
-    const crossingSafety = Math.round(crossingDensity * 10) / 10;
-
-    // Sidewalk Coverage
-    const streetsWithSidewalks = streets.filter(s => { const sw = s.tags?.sidewalk; return sw && sw !== 'no' && sw !== 'none'; });
-    const swCoverage = streets.length > 0 ? (streetsWithSidewalks.length / streets.length) * 100 : 0;
-    const sidewalkCoverage = Math.round(Math.min(10, (swCoverage / 90) * 10) * 10) / 10;
-
-    // Speed Exposure
-    let totalDanger = 0;
-    streets.forEach(s => {
-      let speed = s.tags?.maxspeed ? parseInt(s.tags.maxspeed, 10) : null;
-      const hw = s.tags?.highway;
-      if (!speed || isNaN(speed)) {
-        speed = hw === 'primary' ? 45 : hw === 'secondary' ? 35 : hw === 'tertiary' ? 30 : hw === 'residential' ? 25 : 30;
-      }
-      const lanes = s.tags?.lanes ? parseInt(s.tags.lanes, 10) : (hw === 'primary' ? 4 : 2);
-      totalDanger += Math.pow(speed / 20, 2) * Math.min(2, lanes / 2);
-    });
-    const avgDanger = streets.length > 0 ? totalDanger / streets.length : 3;
-    const speedExposure = Math.round(Math.max(0, Math.min(10, 10 - (avgDanger - 1) * (10 / 7))) * 10) / 10;
-
     // Destination Access
     const cats = { education: false, transit: false, shopping: false, healthcare: false, food: false, recreation: false };
     pois.forEach(p => {
@@ -1910,24 +1876,6 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       if (p.tags?.leisure === 'park' || p.tags?.leisure === 'playground') cats.recreation = true;
     });
     const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
-
-    // Night Safety
-    const litStreets = streets.filter(s => s.tags?.lit === 'yes');
-    const unlitStreets = streets.filter(s => s.tags?.lit === 'no');
-    const taggedLit = litStreets.length + unlitStreets.length;
-    let nightSafety = 5;
-    if (taggedLit >= streets.length * 0.1 && taggedLit > 0) {
-      nightSafety = Math.round(Math.min(10, (litStreets.length / taggedLit) * 10) * 10) / 10;
-    } else if (streets.length > 0) {
-      let inferred = 0;
-      streets.forEach(s => {
-        const hw = s.tags?.highway;
-        if (hw === 'primary' || hw === 'secondary') inferred += 0.8;
-        else if (hw === 'tertiary') inferred += 0.5;
-        else if (hw === 'residential') inferred += 0.3;
-      });
-      nightSafety = Math.round(Math.min(6, (inferred / streets.length) * 10) * 10) / 10;
-    }
 
     // 5. Fetch temperature + crash data directly (no localhost self-calls)
     console.log(`🛰️  Fetching temperature & crash data for ${lat}, ${lon}...`);
@@ -2054,16 +2002,18 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       flood: floodData,
     };
 
-    // 6. Overall score — OSM metrics + temperature if available
-    const thermalComfort = surfaceTempScore ?? 0;
-    const overallScore = Math.round(((crossingSafety + sidewalkCoverage + speedExposure + nightSafety + destinationAccess + thermalComfort) / (surfaceTempScore !== undefined ? 6 : 5)) * 10) / 10;
+    // 6. Overall score — average of available metrics
+    const available = [destinationAccess].filter(s => s > 0);
+    const overallScore = available.length > 0
+      ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
+      : 0;
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
     // 7. Build report data
     const reportData = {
       location: { lat, lon, displayName },
-      metrics: { crossingSafety, sidewalkCoverage, speedExposure, destinationAccess, nightSafety, slope: 0, treeCanopy: 0, thermalComfort: Math.round(thermalComfort * 10) / 10, overallScore, label },
+      metrics: { destinationAccess, slope: 0, treeCanopy: 0, overallScore, label },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       crashData,
@@ -5236,24 +5186,14 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
         systemPrompt += `\n\nSatellite-based (high confidence):`;
         if (m.slope !== undefined) systemPrompt += `\n- Terrain (Flatness): ${m.slope}/10`;
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
-        if (m.thermalComfort !== undefined) systemPrompt += `\n- Thermal Comfort: ${m.thermalComfort}/10`;
         systemPrompt += `\n\nOpenStreetMap-based (depends on local mapping coverage — interpret with caution):`;
-        if (m.sidewalkCoverage !== undefined) systemPrompt += `\n- Sidewalk Coverage: ${m.sidewalkCoverage}/10 (measures OSM tagging, NOT actual sidewalk presence — many real sidewalks aren't mapped)`;
-        if (m.crossingSafety !== undefined) systemPrompt += `\n- Crossing Safety: ${m.crossingSafety}/10 (based on mapped crossings — unmapped crossings won't appear)`;
-        if (m.speedExposure !== undefined) systemPrompt += `\n- Traffic Speed Safety: ${m.speedExposure}/10 (often inferred from road type, not actual speed data)`;
         if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10 (based on mapped POIs — may miss smaller businesses)`;
-        if (m.nightSafety !== undefined) systemPrompt += `\n- Night Safety (Lighting): ${m.nightSafety}/10 (VERY limited data — mostly inferred, treat as rough estimate)`;
         if (m.overallScore !== undefined) systemPrompt += `\n\nOverall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
         const metricEntries = [
-          ['Sidewalk Coverage', m.sidewalkCoverage],
-          ['Crossing Safety', m.crossingSafety],
-          ['Traffic Speed Safety', m.speedExposure],
           ['Daily Needs Access', m.destinationAccess],
-          ['Night Safety', m.nightSafety],
           ['Terrain', m.slope],
           ['Tree Canopy', m.treeCanopy],
-          ['Thermal Comfort', m.thermalComfort],
         ].filter(([, v]) => typeof v === 'number');
 
         const weakest = metricEntries.sort((a, b) => a[1] - b[1]).slice(0, 3);

@@ -1,9 +1,6 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 
 const METRIC_LABELS: Record<string, string> = {
-  crossingSafety: 'crossing safety',
-  sidewalkCoverage: 'sidewalk coverage',
-  speedExposure: 'traffic speed safety',
   destinationAccess: 'access to daily needs',
   slope: 'terrain accessibility',
   treeCanopy: 'shade and tree canopy',

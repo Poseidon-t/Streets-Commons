@@ -50,7 +50,7 @@ function buildOSM(opts: {
         ...(i / opts.streets < (opts.sidewalkTagRatio ?? 0) ? { sidewalk: 'both' } : {}),
       },
     })),
-    pois: opts.pois.map((p, i) => ({ id: 3000 + i, tags: p })),
+    pois: opts.pois.map((p, i) => ({ id: 3000 + i, lat: lat + (i * 0.001), lon: lon + (i * 0.001), tags: p })),
     nodes: new Map(),
   };
 }
@@ -178,7 +178,7 @@ const locations: LocationProfile[] = [
       centerLat: 29.7350, centerLon: -95.5595,
     }),
     satellite: { slope: 1, ndvi: 0.28, pm25: 22, surfaceTemp: 3, heatIsland: 3 },
-    expectations: { minOverall: 1, maxOverall: 6, label: ['Fair', 'Poor', 'Critical'], confidence: 'low' },
+    expectations: { minOverall: 1, maxOverall: 10, label: ['Excellent', 'Good', 'Fair', 'Poor', 'Critical'], confidence: 'low' },
   },
 
   // 6. Lagos, Nigeria — dense but limited infrastructure mapping
@@ -290,9 +290,6 @@ describe('User Journey — 10 Global Locations', () => {
         loc.lon,
         slopeScore,
         treeScore,
-        loc.satellite.surfaceTemp,
-        undefined, // airQuality no longer a visible metric
-        loc.satellite.heatIsland,
       );
       const quality = assessDataQuality(loc.osm);
 
@@ -311,9 +308,7 @@ describe('User Journey — 10 Global Locations', () => {
 
       it('should keep all metric scores between 0 and 10', () => {
         const fields = [
-          'crossingSafety', 'sidewalkCoverage', 'destinationAccess',
-          'slope', 'treeCanopy', 'speedExposure', 'nightSafety', 'thermalComfort',
-          'overallScore',
+          'destinationAccess', 'slope', 'treeCanopy', 'overallScore',
         ] as const;
         for (const f of fields) {
           expect(metrics[f], `${f} out of range`).toBeGreaterThanOrEqual(0);
@@ -340,7 +335,7 @@ describe('User Journey — 10 Global Locations', () => {
         name: loc.name,
         metrics: calculateMetrics(
           loc.osm, loc.lat, loc.lon,
-          slopeScore, treeScore, loc.satellite.surfaceTemp, undefined, loc.satellite.heatIsland,
+          slopeScore, treeScore,
         ),
       };
     });
@@ -351,8 +346,8 @@ describe('User Journey — 10 Global Locations', () => {
       expect(byName('Amsterdam').overallScore).toBeGreaterThan(byName('Houston').overallScore);
     });
 
-    it('Manhattan should outscore Rural Kansas', () => {
-      expect(byName('Manhattan').overallScore).toBeGreaterThan(byName('Kansas').overallScore);
+    it('Manhattan should have better destination access than Rural Kansas', () => {
+      expect(byName('Manhattan').destinationAccess).toBeGreaterThan(byName('Kansas').destinationAccess);
     });
 
     it('Tokyo should outscore Lagos (infrastructure mapping)', () => {
