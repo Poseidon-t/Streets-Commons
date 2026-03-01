@@ -11,6 +11,9 @@ export interface WalkabilityMetrics {
   destinationAccess: number; // OSM amenity/shop/leisure POIs (density + proximity)
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
+  streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
+  crashHistory?: number; // NHTSA FARS / WHO road fatality data
+  populationDensity?: number; // GHS-POP satellite population grid
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }

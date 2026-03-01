@@ -1864,6 +1864,51 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const sidewalks = elements.filter(e => e.tags?.footway === 'sidewalk' || e.tags?.sidewalk || e.tags?.highway === 'footway');
     const pois = elements.filter(e => e.tags?.amenity || e.tags?.shop || e.tags?.leisure || e.tags?.railway === 'station');
 
+    // 3b. Build network graph from street ways (same as frontend overpass.ts)
+    const STREET_HIGHWAY_TYPES = ['primary','secondary','tertiary','residential','living_street','pedestrian','unclassified','service'];
+    const nodeCoords = new Map();
+    elements.filter(e => e.type === 'node' && e.lat !== undefined).forEach(n => nodeCoords.set(n.id.toString(), { lat: n.lat, lon: n.lon }));
+    const streetWays = elements.filter(e => e.type === 'way' && e.tags?.highway && STREET_HIGHWAY_TYPES.includes(e.tags.highway) && e.nodes?.length >= 2);
+    const nodeDegree = new Map();
+    for (const way of streetWays) {
+      for (const nodeId of way.nodes) {
+        const key = nodeId.toString();
+        nodeDegree.set(key, (nodeDegree.get(key) || 0) + 1);
+      }
+    }
+    const graphIntersections = [];
+    const graphDeadEnds = [];
+    for (const [nodeId, degree] of nodeDegree) {
+      const coords = nodeCoords.get(nodeId);
+      if (!coords) continue;
+      if (degree >= 3) graphIntersections.push({ id: nodeId, lat: coords.lat, lon: coords.lon, degree });
+      else if (degree === 1) graphDeadEnds.push({ id: nodeId, lat: coords.lat, lon: coords.lon, degree: 1 });
+    }
+    let totalStreetLengthM = 0;
+    for (const way of streetWays) {
+      for (let i = 0; i < way.nodes.length - 1; i++) {
+        const a = nodeCoords.get(way.nodes[i].toString());
+        const b = nodeCoords.get(way.nodes[i + 1].toString());
+        if (a && b) totalStreetLengthM += haversineDistance(a.lat, a.lon, b.lat, b.lon);
+      }
+    }
+    const analysisAreaKm2 = Math.PI * (radius / 1000) ** 2;
+    const totalStreetLengthKm = totalStreetLengthM / 1000;
+    const averageBlockLengthM = graphIntersections.length > 1 ? totalStreetLengthM / graphIntersections.length : totalStreetLengthM;
+
+    // Street Grid score (0-10) from 4 sub-metrics (same as networkMetrics.ts)
+    const intDensity = analysisAreaKm2 > 0 ? graphIntersections.length / analysisAreaKm2 : 0;
+    const intDensityScore = Math.max(0, Math.min(100, Math.round((intDensity / 150) * 100)));
+    const blockLenScore = averageBlockLengthM <= 100 ? 100 : averageBlockLengthM >= 280 ? 0 : Math.max(0, Math.min(100, Math.round(((280 - averageBlockLengthM) / 180) * 100)));
+    const netDensity = analysisAreaKm2 > 0 ? totalStreetLengthKm / analysisAreaKm2 : 0;
+    const netDensityScore = Math.max(0, Math.min(100, Math.round((netDensity / 20) * 100)));
+    const deadEndTotal = graphDeadEnds.length + graphIntersections.length;
+    const deadEndRatio = deadEndTotal > 0 ? graphDeadEnds.length / deadEndTotal : 0;
+    const deadEndScore = deadEndRatio <= 0 ? 100 : deadEndRatio >= 0.3 ? 0 : Math.max(0, Math.min(100, Math.round(((0.3 - deadEndRatio) / 0.3) * 100)));
+    const networkScore100 = Math.round(intDensityScore * 0.3 + blockLenScore * 0.3 + netDensityScore * 0.2 + deadEndScore * 0.2);
+    const streetGridScore = Math.round((networkScore100 / 10) * 10) / 10; // 0-10
+    console.log(`  ✅ Street Grid: ${streetGridScore}/10 (${graphIntersections.length} intersections, ${graphDeadEnds.length} dead-ends, ${averageBlockLengthM.toFixed(0)}m avg block)`);
+
     // 4. Calculate metrics (same logic as client-side metrics.ts)
     // Destination Access
     const cats = { education: false, transit: false, shopping: false, healthcare: false, food: false, recreation: false };
@@ -1887,7 +1932,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const withTimeout = (promise, ms, fallback) =>
       Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 
-    const [slopeResult, ndviResult, crashResult, fccResult, floodResult] = await Promise.allSettled([
+    const [slopeResult, ndviResult, crashResult, fccResult, floodResult, popResult] = await Promise.allSettled([
       // NASADEM slope calculation (30s timeout)
       withTimeout((async () => {
         try {
@@ -2031,6 +2076,49 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       fetch(`https://hazards.fema.gov/gis/nfhl/rest/services/public/NFHL/MapServer/28/query?geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=FLD_ZONE,ZONE_SUBTY&returnGeometry=false&f=json`, {
         signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'SafeStreets/1.0' },
       }).then(r => r.ok ? r.json() : null).catch(() => null),
+      // GHS-POP Population Density (30s timeout)
+      withTimeout((async () => {
+        try {
+          const popBuffer = 0.005;
+          const popBbox = [lon - popBuffer, lat - popBuffer, lon + popBuffer, lat + popBuffer];
+          const popSr = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ collections: ['ghs-pop'], bbox: popBbox, limit: 1, sortby: [{ field: 'datetime', direction: 'desc' }] }),
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!popSr.ok) return { score: 0, density: null };
+          const popSd = await popSr.json();
+          if (!popSd.features?.length) return { score: 0, density: null };
+          const popAsset = popSd.features[0].assets?.population_count || popSd.features[0].assets?.data;
+          if (!popAsset) return { score: 0, density: null };
+          const popSignRes = await fetch(`https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(popAsset.href)}`);
+          if (!popSignRes.ok) return { score: 0, density: null };
+          const popSigned = await popSignRes.json();
+          const popTiff = await fromUrl(popSigned.href);
+          const popImage = await popTiff.getImage();
+          const [pMinX, pMinY, pMaxX, pMaxY] = popImage.getBoundingBox();
+          const pW = popImage.getWidth(), pH = popImage.getHeight();
+          const pPx = Math.floor(((lon - pMinX) / (pMaxX - pMinX)) * pW);
+          const pPy = Math.floor(((pMaxY - lat) / (pMaxY - pMinY)) * pH);
+          if (pPx < 0 || pPx >= pW || pPy < 0 || pPy >= pH) return { score: 0, density: null };
+          const pR = 2;
+          const pData = await popImage.readRasters({ window: [Math.max(0, pPx - pR), Math.max(0, pPy - pR), Math.min(pW, pPx + pR + 1), Math.min(pH, pPy + pR + 1)] });
+          const pVals = pData[0];
+          let pSum = 0, pValid = 0;
+          for (let i = 0; i < pVals.length; i++) { if (pVals[i] > 0 && pVals[i] < 1e6) { pSum += pVals[i]; pValid++; } }
+          const avgPop = pValid > 0 ? pSum / pValid : 0;
+          const popDensity = Math.round(avgPop / 0.01);
+          // Score 0-100 same as population-density endpoint
+          let popSc;
+          if (popDensity > 10000) popSc = 100;
+          else if (popDensity > 5000) popSc = 85;
+          else if (popDensity > 2000) popSc = 65;
+          else if (popDensity > 500) popSc = 40;
+          else popSc = 20;
+          console.log(`  ✅ Population: ${popDensity} people/km² → ${popSc}/100`);
+          return { score: popSc, density: popDensity };
+        } catch (e) { console.warn('⚠️  Population density failed:', e.message); return { score: 0, density: null }; }
+      })(), 30000, { score: 0, density: null }),
     ]);
 
     if (slopeResult.status === 'fulfilled' && slopeResult.value) {
@@ -2107,18 +2195,44 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       flood: floodData,
     };
 
-    // 6. Overall score — average of all 3 metrics
-    const available = [destinationAccess, slopeScore, treeCanopyScore].filter(s => s > 0);
+    // 6. Crash History score (0-10) from crash data (same as compositeScore.ts)
+    let crashHistoryScore = 0;
+    if (crashData) {
+      if (crashData.type === 'local') {
+        const years = crashData.yearRange.to - crashData.yearRange.from + 1;
+        const fatalitiesPerYear = years > 0 ? crashData.totalFatalities / years : crashData.totalFatalities;
+        const crashScore100 = fatalitiesPerYear === 0 ? 100 : fatalitiesPerYear <= 1 ? 80 : fatalitiesPerYear <= 3 ? 60 : fatalitiesPerYear <= 5 ? 40 : 20;
+        crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
+      } else if (crashData.type === 'country') {
+        const rate = crashData.deathRatePer100k;
+        const crashScore100 = rate <= 3 ? 95 : rate <= 6 ? 80 : rate <= 10 ? 60 : rate <= 15 ? 40 : 20;
+        crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
+      }
+      console.log(`  ✅ Crash History: ${crashHistoryScore}/10`);
+    }
+
+    // 7. Population Density score (0-10)
+    let populationDensityScore = 0;
+    if (popResult.status === 'fulfilled' && popResult.value) {
+      populationDensityScore = Math.round(popResult.value.score / 10 * 10) / 10; // 0-100 → 0-10
+    }
+
+    // 8. Overall score — average of all 6 metrics
+    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, crashHistoryScore, populationDensityScore].filter(s => s > 0);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
-    // 7. Build report data
+    // 9. Build report data
     const reportData = {
       location: { lat, lon, displayName },
-      metrics: { destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore, overallScore, label },
+      metrics: {
+        destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore,
+        streetGrid: streetGridScore, crashHistory: crashHistoryScore, populationDensity: populationDensityScore,
+        overallScore, label,
+      },
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       crashData,
@@ -2126,7 +2240,7 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       agentProfile,
     };
 
-    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}) — ${agentProfile.name}`);
+    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}, ${available.length} metrics) — ${agentProfile.name}`);
     res.json(reportData);
   } catch (err) {
     console.error('Report generation failed:', err);

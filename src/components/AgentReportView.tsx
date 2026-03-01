@@ -49,9 +49,12 @@ const getScoreColor = (s: number) => {
 };
 
 const metricsConfig = [
-  { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
+  { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
   { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
+  { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / WHO' },
+  { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
+  { key: 'populationDensity', name: 'Population', icon: '👥', source: 'GHS-POP' },
 ] as const;
 
 export default function AgentReportView() {
@@ -124,7 +127,7 @@ export default function AgentReportView() {
   const resolveMetric = (key: MetricKey): number =>
     fieldMode && fieldData[key].adjustedScore !== null
       ? fieldData[key].adjustedScore!
-      : metrics[key] as number;
+      : (metrics[key as keyof WalkabilityMetrics] as number ?? 0);
 
   const sortedMetrics = metricsConfig
     .filter(m => (metrics[m.key as keyof WalkabilityMetrics] as number) > 0)

@@ -3,10 +3,14 @@ import type { WalkabilityMetrics } from '../types';
 export type MetricKey =
   | 'destinationAccess'
   | 'slope'
-  | 'treeCanopy';
+  | 'treeCanopy'
+  | 'streetGrid'
+  | 'crashHistory'
+  | 'populationDensity';
 
 export const METRIC_KEYS: MetricKey[] = [
   'destinationAccess', 'slope', 'treeCanopy',
+  'streetGrid', 'crashHistory', 'populationDensity',
 ];
 
 export interface FieldEntry {
@@ -32,9 +36,9 @@ export function recalculateScore(
   original: WalkabilityMetrics,
   fieldData: FieldData,
 ): { overallScore: number; label: WalkabilityMetrics['label'] } {
-  const r = (key: MetricKey): number => fieldData[key].adjustedScore ?? original[key];
+  const r = (key: MetricKey): number => fieldData[key].adjustedScore ?? (original[key] as number ?? 0);
 
-  // Simple average of the 3 field-verifiable metrics
+  // Simple average of available metrics
   const available: number[] = [];
   for (const key of METRIC_KEYS) {
     const val = r(key);

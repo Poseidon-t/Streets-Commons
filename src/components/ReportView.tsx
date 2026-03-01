@@ -61,7 +61,7 @@ export default function ReportView() {
   const resolveMetric = (key: MetricKey): number =>
     fieldMode && fieldData[key].adjustedScore !== null
       ? fieldData[key].adjustedScore!
-      : metrics[key];
+      : (metrics[key] as number ?? 0);
 
   const getScoreColor = (s: number) => {
     if (s >= 8) return 'text-green-600';
@@ -101,7 +101,7 @@ export default function ReportView() {
   const bottomMetrics = [...resolvedMetrics].sort((a, b) => a.displayScore - b.displayScore).slice(0, 2);
 
   const handleAdjust = (key: MetricKey, delta: number) => {
-    const current = fieldData[key].adjustedScore ?? metrics[key];
+    const current = fieldData[key].adjustedScore ?? (metrics[key] as number ?? 5);
     const next = Math.min(10, Math.max(0, Math.round((current + delta) * 2) / 2));
     setFieldData(prev => ({ ...prev, [key]: { ...prev[key], adjustedScore: next } }));
   };
