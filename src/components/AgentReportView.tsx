@@ -10,6 +10,12 @@ import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fi
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
 import WalkerInfographic from './WalkerInfographic';
 
+interface PercentileData {
+  overall: number;
+  context: 'urban' | 'suburban' | 'rural';
+  label: string;
+}
+
 interface AgentReportData {
   location: Location;
   metrics: WalkabilityMetrics;
@@ -18,6 +24,8 @@ interface AgentReportData {
   crashData?: CrashData;
   neighborhoodIntel?: NeighborhoodIntelligence;
   agentProfile: AgentProfile;
+  narrative?: string | null;
+  percentile?: PercentileData | null;
 }
 
 // Color palette
@@ -151,6 +159,7 @@ export default function AgentReportView() {
   }
 
   const { location, metrics, compositeScore, dataQuality, crashData, agentProfile } = data;
+  const brandAccent = agentProfile.brandColor || C.accent;
   const score = metrics.overallScore;
   const grade = compositeScore?.grade || (score >= 8 ? 'A' : score >= 6 ? 'B' : score >= 4 ? 'C' : score >= 2 ? 'D' : 'F');
   const gradeInfo = GRADE_CONFIG[grade] || GRADE_CONFIG.C;
@@ -258,11 +267,16 @@ export default function AgentReportView() {
         <div className="page-break-after">
 
           {/* Agent Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', paddingBottom: '1.5rem', borderBottom: `2px solid ${C.accent}` }}>
-            <div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: C.accent }}>{agentProfile.name}</div>
-              {agentProfile.title && <div style={{ fontSize: '0.875rem', color: C.textMuted, marginTop: '0.125rem' }}>{agentProfile.title}</div>}
-              {agentProfile.company && <div style={{ fontSize: '0.875rem', fontWeight: 600, color: C.text, marginTop: '0.25rem' }}>{agentProfile.company}</div>}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.5rem', paddingBottom: '1.5rem', borderBottom: `2px solid ${brandAccent}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {agentProfile.logoBase64 && (
+                <img src={agentProfile.logoBase64} alt={`${agentProfile.company || agentProfile.name} logo`} style={{ maxHeight: '48px', maxWidth: '120px', objectFit: 'contain' }} />
+              )}
+              <div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: brandAccent }}>{agentProfile.name}</div>
+                {agentProfile.title && <div style={{ fontSize: '0.875rem', color: C.textMuted, marginTop: '0.125rem' }}>{agentProfile.title}</div>}
+                {agentProfile.company && <div style={{ fontSize: '0.875rem', fontWeight: 600, color: C.text, marginTop: '0.25rem' }}>{agentProfile.company}</div>}
+              </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: '0.8125rem', color: C.textMuted }}>
               {agentProfile.phone && <div>{agentProfile.phone}</div>}
@@ -296,6 +310,16 @@ export default function AgentReportView() {
             <div style={{ display: 'inline-block', padding: '0.375rem 1rem', borderRadius: '9999px', fontSize: '1rem', fontWeight: 600, color: displayGradeInfo.color, background: displayGradeInfo.bg }}>
               {displayLabel}
             </div>
+            {data.percentile && (
+              <div style={{ marginTop: '1rem' }}>
+                <span style={{ fontSize: '1rem', color: C.text, fontWeight: 500 }}>
+                  Better than <strong style={{ fontSize: '1.25rem', color: brandAccent }}>{data.percentile.overall}%</strong> of {data.percentile.context === 'urban' ? 'urban' : data.percentile.context === 'suburban' ? 'suburban' : 'rural'} neighborhoods
+                </span>
+                <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.25rem' }}>
+                  Based on urban walkability research benchmarks
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Walker Infographic */}
@@ -308,6 +332,18 @@ export default function AgentReportView() {
               This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using OpenStreetMap data and NASA satellite imagery.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
             </p>
           </div>
+
+          {/* AI Neighborhood Narrative */}
+          {data.narrative && (
+            <div style={{ marginBottom: '2rem', padding: '1.5rem 2rem', background: `linear-gradient(135deg, ${C.bgWarm}, #f5f0e8)`, borderRadius: '1rem', borderLeft: `4px solid ${brandAccent}` }}>
+              <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: brandAccent, marginBottom: '1rem', fontWeight: 700 }}>Neighborhood Overview</h3>
+              {data.narrative.split('\n\n').map((para, i) => (
+                <p key={i} style={{ fontSize: '0.9375rem', color: C.text, lineHeight: 1.8, marginBottom: i < data.narrative!.split('\n\n').length - 1 ? '0.75rem' : 0 }}>
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
 
           {/* Strengths & Concerns */}
           {strengths.length > 0 && (
@@ -582,12 +618,17 @@ export default function AgentReportView() {
           </div>
 
           {/* Agent Footer Card */}
-          <div style={{ padding: '1.5rem', borderRadius: '1rem', border: `2px solid ${C.accent}`, background: 'rgba(30,58,95,0.03)' }}>
+          <div style={{ padding: '1.5rem', borderRadius: '1rem', border: `2px solid ${brandAccent}`, background: `${brandAccent}08` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: C.accent }}>{agentProfile.name}</div>
-                {agentProfile.title && <div style={{ fontSize: '0.8125rem', color: C.textMuted }}>{agentProfile.title}</div>}
-                {agentProfile.company && <div style={{ fontSize: '0.875rem', fontWeight: 600, color: C.text, marginTop: '0.125rem' }}>{agentProfile.company}</div>}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                {agentProfile.logoBase64 && (
+                  <img src={agentProfile.logoBase64} alt="" style={{ maxHeight: '40px', maxWidth: '100px', objectFit: 'contain' }} />
+                )}
+                <div>
+                  <div style={{ fontSize: '1.125rem', fontWeight: 700, color: brandAccent }}>{agentProfile.name}</div>
+                  {agentProfile.title && <div style={{ fontSize: '0.8125rem', color: C.textMuted }}>{agentProfile.title}</div>}
+                  {agentProfile.company && <div style={{ fontSize: '0.875rem', fontWeight: 600, color: C.text, marginTop: '0.125rem' }}>{agentProfile.company}</div>}
+                </div>
               </div>
               <div style={{ textAlign: 'right', fontSize: '0.8125rem', color: C.textMuted }}>
                 {agentProfile.phone && <div>{agentProfile.phone}</div>}

@@ -11,6 +11,8 @@ export interface AgentProfile {
   company?: string;
   phone?: string;
   email?: string;
+  logoBase64?: string;   // Base64 encoded logo (< 200KB)
+  brandColor?: string;   // Hex color e.g. "#1e3a5f"
 }
 
 // User type from useUser() hook

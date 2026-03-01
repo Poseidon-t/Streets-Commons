@@ -2259,7 +2259,103 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
-    // 9. Build report data
+    // 8b. Percentile ranking — research-backed reference distributions
+    // Based on Walk Score research + urban planning literature (NACTO, ITDP)
+    const PERCENTILE_REFS = {
+      urban:    { p10: 3.5, p25: 5.0, p50: 6.5, p75: 7.5, p90: 8.5 },
+      suburban: { p10: 1.5, p25: 2.5, p50: 4.0, p75: 5.5, p90: 7.0 },
+      rural:    { p10: 0.5, p25: 1.0, p50: 2.0, p75: 3.0, p90: 4.5 },
+    };
+    const popContext = populationDensityScore >= 6 ? 'urban' : populationDensityScore >= 3 ? 'suburban' : 'rural';
+    const ref = PERCENTILE_REFS[popContext];
+    // Linear interpolation between reference percentile points
+    function interpolatePercentile(score, ref) {
+      const pts = [
+        [0, 0], [ref.p10, 10], [ref.p25, 25], [ref.p50, 50], [ref.p75, 75], [ref.p90, 90], [10, 100],
+      ];
+      for (let i = 1; i < pts.length; i++) {
+        if (score <= pts[i][0]) {
+          const [x0, y0] = pts[i - 1];
+          const [x1, y1] = pts[i];
+          return Math.round(y0 + (score - x0) / (x1 - x0) * (y1 - y0));
+        }
+      }
+      return 99;
+    }
+    const percentileValue = Math.min(99, Math.max(1, interpolatePercentile(overallScore, ref)));
+    const contextLabel = popContext === 'urban' ? 'urban neighborhoods' : popContext === 'suburban' ? 'suburban neighborhoods' : 'rural areas';
+    const percentile = {
+      overall: percentileValue,
+      context: popContext,
+      label: `Better than ${percentileValue}% of ${contextLabel}`,
+    };
+    console.log(`  📊 Percentile: ${percentileValue}th (${popContext})`);
+
+    // 9. AI-generated neighborhood narrative
+    let narrative = null;
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (anthropicKey) {
+      try {
+        console.log(`  🤖 Generating neighborhood narrative...`);
+        const transitInfo = niTransit.totalStops > 0 ? `${niTransit.totalStops} transit stops nearby` : 'Limited transit access';
+        const parkInfo = niParks.totalGreenSpaces > 0 ? `${niParks.totalGreenSpaces} parks/green spaces` : 'Few green spaces';
+        const foodInfo = niFood.totalFoodStores > 0 ? `${niFood.totalFoodStores} food stores` : 'Limited food retail';
+
+        const narrativePrompt = `You are writing a neighborhood walkability narrative for a real estate client report. Write 2-3 short paragraphs (150-200 words total) that describe the walkability of this location in a warm, professional tone suitable for a home buyer.
+
+LOCATION: ${displayName}
+
+WALKABILITY SCORES (0-10 scale):
+- Overall: ${overallScore}/10 (${label})
+- Street Grid connectivity: ${streetGridScore}/10
+- Terrain/Slope: ${slopeScore}/10
+- Tree Canopy: ${treeCanopyScore}/10
+- Crash History (safety): ${crashHistoryScore}/10
+- Destinations (amenities): ${destinationAccess}/10
+- Population Density: ${populationDensityScore}/10
+
+NEIGHBORHOOD DATA:
+- ${transitInfo}
+- ${parkInfo}
+- ${foodInfo}
+- Infrastructure: ${streets.length} streets, ${crossings.length} crossings, ${sidewalks.length} sidewalks mapped
+
+GUIDELINES:
+- Reference the SPECIFIC scores and data — don't be generic
+- Highlight the strongest and weakest metrics naturally
+- Frame everything from a buyer's perspective (daily life, convenience, family-friendliness)
+- Be honest but constructive — even low scores should mention what IS available
+- Do NOT use the word "walkability" more than once
+- Output ONLY the narrative text, no headers or formatting`;
+
+        const narrativeRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': anthropicKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 500,
+            temperature: 0.7,
+            messages: [{ role: 'user', content: narrativePrompt }],
+          }),
+        });
+
+        if (narrativeRes.ok) {
+          const narrativeResult = await narrativeRes.json();
+          narrative = narrativeResult.content?.[0]?.text?.trim() || null;
+          if (narrative) console.log(`  ✅ Narrative generated (${narrative.length} chars)`);
+        } else {
+          console.warn(`  ⚠️ Narrative generation failed: ${narrativeRes.status}`);
+        }
+      } catch (narrativeErr) {
+        console.warn(`  ⚠️ Narrative generation error:`, narrativeErr.message);
+      }
+    }
+
+    // 10. Build report data
     const reportData = {
       location: { lat, lon, displayName },
       metrics: {
@@ -2272,6 +2368,8 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
       crashData,
       neighborhoodIntel,
       agentProfile,
+      narrative,
+      percentile,
     };
 
     console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}, ${available.length} metrics) — ${agentProfile.name}`);
