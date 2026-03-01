@@ -57,12 +57,17 @@ const metricsConfig = [
   { key: 'populationDensity', name: 'Population', icon: '👥', source: 'GHS-POP' },
 ] as const;
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 export default function AgentReportView() {
   const [data, setData] = useState<AgentReportData | null>(null);
   const [fieldMode, setFieldMode] = useState(false);
   const [fieldData, setFieldData] = useState<FieldData>(createEmptyFieldData);
   const [verifierName, setVerifierName] = useState('');
   const [verificationDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem('agentReportData');
@@ -73,7 +78,40 @@ export default function AgentReportView() {
         console.error('Failed to parse agent report data');
       }
     }
+    // Check if we already have a share URL
+    const storedShareUrl = sessionStorage.getItem('agentReportShareUrl');
+    if (storedShareUrl) setShareUrl(storedShareUrl);
   }, []);
+
+  const handleShare = async () => {
+    if (shareUrl) {
+      await navigator.clipboard.writeText(window.location.origin + shareUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+      return;
+    }
+    if (!data) return;
+    setShareLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/reports`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportData: data }),
+      });
+      if (res.ok) {
+        const { shareUrl: url } = await res.json();
+        setShareUrl(url);
+        sessionStorage.setItem('agentReportShareUrl', url);
+        await navigator.clipboard.writeText(window.location.origin + url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      }
+    } catch {
+      console.error('Failed to create share link');
+    } finally {
+      setShareLoading(false);
+    }
+  };
 
   // Field verification computed values (must be before early return)
   const fieldOverall = useMemo(() => {
@@ -177,6 +215,23 @@ export default function AgentReportView() {
                 )}
               </>
             )}
+            <button
+              onClick={handleShare}
+              disabled={shareLoading}
+              style={{
+                padding: '0.5rem 1rem',
+                background: shareCopied ? '#16a34a' : 'transparent',
+                color: shareCopied ? 'white' : C.accent,
+                fontWeight: 600,
+                borderRadius: '0.5rem',
+                border: shareCopied ? 'none' : `1.5px solid ${C.accent}`,
+                cursor: shareLoading ? 'wait' : 'pointer',
+                fontSize: '0.8125rem',
+                transition: 'all 0.2s',
+              }}
+            >
+              {shareCopied ? '✓ Link Copied!' : shareLoading ? 'Creating...' : shareUrl ? 'Copy Share Link' : 'Get Share Link'}
+            </button>
             <button
               onClick={() => window.print()}
               style={{ padding: '0.5rem 1.25rem', background: C.accent, color: 'white', fontWeight: 600, borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontSize: '0.875rem' }}

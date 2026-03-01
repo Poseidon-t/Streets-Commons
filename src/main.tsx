@@ -17,6 +17,7 @@ import LearnIndex from './components/LearnIndex.tsx'
 // Reports
 import { FifteenMinuteCityReport } from './components/reports'
 import AgentReportView from './components/AgentReportView'
+import SharedReportView from './components/SharedReportView'
 
 // Enterprise marketing pages (lazy-loaded)
 const EnterpriseLayout = lazy(() => import('./enterprise/EnterpriseLayout'))
@@ -68,6 +69,8 @@ createRoot(document.getElementById('root')!).render(
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />
           <Route path="/report/agent" element={<AgentReportView />} />
+          {/* Shareable reports */}
+          <Route path="/r/:reportId" element={<SharedReportView />} />
           {/* Enterprise marketing pages */}
           <Route path="/enterprise" element={
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-gray-400">Loading...</div></div>}>

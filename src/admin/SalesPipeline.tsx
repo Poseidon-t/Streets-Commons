@@ -268,6 +268,19 @@ export default function SalesPipeline() {
         },
       });
       sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
+      // Auto-save report for shareable link
+      try {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const saveRes = await fetch(`${apiUrl}/api/reports`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportData }),
+        });
+        if (saveRes.ok) {
+          const { shareUrl } = await saveRes.json();
+          sessionStorage.setItem('agentReportShareUrl', shareUrl);
+        }
+      } catch { /* non-critical */ }
       if (reportWindow && !reportWindow.closed) {
         reportWindow.location.href = '/report/agent';
       } else {

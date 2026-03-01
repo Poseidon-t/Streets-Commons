@@ -471,6 +471,39 @@ function saveInquiry(inquiry) {
   }
 }
 
+// ─── Shareable Reports Storage ──────────────────────────────────────────────
+const REPORTS_FILE = process.env.REPORTS_FILE || path.join(__dirname, '..', 'data', 'reports.json');
+
+function loadReports() {
+  try {
+    if (fs.existsSync(REPORTS_FILE)) {
+      return JSON.parse(fs.readFileSync(REPORTS_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Could not load reports:', err.message);
+  }
+  return { reports: [], count: 0 };
+}
+
+function saveReports(data) {
+  try {
+    const dir = path.dirname(REPORTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(REPORTS_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Could not save reports:', err.message);
+    }
+  }
+}
+
+function generateReportId() {
+  return createHash('sha256')
+    .update(Date.now().toString() + Math.random().toString())
+    .digest('hex')
+    .substring(0, 8);
+}
+
 // ─── Editorial Calendar Storage ─────────────────────────────────────────────
 const EDITORIAL_CALENDAR_FILE = process.env.EDITORIAL_CALENDAR_FILE || path.join(__dirname, '..', 'data', 'editorial-calendar.json');
 
@@ -2246,6 +2279,95 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
   } catch (err) {
     console.error('Report generation failed:', err);
     res.status(500).json({ error: `Report generation failed: ${err.message}` });
+  }
+});
+
+// ════════════════════════════════════════════════════
+// SHAREABLE REPORTS
+// ════════════════════════════════════════════════════
+
+// POST /api/reports — save a report and get a shareable URL
+app.post('/api/reports', (req, res) => {
+  try {
+    const { reportData } = req.body;
+    if (!reportData?.location || !reportData?.metrics) {
+      return res.status(400).json({ error: 'Missing reportData with location and metrics' });
+    }
+
+    const id = generateReportId();
+    const db = loadReports();
+    db.reports.push({
+      id,
+      reportData,
+      createdAt: new Date().toISOString(),
+      viewCount: 0,
+      leads: [],
+    });
+    db.count = db.reports.length;
+    saveReports(db);
+
+    console.log(`📄 Report saved: ${id} — ${reportData.location.displayName}`);
+    res.json({ id, shareUrl: `/r/${id}` });
+  } catch (err) {
+    console.error('Failed to save report:', err);
+    res.status(500).json({ error: 'Failed to save report' });
+  }
+});
+
+// GET /api/reports/:id — fetch report data by ID
+app.get('/api/reports/:id', (req, res) => {
+  try {
+    const db = loadReports();
+    const report = db.reports.find(r => r.id === req.params.id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+
+    // Increment view count
+    report.viewCount = (report.viewCount || 0) + 1;
+    saveReports(db);
+
+    res.json({
+      reportData: report.reportData,
+      createdAt: report.createdAt,
+      viewCount: report.viewCount,
+    });
+  } catch (err) {
+    console.error('Failed to fetch report:', err);
+    res.status(500).json({ error: 'Failed to fetch report' });
+  }
+});
+
+// POST /api/reports/:id/lead — capture a lead from shared report
+app.post('/api/reports/:id/lead', (req, res) => {
+  try {
+    const { email, name, phone } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const db = loadReports();
+    const report = db.reports.find(r => r.id === req.params.id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+
+    // Check if email already captured for this report
+    if (!report.leads.some(l => l.email === email)) {
+      report.leads.push({
+        email,
+        name: name || null,
+        phone: phone || null,
+        capturedAt: new Date().toISOString(),
+      });
+      saveReports(db);
+      console.log(`📧 Lead captured on report ${req.params.id}: ${email}`);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Failed to capture lead:', err);
+    res.status(500).json({ error: 'Failed to capture lead' });
   }
 });
 
