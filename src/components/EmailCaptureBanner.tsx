@@ -22,11 +22,11 @@ export default function EmailCaptureBanner({ userEmail }: EmailCaptureBannerProp
   if (submitted) {
     return (
       <div
-        className="flex items-center gap-3 px-4 py-3 rounded-xl border"
-        style={{ borderColor: '#c6e7c0', backgroundColor: '#f0faf0' }}
+        className="flex items-center justify-center gap-2 px-5 py-4 rounded-2xl"
+        style={{ backgroundColor: '#f0faf0', border: '1px solid #c8e0c8' }}
       >
-        <span style={{ color: '#2a6a2a' }} className="text-sm">
-          &#x2714; You're subscribed! We'll keep you posted on walkability updates.
+        <span style={{ color: '#4a8a4a' }} className="text-sm font-medium">
+          &#x2714; You're in! We'll share new data layers and city insights.
         </span>
       </div>
     );
@@ -76,44 +76,50 @@ export default function EmailCaptureBanner({ userEmail }: EmailCaptureBannerProp
 
   return (
     <div
-      className="flex flex-col sm:flex-row items-center gap-3 px-5 py-4 rounded-xl border"
-      style={{ borderColor: '#d0e0d8', backgroundColor: '#f5faf7' }}
+      className="rounded-2xl px-6 py-5 relative overflow-hidden"
+      style={{ backgroundColor: '#f8f6f1', border: '1px solid #e0dbd0' }}
     >
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <span className="text-lg flex-shrink-0">&#x1F4E8;</span>
-        <div className="text-sm" style={{ color: '#2a3a2a' }}>
-          <strong>Subscribe for updates</strong>
-          <span style={{ color: '#5a6a5a' }}> — street infrastructure, walkability research &amp; urban design</span>
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div className="flex-1 min-w-0 text-center sm:text-left">
+          <p className="text-sm font-bold mb-1" style={{ color: '#2a3a2a' }}>
+            Stay in the loop
+          </p>
+          <p className="text-xs" style={{ color: '#8a9a8a' }}>
+            New data layers, city insights, and walkability research. No spam.
+          </p>
         </div>
+
+        <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-shrink-0">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(null); }}
+            placeholder="you@example.com"
+            className="px-3 py-2.5 rounded-xl text-sm w-48"
+            style={{ border: '1px solid #e0dbd0', backgroundColor: 'white' }}
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white transition-all hover:shadow-md whitespace-nowrap disabled:opacity-60"
+            style={{ backgroundColor: '#e07850' }}
+          >
+            {loading ? '...' : 'Subscribe'}
+          </button>
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="text-sm ml-1 transition-colors"
+            style={{ color: '#c0b8a8' }}
+            aria-label="Dismiss"
+            onMouseEnter={(e) => (e.currentTarget.style.color = '#8a9a8a')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = '#c0b8a8')}
+          >&times;</button>
+        </form>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-2 flex-shrink-0">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); setError(null); }}
-          placeholder="you@example.com"
-          className="px-3 py-2 rounded-lg border text-sm w-48"
-          style={{ borderColor: '#e0dbd0' }}
-        />
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 rounded-lg font-semibold text-xs text-white transition-all hover:shadow-md whitespace-nowrap disabled:opacity-60"
-          style={{ backgroundColor: '#5090b0' }}
-        >
-          {loading ? 'Subscribing...' : 'Subscribe'}
-        </button>
-        <button
-          type="button"
-          onClick={handleDismiss}
-          className="text-gray-400 hover:text-gray-600 text-sm ml-1"
-          aria-label="Dismiss"
-        >&times;</button>
-      </form>
-
       {error && (
-        <div className="w-full text-xs text-red-600 mt-1 text-center sm:text-left">{error}</div>
+        <div className="text-xs mt-2 text-center sm:text-left" style={{ color: '#c03030' }}>{error}</div>
       )}
     </div>
   );

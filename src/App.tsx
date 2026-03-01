@@ -819,11 +819,6 @@ function App() {
               </span>
             </div>
 
-            {/* Social proof */}
-            <p className="text-xs text-earth-text-light text-center mt-1 mb-4">
-              Powered by 10+ government data sources
-            </p>
-
           </div>
 
           {/* Analysis Preview Card */}
@@ -1671,7 +1666,7 @@ function App() {
                         { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
                         { icon: '👥', name: 'Population', desc: 'Density and urban context', source: 'GHS-POP' },
                       ].map(item => (
-                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-earth-border/60">
                           <span className="text-base mt-0.5">{item.icon}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-baseline gap-2">
@@ -1700,7 +1695,7 @@ function App() {
                         { icon: '🏥', name: 'Health Outcomes', desc: 'Obesity, diabetes, asthma rates', source: 'CDC PLACES' },
                         { icon: '🌊', name: 'Flood Risk', desc: 'FEMA flood zone classification', source: 'FEMA NFHL' },
                       ].map(item => (
-                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-gray-100">
+                        <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-earth-border/60">
                           <span className="text-base mt-0.5">{item.icon}</span>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-baseline gap-2">
@@ -1718,7 +1713,7 @@ function App() {
             </section>
 
             {/* Agent Reports CTA */}
-            <section className="py-16">
+            <section className="py-16 bg-white/30">
               <div className="max-w-5xl mx-auto px-6">
                 <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1e3a5f' }}>
                   <div className="p-8 sm:p-10 lg:p-12">
@@ -1761,9 +1756,9 @@ function App() {
                             <div className="h-1.5 w-16 rounded bg-gray-200 mb-2" />
                             <div className="h-1 w-full rounded bg-gray-100 mb-0.5" />
                             <div className="h-1 w-3/4 rounded bg-gray-100 mb-3" />
-                            <div className="flex gap-2 mb-3">
-                              <div className="h-10 flex-1 rounded flex items-center justify-center text-xs font-bold" style={{ backgroundColor: '#eef4fb', color: '#1e3a5f' }}>8.4</div>
-                              <div className="h-10 flex-1 rounded bg-green-50 flex items-center justify-center text-xs font-bold text-green-700">A</div>
+                            <div className="flex items-baseline justify-center gap-1 mb-3">
+                              <span className="text-2xl font-bold" style={{ color: '#1e3a5f' }}>8.4</span>
+                              <span className="text-xs" style={{ color: '#93a3b8' }}>/10</span>
                             </div>
                             <div className="space-y-1.5 mb-3">
                               {[65, 82, 48, 74, 58, 90, 70, 55].map((w, i) => (
@@ -1802,7 +1797,7 @@ function App() {
 
             {/* Newsletter subscribe */}
             {!demoMode && (
-              <section className="py-12">
+              <section className="py-12 bg-earth-sage/40">
                 <div className="max-w-2xl mx-auto px-6">
                   <Suspense fallback={null}>
                     <EmailCaptureBanner
