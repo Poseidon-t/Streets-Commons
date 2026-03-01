@@ -1783,7 +1783,7 @@ function App() {
                   aria-controls="faq-2-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    How is this different from Walk Score?
+                    How is the walkability score calculated?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 2 ? '−' : '+'}
@@ -1794,7 +1794,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood &mdash; terrain, shade, crash history, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
+                    Your score (out of 10) is a weighted average of 6 walkability metrics: <strong>street grid connectivity</strong> (how well streets connect and offer route options), <strong>terrain</strong> (elevation and slope difficulty from NASA data), <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>crash history</strong> (pedestrian crash records from NHTSA/WHO), <strong>destinations</strong> (daily needs within walking distance), and <strong>population density</strong> (urban context). Each metric is scored independently so you can see exactly what's strong or weak about your area.
                   </p>
                 </div>
               </div>
@@ -1808,7 +1808,7 @@ function App() {
                   aria-controls="faq-3-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    What does Neighborhood Intelligence show?
+                    How is this different from Walk Score?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 3 ? '−' : '+'}
@@ -1819,14 +1819,11 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Beyond walkability scores, Neighborhood Intelligence shows how people actually live in an area: <strong>commute patterns</strong> (walk, bike, transit, car split from Census data), <strong>transit access</strong> (bus stops and rail stations nearby), <strong>park and food access</strong> (including food desert detection), <strong>health outcomes</strong> (obesity, diabetes, asthma rates vs. US averages from CDC), and <strong>flood risk</strong> (FEMA flood zone classification). For US addresses, this data updates automatically from federal sources.
+                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood &mdash; terrain, shade, crash history, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
                   </p>
                 </div>
               </div>
 
-              {/* Remaining FAQs - hidden by default */}
-              {showAllFaqs && (
-              <>
               {/* FAQ 4 */}
               <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
@@ -1836,7 +1833,7 @@ function App() {
                   aria-controls="faq-4-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Where does the data come from?
+                    What does Neighborhood Intelligence show?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 4 ? '−' : '+'}
@@ -1847,7 +1844,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 4 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>NASADEM</strong> (terrain), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>NHTSA FARS</strong> (US crash data), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international safety data). These are the same sources used by governments and research institutions.
+                    Beyond walkability scores, Neighborhood Intelligence shows how people actually live in an area: <strong>commute patterns</strong> (walk, bike, transit, car split from Census data), <strong>transit access</strong> (bus stops and rail stations nearby), <strong>park and food access</strong> (including food desert detection), <strong>health outcomes</strong> (obesity, diabetes, asthma rates vs. US averages from CDC), and <strong>flood risk</strong> (FEMA flood zone classification). For US addresses, this data updates automatically from federal sources.
                   </p>
                 </div>
               </div>
@@ -1861,7 +1858,7 @@ function App() {
                   aria-controls="faq-5-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Does it work outside the US?
+                    Where does the data come from?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 5 ? '−' : '+'}
@@ -1872,11 +1869,14 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! Walkability analysis works globally in 190+ countries using satellite data and OpenStreetMap. Neighborhood Intelligence features like commute data, health outcomes, and flood risk are US-only (powered by Census, CDC, and FEMA). International locations still get full walkability, transit, park, and food access analysis.
+                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>NASADEM</strong> (terrain), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>NHTSA FARS</strong> (US crash data), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international safety data). These are the same sources used by governments and research institutions.
                   </p>
                 </div>
               </div>
 
+              {/* Remaining FAQs - hidden by default */}
+              {showAllFaqs && (
+              <>
               {/* FAQ 6 */}
               <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
@@ -1886,7 +1886,7 @@ function App() {
                   aria-controls="faq-6-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    Can real estate agents use this?
+                    How accurate and up-to-date is the data?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 6 ? '−' : '+'}
@@ -1895,6 +1895,81 @@ function App() {
                 <div
                   id="faq-6-content"
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 6 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    Our data sources update on different schedules: <strong>satellite imagery</strong> refreshes every few months, <strong>OpenStreetMap</strong> updates continuously from community contributors, <strong>US Census ACS</strong> releases annually, <strong>CDC PLACES</strong> updates yearly, and <strong>FEMA flood maps</strong> update as new studies are completed. Crash data typically lags 1&ndash;2 years due to government reporting timelines. We always use the most recent available data from each source.
+                  </p>
+                </div>
+              </div>
+
+              {/* FAQ 7 */}
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
+                <button
+                  onClick={() => setOpenFaq(openFaq === 7 ? null : 7)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 7}
+                  aria-controls="faq-7-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    Is my address data private?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 7 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-7-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    Yes. We don't store your search history or link addresses to your identity. Searches are processed in real time and not logged. No account is required, so there's no profile tied to your queries. We don't sell data to third parties.
+                  </p>
+                </div>
+              </div>
+
+              {/* FAQ 8 */}
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
+                <button
+                  onClick={() => setOpenFaq(openFaq === 8 ? null : 8)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 8}
+                  aria-controls="faq-8-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    Does it work outside the US?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 8 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-8-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 8 ? 'block' : 'hidden'}`}
+                >
+                  <p>
+                    Yes! Walkability analysis works globally in 190+ countries using satellite data and OpenStreetMap. Neighborhood Intelligence features like commute data, health outcomes, and flood risk are US-only (powered by Census, CDC, and FEMA). International locations still get full walkability, transit, park, and food access analysis.
+                  </p>
+                </div>
+              </div>
+
+              {/* FAQ 9 */}
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
+                <button
+                  onClick={() => setOpenFaq(openFaq === 9 ? null : 9)}
+                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
+                  aria-expanded={openFaq === 9}
+                  aria-controls="faq-9-content"
+                >
+                  <h3 className="text-lg font-bold text-earth-text-dark">
+                    Can real estate agents use this?
+                  </h3>
+                  <span className="text-2xl text-gray-500" aria-hidden="true">
+                    {openFaq === 9 ? '−' : '+'}
+                  </span>
+                </button>
+                <div
+                  id="faq-9-content"
+                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
                     Yes! Agents can generate branded walkability reports with their name, company, and contact info for any property listing. The first 3 reports are free. Unlimited reports are available with a Pro account ($99 one-time). Every Walk Score point adds approximately $3,500 to home value &mdash; give your buyers the data they need.
@@ -1909,7 +1984,7 @@ function App() {
                 onClick={() => setShowAllFaqs(!showAllFaqs)}
                 className="w-full py-4 text-sm font-medium transition-colors rounded-lg border border-earth-border hover:bg-white/50 text-earth-text-body"
               >
-                {showAllFaqs ? 'Show fewer questions' : 'Show 3 more questions'}
+                {showAllFaqs ? 'Show fewer questions' : 'Show 4 more questions'}
               </button>
             </div>
           </div>
