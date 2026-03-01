@@ -8,7 +8,6 @@ import type {
   WalkabilityMetrics,
   WalkabilityScoreV2,
   DataQuality,
-  LocalCrashData,
   USCensusData,
   RawMetricData,
   OSMData,
@@ -58,14 +57,11 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
       ],
     },
     safety: {
-      label: 'Safety',
-      score: 65,
-      weight: 0.25,
+      label: 'Street Design',
+      score: 74,
+      weight: 0.15,
       metrics: [
-        { name: 'Crossing Safety', score: 72, rawValue: '34 crossings', weight: 0.3 },
-        { name: 'Night Safety', score: 61, rawValue: '64% lit', weight: 0.25 },
-        { name: 'Speed Exposure', score: 59, rawValue: '28 mph avg', weight: 0.25 },
-        { name: 'Crash History', score: 55, rawValue: '12 crashes (5yr)', weight: 0.2 },
+        { name: 'Street Design', score: 74, rawValue: 'D3B: 15/20', weight: 1.0 },
       ],
     },
     densityContext: {
@@ -95,23 +91,6 @@ export const DEMO_DATA_QUALITY: DataQuality = {
   sidewalkCount: 142,
   poiCount: 156,
   confidence: 'high',
-};
-
-export const DEMO_CRASH_DATA: LocalCrashData = {
-  type: 'local',
-  totalCrashes: 12,
-  totalFatalities: 2,
-  yearRange: { from: 2019, to: 2023 },
-  yearlyBreakdown: [
-    { year: 2019, crashes: 3, fatalities: 1 },
-    { year: 2020, crashes: 1, fatalities: 0 },
-    { year: 2021, crashes: 2, fatalities: 0 },
-    { year: 2022, crashes: 4, fatalities: 1 },
-    { year: 2023, crashes: 2, fatalities: 0 },
-  ],
-  nearestCrash: { distance: 180, year: 2022, fatalities: 0, road: 'SW Morrison St' },
-  radiusMeters: 800,
-  dataSource: 'NHTSA FARS',
 };
 
 export const DEMO_DEMOGRAPHIC_DATA: USCensusData = {
@@ -178,5 +157,5 @@ export const DEMO_OSM_DATA: Pick<OSMData, 'crossings' | 'sidewalks' | 'streets' 
 
 // All satellite data source keys that should appear as "loaded" in demo
 export const DEMO_SATELLITE_SOURCES = [
-  'slope', 'ndvi', 'surfaceTemp', 'airQuality', 'heatIsland', 'populationDensity',
+  'slope', 'ndvi', 'surfaceTemp', 'airQuality', 'heatIsland', 'populationDensity', 'streetDesign',
 ];

@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { Location, WalkabilityMetrics, CrashData, NeighborhoodIntelligence } from '../types';
+import type { Location, WalkabilityMetrics, NeighborhoodIntelligence } from '../types';
 import type { AgentProfile } from '../utils/clerkAccess';
 
 interface PercentileData {
@@ -16,7 +16,6 @@ interface PercentileData {
 interface SingleReportData {
   location: Location;
   metrics: WalkabilityMetrics;
-  crashData?: CrashData;
   neighborhoodIntel?: NeighborhoodIntelligence;
   agentProfile: AgentProfile;
   percentile?: PercentileData | null;
@@ -67,7 +66,7 @@ const metricsConfig = [
   { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
   { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
-  { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / OSM' },
+  { key: 'streetDesign', name: 'Street Design', icon: '🛣️', source: 'EPA Walkability Index' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
   { key: 'commuteMode', name: 'Commute Mode', icon: '🚶', source: 'Census ACS' },
 ] as const;
@@ -401,14 +400,13 @@ export default function ComparisonReportView() {
                 );
               })}
             </div>
-            {/* Crash Safety */}
+            {/* Street Design */}
             <div style={{ display: 'grid', gridTemplateColumns: `10rem repeat(${colCount}, 1fr)` }}>
-              <div style={{ padding: '0.75rem 1rem', fontSize: '0.8125rem', fontWeight: 600, color: C.text }}>🚦 Crash Safety</div>
-              {reports.map((r, i) => {
-                const cd = r.crashData;
+              <div style={{ padding: '0.75rem 1rem', fontSize: '0.8125rem', fontWeight: 600, color: C.text }}>🛣️ Street Design</div>
+              {reports.map((_r, i) => {
                 return (
                   <div key={i} style={{ padding: '0.75rem 1rem', textAlign: 'center', borderLeft: `1px solid ${C.border}`, fontSize: '0.8125rem', color: C.textMuted }}>
-                    {cd?.type === 'local' ? `${cd.totalCrashes} fatal crashes (${cd.yearRange.from}–${cd.yearRange.to})` : cd?.type === 'country' ? `${cd.deathRatePer100k}/100k national rate` : 'No data'}
+                    EPA Walkability Index
                   </div>
                 );
               })}
@@ -419,7 +417,7 @@ export default function ComparisonReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This comparison analyzes {colCount} neighborhoods across 6 metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards. Value premium estimates are based on published research from Brookings Institution and CEOs for Cities.
+              This comparison analyzes {colCount} neighborhoods across 6 metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, EPA National Walkability Index, and elevation models. Metrics are scored 0 to 10 against international standards. Value premium estimates are based on published research from Brookings Institution and CEOs for Cities.
             </p>
           </div>
 

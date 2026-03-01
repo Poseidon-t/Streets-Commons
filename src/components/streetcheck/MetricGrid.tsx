@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, CrashData, NeighborhoodIntelligence } from '../../types';
+import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence } from '../../types';
 import EconomicContextSection from './EconomicContextSection';
 import EquityContextSection from './EquityContextSection';
 import NeighborhoodIntelSection from './NeighborhoodIntelSection';
@@ -13,7 +13,7 @@ interface MetricGridProps {
   demographicData?: DemographicData | null;
   demographicLoading?: boolean;
   osmData?: OSMData | null;
-  crashData?: CrashData | null;
+  streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
 }
 
@@ -43,11 +43,11 @@ function getInsight(key: string, score: number): string {
         : score >= 6 ? 'Good shade coverage'
         : score >= 4 ? 'Some shade, but exposed stretches'
         : 'Minimal shade — hot in summer';
-    case 'crashHistory':
-      return score >= 8 ? 'Very few recorded incidents'
-        : score >= 6 ? 'Below-average crash rate'
-        : score >= 4 ? 'Moderate crash history nearby'
-        : 'Elevated pedestrian safety concern';
+    case 'streetDesign':
+      return score >= 8 ? 'Connected grid, designed for walking'
+        : score >= 6 ? 'Good street connectivity and access'
+        : score >= 4 ? 'Mixed connectivity, some car-oriented design'
+        : 'Car-dependent street layout';
     case 'destinations':
       return score >= 8 ? 'Shops, dining, services within walking distance'
         : score >= 6 ? 'Most daily needs accessible on foot'
@@ -103,15 +103,15 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : s >= 4 ? 'Moderate coverage with gaps. Some stretches are exposed to sun and heat.'
       : 'Very little tree cover. Walking is uncomfortable in warm weather — heat exposure is a concern.',
   },
-  crashHistory: {
-    what: 'Pedestrian and traffic crash records near this location.',
-    how: 'US: NHTSA fatality data (2018-2022) filtered within 800m radius. International: WHO country-level road fatality rate per 100,000 population.',
-    source: 'NHTSA FARS (US) / WHO Global Status Report',
+  streetDesign: {
+    what: 'How well the street network is designed for walking, based on intersection density, transit proximity, and land use mix.',
+    how: 'EPA National Walkability Index at the census block-group level. Combines street intersection density (50%), transit proximity (30%), and land use diversity (20%). Ranked nationally on a 1-20 scale.',
+    source: 'EPA National Walkability Index',
     getMeans: (s) =>
-      s >= 8 ? 'Very few crashes recorded nearby. This area has a strong safety record for pedestrians.'
-      : s >= 6 ? 'Below-average crash rate. Generally safe, but stay alert at major intersections.'
-      : s >= 4 ? 'Moderate crash history. Exercise caution, especially at busy roads and intersections.'
-      : 'Elevated crash rate — pedestrian safety is a real concern here. Be especially careful crossing streets.',
+      s >= 8 ? 'Excellent pedestrian-oriented design with dense intersections, nearby transit, and mixed land uses. Streets are built for people, not just cars.'
+      : s >= 6 ? 'Good street design with reasonable connectivity and transit access. Most daily trips can be done on foot.'
+      : s >= 4 ? 'Mixed design with some walkable elements but also car-oriented stretches. Transit access may be limited.'
+      : 'Car-dependent street layout with low intersection density, distant transit, and separated land uses. Walking is impractical for most trips.',
   },
   destinations: {
     what: 'Variety and density of daily needs within walking distance — shops, schools, healthcare, restaurants, parks, and transit.',
@@ -171,13 +171,14 @@ const METRICS: MetricDef[] = [
     getScore: (m) => m.treeCanopy,
   },
   {
-    key: 'crashHistory',
-    name: 'Crash History',
-    icon: '🚨',
-    source: 'NHTSA / WHO',
+    key: 'streetDesign',
+    name: 'Street Design',
+    icon: '🛣️',
+    source: 'EPA',
+    satKey: 'streetDesign',
     getScore: (_m, cs) => {
-      const crashMetric = cs?.components.safety.metrics[0];
-      return crashMetric ? crashMetric.score / 10 : 0;
+      const sdMetric = cs?.components.safety.metrics[0];
+      return sdMetric ? sdMetric.score / 10 : 0;
     },
   },
   {
@@ -326,7 +327,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, crashData, neighborhoodIntel }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
 
   const toggleMetric = (key: string) => {
@@ -382,7 +383,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           <EquityContextSection
             demographicData={demographicData}
             metrics={metrics}
-            crashData={crashData ?? null}
+            crashData={null}
             compositeScore={compositeScore ?? null}
             localEconomy={osmData ? analyzeLocalEconomy(osmData) : null}
           />

@@ -1,5 +1,5 @@
 import { COLORS } from '../constants';
-import type { Location, WalkabilityMetrics, DataQuality, WalkabilityScoreV2, CrashData } from '../types';
+import type { Location, WalkabilityMetrics, DataQuality, WalkabilityScoreV2 } from '../types';
 import ScoreCard from './streetcheck/ScoreCard';
 
 interface CompareViewProps {
@@ -7,12 +7,10 @@ interface CompareViewProps {
   metrics1: WalkabilityMetrics;
   quality1: DataQuality;
   compositeScore1?: WalkabilityScoreV2 | null;
-  crashData1?: CrashData | null;
   location2: Location;
   metrics2: WalkabilityMetrics;
   quality2: DataQuality;
   compositeScore2?: WalkabilityScoreV2 | null;
-  crashData2?: CrashData | null;
 }
 
 export default function CompareView({
@@ -20,12 +18,10 @@ export default function CompareView({
   metrics1,
   quality1,
   compositeScore1,
-  crashData1,
   location2,
   metrics2,
   quality2,
   compositeScore2,
-  crashData2,
 }: CompareViewProps) {
   const getWinner = (score1: number, score2: number): 'left' | 'right' | 'tie' => {
     if (Math.abs(score1 - score2) < 0.1) return 'tie';
@@ -53,7 +49,7 @@ export default function CompareView({
           <h3 className="text-lg font-semibold text-gray-700 mb-4 truncate">
             {location1.displayName}
           </h3>
-          <ScoreCard metrics={metrics1} compositeScore={compositeScore1} crashData={crashData1} />
+          <ScoreCard metrics={metrics1} compositeScore={compositeScore1} />
           {quality1 && (
             <div className="mt-4 bg-white rounded-xl p-4 border-2 border-gray-100">
               <h4 className="font-semibold text-gray-800 mb-2 text-sm">Data Quality</h4>
@@ -80,7 +76,7 @@ export default function CompareView({
           <h3 className="text-lg font-semibold text-gray-700 mb-4 truncate">
             {location2.displayName}
           </h3>
-          <ScoreCard metrics={metrics2} compositeScore={compositeScore2} crashData={crashData2} />
+          <ScoreCard metrics={metrics2} compositeScore={compositeScore2} />
           {quality2 && (
             <div className="mt-4 bg-white rounded-xl p-4 border-2 border-gray-100">
               <h4 className="font-semibold text-gray-800 mb-2 text-sm">Data Quality</h4>

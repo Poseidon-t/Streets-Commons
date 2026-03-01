@@ -130,6 +130,22 @@ export interface CountryCrashData {
 
 export type CrashData = LocalCrashData | CountryCrashData;
 
+// --- Street Design data (EPA National Walkability Index) ---
+
+export interface StreetDesignData {
+  score: number;
+  category: string;
+  d3bRank: number;         // Street intersection density (1-20)
+  d4aRank: number;         // Transit proximity (1-20)
+  d2bRank: number;         // Land use mix (1-20)
+  natWalkInd: number;      // EPA composite walkability (1-20)
+  natWalkIndRank: number | null;  // National percentile
+  zeroCarPct: number | null;
+  totalPop: number | null;
+  metroArea: string | null;
+  dataSource: string;
+}
+
 // --- Raw metric data ---
 
 export interface RawMetricData {

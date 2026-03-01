@@ -51,13 +51,13 @@ I came across your listing${lead.sampleListing && !lead.sampleListing.startsWith
 
 https://safestreets.streetsandcommons.com
 
-The report covers 6 walkability metrics (street connectivity, terrain, tree canopy, crash history, nearby destinations, commute mode), neighborhood intelligence (commute patterns, economics, health data, flood risk), and equity context, all from NASA satellite imagery, US Census, CDC, and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
+The report covers 6 walkability metrics (street connectivity, terrain, tree canopy, street design, nearby destinations, commute mode), neighborhood intelligence (commute patterns, economics, health data, flood risk), and equity context, all from NASA satellite imagery, EPA, US Census, CDC, and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
 
 That's the ready-made product — $99 one-time, unlimited reports, 30 seconds to generate.
 
 But here's why I'm actually reaching out:
 
-We also do custom neighborhood intelligence work. Same satellite and infrastructure data, packaged differently for your workflow — neighborhood comparison sheets for buyer consultations, bulk scoring for your listing pipeline, area intelligence reports for a zip code, or buyer-facing briefs that highlight what matters most (transit access, tree shade, crash safety, food access).
+We also do custom neighborhood intelligence work. Same satellite and infrastructure data, packaged differently for your workflow — neighborhood comparison sheets for buyer consultations, bulk scoring for your listing pipeline, area intelligence reports for a zip code, or buyer-facing briefs that highlight what matters most (transit access, tree shade, street design, food access).
 
 If you have a specific way you use neighborhood data to win clients, we can probably build a tool around it.
 

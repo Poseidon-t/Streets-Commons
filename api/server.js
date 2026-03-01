@@ -5,8 +5,8 @@
  * - NASA POWER meteorological data (temperature)
  * - NASADEM elevation data via Microsoft Planetary Computer
  * - OpenStreetMap infrastructure via Overpass API
- * - NHTSA FARS fatal crash data (US)
- * - WHO road traffic death rates (international)
+ * - EPA National Walkability Index (street design)
+ * - US Census ACS (commute mode, demographics)
  * - Sentinel-2 NDVI + heat island data
  */
 
@@ -4247,6 +4247,128 @@ app.get('/api/crash-data', async (req, res) => {
 });
 
 // =====================
+// STREET DESIGN (EPA National Walkability Index)
+// =====================
+
+const epaCache = new Map();
+const EPA_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours (data changes annually)
+
+app.get('/api/street-design', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) {
+      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
+    }
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+
+    if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    // Check cache
+    const cacheKey = `epa:${latNum.toFixed(4)},${lonNum.toFixed(4)}`;
+    const cached = epaCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < EPA_CACHE_TTL) {
+      console.log(`📦 EPA cache hit for ${latNum.toFixed(4)}, ${lonNum.toFixed(4)}`);
+      return res.json({ success: true, data: cached.data });
+    }
+
+    console.log(`🛣️ Fetching EPA Walkability Index for: ${latNum}, ${lonNum}`);
+
+    const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
+      `geometry=${lonNum},${latNum}` +
+      `&geometryType=esriGeometryPoint` +
+      `&inSR=4326` +
+      `&spatialRel=esriSpatialRelIntersects` +
+      `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,D1A,D1B,AutoOwn0,AutoOwn1,AutoOwn2p,TotPop,Workers,Ac_Total,CBSA_Name,CSA_Name,NatWalkInd_Ranked` +
+      `&returnGeometry=false` +
+      `&f=json`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const response = await fetch(epaUrl, {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+    });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      throw new Error(`EPA API returned ${response.status}`);
+    }
+
+    const epaData = await response.json();
+
+    if (!epaData.features || epaData.features.length === 0) {
+      console.log(`🛣️ No EPA data for this location (likely outside US)`);
+      return res.json({ success: true, data: null });
+    }
+
+    const attrs = epaData.features[0].attributes;
+
+    // D3B: Street intersection density (pedestrian-oriented, 1-20 ranked)
+    // D4A: Distance to nearest transit stop (1-20 ranked)
+    // D2B: Land use mix (employment + household + employment sectors, 1-20 ranked)
+    // NatWalkInd: National Walkability Index composite (1-20)
+    const d3bRank = attrs.D3B_Ranked ?? attrs.D3B ?? 0;  // Street connectivity
+    const d4aRank = attrs.D4A_Ranked ?? attrs.D4A ?? 0;  // Transit proximity
+    const d2bRank = attrs.D2B_Ranked ?? 0;                // Land use mix
+    const natWalkInd = attrs.NatWalkInd ?? 0;             // Overall EPA walkability
+
+    // Calculate score: weighted blend of D3B (street connectivity, 50%), D4A (transit, 30%), D2B (land use, 20%)
+    // EPA ranks are 1-20, convert to 0-100
+    const d3bScore = Math.round((d3bRank / 20) * 100);
+    const d4aScore = Math.round((d4aRank / 20) * 100);
+    const d2bScore = Math.round((d2bRank / 20) * 100);
+    const score = Math.round(d3bScore * 0.50 + d4aScore * 0.30 + d2bScore * 0.20);
+
+    // Zero-car household percentage
+    const totalHH = (attrs.AutoOwn0 ?? 0) + (attrs.AutoOwn1 ?? 0) + (attrs.AutoOwn2p ?? 0);
+    const zeroCarPct = totalHH > 0 ? Math.round((attrs.AutoOwn0 / totalHH) * 100) : null;
+
+    // Category label
+    let category;
+    if (score >= 80) category = 'Excellent street design for walking';
+    else if (score >= 60) category = 'Good street design for walking';
+    else if (score >= 40) category = 'Moderate street design';
+    else if (score >= 20) category = 'Car-oriented street design';
+    else category = 'Very car-dependent design';
+
+    const result = {
+      score,
+      category,
+      d3bRank,         // Street intersection density (1-20)
+      d4aRank,         // Transit proximity (1-20)
+      d2bRank,         // Land use mix (1-20)
+      natWalkInd,      // EPA composite (1-20)
+      natWalkIndRank: attrs.NatWalkInd_Ranked ?? null,  // National percentile
+      zeroCarPct,
+      totalPop: attrs.TotPop ?? null,
+      metroArea: attrs.CBSA_Name || attrs.CSA_Name || null,
+      dataSource: 'EPA National Walkability Index',
+    };
+
+    // Cache it
+    epaCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    if (epaCache.size > 1000) {
+      const oldest = epaCache.keys().next().value;
+      epaCache.delete(oldest);
+    }
+
+    console.log(`🛣️ EPA result: score=${score}, D3B=${d3bRank}/20, D4A=${d4aRank}/20, NatWalkInd=${natWalkInd}`);
+
+    res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.error('❌ EPA Walkability Index error:', error.message);
+    // Graceful fallback: return null instead of 500
+    res.json({ success: true, data: null });
+  }
+});
+
+// =====================
 // DEMOGRAPHIC / ECONOMIC DATA
 // =====================
 
@@ -5878,6 +6000,7 @@ app.listen(PORT, () => {
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
   console.log(`   🚶 Commute Mode: GET /api/population-density`);
   console.log(`   🚨 Crash Data: GET /api/crash-data (FARS + WHO)`);
+  console.log(`   🛣️  Street Design: GET /api/street-design (EPA Walkability Index)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);
   console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);

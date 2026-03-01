@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useMemo } from 'react';
-import type { Location, WalkabilityMetrics, WalkabilityScoreV2, CrashData, DataQuality, NeighborhoodIntelligence } from '../types';
+import type { Location, WalkabilityMetrics, WalkabilityScoreV2, DataQuality, NeighborhoodIntelligence } from '../types';
 import type { AgentProfile } from '../utils/clerkAccess';
 import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
@@ -22,7 +22,6 @@ interface AgentReportData {
   metrics: WalkabilityMetrics;
   compositeScore?: WalkabilityScoreV2;
   dataQuality?: DataQuality;
-  crashData?: CrashData;
   neighborhoodIntel?: NeighborhoodIntelligence;
   agentProfile: AgentProfile;
   percentile?: PercentileData | null;
@@ -60,7 +59,7 @@ const metricsConfig = [
   { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
   { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
-  { key: 'crashHistory', name: 'Crash History', icon: '🚦', source: 'NHTSA FARS / OSM' },
+  { key: 'streetDesign', name: 'Street Design', icon: '🛣️', source: 'EPA Walkability Index' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
   { key: 'commuteMode', name: 'Commute Mode', icon: '🚶', source: 'Census ACS' },
 ] as const;
@@ -158,7 +157,7 @@ export default function AgentReportView() {
     );
   }
 
-  const { location, metrics, compositeScore, dataQuality, crashData, agentProfile } = data;
+  const { location, metrics, compositeScore, dataQuality, agentProfile } = data;
   const brandAccent = agentProfile.brandColor || C.accent;
   const score = metrics.overallScore;
   const grade = compositeScore?.grade || (score >= 8 ? 'A' : score >= 6 ? 'B' : score >= 4 ? 'C' : score >= 2 ? 'D' : 'F');
@@ -486,33 +485,6 @@ export default function AgentReportView() {
 
         {/* ═══════════ PAGE 3: CONTEXT + FOOTER ═══════════ */}
         <div>
-          {/* Crash Data (if US) */}
-          {crashData && crashData.type === 'local' && (
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Traffic Safety Context</h2>
-              <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
-                <p style={{ fontSize: '0.875rem', color: C.textMuted, lineHeight: 1.6 }}>
-                  Within 800m of this address, NHTSA FARS data ({crashData.yearRange.from}–{crashData.yearRange.to}) recorded <strong style={{ color: C.text }}>{crashData.totalCrashes} fatal crash{crashData.totalCrashes !== 1 ? 'es' : ''}</strong> resulting in <strong style={{ color: C.text }}>{crashData.totalFatalities} fatalit{crashData.totalFatalities !== 1 ? 'ies' : 'y'}</strong>.
-                  {crashData.nearestCrash && (
-                    <> The nearest fatal crash was {Math.round(crashData.nearestCrash.distance)}m away on {crashData.nearestCrash.road || 'a nearby road'} ({crashData.nearestCrash.year}).</>
-                  )}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* International crash context */}
-          {crashData && crashData.type === 'country' && (
-            <div style={{ marginBottom: '2rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Traffic Safety Context</h2>
-              <div style={{ padding: '1rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
-                <p style={{ fontSize: '0.875rem', color: C.textMuted, lineHeight: 1.6 }}>
-                  {crashData.countryName} has a road traffic death rate of <strong style={{ color: C.text }}>{crashData.deathRatePer100k.toFixed(1)} per 100,000</strong> (WHO, {crashData.year}).
-                </p>
-              </div>
-            </div>
-          )}
-
           {/* Neighborhood Intelligence — Narrative Commentary */}
           {data.neighborhoodIntel && (() => {
             const ni = data.neighborhoodIntel!;

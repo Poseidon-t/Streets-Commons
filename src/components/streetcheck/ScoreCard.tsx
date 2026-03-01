@@ -1,11 +1,9 @@
-import type { WalkabilityMetrics, CrashData, CountryCrashData, WalkabilityScoreV2 } from '../../types';
+import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
 import WalkerInfographic from '../WalkerInfographic';
 
 interface ScoreCardProps {
   metrics: WalkabilityMetrics;
-  crashData?: CrashData | null;
-  crashLoading?: boolean;
   compositeScore?: WalkabilityScoreV2 | null;
 }
 
@@ -49,71 +47,7 @@ function CircularScore({ score }: { score: number }) {
   );
 }
 
-const WHO_GLOBAL_AVG = 15.0;
-
-function CrashSummary({ data }: { data: CrashData }) {
-  if (data.type === 'local') {
-    if (data.totalCrashes === 0) {
-      return (
-        <div className="flex items-center gap-2">
-          <span className="text-sm" style={{ color: '#16a34a' }}>No fatal crashes within {data.radiusMeters}m</span>
-          <span className="text-xs" style={{ color: '#8a9a8a' }}>({data.yearRange.from}–{data.yearRange.to})</span>
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
-        <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span className="text-sm font-semibold" style={{ color: '#dc2626' }}>{data.totalFatalities}</span>
-        <span className="text-xs" style={{ color: '#6b7280' }}>
-          {data.totalFatalities === 1 ? 'death' : 'deaths'} in {data.totalCrashes} fatal {data.totalCrashes === 1 ? 'crash' : 'crashes'} within {data.radiusMeters}m
-        </span>
-        <span className="text-xs" style={{ color: '#8a9a8a' }}>({data.yearRange.from}–{data.yearRange.to})</span>
-      </div>
-    );
-  }
-
-  const countryData = data as CountryCrashData;
-  const isAboveAvg = countryData.deathRatePer100k > WHO_GLOBAL_AVG;
-  const ratio = (countryData.deathRatePer100k / WHO_GLOBAL_AVG) * 100;
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 flex-wrap">
-        <svg className="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span className="text-sm font-semibold" style={{ color: isAboveAvg ? '#dc2626' : '#f59e0b' }}>
-          {countryData.deathRatePer100k.toFixed(1)}
-        </span>
-        <span className="text-xs" style={{ color: '#6b7280' }}>
-          road deaths per 100k · {countryData.countryName}
-        </span>
-      </div>
-      <div className="relative h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#e0dbd0' }}>
-        <div
-          className="absolute top-0 h-full w-0.5"
-          style={{ left: `${Math.min((WHO_GLOBAL_AVG / 40) * 100, 100)}%`, backgroundColor: '#8a9a8a' }}
-        />
-        <div
-          className="h-full rounded-full transition-all duration-500"
-          style={{
-            width: `${Math.min((countryData.deathRatePer100k / 40) * 100, 100)}%`,
-            backgroundColor: isAboveAvg ? '#fca5a5' : '#fde68a',
-          }}
-        />
-      </div>
-      <div className="flex justify-between text-xs" style={{ color: '#8a9a8a' }}>
-        <span>{isAboveAvg ? `${Math.round(ratio - 100)}% above` : `${Math.round(100 - ratio)}% below`} global avg</span>
-        <span>{countryData.year}</span>
-      </div>
-    </div>
-  );
-}
-
-export default function ScoreCard({ metrics, crashData, crashLoading, compositeScore }: ScoreCardProps) {
+export default function ScoreCard({ metrics, compositeScore }: ScoreCardProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
 
   return (
@@ -135,18 +69,6 @@ export default function ScoreCard({ metrics, crashData, crashLoading, compositeS
       {compositeScore && compositeScore.confidence < 80 && (
         <div className="mt-4 text-xs text-center" style={{ color: '#8a9a8a' }}>
           Loading more data... ({compositeScore.confidence}% confidence)
-        </div>
-      )}
-
-      {/* Crash Data */}
-      {crashLoading && (
-        <div className="mt-4 pt-4 border-t animate-pulse" style={{ borderColor: '#e0dbd0' }}>
-          <div className="h-3 w-48 rounded bg-gray-200" />
-        </div>
-      )}
-      {!crashLoading && crashData && (
-        <div className="mt-4 pt-4 border-t" style={{ borderColor: '#e0dbd0' }}>
-          <CrashSummary data={crashData} />
         </div>
       )}
     </div>

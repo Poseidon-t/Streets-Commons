@@ -5,12 +5,12 @@ export type MetricKey =
   | 'slope'
   | 'treeCanopy'
   | 'streetGrid'
-  | 'crashHistory'
+  | 'streetDesign'
   | 'commuteMode';
 
 export const METRIC_KEYS: MetricKey[] = [
   'destinationAccess', 'slope', 'treeCanopy',
-  'streetGrid', 'crashHistory', 'commuteMode',
+  'streetGrid', 'streetDesign', 'commuteMode',
 ];
 
 export interface FieldEntry {

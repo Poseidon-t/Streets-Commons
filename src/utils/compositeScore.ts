@@ -6,8 +6,8 @@
  * Components:
  *   Network Design   35%  — intersection density, block length, network density, dead-end ratio (OSM topology)
  *   Environment      25%  — tree canopy (Sentinel-2 NDVI), slope (NASADEM)
- *   Safety           15%  — crash data (NHTSA FARS / WHO)
- *   Accessibility    25%  — population density (GHS-POP), destination access (OSM POIs)
+ *   Street Design    15%  — EPA National Walkability Index (intersection density, transit proximity, land use mix)
+ *   Accessibility    25%  — commute mode (Census ACS), destination access (OSM POIs)
  *
  * Each sub-metric is 0-100. Components are weighted averages of their sub-metrics.
  * Overall = weighted sum of components → 0-100 + letter grade.
@@ -20,7 +20,6 @@ import type {
   SubMetric,
   LetterGrade,
   NetworkGraph,
-  CrashData,
 } from '../types';
 import {
   scoreIntersectionDensity,
@@ -57,45 +56,20 @@ function weightedAvg(items: { score: number | null; weight: number }[]): number 
   return totalWeight > 0 ? weightedSum / totalWeight : 0;
 }
 
-// ---------- crash data → 0-100 score ----------
-
-function scoreCrashData(crash: CrashData | null): number | null {
-  if (!crash) return null;
-
-  if (crash.type === 'local') {
-    // FARS local: fewer fatalities per year = better
-    const years = crash.yearRange.to - crash.yearRange.from + 1;
-    const fatalitiesPerYear = years > 0 ? crash.totalFatalities / years : crash.totalFatalities;
-    if (fatalitiesPerYear === 0) return 100;
-    if (fatalitiesPerYear <= 1) return 80;
-    if (fatalitiesPerYear <= 3) return 60;
-    if (fatalitiesPerYear <= 5) return 40;
-    return 20;
-  }
-
-  // Country-level WHO: deaths per 100k
-  const rate = crash.deathRatePer100k;
-  if (rate <= 3) return 95;
-  if (rate <= 6) return 80;
-  if (rate <= 10) return 60;
-  if (rate <= 15) return 40;
-  return 20;
-}
-
 // ---------- input interface ----------
 
 export interface CompositeScoreInput {
   legacy: WalkabilityMetrics;
   networkGraph?: NetworkGraph;
   buildingDensityScore?: number;     // 0-100 from NDBI
-  populationDensityScore?: number;   // 0-100 from GHS-POP
-  crashData?: CrashData | null;
+  populationDensityScore?: number;   // 0-100 from Census ACS
+  streetDesignScore?: number;        // 0-100 from EPA Walkability Index
 }
 
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, buildingDensityScore, populationDensityScore, crashData } = input;
+  const { legacy, networkGraph, buildingDensityScore, populationDensityScore, streetDesignScore } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];
@@ -152,16 +126,16 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: envMetrics,
   };
 
-  // ===== 3. Safety (15%) — Crash Data only =====
-  const crashScore = scoreCrashData(crashData ?? null);
+  // ===== 3. Street Design (15%) — EPA Walkability Index =====
+  const sdScore = streetDesignScore ?? 0;
 
   const safetyMetrics: SubMetric[] = [
-    { name: 'Crash History', score: crashScore ?? 0, weight: 1.0 },
+    { name: 'Street Design', score: sdScore, weight: 1.0 },
   ];
 
   const safety: ComponentScore = {
-    label: 'Safety',
-    score: Math.round(crashScore ?? 0),
+    label: 'Street Design',
+    score: Math.round(sdScore),
     weight: 0.15,
     metrics: safetyMetrics,
   };

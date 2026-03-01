@@ -28,7 +28,7 @@ import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
 import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
-import { fetchCrashData } from './services/crashdata';
+import { fetchStreetDesign } from './services/streetDesign';
 import { fetchPopulationDensity } from './services/populationDensity';
 import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
@@ -41,7 +41,7 @@ import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
 import { computeTransitAccess, computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, CrashData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -49,7 +49,7 @@ interface AnalysisData {
   quality: DataQuality;
   osmData: OSMData;
   compositeScore?: WalkabilityScoreV2 | null;
-  crashData?: CrashData | null;
+  streetDesignScore?: number;
 }
 
 function App() {
@@ -61,8 +61,7 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [rawMetricData, setRawMetricData] = useState<RawMetricData>({});
-  const [crashData, setCrashData] = useState<CrashData | null>(null);
-  const [crashLoading, setCrashLoading] = useState(false);
+  const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
   const [buildingDensityScore, setBuildingDensityScore] = useState<number | undefined>();
   const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
@@ -229,8 +228,7 @@ function App() {
     setAnalysisError(null);
     setMetrics(null);
     setSatelliteLoaded(new Set());
-    setCrashData(null);
-    setCrashLoading(true);
+    setStreetDesignScore(undefined);
     setCompositeScore(null);
     setBuildingDensityScore(undefined);
     setPopulationDensityScore(undefined);
@@ -245,25 +243,9 @@ function App() {
     const abortController = new AbortController();
     satelliteAbortRef.current = abortController;
 
-    // Fire OSM, satellite, and crash data requests simultaneously
+    // Fire OSM, satellite, and street design requests simultaneously
     const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
     const satellitePromises = startSatelliteFetches(selectedLocation);
-
-    // Crash data fetch (non-blocking, runs in parallel — also piped into satellite promises)
-    const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
-      .then(data => {
-        if (!abortController.signal.aborted) {
-          setCrashData(data);
-          setCrashLoading(false);
-        }
-        return data;
-      })
-      .catch(() => {
-        if (!abortController.signal.aborted) {
-          setCrashLoading(false);
-        }
-        return null;
-      });
 
     try {
       // Wait for OSM data first (needed for core metrics)
@@ -300,7 +282,7 @@ function App() {
 
       // Progressively update metrics as satellite data arrives
       // (requests were already fired above, now just await results)
-      progressivelyUpdateMetrics(selectedLocation, fetchedOsmData, satellitePromises, abortController, crashPromise);
+      progressivelyUpdateMetrics(selectedLocation, fetchedOsmData, satellitePromises, abortController);
 
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -334,7 +316,7 @@ function App() {
 
     const {
       DEMO_LOCATION, DEMO_METRICS, DEMO_COMPOSITE_SCORE, DEMO_DATA_QUALITY,
-      DEMO_CRASH_DATA, DEMO_DEMOGRAPHIC_DATA, DEMO_RAW_METRIC_DATA,
+      DEMO_DEMOGRAPHIC_DATA, DEMO_RAW_METRIC_DATA,
       DEMO_OSM_DATA, DEMO_SATELLITE_SOURCES,
     } = await import('./data/demoData');
 
@@ -342,8 +324,7 @@ function App() {
     setMetrics(DEMO_METRICS);
     setCompositeScore(DEMO_COMPOSITE_SCORE);
     setDataQuality(DEMO_DATA_QUALITY);
-    setCrashData(DEMO_CRASH_DATA);
-    setCrashLoading(false);
+    setStreetDesignScore(65);
     setDemographicData(DEMO_DEMOGRAPHIC_DATA);
     setRawMetricData(DEMO_RAW_METRIC_DATA);
     setOsmData(DEMO_OSM_DATA as any);
@@ -361,8 +342,7 @@ function App() {
     setMetrics(null);
     setCompositeScore(null);
     setDataQuality(null);
-    setCrashData(null);
-    setCrashLoading(false);
+    setStreetDesignScore(undefined);
     setDemographicData(null);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
@@ -391,6 +371,8 @@ function App() {
       .catch(() => null),
     populationDensity: fetchPopulationDensity(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    streetDesign: fetchStreetDesign(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
     demographics: fetchDemographicData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode)
       .catch(() => null),
     floodRisk: fetchFloodRisk(selectedLocation.lat, selectedLocation.lon)
@@ -403,7 +385,6 @@ function App() {
     currentOsmData: OSMData,
     promises: ReturnType<typeof startSatelliteFetches>,
     abortController: AbortController,
-    crashPromise: Promise<CrashData | null>
   ) => {
     const scores: {
       slope?: number;
@@ -415,7 +396,7 @@ function App() {
     const extra: {
       buildingDensity?: number;
       populationDensity?: number;
-      crashData?: CrashData | null;
+      streetDesign?: number;
     } = {};
     const raw: RawMetricData = {
       crossingCount: currentOsmData.crossings?.length,
@@ -441,7 +422,7 @@ function App() {
         networkGraph: currentOsmData.networkGraph,
         buildingDensityScore: extra.buildingDensity,
         populationDensityScore: extra.populationDensity,
-        crashData: extra.crashData,
+        streetDesignScore: extra.streetDesign,
       });
       setCompositeScore(composite);
     };
@@ -501,8 +482,12 @@ function App() {
       }
       recalc();
     });
-    crashPromise.then(data => {
-      extra.crashData = data;
+    promises.streetDesign.then(result => {
+      if (result) {
+        extra.streetDesign = result.score;
+        setStreetDesignScore(result.score);
+        markLoaded('streetDesign');
+      }
       recalc();
     });
     setDemographicLoading(true);
@@ -599,7 +584,6 @@ function App() {
       metrics,
       compositeScore,
       dataQuality,
-      crashData,
       neighborhoodIntel,
       agentProfile: profile,
     };
@@ -779,7 +763,7 @@ function App() {
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-xl mb-6 text-earth-text-body">
-                  Walkability scores, crash data, and neighborhood health for any address.
+                  Walkability scores, street design analysis, and neighborhood health for any address.
                   <span className="text-earth-text-light"> Free, no sign-up.</span>
                 </p>
 
@@ -869,7 +853,7 @@ function App() {
                         { icon: '🔀', name: 'Street Grid', score: '7.8' },
                         { icon: '⛰️', name: 'Terrain', score: '8.2' },
                         { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
-                        { icon: '🚨', name: 'Crashes', score: '5.9' },
+                        { icon: '🛣️', name: 'Street Design', score: '7.4' },
                         { icon: '🏪', name: 'Destinations', score: '7.1' },
                         { icon: '🚶', name: 'Commute Mode', score: '6.8' },
                       ].map(m => (
@@ -1085,10 +1069,9 @@ function App() {
                         setIsAnalyzingCompare(1);
                         setCompareError(null);
                         try {
-                          // Fire OSM, satellite, and crash requests simultaneously
+                          // Fire OSM, satellite, and street design requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
                           const satellitePromises = startSatelliteFetches(selectedLocation);
-                          const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode).catch(() => null);
 
                           const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
@@ -1114,7 +1097,7 @@ function App() {
 
                           // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
-                          const extra: { buildingDensity?: number; populationDensity?: number; crashData?: CrashData | null } = {};
+                          const extra: { buildingDensity?: number; populationDensity?: number; streetDesign?: number } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -1127,7 +1110,7 @@ function App() {
                               networkGraph: fetchedOsmData.networkGraph,
                               buildingDensityScore: extra.buildingDensity,
                               populationDensityScore: extra.populationDensity,
-                              crashData: extra.crashData,
+                              streetDesignScore: extra.streetDesign,
                             });
                             setLocation1(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
@@ -1137,7 +1120,7 @@ function App() {
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; if (v.buildingDensity) extra.buildingDensity = v.buildingDensity.score; recalc(); } });
                           satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
-                          crashPromise.then(data => { extra.crashData = data; setLocation1(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
+                          satellitePromises.streetDesign.then(v => { if (v) { extra.streetDesign = v.score; recalc(); } });
                         } catch (error) {
                           console.error('Failed to analyze location 1:', error);
                           setCompareError('Failed to analyze location 1. Please try again.');
@@ -1165,10 +1148,9 @@ function App() {
                         setIsAnalyzingCompare(2);
                         setCompareError(null);
                         try {
-                          // Fire OSM, satellite, and crash requests simultaneously
+                          // Fire OSM, satellite, and street design requests simultaneously
                           const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
                           const satellitePromises = startSatelliteFetches(selectedLocation);
-                          const crashPromise = fetchCrashData(selectedLocation.lat, selectedLocation.lon, selectedLocation.countryCode).catch(() => null);
 
                           const fetchedOsmData = await osmPromise;
                           const calculatedMetrics = calculateMetrics(
@@ -1194,7 +1176,7 @@ function App() {
 
                           // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
-                          const extra: { buildingDensity?: number; populationDensity?: number; crashData?: CrashData | null } = {};
+                          const extra: { buildingDensity?: number; populationDensity?: number; streetDesign?: number } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -1207,7 +1189,7 @@ function App() {
                               networkGraph: fetchedOsmData.networkGraph,
                               buildingDensityScore: extra.buildingDensity,
                               populationDensityScore: extra.populationDensity,
-                              crashData: extra.crashData,
+                              streetDesignScore: extra.streetDesign,
                             });
                             setLocation2(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
@@ -1217,7 +1199,7 @@ function App() {
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; if (v.buildingDensity) extra.buildingDensity = v.buildingDensity.score; recalc(); } });
                           satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
-                          crashPromise.then(data => { extra.crashData = data; setLocation2(prev => prev ? { ...prev, crashData: data } : prev); recalc(); });
+                          satellitePromises.streetDesign.then(v => { if (v) { extra.streetDesign = v.score; recalc(); } });
                         } catch (error) {
                           console.error('Failed to analyze location 2:', error);
                           setCompareError('Failed to analyze location 2. Please try again.');
@@ -1263,12 +1245,10 @@ function App() {
               metrics1={location1.metrics}
               quality1={location1.quality}
               compositeScore1={location1.compositeScore}
-              crashData1={location1.crashData}
               location2={location2.location}
               metrics2={location2.metrics}
               quality2={location2.quality}
               compositeScore2={location2.compositeScore}
-              crashData2={location2.crashData}
             />
           </Suspense>
           </ErrorBoundary>
@@ -1328,7 +1308,7 @@ function App() {
             {/* Row 1: Map + Score side by side */}
             <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16">
               <Map location={location} osmData={osmData} />
-              <ScoreCard metrics={metrics} crashData={crashData} crashLoading={crashLoading} compositeScore={compositeScore} />
+              <ScoreCard metrics={metrics} compositeScore={compositeScore} />
             </div>
 
             {/* Compact data quality badge */}
@@ -1345,7 +1325,7 @@ function App() {
                   </span>
                 </span>
                 <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings · {dataQuality.poiCount} POIs</span>
-                <span className="hidden sm:inline">OSM · Sentinel-2 · NASA{crashData ? ' · ' + crashData.dataSource : ''}</span>
+                <span className="hidden sm:inline">OSM · Sentinel-2 · NASA · Census ACS · EPA</span>
               </div>
             )}
 
@@ -1368,7 +1348,7 @@ function App() {
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} crashData={crashData} neighborhoodIntel={neighborhoodIntel} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} />
             </div>
 
             {/* Share + Export — right after metrics so users can act immediately */}
@@ -1537,7 +1517,7 @@ function App() {
                         { icon: '🔀', name: 'Street Grid', desc: 'Street connectivity and route options', source: 'OpenStreetMap' },
                         { icon: '⛰️', name: 'Terrain', desc: 'Elevation and slope difficulty', source: 'NASA SRTM' },
                         { icon: '🌳', name: 'Tree Canopy', desc: 'Shade and vegetation coverage', source: 'Sentinel-2' },
-                        { icon: '🚨', name: 'Crash History', desc: 'Pedestrian crash data', source: 'NHTSA / WHO' },
+                        { icon: '🛣️', name: 'Street Design', desc: 'Intersection density, transit proximity, land use mix', source: 'EPA' },
                         { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
                         { icon: '🚶', name: 'Commute Mode', desc: 'Walk, bike, and transit commute share', source: 'Census ACS' },
                       ].map(item => (
