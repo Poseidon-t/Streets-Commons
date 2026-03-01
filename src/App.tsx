@@ -763,7 +763,7 @@ function App() {
 
           {/* Two-column hero layout */}
           <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 md:pt-16 pb-8">
-            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-center">
               {/* Left column - Text & Search */}
               <div className="flex flex-col items-center md:items-start">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center md:text-left mb-4 tracking-tight text-earth-text-dark">
@@ -839,7 +839,7 @@ function App() {
               {/* Right column - Preview Card */}
               <div className="flex justify-center md:justify-end">
                 <div className="w-full max-w-md">
-                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5">
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -1723,18 +1723,6 @@ function App() {
               </div>
             </section>
 
-            {/* Newsletter subscribe */}
-            {!demoMode && (
-              <section className="py-8 bg-earth-sage/40">
-                <div className="max-w-2xl mx-auto px-6">
-                  <Suspense fallback={null}>
-                    <EmailCaptureBanner
-                      userEmail={user?.primaryEmailAddress?.emailAddress}
-                    />
-                  </Suspense>
-                </div>
-              </section>
-            )}
           </>
         )}
 
@@ -1762,7 +1750,7 @@ function App() {
 
             <div className="space-y-3">
               {/* FAQ 1 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 1 ? null : 1)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1787,7 +1775,7 @@ function App() {
               </div>
 
               {/* FAQ 2 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1812,7 +1800,7 @@ function App() {
               </div>
 
               {/* FAQ 3 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1840,7 +1828,7 @@ function App() {
               {showAllFaqs && (
               <>
               {/* FAQ 4 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 4 ? null : 4)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1865,7 +1853,7 @@ function App() {
               </div>
 
               {/* FAQ 5 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 5 ? null : 5)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1890,7 +1878,7 @@ function App() {
               </div>
 
               {/* FAQ 6 */}
-              <div className="rounded-lg border overflow-hidden bg-white/60 border-earth-border">
+              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
                 <button
                   onClick={() => setOpenFaq(openFaq === 6 ? null : 6)}
                   className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
@@ -1928,8 +1916,21 @@ function App() {
         </section>
       )}
 
+      {/* Newsletter subscribe - before footer */}
+      {!compareMode && !location && !isAnalyzing && !demoMode && (
+        <section className="py-10 bg-earth-sage/30">
+          <div className="max-w-4xl mx-auto px-6">
+            <Suspense fallback={null}>
+              <EmailCaptureBanner
+                userEmail={user?.primaryEmailAddress?.emailAddress}
+              />
+            </Suspense>
+          </div>
+        </section>
+      )}
+
       {/* Footer - Earthy light aesthetic */}
-      <footer className="mt-16 relative overflow-hidden bg-earth-forest text-earth-text-light">
+      <footer className="mt-0 relative overflow-hidden bg-earth-forest text-earth-text-light">
         <div className="relative max-w-7xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
             {/* About Column */}
