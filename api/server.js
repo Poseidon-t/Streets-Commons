@@ -4222,8 +4222,8 @@ async function searchWebContext(locationName) {
   // Source 2: SearXNG public instances (meta-search, returns JSON, no auth)
   const searxPromise = (async () => {
     const queries = [
-      `${locationName} tree canopy coverage street trees`,
-      `${locationName} walkability walk score green`,
+      `${locationName} walk score walkability trees parks`,
+      `${locationName} tree canopy street trees urban forest green neighborhood`,
     ];
     const instances = [
       'https://search.sapti.me',
@@ -4421,9 +4421,9 @@ Return ONLY valid JSON, no other text:
 Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-Below are some photos of this area. Use them as supplementary visual evidence alongside the research findings above.` },
+Below are some photos found via web image search. These may show only commercial storefronts or a single block -- they do NOT represent the entire neighborhood. Do NOT let a few photos of a commercial street override strong research evidence of tree-lined boulevards, parks, and high walkability.` },
         ...imageContent,
-        { type: 'text', text: `Synthesize the research findings and photos to score ${locationName}. The web research (Walk Score, tree canopy data, neighborhood descriptions) should be your PRIMARY input. Photos are supplementary.${scoringGuide}` },
+        { type: 'text', text: `Score ${locationName} based PRIMARILY on the research findings above (Walk Score, Wikipedia, tree canopy data). Photos are minor supplementary evidence only -- a few photos of one block cannot override neighborhood-wide research data showing parks, tree-lined streets, and high walkability scores.${scoringGuide}` },
       ];
     } else {
       content = `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
