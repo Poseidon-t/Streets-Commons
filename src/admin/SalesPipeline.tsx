@@ -44,31 +44,22 @@ const ALL_STATUSES: OutreachStatus[] = ['not_started', 'email_sent', 'followed_u
 
 function generateEmail(lead: QualifiedLead): string {
   const firstName = lead.agentName.split(' ')[0];
-  return `Subject: I ran a walkability report for your ${lead.neighborhood} listing
+  const address = lead.sampleListing && !lead.sampleListing.startsWith('Check') ? lead.sampleListing : `[FULL ADDRESS]`;
+  const reportLink = `[REPORT LINK]`;
+  return `Subject: Walkability report for your ${lead.neighborhood} listing
 
 Hi ${firstName},
 
-I came across your listing${lead.sampleListing && !lead.sampleListing.startsWith('Check') ? ` at ${lead.sampleListing}` : ` in ${lead.neighborhood}`} and ran it through our walkability analysis tool. Here's a sample of what your branded report would look like:
+${lead.neighborhood} is one of the most walkable neighbourhoods in ${lead.city} -- I built a tool that shows exactly why.
 
-https://safestreets.streetsandcommons.com
+SafeStreets measures street design, tree canopy, nearby destinations, commute patterns, flood risk, and health outcomes -- from satellite imagery and government data. Objective neighbourhood data buyers can't easily find anywhere else.
 
-The report covers walkability metrics (tree canopy, street design, nearby destinations, commute mode), neighborhood intelligence (commute patterns, economics, health data, flood risk), and equity context, all from satellite imagery, EPA, US Census, CDC, and OpenStreetMap. Your name, logo, and contact info on every page. Buyers get data. Sellers see a serious agent.
+I ran your listing at ${address} through it -- snapshot below, full report here: ${reportLink}
 
-That's the ready-made product — $99 one-time, unlimited reports, 30 seconds to generate.
+Curious what you think.
 
-But here's why I'm actually reaching out:
-
-We also do custom neighborhood intelligence work. Same satellite and infrastructure data, packaged differently for your workflow — neighborhood comparison sheets for buyer consultations, bulk scoring for your listing pipeline, area intelligence reports for a zip code, or buyer-facing briefs that highlight what matters most (transit access, tree shade, street design, food access).
-
-If you have a specific way you use neighborhood data to win clients, we can probably build a tool around it.
-
-Would it be worth a 15-minute call to see if there's a fit? Either way, 3 free trial reports are yours to test the standard product:
-
-https://safestreets.streetsandcommons.com/enterprise/real-estate
-
-Best,
 Sarath
-Streets & Commons — safestreets.streetsandcommons.com`;
+Streets & Commons -- safestreets.streetsandcommons.com`;
 }
 
 
