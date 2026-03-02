@@ -4099,6 +4099,8 @@ app.get('/api/street-design', async (req, res) => {
     const cached = epaCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < EPA_CACHE_TTL) {
       console.log(`📦 EPA cache hit for ${latNum.toFixed(4)}, ${lonNum.toFixed(4)}`);
+      const debug = req.query.debug === '1';
+      if (debug) return res.json({ success: true, data: cached.data, debug: { cacheHit: true, cacheAge: `${Math.round((Date.now() - cached.timestamp) / 1000)}s`, cacheKey } });
       return res.json({ success: true, data: cached.data });
     }
 
@@ -4114,18 +4116,25 @@ app.get('/api/street-design', async (req, res) => {
       `&f=json`;
 
     // Try up to 2 attempts with increasing timeout
+    const debug = req.query.debug === '1';
+    const debugInfo = { cacheHit: false, attempts: [], rawFeatureCount: null, epaUrl };
     let epaData = null;
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const timeoutMs = attempt === 1 ? 15000 : 25000;
+        const start = Date.now();
         const response = await fetch(epaUrl, {
           signal: AbortSignal.timeout(timeoutMs),
           headers: { 'User-Agent': 'SafeStreets/1.0' },
         });
+        const elapsed = Date.now() - start;
+        debugInfo.attempts.push({ attempt, status: response.status, elapsed: `${elapsed}ms`, ok: response.ok });
         if (!response.ok) throw new Error(`EPA API returned ${response.status}`);
         epaData = await response.json();
+        debugInfo.rawFeatureCount = epaData?.features?.length ?? 0;
         break;
       } catch (retryErr) {
+        debugInfo.attempts.push({ attempt, error: retryErr.message });
         console.warn(`  EPA attempt ${attempt} failed: ${retryErr.message}`);
         if (attempt === 2) throw retryErr;
         await new Promise(r => setTimeout(r, 1000));
@@ -4134,6 +4143,7 @@ app.get('/api/street-design', async (req, res) => {
 
     if (!epaData.features || epaData.features.length === 0) {
       console.log(`🛣️ No EPA data for this location (likely outside US)`);
+      if (debug) return res.json({ success: true, data: null, debug: debugInfo, rawResponse: epaData });
       return res.json({ success: true, data: null });
     }
 
