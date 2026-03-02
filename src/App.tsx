@@ -795,7 +795,7 @@ function App() {
                 {/* Trust badges */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 max-w-xl">
                   <span className="text-xs sm:text-sm text-earth-text-light">
-                    <span className="text-earth-green font-semibold">12</span> data layers
+                    <span className="text-earth-green font-semibold">11</span> data layers
                   </span>
                   <span className="text-earth-text-light hidden sm:inline">·</span>
                   <span className="text-xs sm:text-sm text-earth-text-light">
@@ -803,7 +803,7 @@ function App() {
                   </span>
                   <span className="text-earth-text-light hidden sm:inline">·</span>
                   <span className="text-xs sm:text-sm text-earth-text-light">
-                    Powered by <span className="text-earth-green font-semibold">NASA</span>, <span className="text-earth-green font-semibold">Census</span>, <span className="text-earth-green font-semibold">CDC</span> & <span className="text-earth-green font-semibold">EPA</span>
+                    Powered by <span className="text-earth-green font-semibold">Sentinel-2</span>, <span className="text-earth-green font-semibold">Census</span>, <span className="text-earth-green font-semibold">CDC</span> & <span className="text-earth-green font-semibold">EPA</span>
                   </span>
                 </div>
               </div>
@@ -884,7 +884,7 @@ function App() {
 
             {/* Data Sources */}
             <div className="flex flex-wrap justify-center gap-2">
-              {['NASA & Sentinel-2', 'US Census & CDC', 'OpenStreetMap', 'FEMA & EPA'].map((source) => (
+              {['Sentinel-2 Satellite', 'US Census & CDC', 'OpenStreetMap', 'FEMA & EPA'].map((source) => (
                 <div
                   key={source}
                   className="source-tag-light flex items-center gap-2 px-3 py-1.5 rounded-full bg-earth-green/10 border border-earth-green/20"
@@ -1302,7 +1302,7 @@ function App() {
                   </span>
                 </span>
                 <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings · {dataQuality.poiCount} POIs</span>
-                <span className="hidden sm:inline">OSM · Sentinel-2 · NASA · Census ACS · EPA</span>
+                <span className="hidden sm:inline">OSM · Sentinel-2 · Census ACS · EPA</span>
               </div>
             )}
 
@@ -1396,7 +1396,7 @@ function App() {
                     </div>
                     <div>
                       <strong className="block mb-1">Free & Open Data</strong>
-                      <p className="text-[#4a5a4a]">All data comes from publicly available sources: OpenStreetMap community, Sentinel-2 satellite imagery, NASADEM elevation data, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
+                      <p className="text-[#4a5a4a]">All data comes from publicly available sources: OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
                     </div>
                   </div>
                   <div className="mt-6 p-4 rounded-lg border bg-white/60 border-[#d0dbd0]">
@@ -1479,7 +1479,7 @@ function App() {
                   What You'll Learn
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  12 data layers from satellite imagery and government sources — completely free, no sign-up required.
+                  11 data layers from satellite imagery and government sources -- completely free, no sign-up required.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1689,7 +1689,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All 12 data layers, compare mode, field verification, and neighborhood intelligence are completely free with no sign-up required. We use open government data (NASA, US Census, CDC, EPA, FEMA, OpenStreetMap). Unlimited searches, works globally in 190+ countries.
+                    Yes! All data layers, compare mode, field verification, and neighborhood intelligence are completely free with no sign-up required. We use open government data (Sentinel-2, US Census, CDC, EPA, FEMA, OpenStreetMap). Unlimited searches, works globally in 190+ countries.
                   </p>
                 </div>
               </div>
@@ -1873,7 +1873,7 @@ function App() {
                     <strong>US locations get extra data layers</strong> powered by federal sources: <strong>commute patterns</strong> (walk/bike/transit/car split from Census ACS), <strong>tract-level demographics</strong> (income, poverty rate, education from Census ACS), <strong>street design quality</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>community health</strong> (obesity, diabetes, asthma, physical inactivity rates from CDC PLACES), and <strong>flood risk</strong> (FEMA flood zone classification).
                   </p>
                   <p>
-                    <strong>International locations</strong> still get full walkability scores, transit stops, parks, food access, and equity context, plus country-level data from the World Bank (GDP, unemployment) and WHO (health data). The 6 core metrics work identically everywhere.
+                    <strong>International locations</strong> get 3 core walkability metrics (Street Grid, Tree Canopy, Destinations), transit stops, parks, food access, and equity context, plus country-level data from the World Bank (GDP, unemployment) and WHO (health data).
                   </p>
                 </div>
               </div>
@@ -1987,7 +1987,7 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  NASADEM elevation (30m)
+                  5 walkability metrics (US)
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
@@ -2015,21 +2015,21 @@ function App() {
                   </a>
                 </li>
                 <li>
-                  <a href="https://earthengine.google.com" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
-                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
-                    Google Earth Engine
-                  </a>
-                </li>
-                <li>
-                  <a href="https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_HARMONIZED" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                  <a href="https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
                     <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
                     Sentinel-2 Satellite
                   </a>
                 </li>
                 <li>
-                  <a href="https://lpdaac.usgs.gov/products/nasadem_hgtv001/" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                  <a href="https://www.epa.gov/smartgrowth/national-walkability-index" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
                     <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
-                    NASADEM Elevation
+                    EPA Walkability Index
+                  </a>
+                </li>
+                <li>
+                  <a href="https://data.census.gov" className="transition flex items-center gap-2 text-earth-text-light" target="_blank" rel="noopener noreferrer">
+                    <span className="w-1 h-1 rounded-full bg-earth-text-body"></span>
+                    US Census ACS
                   </a>
                 </li>
               </ul>
