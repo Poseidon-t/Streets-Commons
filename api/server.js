@@ -2036,9 +2036,12 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           else if (avgNDVI < 0.4) sc = Math.round((2 + ((avgNDVI - 0.2) / 0.2) * 3) * 10) / 10;
           else if (avgNDVI < 0.6) sc = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
           else sc = 10;
-          console.log(`  ✅ NDVI: ${avgNDVI.toFixed(3)} → ${sc}/10`);
-          return { score: sc, ndvi: parseFloat(avgNDVI.toFixed(3)) };
-        } catch (e) { console.warn('⚠️  NDVI failed:', e.message); return { score: 5, ndvi: null }; }
+          const imgDate = best.properties.datetime?.split('T')[0] || 'unknown';
+          const imgCloud = best.properties['eo:cloud_cover'] || 0;
+          const imgPeakRank = peakRank(best.properties.datetime);
+          console.log(`  ✅ NDVI: ${avgNDVI.toFixed(3)} → ${sc}/10 (image: ${imgDate}, cloud: ${imgCloud}%, peakRank: ${imgPeakRank})`);
+          return { score: sc, ndvi: parseFloat(avgNDVI.toFixed(3)), imageDate: imgDate, cloudCover: imgCloud, peakRank: imgPeakRank };
+        } catch (e) { console.warn('⚠️  NDVI failed:', e.message); return { score: 5, ndvi: null, imageDate: null, cloudCover: null, peakRank: null }; }
       })(), 45000, { score: 5, ndvi: null }),
       // FCC Census geocode (for CDC health data)
       fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
@@ -2152,8 +2155,26 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       })(), 15000, null),
     ]);
 
+    // Track validation metadata for report health check
+    const _validation = {
+      treeCanopy: { status: 'ok', imageDate: null, cloudCover: null, peakRank: null, ndvi: null },
+      streetDesign: { status: 'pending' },
+      streetGrid: { status: 'ok', streetCount: streets.length },
+      destinationAccess: { status: 'ok', poiCount: pois.length },
+      commuteMode: { status: 'pending' },
+    };
+
     if (ndviResult.status === 'fulfilled' && ndviResult.value) {
       treeCanopyScore = ndviResult.value.score;
+      _validation.treeCanopy = {
+        status: treeCanopyScore < 2 ? 'warning' : 'ok',
+        imageDate: ndviResult.value.imageDate || null,
+        cloudCover: ndviResult.value.cloudCover ?? null,
+        peakRank: ndviResult.value.peakRank ?? null,
+        ndvi: ndviResult.value.ndvi,
+      };
+    } else {
+      _validation.treeCanopy = { status: 'failed', imageDate: null, cloudCover: null, peakRank: null, ndvi: null };
     }
     // 5b. Neighborhood Intelligence — transit/park/food from OSM elements + CDC + FEMA
     const niTransit = { busStops: 0, railStations: 0, totalStops: 0, score: 0 };
@@ -2293,6 +2314,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     }
     // If EPA unavailable for US locations, exclude from scoring (don't penalize with 0)
     // streetDesignScore stays 0 which gets filtered out by the available.filter(s => s > 0)
+    // Update validation metadata for remaining metrics
+    _validation.commuteMode = censusAcsData
+      ? { status: 'ok', altPct: censusAcsData.altPct }
+      : { status: 'unavailable', altPct: null };
+    _validation.streetDesign = streetDesignData
+      ? { status: 'ok', epaScore: streetDesignData.score }
+      : { status: 'timeout', epaScore: null };
+
     console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
 
     // 7. Overall score — average of available metrics
@@ -2352,9 +2381,24 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       neighborhoodIntel,
       agentProfile,
       percentile,
+      // Report health metadata for admin validation
+      reportHealth: {
+        generatedAt: new Date().toISOString(),
+        metricsAvailable: available.length,
+        metricsTotal: 5,
+        metrics: _validation,
+        issues: [
+          ...(_validation.treeCanopy.status === 'warning' ? [`Tree Canopy score ${treeCanopyScore} is very low -- satellite image may be from wrong season (image: ${_validation.treeCanopy.imageDate})`] : []),
+          ...(_validation.treeCanopy.status === 'failed' ? ['Tree Canopy: satellite data fetch failed, using default score'] : []),
+          ...(_validation.streetDesign.status === 'timeout' ? ['Street Design: EPA API timed out after 2 attempts -- metric excluded from score'] : []),
+          ...(_validation.commuteMode.status === 'unavailable' ? ['Commute Mode: Census ACS data unavailable -- using default score'] : []),
+          ...(streetGridScore < 3 ? [`Street Grid score ${streetGridScore} is unusually low -- OSM data may be sparse for this area`] : []),
+        ],
+        overallHealth: available.length >= 4 && !_validation.treeCanopy.status.match(/warning|failed/) ? 'good' : available.length >= 3 ? 'fair' : 'poor',
+      },
     };
 
-    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}, ${available.length} metrics) — ${agentProfile.name}`);
+    console.log(`📊 Report: ${displayName} (${overallScore}/10 ${grade}, ${available.length} metrics, health: ${reportData.reportHealth.overallHealth}) — ${agentProfile.name}`);
     return reportData;
 }
 
@@ -2371,6 +2415,34 @@ app.post('/api/admin/sales/generate-report', async (req, res) => {
   } catch (err) {
     console.error('Report generation failed:', err);
     res.status(500).json({ error: `Report generation failed: ${err.message}` });
+  }
+});
+
+// POST /api/regenerate-report — public endpoint for report health check regeneration
+// Called from AgentReportView when admin clicks "Regenerate" to refresh stale data
+app.post('/api/regenerate-report', async (req, res) => {
+  const { lat, lon, displayName, agentProfile } = req.body;
+  if (!lat || !lon || !agentProfile?.name) {
+    return res.status(400).json({ error: 'lat, lon, and agentProfile.name are required' });
+  }
+  try {
+    // Reverse geocode to get neighborhood/city/state from lat/lon
+    const geoResp = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=16`, {
+      headers: { 'User-Agent': 'SafeStreets/1.0 (safestreets.streetsandcommons.com)' },
+      signal: AbortSignal.timeout(8000),
+    });
+    const geoData = geoResp.ok ? await geoResp.json() : null;
+    const addr = geoData?.address || {};
+    const neighborhood = addr.neighbourhood || addr.suburb || addr.quarter || '';
+    const city = addr.city || addr.town || addr.village || '';
+    const state = addr.state || '';
+
+    console.log(`🔄 Regenerating report for: ${displayName || `${neighborhood}, ${city}`}`);
+    const reportData = await generateReportForLocation(neighborhood, city, state, agentProfile);
+    res.json(reportData);
+  } catch (err) {
+    console.error('Report regeneration failed:', err);
+    res.status(500).json({ error: `Report regeneration failed: ${err.message}` });
   }
 });
 

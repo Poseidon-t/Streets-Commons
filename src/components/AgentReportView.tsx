@@ -17,6 +17,27 @@ interface PercentileData {
   label: string;
 }
 
+interface MetricHealth {
+  status: 'ok' | 'warning' | 'failed' | 'timeout' | 'unavailable' | 'pending';
+  imageDate?: string | null;
+  cloudCover?: number | null;
+  peakRank?: number | null;
+  ndvi?: number | null;
+  epaScore?: number | null;
+  altPct?: number | null;
+  streetCount?: number;
+  poiCount?: number;
+}
+
+interface ReportHealth {
+  generatedAt: string;
+  metricsAvailable: number;
+  metricsTotal: number;
+  metrics: Record<string, MetricHealth>;
+  issues: string[];
+  overallHealth: 'good' | 'fair' | 'poor';
+}
+
 interface AgentReportData {
   location: Location;
   metrics: WalkabilityMetrics;
@@ -25,6 +46,7 @@ interface AgentReportData {
   neighborhoodIntel?: NeighborhoodIntelligence;
   agentProfile: AgentProfile;
   percentile?: PercentileData | null;
+  reportHealth?: ReportHealth;
 }
 
 // Color palette
@@ -74,6 +96,7 @@ export default function AgentReportView() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareCopied, setShareCopied] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   useEffect(() => {
     // Try localStorage first (cross-tab from SalesPipeline), fall back to sessionStorage
@@ -96,6 +119,35 @@ export default function AgentReportView() {
       localStorage.removeItem('agentReportShareUrl');
     }
   }, []);
+
+  const handleRegenerate = async () => {
+    if (!data || regenerating) return;
+    setRegenerating(true);
+    try {
+      const resp = await fetch(`${API_URL}/api/regenerate-report`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lat: data.location.lat,
+          lon: data.location.lon,
+          displayName: (data.location as { displayName?: string }).displayName || data.location.city || '',
+          agentProfile: data.agentProfile,
+        }),
+      });
+      if (!resp.ok) throw new Error(`API returned ${resp.status}`);
+      const newData = await resp.json();
+      setData(newData);
+      sessionStorage.setItem('agentReportData', JSON.stringify(newData));
+      // Clear stale share URL since data changed
+      setShareUrl(null);
+      sessionStorage.removeItem('agentReportShareUrl');
+    } catch (err) {
+      console.error('Regeneration failed:', err);
+      alert('Report regeneration failed. Please try again.');
+    } finally {
+      setRegenerating(false);
+    }
+  };
 
   const handleShare = async () => {
     if (shareUrl) {
@@ -257,6 +309,84 @@ export default function AgentReportView() {
           </div>
         </div>
       </div>
+
+      {/* Report Health Panel — admin-only, hidden in print */}
+      {(data as AgentReportData & { reportHealth?: ReportHealth })?.reportHealth && (
+        <div className="print:hidden" style={{ maxWidth: '56rem', margin: '0 auto', padding: '0.75rem 3rem 0' }}>
+          {(() => {
+            const health = (data as AgentReportData & { reportHealth: ReportHealth }).reportHealth;
+            const healthColor = health.overallHealth === 'good' ? '#16a34a' : health.overallHealth === 'fair' ? '#ca8a04' : '#dc2626';
+            const healthBg = health.overallHealth === 'good' ? '#f0fdf4' : health.overallHealth === 'fair' ? '#fefce8' : '#fef2f2';
+            const healthBorder = health.overallHealth === 'good' ? '#bbf7d0' : health.overallHealth === 'fair' ? '#fef08a' : '#fecaca';
+            const statusIcon = (s: string) => s === 'ok' ? '✅' : s === 'warning' ? '⚠️' : s === 'timeout' || s === 'failed' ? '❌' : s === 'unavailable' ? '➖' : '⏳';
+            return (
+              <div style={{ padding: '1rem 1.25rem', borderRadius: '0.75rem', border: `1px solid ${healthBorder}`, background: healthBg, marginBottom: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: health.issues.length > 0 ? '0.75rem' : 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.8125rem', fontWeight: 700, color: healthColor, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Report Health: {health.overallHealth}
+                    </span>
+                    <span style={{ fontSize: '0.75rem', color: C.textLight }}>
+                      {health.metricsAvailable}/{health.metricsTotal} metrics | Generated {new Date(health.generatedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleRegenerate}
+                    disabled={regenerating}
+                    style={{
+                      padding: '0.375rem 0.875rem', background: regenerating ? '#e5e7eb' : C.accent, color: regenerating ? '#9ca3af' : 'white',
+                      fontWeight: 600, borderRadius: '0.375rem', border: 'none', cursor: regenerating ? 'wait' : 'pointer', fontSize: '0.75rem',
+                    }}
+                  >
+                    {regenerating ? 'Regenerating...' : 'Regenerate Report'}
+                  </button>
+                </div>
+                {health.issues.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    {health.issues.map((issue, i) => (
+                      <div key={i} style={{ fontSize: '0.75rem', color: '#92400e', display: 'flex', alignItems: 'flex-start', gap: '0.375rem' }}>
+                        <span>⚠️</span>
+                        <span>{issue}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {health.issues.length === 0 && (
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    {Object.entries(health.metrics).map(([key, m]) => (
+                      <span key={key} style={{ fontSize: '0.6875rem', color: C.textMuted }}>
+                        {statusIcon(m.status)} {key}
+                        {m.imageDate ? ` (${m.imageDate})` : ''}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* Regenerate button for reports without health data (generated before this feature) */}
+      {!(data as AgentReportData & { reportHealth?: ReportHealth })?.reportHealth && (
+        <div className="print:hidden" style={{ maxWidth: '56rem', margin: '0 auto', padding: '0.75rem 3rem 0' }}>
+          <div style={{ padding: '0.75rem 1.25rem', borderRadius: '0.75rem', border: `1px solid #fef08a`, background: '#fefce8', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '0.75rem', color: '#92400e' }}>
+              ⚠️ This report was generated before health checks were added. Regenerate for validated data.
+            </span>
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating}
+              style={{
+                padding: '0.375rem 0.875rem', background: regenerating ? '#e5e7eb' : C.accent, color: regenerating ? '#9ca3af' : 'white',
+                fontWeight: 600, borderRadius: '0.375rem', border: 'none', cursor: regenerating ? 'wait' : 'pointer', fontSize: '0.75rem',
+              }}
+            >
+              {regenerating ? 'Regenerating...' : 'Regenerate Report'}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '3rem' }}>
 
