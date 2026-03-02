@@ -5810,6 +5810,27 @@ honeypots.forEach(path => {
   });
 });
 
+// Debug: proxy raw EPA response to diagnose Railway connectivity
+app.get('/api/debug/epa-raw', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'lat, lon required' });
+    const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
+      `geometry=${parseFloat(lon)},${parseFloat(lat)}` +
+      `&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects` +
+      `&outFields=NatWalkInd,D3B_Ranked,D4A_Ranked,D2B_Ranked,CBSA_Name,TotPop` +
+      `&returnGeometry=false&f=json`;
+    const start = Date.now();
+    const resp = await fetch(epaUrl, {
+      signal: AbortSignal.timeout(30000),
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+    });
+    const elapsed = Date.now() - start;
+    const body = await resp.text();
+    res.json({ status: resp.status, elapsed: `${elapsed}ms`, headers: Object.fromEntries(resp.headers), bodyLength: body.length, body: JSON.parse(body) });
+  } catch (e) { res.status(500).json({ error: e.message, name: e.name }); }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`\n🚀 SafeStreets API Server`);
