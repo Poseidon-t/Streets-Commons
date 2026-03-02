@@ -355,6 +355,9 @@ function App() {
   const startSatelliteFetches = (selectedLocation: Location) => ({
     ndvi: fetchNDVI(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    groundTruth: fetch(
+      `/api/ground-truth-greenery?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&name=${encodeURIComponent(selectedLocation.displayName || '')}`
+    ).then(r => r.json()).then(d => d.success ? d.data : null).catch(() => null),
     surfaceTemp: fetchSurfaceTemperature(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
     airQuality: fetchAirQuality(selectedLocation.lat, selectedLocation.lon)
@@ -431,8 +434,15 @@ function App() {
         raw.ndvi = ndvi;
         scores.ndvi = scoreTreeCanopy(ndvi);
       }
-      markLoaded('treeCanopy');
-      recalc();
+      // Blend with ground-truth knowledge assessment (confidence-weighted)
+      promises.groundTruth.then(gt => {
+        if (gt?.score != null && scores.ndvi != null) {
+          const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
+          scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+        }
+        markLoaded('treeCanopy');
+        recalc();
+      });
     });
     promises.surfaceTemp.then(result => {
       if (result) {
@@ -1092,7 +1102,16 @@ function App() {
                             });
                             setLocation1(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
-                          satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
+                          satellitePromises.ndvi.then(v => {
+                            if (v !== null) { scores.ndvi = scoreTreeCanopy(v); }
+                            satellitePromises.groundTruth.then(gt => {
+                              if (gt?.score != null && scores.ndvi != null) {
+                                const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
+                                scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+                              }
+                              recalc();
+                            });
+                          });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
@@ -1170,7 +1189,16 @@ function App() {
                             });
                             setLocation2(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
-                          satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
+                          satellitePromises.ndvi.then(v => {
+                            if (v !== null) { scores.ndvi = scoreTreeCanopy(v); }
+                            satellitePromises.groundTruth.then(gt => {
+                              if (gt?.score != null && scores.ndvi != null) {
+                                const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
+                                scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+                              }
+                              recalc();
+                            });
+                          });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });

@@ -1958,7 +1958,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const withTimeout = (promise, ms, fallback) =>
       Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 
-    const [ndviResult, fccResult, floodResult, popResult, epaResult] = await Promise.allSettled([
+    const [ndviResult, fccResult, floodResult, popResult, epaResult, greeneryResult] = await Promise.allSettled([
       // Sentinel-2 NDVI tree canopy (45s timeout)
       withTimeout((async () => {
         try {
@@ -2173,6 +2173,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           return result;
         } catch (e) { console.warn('⚠️  EPA Street Design failed after retries:', e.message); return null; }
       })(), 45000, null),
+
+      // Ground-truth greenery -- Claude knowledge assessment (15s timeout)
+      withTimeout((async () => {
+        try {
+          const locationName = `${neighborhood || ''}${neighborhood ? ', ' : ''}${city}${state ? ', ' + state : ''}`;
+          return await fetchGroundTruthGreenery(lat, lon, locationName);
+        } catch (e) { console.warn('⚠️  Ground truth greenery failed:', e.message); return null; }
+      })(), 15000, null),
     ]);
 
     // Track validation metadata for report health check
@@ -2195,6 +2203,19 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       };
     } else {
       _validation.treeCanopy = { status: 'failed', imageDate: null, cloudCover: null, peakRank: null, ndvi: null };
+    }
+
+    // Blend NDVI with ground-truth knowledge assessment (confidence-weighted)
+    let groundTruthData = null;
+    const ndviOnlyScore = treeCanopyScore;
+    if (greeneryResult.status === 'fulfilled' && greeneryResult.value?.score != null) {
+      groundTruthData = greeneryResult.value;
+      const gtScore = groundTruthData.score;
+      const gtWeight = groundTruthData.confidence === 'high' ? 0.5
+                     : groundTruthData.confidence === 'medium' ? 0.35
+                     : 0.2;
+      treeCanopyScore = Math.round((gtScore * gtWeight + treeCanopyScore * (1 - gtWeight)) * 10) / 10;
+      console.log(`  🌳 Tree Canopy blended: NDVI ${ndviOnlyScore}/10 + GT ${gtScore}/10 (${groundTruthData.confidence}, w=${gtWeight}) = ${treeCanopyScore}/10`);
     }
     // 5b. Neighborhood Intelligence — transit/park/food from OSM elements + CDC + FEMA
     const niTransit = { busStops: 0, railStations: 0, totalStops: 0, score: 0 };
@@ -2378,6 +2399,13 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
         overallScore, label,
       },
       streetDesignData,
+      groundTruthGreenery: groundTruthData ? {
+        score: groundTruthData.score,
+        confidence: groundTruthData.confidence,
+        greenCharacter: groundTruthData.greenCharacter,
+        knownFeatures: groundTruthData.knownFeatures,
+      } : null,
+      treeCanopySource: groundTruthData ? 'satellite+knowledge' : 'satellite',
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       neighborhoodIntel,
@@ -4085,6 +4113,114 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+// =====================
+// GROUND-TRUTH GREENERY (Claude Knowledge Assessment)
+// =====================
+// Supplements satellite NDVI with Claude's knowledge of neighborhood greenery.
+// NDVI underscores dense urban areas (rooftops dominate). Claude knows about
+// street trees, parks, and green character from urban forestry data, guides, etc.
+
+const greeneryCache = new Map();
+const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+async function fetchGroundTruthGreenery(lat, lon, locationName) {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) return null;
+
+  const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  const cached = greeneryCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < GREENERY_CACHE_TTL) {
+    return cached.data;
+  }
+  // Evict oldest entries if cache is full
+  if (greeneryCache.size >= 500) {
+    const oldest = [...greeneryCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+    if (oldest) greeneryCache.delete(oldest[0]);
+  }
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{
+          role: 'user',
+          content: `You are an urban forestry analyst calibrating satellite vegetation scores for a walkability tool.
+For the location below, estimate the pedestrian-level tree canopy and greenery based on your knowledge.
+
+Location: ${locationName}
+Coordinates: ${lat}, ${lon}
+
+Consider: street trees, parks within walking distance, tree-lined boulevards, urban forest programs, and overall green character.
+
+Return ONLY valid JSON, no other text:
+{
+  "score": <0.0-10.0>,
+  "confidence": "high|medium|low",
+  "greenCharacter": "<one sentence>",
+  "knownFeatures": ["feature1", "feature2"]
+}
+
+Scoring: 0-1 industrial/highway, 2-3 dense commercial, 4-5 some street trees, 6-7 good coverage, 8-9 well-treed, 10 exceptional canopy.
+If you are not confident about this specific location, set confidence to "low".`,
+        }],
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (!response.ok) {
+      console.warn(`  ⚠️  Ground truth greenery: Claude API returned ${response.status}`);
+      return null;
+    }
+    const data = await response.json();
+    const text = data.content?.[0]?.text;
+    if (!text) return null;
+
+    // Parse JSON from response (handle markdown code blocks)
+    const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const parsed = JSON.parse(jsonStr);
+
+    // Validate
+    if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 10) return null;
+    if (!['high', 'medium', 'low'].includes(parsed.confidence)) parsed.confidence = 'low';
+
+    const result = {
+      score: Math.round(parsed.score * 10) / 10,
+      confidence: parsed.confidence,
+      greenCharacter: parsed.greenCharacter || null,
+      knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
+      dataSource: 'Claude Knowledge Assessment',
+    };
+
+    greeneryCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    console.log(`  ✅ Ground truth greenery: ${result.score}/10 (${result.confidence}) -- ${result.greenCharacter?.substring(0, 60)}`);
+    return result;
+  } catch (e) {
+    console.warn(`  ⚠️  Ground truth greenery failed: ${e.message}`);
+    return null;
+  }
+}
+
+// GET /api/ground-truth-greenery -- standalone endpoint for testing + frontend
+app.get('/api/ground-truth-greenery', async (req, res) => {
+  try {
+    const { lat, lon, name } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
+    const locationName = name || `${lat}, ${lon}`;
+    const result = await fetchGroundTruthGreenery(parseFloat(lat), parseFloat(lon), locationName);
+    if (!result) return res.json({ success: false, reason: 'unavailable' });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // =====================
 // STREET DESIGN (EPA National Walkability Index)
