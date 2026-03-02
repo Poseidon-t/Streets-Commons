@@ -4173,57 +4173,142 @@ async function searchStreetImages(locationName) {
 // Search DuckDuckGo for web results (news, studies, GIS data, urban forestry reports)
 async function searchWebContext(locationName) {
   const queries = [
-    `${locationName} tree canopy coverage percent urban forest`,
-    `${locationName} street trees walkability green infrastructure`,
+    `${locationName} tree canopy coverage urban forest street trees`,
+    `${locationName} walkability green infrastructure parks`,
   ];
-  const allSnippets = [];
 
-  for (const query of queries) {
+  // Run both queries in parallel
+  const results = await Promise.all(queries.map(async (query) => {
     try {
-      const res = await fetch('https://html.duckduckgo.com/html/', {
+      // Use DuckDuckGo Lite (simpler HTML, less likely to block)
+      const res = await fetch('https://lite.duckduckgo.com/lite/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         },
         body: `q=${encodeURIComponent(query)}`,
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(8000),
       });
       const html = await res.text();
-      // Extract result titles and snippets
-      const titleMatches = [...html.matchAll(/class="result__a"[^>]*>(.*?)<\/a>/gs)];
-      const snippetMatches = [...html.matchAll(/class="result__snippet"[^>]*>(.*?)<\/a>/gs)];
-      for (let i = 0; i < Math.min(snippetMatches.length, 5); i++) {
-        const title = titleMatches[i] ? titleMatches[i][1].replace(/<[^>]+>/g, '').trim() : '';
-        const snippet = snippetMatches[i][1].replace(/<[^>]+>/g, '').trim();
-        if (snippet.length > 20) {
-          allSnippets.push(title ? `${title}: ${snippet}` : snippet);
+
+      const snippets = [];
+      // DDG Lite uses <td> with class "result-snippet" or plain text in table cells
+      // Try multiple patterns for robustness
+      const patterns = [
+        /class="result-snippet"[^>]*>(.*?)<\/td>/gs,
+        /class="result__snippet"[^>]*>(.*?)<\/a>/gs,
+        /class="result__snippet"[^>]*>(.*?)<\/td>/gs,
+      ];
+      for (const pattern of patterns) {
+        const matches = [...html.matchAll(pattern)];
+        for (const match of matches.slice(0, 5)) {
+          const text = match[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
+          if (text.length > 30) snippets.push(text);
+        }
+        if (snippets.length > 0) break;
+      }
+
+      // Fallback: extract any substantial text from table cells (DDG Lite format)
+      if (snippets.length === 0) {
+        const tdMatches = [...html.matchAll(/<td[^>]*class="[^"]*snippet[^"]*"[^>]*>(.*?)<\/td>/gs)];
+        for (const m of tdMatches.slice(0, 5)) {
+          const text = m[1].replace(/<[^>]+>/g, '').trim();
+          if (text.length > 30) snippets.push(text);
         }
       }
+
+      // Last fallback: try the full HTML endpoint
+      if (snippets.length === 0) {
+        const fullRes = await fetch('https://html.duckduckgo.com/html/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          },
+          body: `q=${encodeURIComponent(query)}`,
+          signal: AbortSignal.timeout(8000),
+        });
+        const fullHtml = await fullRes.text();
+        const fullMatches = [...fullHtml.matchAll(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g)];
+        for (const m of fullMatches.slice(0, 5)) {
+          const text = m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim();
+          if (text.length > 30) snippets.push(text);
+        }
+      }
+
+      return snippets;
     } catch (e) {
       console.warn(`  DDG web search failed for "${query}": ${e.message}`);
+      return [];
     }
-  }
-  return allSnippets.slice(0, 8); // max 8 snippets
+  }));
+
+  const allSnippets = [...new Set(results.flat())]; // deduplicate
+  console.log(`  Web research: ${allSnippets.length} snippets found for ${locationName}`);
+  return allSnippets.slice(0, 10);
 }
 
-// Count trees tagged in OpenStreetMap near coordinates (Overpass API)
-async function countOSMTrees(lat, lon, radiusMeters = 500) {
+// Query OpenStreetMap for trees, parks, and green spaces near coordinates (Overpass API)
+async function queryOSMGreenery(lat, lon, radiusMeters = 500) {
   try {
-    const query = `[out:json][timeout:10];(node["natural"="tree"](around:${radiusMeters},${lat},${lon});node["natural"="tree_row"](around:${radiusMeters},${lat},${lon});way["natural"="tree_row"](around:${radiusMeters},${lat},${lon}););out count;`;
+    // Query for: trees, tree rows, parks, gardens, green spaces, nature reserves
+    const query = `[out:json][timeout:15];
+(
+  node["natural"="tree"](around:${radiusMeters},${lat},${lon});
+  way["natural"="tree_row"](around:${radiusMeters},${lat},${lon});
+  way["leisure"="park"](around:${radiusMeters},${lat},${lon});
+  relation["leisure"="park"](around:${radiusMeters},${lat},${lon});
+  way["leisure"="garden"](around:${radiusMeters},${lat},${lon});
+  way["landuse"="grass"](around:${radiusMeters},${lat},${lon});
+  way["landuse"="forest"](around:${radiusMeters},${lat},${lon});
+  way["natural"="wood"](around:${radiusMeters},${lat},${lon});
+);
+out tags;`;
     const res = await fetch('https://overpass-api.de/api/interpreter', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `data=${encodeURIComponent(query)}`,
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return null;
     const data = await res.json();
-    // count query returns a single element with tags.total
-    const total = data.elements?.[0]?.tags?.total;
-    return total != null ? parseInt(total) : (data.elements?.length || 0);
+    const elements = data.elements || [];
+
+    // Count by type
+    let treeCount = 0;
+    let treeRowCount = 0;
+    const parks = [];
+    const gardens = [];
+    const greenSpaces = [];
+
+    for (const el of elements) {
+      const tags = el.tags || {};
+      if (tags.natural === 'tree') {
+        treeCount++;
+      } else if (tags.natural === 'tree_row') {
+        treeRowCount++;
+      } else if (tags.leisure === 'park') {
+        parks.push(tags.name || 'Unnamed park');
+      } else if (tags.leisure === 'garden') {
+        gardens.push(tags.name || 'Unnamed garden');
+      } else if (tags.landuse === 'forest' || tags.natural === 'wood') {
+        greenSpaces.push(tags.name || 'Forest/woodland');
+      } else if (tags.landuse === 'grass') {
+        greenSpaces.push(tags.name || 'Green space');
+      }
+    }
+
+    return {
+      treeCount,
+      treeRowCount,
+      parks: [...new Set(parks)].slice(0, 5),
+      gardens: [...new Set(gardens)].slice(0, 3),
+      greenSpaces: [...new Set(greenSpaces)].slice(0, 3),
+      totalElements: elements.length,
+    };
   } catch (e) {
-    console.warn(`  OSM tree count failed: ${e.message}`);
+    console.warn(`  OSM greenery query failed: ${e.message}`);
     return null;
   }
 }
@@ -4311,10 +4396,10 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
 
   try {
     // Run ALL research sources in parallel
-    const [imageResults, webSnippets, osmTreeCount, wikimediaPhotos] = await Promise.all([
+    const [imageResults, webSnippets, osmData, wikimediaPhotos] = await Promise.all([
       searchStreetImages(locationName),
       searchWebContext(locationName),
-      countOSMTrees(lat, lon, 500),
+      queryOSMGreenery(lat, lon, 500),
       searchWikimediaPhotos(lat, lon),
     ]);
 
@@ -4339,16 +4424,23 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
 
     const hasImages = imageContent.length > 0;
     const hasWebData = webSnippets.length > 0;
-    const hasTreeCount = osmTreeCount != null && osmTreeCount > 0;
+    const hasOSM = osmData != null;
+    const osmTreeCount = osmData?.treeCount || 0;
 
-    console.log(`  Research for ${locationName}: ${imageContent.length} images (DDG:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM trees: ${osmTreeCount ?? 'N/A'}`);
+    console.log(`  Research for ${locationName}: ${imageContent.length} images (DDG:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM: ${osmTreeCount} trees, ${osmData?.parks?.length || 0} parks`);
 
     // Build evidence summary for Claude
     let evidenceSummary = '';
-    if (hasTreeCount) {
-      // Contextual tree density (500m radius = ~0.785 sq km)
+    if (hasOSM) {
       const treesPerSqKm = Math.round(osmTreeCount / 0.785);
-      evidenceSummary += `\n\nOPENSTREETMAP DATA: ${osmTreeCount} individually mapped trees within 500m radius (~${treesPerSqKm} trees/sq km). Note: OSM coverage varies -- some areas have every tree mapped, others have few tagged.`;
+      let osmSummary = `\n\nOPENSTREETMAP DATA (within 500m walking radius):`;
+      osmSummary += `\n- ${osmTreeCount} individually mapped trees (~${treesPerSqKm} trees/sq km)`;
+      if (osmData.treeRowCount > 0) osmSummary += `\n- ${osmData.treeRowCount} tree-lined street segments`;
+      if (osmData.parks.length > 0) osmSummary += `\n- Parks: ${osmData.parks.join(', ')}`;
+      if (osmData.gardens.length > 0) osmSummary += `\n- Gardens: ${osmData.gardens.join(', ')}`;
+      if (osmData.greenSpaces.length > 0) osmSummary += `\n- Green spaces: ${osmData.greenSpaces.join(', ')}`;
+      osmSummary += `\nNote: OSM mapping completeness varies by area. Low tree count may mean unmapped, not absent.`;
+      evidenceSummary += osmSummary;
     }
     if (hasWebData) {
       evidenceSummary += `\n\nWEB RESEARCH FINDINGS:\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
@@ -4392,7 +4484,7 @@ Below are street-level photos of this area. Analyze the tree canopy, shade cover
 Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-${!hasWebData && !hasTreeCount ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Use the research data above combined with your knowledge of this area.'}
+${!hasWebData && !hasOSM ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Use the research data above combined with your knowledge of this area.'}
 
 Consider: street trees lining sidewalks, shade coverage for walkers, parks within walking distance, tree-lined boulevards, and the overall green character of the neighborhood.
 ${scoringGuide}`;
@@ -4431,7 +4523,11 @@ ${scoringGuide}`;
     const sources = [];
     if (hasImages) sources.push('Street Photos');
     if (hasWebData) sources.push('Web Research');
-    if (hasTreeCount) sources.push(`OSM Trees (${osmTreeCount})`);
+    if (hasOSM) {
+      const osmParts = [`${osmTreeCount} trees`];
+      if (osmData.parks.length > 0) osmParts.push(`${osmData.parks.length} parks`);
+      sources.push(`OSM (${osmParts.join(', ')})`);
+    }
     if (sources.length === 0) sources.push('Claude Knowledge');
 
     const result = {
@@ -4441,6 +4537,7 @@ ${scoringGuide}`;
       knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
       imagesAnalyzed: imageContent.length,
       osmTreeCount: osmTreeCount,
+      osmParks: osmData?.parks || [],
       webSnippetsUsed: webSnippets.length,
       dataSource: sources.join(' + '),
     };
