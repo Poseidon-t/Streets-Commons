@@ -8,7 +8,6 @@ import type { Location, WalkabilityMetrics, WalkabilityScoreV2, DataQuality, Nei
 import type { AgentProfile } from '../utils/clerkAccess';
 import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
 import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
-import { generateNeighborhoodNarrative } from '../utils/neighborhoodNarrative';
 import WalkerInfographic from './WalkerInfographic';
 
 interface PercentileData {
@@ -38,6 +37,13 @@ interface ReportHealth {
   overallHealth: 'good' | 'fair' | 'poor';
 }
 
+interface GroundTruthGreenery {
+  score: number;
+  confidence: 'high' | 'medium' | 'low';
+  greenCharacter?: string | null;
+  knownFeatures?: string[];
+}
+
 interface AgentReportData {
   location: Location;
   metrics: WalkabilityMetrics;
@@ -47,6 +53,8 @@ interface AgentReportData {
   agentProfile: AgentProfile;
   percentile?: PercentileData | null;
   reportHealth?: ReportHealth;
+  groundTruthGreenery?: GroundTruthGreenery | null;
+  treeCanopySource?: 'satellite' | 'satellite+knowledge';
 }
 
 // Color palette
@@ -77,9 +85,9 @@ const getScoreColor = (s: number) => {
   return C.red;
 };
 
-const metricsConfig = [
+const getMetricsConfig = (treeCanopySource?: string) => [
   { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
-  { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
+  { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: treeCanopySource === 'satellite+knowledge' ? 'Satellite + Web Research' : 'Sentinel-2' },
   { key: 'streetDesign', name: 'Street Design', icon: '🛣️', source: 'EPA Walkability Index' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },
   { key: 'commuteMode', name: 'Commute Mode', icon: '🚶', source: 'Census ACS' },
@@ -228,6 +236,8 @@ export default function AgentReportView() {
   const displayLabel = fieldMode && fieldOverall ? fieldOverall.label : gradeInfo.label;
   const displayGrade = displayScore >= 8 ? 'A' : displayScore >= 6 ? 'B' : displayScore >= 4 ? 'C' : displayScore >= 2 ? 'D' : 'F';
   const displayGradeInfo = GRADE_CONFIG[displayGrade] || GRADE_CONFIG.C;
+
+  const metricsConfig = getMetricsConfig(data.treeCanopySource);
 
   const resolveMetric = (key: MetricKey): number =>
     fieldMode && fieldData[key].adjustedScore !== null
@@ -466,7 +476,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Summary</h2>
             <p style={{ fontSize: '0.9375rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
+              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} walkability metrics plus neighborhood intelligence including transit, amenities, community health, and flood risk.{data.treeCanopySource === 'satellite+knowledge' ? ' Tree canopy is calibrated using satellite imagery and web research.' : ''}{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
             </p>
           </div>
 
@@ -624,40 +634,238 @@ export default function AgentReportView() {
           )}
         </div>
 
-        {/* ═══════════ PAGE 3: CONTEXT + FOOTER ═══════════ */}
-        <div>
-          {/* Neighborhood Intelligence — Narrative Commentary */}
+        {/* ═══════════ PAGE 3: NEIGHBORHOOD INTELLIGENCE ═══════════ */}
+        <div className="page-break-after">
+          {/* Ground Truth Greenery */}
+          {data.groundTruthGreenery && (
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Tree Canopy & Greenery</h2>
+              <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
+                {data.groundTruthGreenery.greenCharacter && (
+                  <p style={{ fontSize: '0.875rem', color: C.textMuted, lineHeight: 1.7, marginBottom: '1rem' }}>{data.groundTruthGreenery.greenCharacter}</p>
+                )}
+                {data.groundTruthGreenery.knownFeatures && data.groundTruthGreenery.knownFeatures.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {data.groundTruthGreenery.knownFeatures.map((f, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.375rem 0.75rem', borderRadius: '0.5rem', fontSize: '0.75rem', background: 'rgba(34,197,94,0.08)', color: '#16a34a', fontWeight: 500 }}>
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.5rem' }}>
+                  Satellite + Web Research ({data.groundTruthGreenery.confidence} confidence)
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Neighborhood Intelligence — Visual Sections */}
           {data.neighborhoodIntel && (() => {
             const ni = data.neighborhoodIntel!;
-            const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.economics || ni.health || ni.flood;
+            const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.health || ni.flood;
             if (!hasData) return null;
-            const narrativeParagraphs = generateNeighborhoodNarrative({
-              ni,
-              locationName: data.location.displayName || '',
-              overallScore: displayScore,
-              metrics: data.metrics,
-            });
-            if (narrativeParagraphs.length === 0) return null;
-
-            // Collect data sources for attribution
-            const sources: string[] = [];
-            if (ni.commute) sources.push('Census ACS');
-            if (ni.transit || ni.parks || ni.food) sources.push('OpenStreetMap');
-            if (ni.economics) sources.push('Census ACS');
-            if (ni.health) sources.push('CDC PLACES');
-            if (ni.flood) sources.push('FEMA NFHL');
-            const uniqueSources = [...new Set(sources)];
 
             return (
               <div style={{ marginBottom: '2.5rem' }}>
                 <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Neighborhood Intelligence</h2>
-                <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: C.bgWarm }}>
-                  {narrativeParagraphs.map((p, i) => (
-                    <p key={i} style={{ fontSize: '0.875rem', color: C.textMuted, lineHeight: 1.7, marginBottom: i < narrativeParagraphs.length - 1 ? '0.875rem' : 0 }}>{p}</p>
-                  ))}
-                  <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.5rem' }}>
-                    Sources: {uniqueSources.join(', ')}
-                  </div>
+                <p style={{ fontSize: '0.8125rem', color: C.textLight, marginBottom: '1rem' }}>Beyond the walkability score -- what daily life looks like here.</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+
+                  {/* How People Get Around */}
+                  {(ni.commute || ni.transit) && (
+                    <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: 'white' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                        <span style={{ fontSize: '1.125rem' }}>🚶</span>
+                        <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text }}>How People Get Around</span>
+                      </div>
+                      {ni.commute && (() => {
+                        const altPct = Math.round(ni.commute.walkPct + ni.commute.bikePct + ni.commute.transitPct);
+                        const contextLine = altPct >= 30
+                          ? `${altPct}% of residents walk, bike, or take transit -- car-optional.`
+                          : altPct >= 15
+                          ? `${altPct}% use alternatives to driving. Car ownership is still common.`
+                          : `Most residents drive -- only ${altPct}% walk, bike, or take transit.`;
+                        const drivePct = Math.max(0, 100 - ni.commute!.walkPct - ni.commute!.bikePct - ni.commute!.transitPct - ni.commute!.wfhPct - ni.commute!.carpoolPct);
+                        const segments = [
+                          { pct: ni.commute!.walkPct, color: '#22c55e', label: 'Walk' },
+                          { pct: ni.commute!.bikePct, color: '#3b82f6', label: 'Bike' },
+                          { pct: ni.commute!.transitPct, color: '#8b5cf6', label: 'Transit' },
+                          { pct: ni.commute!.wfhPct, color: '#06b6d4', label: 'WFH' },
+                          { pct: ni.commute!.carpoolPct, color: '#f59e0b', label: 'Carpool' },
+                          { pct: drivePct, color: '#d1d5db', label: 'Drive' },
+                        ].filter(s => s.pct > 0);
+                        return (
+                          <>
+                            <p style={{ fontSize: '0.75rem', color: C.textMuted, marginBottom: '0.75rem' }}>{contextLine}</p>
+                            {/* Commute bar */}
+                            <div style={{ display: 'flex', borderRadius: '9999px', overflow: 'hidden', height: '16px', background: '#f0ebe0', marginBottom: '0.5rem' }}>
+                              {segments.map((seg, i) => (
+                                <div key={i} style={{ width: `${Math.max(seg.pct, 1.5)}%`, height: '100%', background: seg.color }} title={`${seg.label}: ${seg.pct.toFixed(1)}%`} />
+                              ))}
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+                              {segments.filter(s => s.pct >= 1).map((seg, i) => (
+                                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                                  <div style={{ height: '8px', width: '8px', borderRadius: '2px', background: seg.color, flexShrink: 0 }} />
+                                  <span style={{ fontSize: '0.6875rem', color: C.textMuted }}>
+                                    <strong style={{ color: C.text }}>{Math.round(seg.pct)}%</strong> {seg.label}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            {ni.commute!.zeroCar > 0 && (
+                              <div style={{ fontSize: '0.6875rem', color: C.textLight, marginTop: '0.5rem' }}>
+                                {ni.commute!.zeroCar}% of households have zero cars
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                      {ni.transit && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.75rem' }}>
+                          {ni.transit.railStations > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', background: 'rgba(139,92,246,0.1)', color: '#7c3aed', fontWeight: 600 }}>
+                              🚇 {ni.transit.railStations} rail
+                            </span>
+                          )}
+                          {ni.transit.busStops > 0 && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', background: 'rgba(59,130,246,0.1)', color: '#2563eb', fontWeight: 600 }}>
+                              🚌 {ni.transit.busStops} bus stops
+                            </span>
+                          )}
+                          {ni.transit.totalStops === 0 && (
+                            <span style={{ fontSize: '0.75rem', color: '#dc2626' }}>No transit nearby</span>
+                          )}
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.625rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.375rem' }}>
+                        {ni.commute ? 'Census ACS' : ''}{ni.commute && ni.transit ? ' · ' : ''}{ni.transit ? 'OpenStreetMap' : ''}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* What's Nearby */}
+                  {(ni.parks || ni.food) && (
+                    <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: 'white' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '1.125rem' }}>📍</span>
+                        <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text }}>What's Nearby</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem' }}>
+                        {ni.parks && (
+                          <>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', background: ni.parks.parks > 0 ? '#f8f6f1' : 'rgba(239,68,68,0.04)', border: ni.parks.parks > 0 ? 'none' : '1px dashed #e5ddd0', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🌳</span>
+                              <span style={{ fontSize: '1rem', fontWeight: 700, color: ni.parks.parks > 0 ? C.text : '#c0b0a0' }}>{ni.parks.parks}</span>
+                              <span style={{ fontSize: '0.5625rem', color: C.textLight }}>Parks</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', background: ni.parks.playgrounds > 0 ? '#f8f6f1' : 'rgba(239,68,68,0.04)', border: ni.parks.playgrounds > 0 ? 'none' : '1px dashed #e5ddd0', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🛝</span>
+                              <span style={{ fontSize: '1rem', fontWeight: 700, color: ni.parks.playgrounds > 0 ? C.text : '#c0b0a0' }}>{ni.parks.playgrounds}</span>
+                              <span style={{ fontSize: '0.5625rem', color: C.textLight }}>Playgrounds</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', background: ni.parks.gardens > 0 ? '#f8f6f1' : 'rgba(239,68,68,0.04)', border: ni.parks.gardens > 0 ? 'none' : '1px dashed #e5ddd0', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🌿</span>
+                              <span style={{ fontSize: '1rem', fontWeight: 700, color: ni.parks.gardens > 0 ? C.text : '#c0b0a0' }}>{ni.parks.gardens}</span>
+                              <span style={{ fontSize: '0.5625rem', color: C.textLight }}>Gardens</span>
+                            </div>
+                          </>
+                        )}
+                        {ni.food && (
+                          <>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', background: ni.food.supermarkets > 0 ? '#f8f6f1' : 'rgba(239,68,68,0.04)', border: ni.food.supermarkets > 0 ? 'none' : '1px dashed #e5ddd0', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🛒</span>
+                              <span style={{ fontSize: '1rem', fontWeight: 700, color: ni.food.supermarkets > 0 ? C.text : '#c0b0a0' }}>{ni.food.supermarkets}</span>
+                              <span style={{ fontSize: '0.5625rem', color: C.textLight }}>Supermarkets</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0.75rem 0.5rem', borderRadius: '0.75rem', background: ni.food.groceryStores > 0 ? '#f8f6f1' : 'rgba(239,68,68,0.04)', border: ni.food.groceryStores > 0 ? 'none' : '1px dashed #e5ddd0', textAlign: 'center' }}>
+                              <span style={{ fontSize: '1.25rem', marginBottom: '0.25rem' }}>🥬</span>
+                              <span style={{ fontSize: '1rem', fontWeight: 700, color: ni.food.groceryStores > 0 ? C.text : '#c0b0a0' }}>{ni.food.groceryStores}</span>
+                              <span style={{ fontSize: '0.5625rem', color: C.textLight }}>Grocery</span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      {ni.food?.isFoodDesert && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', background: 'rgba(239,68,68,0.06)' }}>
+                          <span style={{ fontSize: '0.8125rem' }}>⚠️</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#dc2626' }}>Food desert -- no supermarket within 800m</span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.625rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.375rem' }}>
+                        OpenStreetMap · 1.2 km radius
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Health & Environment */}
+                  {(ni.health || ni.flood) && (
+                    <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: 'white' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <span style={{ fontSize: '1.125rem' }}>❤️</span>
+                        <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: C.text }}>Health & Environment</span>
+                      </div>
+                      {ni.health && (
+                        <div style={{ marginBottom: ni.flood ? '1rem' : 0 }}>
+                          <div style={{ fontSize: '0.6875rem', color: C.textMuted, marginBottom: '0.75rem' }}>
+                            Community health vs US average
+                            <span style={{ display: 'inline-block', marginLeft: '0.5rem', height: '10px', width: '2px', borderRadius: '1px', background: C.textLight, verticalAlign: 'middle' }} />
+                            <span style={{ fontSize: '0.625rem', marginLeft: '0.25rem', color: C.textLight }}>gray line = US avg</span>
+                          </div>
+                          {[
+                            { label: 'Obesity', value: ni.health.obesity, usAvg: 32, max: 50 },
+                            { label: 'Diabetes', value: ni.health.diabetes, usAvg: 11, max: 25 },
+                            { label: 'Physical inactivity', value: ni.health.physicalInactivity, usAvg: 26, max: 45 },
+                            { label: 'Asthma', value: ni.health.asthma, usAvg: 10, max: 20 },
+                          ].filter(h => h.value !== null).map((h, i) => {
+                            const isBetter = h.value! < h.usAvg;
+                            const barColor = isBetter ? '#22c55e' : '#ef4444';
+                            const barWidth = Math.min((h.value! / h.max) * 100, 100);
+                            const avgPos = Math.min((h.usAvg / h.max) * 100, 100);
+                            return (
+                              <div key={i} style={{ marginBottom: '0.625rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                                  <span style={{ fontSize: '0.6875rem', fontWeight: 500, color: C.textMuted }}>{h.label}</span>
+                                  <span style={{ fontSize: '0.6875rem', fontWeight: 700, color: barColor }}>{h.value}%</span>
+                                </div>
+                                <div style={{ position: 'relative', height: '10px', borderRadius: '5px', background: '#f0ebe0', overflow: 'visible' }}>
+                                  <div style={{ height: '100%', borderRadius: '5px', width: `${Math.max(barWidth, 2)}%`, background: barColor }} />
+                                  <div style={{ position: 'absolute', top: '-2px', left: `${avgPos}%`, height: '14px', width: '2px', borderRadius: '1px', background: C.textLight }} />
+                                </div>
+                                <div style={{ fontSize: '0.5625rem', color: isBetter ? '#22c55e' : '#ef4444', marginTop: '0.125rem' }}>
+                                  {isBetter ? 'Better than' : 'Above'} US avg ({h.usAvg}%)
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {ni.flood && (() => {
+                        const isHigh = ni.flood!.isHighRisk;
+                        const isMinimal = ni.flood!.floodZone === 'X';
+                        const fColor = isHigh ? '#ef4444' : isMinimal ? '#22c55e' : '#f59e0b';
+                        const fBg = isHigh ? 'rgba(239,68,68,0.08)' : isMinimal ? 'rgba(34,197,94,0.06)' : 'rgba(245,158,11,0.07)';
+                        const fIcon = isHigh ? '🌊' : isMinimal ? '✓' : '⚠';
+                        const fLabel = isHigh ? 'High Risk' : isMinimal ? 'Minimal Risk' : 'Moderate Risk';
+                        return (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.75rem', borderRadius: '0.75rem', background: fBg }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px', width: '32px', borderRadius: '50%', background: `${fColor}20`, fontSize: '1rem', flexShrink: 0 }}>
+                              {fIcon}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: fColor }}>{fLabel}</div>
+                              <div style={{ fontSize: '0.6875rem', color: C.textMuted }}>FEMA Zone {ni.flood!.floodZone} · {ni.flood!.description}</div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <div style={{ fontSize: '0.625rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.375rem' }}>
+                        {ni.health ? 'CDC PLACES' : ''}{ni.health && ni.flood ? ' · ' : ''}{ni.flood ? 'FEMA NFHL' : ''}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -667,7 +875,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This walkability assessment analyzes {sortedMetrics.length} metrics using Sentinel-2 satellite imagery, OpenStreetMap infrastructure data, EPA walkability index, and US Census data. Metrics are scored 0-10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
+              This walkability assessment analyzes {sortedMetrics.length} walkability metrics and neighborhood intelligence using Sentinel-2 satellite imagery, OpenStreetMap, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA flood data.{data.treeCanopySource === 'satellite+knowledge' ? ' Tree canopy is enhanced with web research for ground-truth calibration.' : ''} Metrics are scored 0-10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
             </p>
           </div>
 
