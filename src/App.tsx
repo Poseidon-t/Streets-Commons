@@ -229,8 +229,6 @@ function App() {
     setSatelliteLoaded(new Set());
     setStreetDesignScore(undefined);
     setCompositeScore(null);
-    setBuildingDensityScore(undefined);
-    setPopulationDensityScore(undefined);
     setDemographicData(null);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
@@ -348,8 +346,6 @@ function App() {
     setRawMetricData({});
     setOsmData(null);
     setSatelliteLoaded(new Set());
-    setBuildingDensityScore(undefined);
-    setPopulationDensityScore(undefined);
 
     // Clean URL
     window.history.pushState({}, '', window.location.pathname);

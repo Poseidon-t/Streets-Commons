@@ -12,6 +12,7 @@ export interface WalkabilityMetrics {
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
   streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
+  streetDesign?: number; // EPA National Walkability Index (street connectivity, transit, land use)
   commuteMode?: number; // Census ACS walk/bike/transit commute share
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
