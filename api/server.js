@@ -4479,15 +4479,21 @@ Scoring guide (score reflects what a PEDESTRIAN experiences walking the streets)
 8-9: Well-treed, significant canopy, abundant shade, parks accessible
 10: Exceptional urban forest, continuous canopy, park-like
 
-Tree density calibration (use OSM data as primary ground truth):
+Tree density calibration (OSM data as primary ground truth):
 - 50-150 trees/sq km = score 3-5 range
-- 150-300 trees/sq km = score 5-6 range
+- 150-300 trees/sq km = score 5-6.5 range
 - 300-500 trees/sq km = score 6-7.5 range
-- 500+ trees/sq km = score 7.5-9 range
-- Named parks within 500m add +0.5 to +1.0 to the score
+- 500+ trees/sq km = score 7-8.5 range
+- Named parks within 500m add +0.5 to the score
 - Tree-lined boulevards/rows add +0.5
 
-CRITICAL: The OSM tree count and park data is GROUND TRUTH -- real mapped data. Weight it heavily. Photos from web search may not be representative of the whole neighborhood. Wikipedia and web sources provide important context about the area's green character.
+IMPORTANT NUANCES - apply these adjustments:
+- Dense commercial/entertainment districts (Times Square, downtown cores, strip malls): trees may be counted nearby in parks but the WALKING STREETS themselves are concrete canyons. Reduce score by 1-2 points if the area is primarily commercial with trees concentrated in parks rather than lining streets.
+- Residential neighborhoods with tree-lined streets: trees are distributed ALONG sidewalks where people walk. Full credit.
+- Areas where Wikipedia/web research describes "tree-lined boulevards" or "urban forest programs" or high Walk Scores: this corroborates that trees enhance the walking experience. Full credit.
+- Photos showing concrete-dominant streetscape despite high tree count: the tree count includes parks nearby, but the actual walking corridors lack canopy. Adjust score down.
+
+The OSM tree count and park data is GROUND TRUTH. Photos may not be representative. Wikipedia/web sources provide important context. Synthesize ALL evidence to score the ACTUAL WALKING EXPERIENCE on the streets, not just the presence of trees within 500m.
 
 Return ONLY valid JSON, no other text:
 {
