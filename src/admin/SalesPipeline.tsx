@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { fetchLeads, updateLead, addLead, searchAgents, validateEmail, generateReport, generateComparison } from './adminApi';
+import EmailReportCard from './EmailReportCard';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -110,6 +111,9 @@ export default function SalesPipeline() {
   const [generatingReport, setGeneratingReport] = useState<number | null>(null);
   const [selectedLeads, setSelectedLeads] = useState<Set<number>>(new Set());
   const [generatingComparison, setGeneratingComparison] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState<number | null>(null);
+  const [imageCardData, setImageCardData] = useState<any>(null);
+  const [imageCardLead, setImageCardLead] = useState<QualifiedLead | null>(null);
 
   // Load leads
   useEffect(() => {
@@ -248,6 +252,29 @@ export default function SalesPipeline() {
       setLeads(prev => prev.map(l => l.rank === rank ? { ...l, activeListings } : l));
     } catch (err) {
       setError((err as Error).message);
+    }
+  };
+
+  const handleGenerateImage = async (lead: QualifiedLead) => {
+    setGeneratingImage(lead.rank);
+    try {
+      const reportData = await generateReport({
+        neighborhood: lead.neighborhood,
+        city: lead.city,
+        state: lead.state,
+        agentProfile: {
+          name: lead.agentName,
+          company: lead.brokerage || undefined,
+          email: lead.email.startsWith('Check') ? undefined : lead.email,
+          phone: lead.phone.startsWith('Check') ? undefined : lead.phone,
+        },
+      });
+      setImageCardData(reportData);
+      setImageCardLead(lead);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setGeneratingImage(null);
     }
   };
 
@@ -498,6 +525,8 @@ export default function SalesPipeline() {
                 onActiveListingsChange={handleActiveListingsChange}
                 onGenerateReport={() => handleGenerateReport(lead)}
                 isGeneratingReport={generatingReport === lead.rank}
+                onGenerateImage={() => handleGenerateImage(lead)}
+                isGeneratingImage={generatingImage === lead.rank}
                 isSelected={selectedLeads.has(lead.rank)}
                 onToggleSelect={() => toggleLeadSelection(lead.rank)}
               />
@@ -576,6 +605,22 @@ export default function SalesPipeline() {
           </div>
         </div>
       )}
+
+      {/* Email Image Card Modal */}
+      <EmailReportCard
+        reportData={imageCardData ? {
+          location: imageCardData.location,
+          scores: imageCardData.scores,
+          groundTruthGreenery: imageCardData.groundTruthGreenery || null,
+          treeCanopySource: imageCardData.treeCanopySource,
+          neighborhoodIntel: imageCardData.neighborhoodIntel || null,
+          agentProfile: imageCardData.agentProfile,
+          percentile: imageCardData.percentile || null,
+        } : null}
+        isOpen={!!imageCardData}
+        onClose={() => { setImageCardData(null); setImageCardLead(null); }}
+        leadName={imageCardLead?.agentName || ''}
+      />
     </div>
   );
 }
@@ -610,6 +655,8 @@ function LeadRow({
   onActiveListingsChange: (rank: number, activeListings: string) => void;
   onGenerateReport: () => void;
   isGeneratingReport: boolean;
+  onGenerateImage: () => void;
+  isGeneratingImage: boolean;
   isSelected: boolean;
   onToggleSelect: () => void;
 }) {
@@ -701,6 +748,14 @@ function LeadRow({
               style={{ color: '#1e3a5f' }}
             >
               {isGeneratingReport ? 'Generating...' : 'Report'}
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); onGenerateImage(); }}
+              disabled={isGeneratingImage}
+              className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition disabled:opacity-50"
+              style={{ color: '#7c3aed' }}
+            >
+              {isGeneratingImage ? 'Loading...' : 'Image'}
             </button>
           </div>
         </td>
