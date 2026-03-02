@@ -610,7 +610,15 @@ export default function SalesPipeline() {
       <EmailReportCard
         reportData={imageCardData ? {
           location: imageCardData.location,
-          scores: imageCardData.scores,
+          scores: {
+            treeCanopy: imageCardData.metrics?.treeCanopy ?? 0,
+            streetDesign: imageCardData.metrics?.streetDesign ?? 0,
+            destinationAccess: imageCardData.metrics?.destinationAccess ?? 0,
+            commuteMode: imageCardData.metrics?.commuteMode ?? 0,
+            streetGrid: imageCardData.metrics?.streetGrid ?? 0,
+            overallScore: imageCardData.metrics?.overallScore ?? 0,
+            label: imageCardData.metrics?.label ?? '',
+          },
           groundTruthGreenery: imageCardData.groundTruthGreenery || null,
           treeCanopySource: imageCardData.treeCanopySource,
           neighborhoodIntel: imageCardData.neighborhoodIntel || null,
