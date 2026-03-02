@@ -83,12 +83,20 @@ export default function ComparisonReportView() {
   const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('agentComparisonData');
+    const stored = localStorage.getItem('agentComparisonData') || sessionStorage.getItem('agentComparisonData');
     if (stored) {
-      try { setData(JSON.parse(stored)); } catch { /* ignore */ }
+      try {
+        setData(JSON.parse(stored));
+        sessionStorage.setItem('agentComparisonData', stored);
+        localStorage.removeItem('agentComparisonData');
+      } catch { /* ignore */ }
     }
-    const storedUrl = sessionStorage.getItem('agentComparisonShareUrl');
-    if (storedUrl) setShareUrl(storedUrl);
+    const storedUrl = localStorage.getItem('agentComparisonShareUrl') || sessionStorage.getItem('agentComparisonShareUrl');
+    if (storedUrl) {
+      setShareUrl(storedUrl);
+      sessionStorage.setItem('agentComparisonShareUrl', storedUrl);
+      localStorage.removeItem('agentComparisonShareUrl');
+    }
   }, []);
 
   const handleShare = async () => {

@@ -77,17 +77,25 @@ export default function AgentReportView() {
   const [shareLoading, setShareLoading] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('agentReportData');
+    // Try localStorage first (cross-tab from SalesPipeline), fall back to sessionStorage
+    const stored = localStorage.getItem('agentReportData') || sessionStorage.getItem('agentReportData');
     if (stored) {
       try {
         setData(JSON.parse(stored));
+        // Move to sessionStorage and clean up localStorage
+        sessionStorage.setItem('agentReportData', stored);
+        localStorage.removeItem('agentReportData');
       } catch {
         console.error('Failed to parse agent report data');
       }
     }
     // Check if we already have a share URL
-    const storedShareUrl = sessionStorage.getItem('agentReportShareUrl');
-    if (storedShareUrl) setShareUrl(storedShareUrl);
+    const storedShareUrl = localStorage.getItem('agentReportShareUrl') || sessionStorage.getItem('agentReportShareUrl');
+    if (storedShareUrl) {
+      setShareUrl(storedShareUrl);
+      sessionStorage.setItem('agentReportShareUrl', storedShareUrl);
+      localStorage.removeItem('agentReportShareUrl');
+    }
   }, []);
 
   const handleShare = async () => {

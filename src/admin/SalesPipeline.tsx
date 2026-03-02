@@ -269,7 +269,8 @@ export default function SalesPipeline() {
           phone: lead.phone.startsWith('Check') ? undefined : lead.phone,
         },
       });
-      sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
+      // Use localStorage for cross-tab data transfer (sessionStorage is per-tab)
+      localStorage.setItem('agentReportData', JSON.stringify(reportData));
       // Auto-save report for shareable link
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '';
@@ -280,7 +281,7 @@ export default function SalesPipeline() {
         });
         if (saveRes.ok) {
           const { shareUrl } = await saveRes.json();
-          sessionStorage.setItem('agentReportShareUrl', shareUrl);
+          localStorage.setItem('agentReportShareUrl', shareUrl);
         }
       } catch { /* non-critical */ }
       if (reportWindow && !reportWindow.closed) {
@@ -320,7 +321,7 @@ export default function SalesPipeline() {
           phone: selected[0].phone.startsWith('Check') ? undefined : selected[0].phone,
         },
       });
-      sessionStorage.setItem('agentComparisonData', JSON.stringify(comparisonData));
+      localStorage.setItem('agentComparisonData', JSON.stringify(comparisonData));
       try {
         const apiUrl = import.meta.env.VITE_API_URL || '';
         const saveRes = await fetch(`${apiUrl}/api/reports`, {
@@ -330,7 +331,7 @@ export default function SalesPipeline() {
         });
         if (saveRes.ok) {
           const { shareUrl } = await saveRes.json();
-          sessionStorage.setItem('agentComparisonShareUrl', shareUrl);
+          localStorage.setItem('agentComparisonShareUrl', shareUrl);
         }
       } catch { /* non-critical */ }
       if (reportWindow && !reportWindow.closed) {
