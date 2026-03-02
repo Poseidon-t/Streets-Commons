@@ -4119,14 +4119,71 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 // =====================
-// GROUND-TRUTH GREENERY (Claude Knowledge Assessment)
+// GROUND-TRUTH GREENERY (Web Image Search + Claude Vision)
 // =====================
-// Supplements satellite NDVI with Claude's knowledge of neighborhood greenery.
-// NDVI underscores dense urban areas (rooftops dominate). Claude knows about
-// street trees, parks, and green character from urban forestry data, guides, etc.
+// Searches the web for street-level photos of the location, then uses
+// Claude Vision to analyze actual greenery. Falls back to knowledge-only
+// assessment if no images can be found.
 
 const greeneryCache = new Map();
 const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+// Search DuckDuckGo for street-level images (no API key needed)
+async function searchStreetImages(locationName) {
+  try {
+    // Step 1: Get VQD token
+    const query = `${locationName} street walking pedestrian`;
+    const tokenRes = await fetch('https://duckduckgo.com/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      },
+      body: `q=${encodeURIComponent(query)}`,
+      signal: AbortSignal.timeout(5000),
+    });
+    const html = await tokenRes.text();
+    const vqdMatch = html.match(/vqd=['"]([^'"]+)['"]/);
+    if (!vqdMatch) return [];
+
+    // Step 2: Fetch image results
+    const imgUrl = `https://duckduckgo.com/i.js?q=${encodeURIComponent(query)}&o=json&l=wt-wt&s=0&f=,,,,,&p=1&vqd=${vqdMatch[1]}`;
+    const imgRes = await fetch(imgUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!imgRes.ok) return [];
+    const imgData = await imgRes.json();
+    return (imgData.results || []).slice(0, 8).map(r => ({
+      url: r.image,
+      thumbnail: r.thumbnail,
+      title: r.title,
+      width: r.width,
+      height: r.height,
+    }));
+  } catch (e) {
+    console.warn(`  ⚠️  DDG image search failed: ${e.message}`);
+    return [];
+  }
+}
+
+// Download image and convert to base64 (for Claude Vision)
+async function downloadImageAsBase64(url) {
+  try {
+    const res = await fetch(url, {
+      signal: AbortSignal.timeout(5000),
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+    });
+    if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || 'image/jpeg';
+    if (!contentType.startsWith('image/')) return null;
+    const buffer = await res.arrayBuffer();
+    if (buffer.byteLength < 5000 || buffer.byteLength > 5000000) return null; // skip tiny/huge
+    const base64 = Buffer.from(buffer).toString('base64');
+    const mediaType = contentType.split(';')[0].trim();
+    return { base64, mediaType };
+  } catch { return null; }
+}
 
 async function fetchGroundTruthGreenery(lat, lon, locationName) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -4137,26 +4194,41 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
   if (cached && Date.now() - cached.timestamp < GREENERY_CACHE_TTL) {
     return cached.data;
   }
-  // Evict oldest entries if cache is full
   if (greeneryCache.size >= 500) {
     const oldest = [...greeneryCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
     if (oldest) greeneryCache.delete(oldest[0]);
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: `You are an urban forestry analyst calibrating satellite vegetation scores for a walkability tool.
+    // Try to find and download street-level images
+    const imageResults = await searchStreetImages(locationName);
+    const imageContent = [];
+
+    if (imageResults.length > 0) {
+      // Download up to 4 images in parallel
+      const downloads = await Promise.all(
+        imageResults.slice(0, 6).map(r => downloadImageAsBase64(r.url))
+      );
+      const validImages = downloads.filter(Boolean).slice(0, 4);
+      for (const img of validImages) {
+        imageContent.push({
+          type: 'image',
+          source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
+        });
+      }
+    }
+
+    const hasImages = imageContent.length > 0;
+    console.log(`  🔍 Street images: found ${imageResults.length}, downloaded ${imageContent.length} for ${locationName}`);
+
+    // Build the prompt based on whether we have images
+    const content = hasImages
+      ? [
+          { type: 'text', text: `You are an urban forestry analyst scoring street-level greenery for a walkability tool.\n\nAnalyze these street-level photos of ${locationName} (${lat}, ${lon}) and assess the tree canopy and vegetation visible to pedestrians.` },
+          ...imageContent,
+          { type: 'text', text: `Based on these images of ${locationName}, return ONLY valid JSON:\n{\n  "score": <0.0-10.0>,\n  "confidence": "high|medium|low",\n  "greenCharacter": "<one sentence describing what you see>",\n  "knownFeatures": ["visible feature 1", "visible feature 2"]\n}\n\nScoring: 0-1 barren/industrial, 2-3 mostly concrete, 4-5 some trees, 6-7 good coverage, 8-9 well-treed, 10 exceptional canopy.\nBase your score on what you SEE in the images, not general knowledge.` },
+        ]
+      : `You are an urban forestry analyst calibrating satellite vegetation scores for a walkability tool.
 For the location below, estimate the pedestrian-level tree canopy and greenery based on your knowledge.
 
 Location: ${locationName}
@@ -4173,10 +4245,21 @@ Return ONLY valid JSON, no other text:
 }
 
 Scoring: 0-1 industrial/highway, 2-3 dense commercial, 4-5 some street trees, 6-7 good coverage, 8-9 well-treed, 10 exceptional canopy.
-If you are not confident about this specific location, set confidence to "low".`,
-        }],
+If you are not confident about this specific location, set confidence to "low".`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        messages: [{ role: 'user', content }],
       }),
-      signal: AbortSignal.timeout(12000),
+      signal: AbortSignal.timeout(15000),
     });
 
     if (!response.ok) {
@@ -4187,11 +4270,9 @@ If you are not confident about this specific location, set confidence to "low".`
     const text = data.content?.[0]?.text;
     if (!text) return null;
 
-    // Parse JSON from response (handle markdown code blocks)
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(jsonStr);
 
-    // Validate
     if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 10) return null;
     if (!['high', 'medium', 'low'].includes(parsed.confidence)) parsed.confidence = 'low';
 
@@ -4200,11 +4281,12 @@ If you are not confident about this specific location, set confidence to "low".`
       confidence: parsed.confidence,
       greenCharacter: parsed.greenCharacter || null,
       knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
-      dataSource: 'Claude Knowledge Assessment',
+      imagesAnalyzed: imageContent.length,
+      dataSource: hasImages ? 'Street Photos + Claude Vision' : 'Claude Knowledge Assessment',
     };
 
     greeneryCache.set(cacheKey, { data: result, timestamp: Date.now() });
-    console.log(`  ✅ Ground truth greenery: ${result.score}/10 (${result.confidence}) -- ${result.greenCharacter?.substring(0, 60)}`);
+    console.log(`  ✅ Ground truth greenery: ${result.score}/10 (${result.confidence}, ${result.imagesAnalyzed} images) -- ${result.greenCharacter?.substring(0, 60)}`);
     return result;
   } catch (e) {
     console.warn(`  ⚠️  Ground truth greenery failed: ${e.message}`);
