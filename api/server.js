@@ -4128,11 +4128,15 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 const greeneryCache = new Map();
 const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+// =====================
+// MULTI-SOURCE GROUND TRUTH GREENERY RESEARCH
+// Searches: DDG images, DDG web results, OSM tree count, Wikimedia Commons
+// =====================
+
 // Search DuckDuckGo for street-level images (no API key needed)
 async function searchStreetImages(locationName) {
   try {
-    // Step 1: Get VQD token
-    const query = `${locationName} street walking pedestrian`;
+    const query = `${locationName} street walking pedestrian trees`;
     const tokenRes = await fetch('https://duckduckgo.com/', {
       method: 'POST',
       headers: {
@@ -4146,7 +4150,6 @@ async function searchStreetImages(locationName) {
     const vqdMatch = html.match(/vqd=['"]([^'"]+)['"]/);
     if (!vqdMatch) return [];
 
-    // Step 2: Fetch image results
     const imgUrl = `https://duckduckgo.com/i.js?q=${encodeURIComponent(query)}&o=json&l=wt-wt&s=0&f=,,,,,&p=1&vqd=${vqdMatch[1]}`;
     const imgRes = await fetch(imgUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
@@ -4162,7 +4165,114 @@ async function searchStreetImages(locationName) {
       height: r.height,
     }));
   } catch (e) {
-    console.warn(`  ⚠️  DDG image search failed: ${e.message}`);
+    console.warn(`  DDG image search failed: ${e.message}`);
+    return [];
+  }
+}
+
+// Search DuckDuckGo for web results (news, studies, GIS data, urban forestry reports)
+async function searchWebContext(locationName) {
+  const queries = [
+    `${locationName} tree canopy coverage percent urban forest`,
+    `${locationName} street trees walkability green infrastructure`,
+  ];
+  const allSnippets = [];
+
+  for (const query of queries) {
+    try {
+      const res = await fetch('https://html.duckduckgo.com/html/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        },
+        body: `q=${encodeURIComponent(query)}`,
+        signal: AbortSignal.timeout(5000),
+      });
+      const html = await res.text();
+      // Extract result titles and snippets
+      const titleMatches = [...html.matchAll(/class="result__a"[^>]*>(.*?)<\/a>/gs)];
+      const snippetMatches = [...html.matchAll(/class="result__snippet"[^>]*>(.*?)<\/a>/gs)];
+      for (let i = 0; i < Math.min(snippetMatches.length, 5); i++) {
+        const title = titleMatches[i] ? titleMatches[i][1].replace(/<[^>]+>/g, '').trim() : '';
+        const snippet = snippetMatches[i][1].replace(/<[^>]+>/g, '').trim();
+        if (snippet.length > 20) {
+          allSnippets.push(title ? `${title}: ${snippet}` : snippet);
+        }
+      }
+    } catch (e) {
+      console.warn(`  DDG web search failed for "${query}": ${e.message}`);
+    }
+  }
+  return allSnippets.slice(0, 8); // max 8 snippets
+}
+
+// Count trees tagged in OpenStreetMap near coordinates (Overpass API)
+async function countOSMTrees(lat, lon, radiusMeters = 500) {
+  try {
+    const query = `[out:json][timeout:10];(node["natural"="tree"](around:${radiusMeters},${lat},${lon});node["natural"="tree_row"](around:${radiusMeters},${lat},${lon});way["natural"="tree_row"](around:${radiusMeters},${lat},${lon}););out count;`;
+    const res = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `data=${encodeURIComponent(query)}`,
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    // count query returns a single element with tags.total
+    const total = data.elements?.[0]?.tags?.total;
+    return total != null ? parseInt(total) : (data.elements?.length || 0);
+  } catch (e) {
+    console.warn(`  OSM tree count failed: ${e.message}`);
+    return null;
+  }
+}
+
+// Search Wikimedia Commons for geotagged photos near coordinates
+async function searchWikimediaPhotos(lat, lon) {
+  try {
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=500&gslimit=10&gsnamespace=6&format=json`;
+    const res = await fetch(url, {
+      headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const pages = data.query?.geosearch || [];
+    // Filter for likely outdoor/street photos
+    const outdoor = pages.filter(p => {
+      const t = p.title.toLowerCase();
+      return !t.includes('logo') && !t.includes('icon') && !t.includes('map') &&
+             (t.includes('street') || t.includes('tree') || t.includes('park') ||
+              t.includes('avenue') || t.includes('boulevard') || t.includes('view') ||
+              t.includes('building') || t.includes('neighborhood') || t.includes('.jpg') ||
+              t.includes('.jpeg') || t.includes('.png'));
+    });
+    // Get image URLs for top results
+    if (outdoor.length === 0) return [];
+    const titles = outdoor.slice(0, 4).map(p => p.title).join('|');
+    const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=800&format=json`;
+    const infoRes = await fetch(infoUrl, {
+      headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!infoRes.ok) return [];
+    const infoData = await infoRes.json();
+    const results = [];
+    for (const page of Object.values(infoData.query?.pages || {})) {
+      const info = page.imageinfo?.[0];
+      if (info && info.mime?.startsWith('image/') && info.thumburl) {
+        results.push({
+          url: info.thumburl, // 800px thumbnail
+          title: page.title,
+          width: info.thumbwidth || info.width,
+          height: info.thumbheight || info.height,
+        });
+      }
+    }
+    return results;
+  } catch (e) {
+    console.warn(`  Wikimedia search failed: ${e.message}`);
     return [];
   }
 }
@@ -4172,13 +4282,13 @@ async function downloadImageAsBase64(url) {
   try {
     const res = await fetch(url, {
       signal: AbortSignal.timeout(5000),
-      headers: { 'User-Agent': 'SafeStreets/1.0' },
+      headers: { 'User-Agent': 'SafeStreets/2.0' },
     });
     if (!res.ok) return null;
     const contentType = res.headers.get('content-type') || 'image/jpeg';
     if (!contentType.startsWith('image/')) return null;
     const buffer = await res.arrayBuffer();
-    if (buffer.byteLength < 5000 || buffer.byteLength > 5000000) return null; // skip tiny/huge
+    if (buffer.byteLength < 5000 || buffer.byteLength > 5000000) return null;
     const base64 = Buffer.from(buffer).toString('base64');
     const mediaType = contentType.split(';')[0].trim();
     return { base64, mediaType };
@@ -4200,14 +4310,23 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
   }
 
   try {
-    // Try to find and download street-level images
-    const imageResults = await searchStreetImages(locationName);
-    const imageContent = [];
+    // Run ALL research sources in parallel
+    const [imageResults, webSnippets, osmTreeCount, wikimediaPhotos] = await Promise.all([
+      searchStreetImages(locationName),
+      searchWebContext(locationName),
+      countOSMTrees(lat, lon, 500),
+      searchWikimediaPhotos(lat, lon),
+    ]);
 
-    if (imageResults.length > 0) {
-      // Download up to 4 images in parallel
+    // Collect images from DDG + Wikimedia
+    const allImageSources = [
+      ...imageResults.slice(0, 4),
+      ...wikimediaPhotos.slice(0, 4),
+    ];
+    const imageContent = [];
+    if (allImageSources.length > 0) {
       const downloads = await Promise.all(
-        imageResults.slice(0, 6).map(r => downloadImageAsBase64(r.url))
+        allImageSources.slice(0, 8).map(r => downloadImageAsBase64(r.url))
       );
       const validImages = downloads.filter(Boolean).slice(0, 4);
       for (const img of validImages) {
@@ -4219,33 +4338,65 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
     }
 
     const hasImages = imageContent.length > 0;
-    console.log(`  🔍 Street images: found ${imageResults.length}, downloaded ${imageContent.length} for ${locationName}`);
+    const hasWebData = webSnippets.length > 0;
+    const hasTreeCount = osmTreeCount != null && osmTreeCount > 0;
 
-    // Build the prompt based on whether we have images
-    const content = hasImages
-      ? [
-          { type: 'text', text: `You are an urban forestry analyst scoring street-level greenery for a walkability tool.\n\nAnalyze these street-level photos of ${locationName} (${lat}, ${lon}) and assess the tree canopy and vegetation visible to pedestrians.` },
-          ...imageContent,
-          { type: 'text', text: `Based on these images of ${locationName}, return ONLY valid JSON:\n{\n  "score": <0.0-10.0>,\n  "confidence": "high|medium|low",\n  "greenCharacter": "<one sentence describing what you see>",\n  "knownFeatures": ["visible feature 1", "visible feature 2"]\n}\n\nScoring: 0-1 barren/industrial, 2-3 mostly concrete, 4-5 some trees, 6-7 good coverage, 8-9 well-treed, 10 exceptional canopy.\nBase your score on what you SEE in the images, not general knowledge.` },
-        ]
-      : `You are an urban forestry analyst calibrating satellite vegetation scores for a walkability tool.
-For the location below, estimate the pedestrian-level tree canopy and greenery based on your knowledge.
+    console.log(`  Research for ${locationName}: ${imageContent.length} images (DDG:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM trees: ${osmTreeCount ?? 'N/A'}`);
 
-Location: ${locationName}
-Coordinates: ${lat}, ${lon}
+    // Build evidence summary for Claude
+    let evidenceSummary = '';
+    if (hasTreeCount) {
+      // Contextual tree density (500m radius = ~0.785 sq km)
+      const treesPerSqKm = Math.round(osmTreeCount / 0.785);
+      evidenceSummary += `\n\nOPENSTREETMAP DATA: ${osmTreeCount} individually mapped trees within 500m radius (~${treesPerSqKm} trees/sq km). Note: OSM coverage varies -- some areas have every tree mapped, others have few tagged.`;
+    }
+    if (hasWebData) {
+      evidenceSummary += `\n\nWEB RESEARCH FINDINGS:\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    }
 
-Consider: street trees, parks within walking distance, tree-lined boulevards, urban forest programs, and overall green character.
+    // Build the prompt with ALL available evidence
+    const scoringGuide = `
+Scoring guide (score should reflect what a PEDESTRIAN experiences walking the streets):
+0-1: Industrial/highway corridor, virtually no vegetation
+2-3: Dense commercial, mostly concrete/asphalt, scattered small trees
+4-5: Some street trees but gaps, limited shade, mixed green/concrete
+6-7: Good tree coverage, noticeable shade on most blocks, pleasant walking
+8-9: Well-treed with significant canopy, abundant shade, strong green character
+10: Exceptional urban forest, near-continuous canopy, park-like walking
+
+IMPORTANT: Score based on the WALKING EXPERIENCE at street level, not aerial view. A neighborhood can have low satellite NDVI but good street trees that shade sidewalks.
 
 Return ONLY valid JSON, no other text:
 {
   "score": <0.0-10.0>,
   "confidence": "high|medium|low",
-  "greenCharacter": "<one sentence>",
-  "knownFeatures": ["feature1", "feature2"]
-}
+  "greenCharacter": "<one sentence describing the pedestrian greenery experience>",
+  "knownFeatures": ["feature1", "feature2", "feature3"]
+}`;
 
-Scoring: 0-1 industrial/highway, 2-3 dense commercial, 4-5 some street trees, 6-7 good coverage, 8-9 well-treed, 10 exceptional canopy.
-If you are not confident about this specific location, set confidence to "low".`;
+    let content;
+    if (hasImages) {
+      content = [
+        { type: 'text', text: `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
+
+Analyze ALL available evidence for: ${locationName} (${lat}, ${lon})
+${evidenceSummary}
+
+Below are street-level photos of this area. Analyze the tree canopy, shade coverage, and vegetation visible to someone WALKING here.` },
+        ...imageContent,
+        { type: 'text', text: `Based on the photos AND the research data above, score the pedestrian greenery experience at ${locationName}.${scoringGuide}` },
+      ];
+    } else {
+      content = `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
+
+Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
+${evidenceSummary}
+
+${!hasWebData && !hasTreeCount ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Use the research data above combined with your knowledge of this area.'}
+
+Consider: street trees lining sidewalks, shade coverage for walkers, parks within walking distance, tree-lined boulevards, and the overall green character of the neighborhood.
+${scoringGuide}`;
+    }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -4256,14 +4407,14 @@ If you are not confident about this specific location, set confidence to "low".`
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
+        max_tokens: 400,
         messages: [{ role: 'user', content }],
       }),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(20000),
     });
 
     if (!response.ok) {
-      console.warn(`  ⚠️  Ground truth greenery: Claude API returned ${response.status}`);
+      console.warn(`  Ground truth greenery: Claude API returned ${response.status}`);
       return null;
     }
     const data = await response.json();
@@ -4276,20 +4427,29 @@ If you are not confident about this specific location, set confidence to "low".`
     if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 10) return null;
     if (!['high', 'medium', 'low'].includes(parsed.confidence)) parsed.confidence = 'low';
 
+    // Determine data sources used
+    const sources = [];
+    if (hasImages) sources.push('Street Photos');
+    if (hasWebData) sources.push('Web Research');
+    if (hasTreeCount) sources.push(`OSM Trees (${osmTreeCount})`);
+    if (sources.length === 0) sources.push('Claude Knowledge');
+
     const result = {
       score: Math.round(parsed.score * 10) / 10,
       confidence: parsed.confidence,
       greenCharacter: parsed.greenCharacter || null,
       knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
       imagesAnalyzed: imageContent.length,
-      dataSource: hasImages ? 'Street Photos + Claude Vision' : 'Claude Knowledge Assessment',
+      osmTreeCount: osmTreeCount,
+      webSnippetsUsed: webSnippets.length,
+      dataSource: sources.join(' + '),
     };
 
     greeneryCache.set(cacheKey, { data: result, timestamp: Date.now() });
-    console.log(`  ✅ Ground truth greenery: ${result.score}/10 (${result.confidence}, ${result.imagesAnalyzed} images) -- ${result.greenCharacter?.substring(0, 60)}`);
+    console.log(`  Ground truth: ${result.score}/10 (${result.confidence}) [${result.dataSource}] -- ${result.greenCharacter?.substring(0, 60)}`);
     return result;
   } catch (e) {
-    console.warn(`  ⚠️  Ground truth greenery failed: ${e.message}`);
+    console.warn(`  Ground truth greenery failed: ${e.message}`);
     return null;
   }
 }
