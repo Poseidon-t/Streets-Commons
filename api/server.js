@@ -100,6 +100,21 @@ function setCache(key, data) {
 import { createHash } from 'crypto';
 import fs from 'fs';
 
+// Seed persistent data directory: if a volume is mounted at /app/data it starts empty.
+// Copy bundled seed files from /app/data-seed/ (baked into image) if they don't exist yet.
+const DATA_DIR = path.join(__dirname, '..', 'data');
+const SEED_DIR = path.join(__dirname, '..', 'data-seed');
+if (fs.existsSync(SEED_DIR)) {
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+  for (const file of fs.readdirSync(SEED_DIR)) {
+    const dest = path.join(DATA_DIR, file);
+    if (!fs.existsSync(dest)) {
+      fs.copyFileSync(path.join(SEED_DIR, file), dest);
+      console.log(`  Seeded ${file} from data-seed/`);
+    }
+  }
+}
+
 const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(__dirname, '..', 'data', 'analytics.json');
 const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
 

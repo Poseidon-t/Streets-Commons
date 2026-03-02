@@ -27,6 +27,9 @@ RUN npm ci
 # Copy dist into api/dist so server can find it
 RUN cp -r /app/dist /app/api/dist
 
+# Copy data files as seed (volume mount at /app/data may be empty on first boot)
+RUN if [ -d /app/data ]; then cp -r /app/data /app/data-seed; fi
+
 # Verify dist exists
 RUN ls -la /app/dist/index.html && ls -la /app/api/dist/index.html && echo "DIST OK"
 
