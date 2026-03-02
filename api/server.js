@@ -4129,8 +4129,8 @@ const greeneryCache = new Map();
 const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // =====================
-// MULTI-SOURCE GROUND TRUTH GREENERY RESEARCH
-// Searches: SearXNG images, Wikipedia, SearXNG web, OSM greenery, Wikimedia Commons
+// GROUND TRUTH GREENERY RESEARCH
+// Sources: SearXNG (images + web), Wikipedia, Wikimedia Commons
 // =====================
 
 // Search for street-level images via SearXNG (free, no auth, no CAPTCHA)
@@ -4266,70 +4266,6 @@ async function searchWebContext(locationName) {
   return unique.slice(0, 12);
 }
 
-// Query OpenStreetMap for trees, parks, and green spaces near coordinates (Overpass API)
-async function queryOSMGreenery(lat, lon, radiusMeters = 500) {
-  try {
-    // Query for: trees, tree rows, parks, gardens, green spaces, nature reserves
-    const query = `[out:json][timeout:15];
-(
-  node["natural"="tree"](around:${radiusMeters},${lat},${lon});
-  way["natural"="tree_row"](around:${radiusMeters},${lat},${lon});
-  way["leisure"="park"](around:${radiusMeters},${lat},${lon});
-  relation["leisure"="park"](around:${radiusMeters},${lat},${lon});
-  way["leisure"="garden"](around:${radiusMeters},${lat},${lon});
-  way["landuse"="grass"](around:${radiusMeters},${lat},${lon});
-  way["landuse"="forest"](around:${radiusMeters},${lat},${lon});
-  way["natural"="wood"](around:${radiusMeters},${lat},${lon});
-);
-out tags;`;
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(query)}`,
-      signal: AbortSignal.timeout(12000),
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    const elements = data.elements || [];
-
-    // Count by type
-    let treeCount = 0;
-    let treeRowCount = 0;
-    const parks = [];
-    const gardens = [];
-    const greenSpaces = [];
-
-    for (const el of elements) {
-      const tags = el.tags || {};
-      if (tags.natural === 'tree') {
-        treeCount++;
-      } else if (tags.natural === 'tree_row') {
-        treeRowCount++;
-      } else if (tags.leisure === 'park') {
-        parks.push(tags.name || 'Unnamed park');
-      } else if (tags.leisure === 'garden') {
-        gardens.push(tags.name || 'Unnamed garden');
-      } else if (tags.landuse === 'forest' || tags.natural === 'wood') {
-        greenSpaces.push(tags.name || 'Forest/woodland');
-      } else if (tags.landuse === 'grass') {
-        greenSpaces.push(tags.name || 'Green space');
-      }
-    }
-
-    return {
-      treeCount,
-      treeRowCount,
-      parks: [...new Set(parks)].slice(0, 5),
-      gardens: [...new Set(gardens)].slice(0, 3),
-      greenSpaces: [...new Set(greenSpaces)].slice(0, 3),
-      totalElements: elements.length,
-    };
-  } catch (e) {
-    console.warn(`  OSM greenery query failed: ${e.message}`);
-    return null;
-  }
-}
-
 // Search Wikimedia Commons for geotagged photos near coordinates
 async function searchWikimediaPhotos(lat, lon) {
   try {
@@ -4412,15 +4348,14 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
   }
 
   try {
-    // Run ALL research sources in parallel
-    const [imageResults, webSnippets, osmData, wikimediaPhotos] = await Promise.all([
+    // Run all research sources in parallel
+    const [imageResults, webSnippets, wikimediaPhotos] = await Promise.all([
       searchStreetImages(locationName),
       searchWebContext(locationName),
-      queryOSMGreenery(lat, lon, 500),
       searchWikimediaPhotos(lat, lon),
     ]);
 
-    // Collect images from search + Wikimedia
+    // Collect images from SearXNG + Wikimedia
     const allImageSources = [
       ...imageResults.slice(0, 4),
       ...wikimediaPhotos.slice(0, 4),
@@ -4441,59 +4376,34 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
 
     const hasImages = imageContent.length > 0;
     const hasWebData = webSnippets.length > 0;
-    const hasOSM = osmData != null;
-    const osmTreeCount = osmData?.treeCount || 0;
 
-    console.log(`  Research for ${locationName}: ${imageContent.length} images (search:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM: ${osmTreeCount} trees, ${osmData?.parks?.length || 0} parks`);
+    console.log(`  Research for ${locationName}: ${imageContent.length} images, ${webSnippets.length} web snippets`);
 
-    // Build evidence summary for Claude
+    // Build evidence for Claude
     let evidenceSummary = '';
-    if (hasOSM) {
-      const treesPerSqKm = Math.round(osmTreeCount / 0.785);
-      let osmSummary = `\n\nOPENSTREETMAP GROUND TRUTH DATA (within 500m walking radius, ~0.785 sq km):`;
-      osmSummary += `\n- ${osmTreeCount} individually mapped trees (~${treesPerSqKm} trees/sq km)`;
-      // Add density context benchmarks
-      if (treesPerSqKm > 500) osmSummary += ` -- VERY HIGH density (top-tier urban tree coverage)`;
-      else if (treesPerSqKm > 300) osmSummary += ` -- HIGH density (well above average urban area)`;
-      else if (treesPerSqKm > 150) osmSummary += ` -- MODERATE density (typical for tree-lined neighborhoods)`;
-      else if (treesPerSqKm > 50) osmSummary += ` -- LOW density (below average for walkable neighborhoods)`;
-      else osmSummary += ` -- VERY LOW density (sparse tree coverage)`;
-      if (osmData.treeRowCount > 0) osmSummary += `\n- ${osmData.treeRowCount} tree-lined street/boulevard segments (tree rows indicate canopy corridors)`;
-      if (osmData.parks.length > 0) osmSummary += `\n- Parks within walking distance: ${osmData.parks.join(', ')}`;
-      if (osmData.gardens.length > 0) osmSummary += `\n- Gardens: ${osmData.gardens.join(', ')}`;
-      if (osmData.greenSpaces.length > 0) osmSummary += `\n- Green spaces/forests: ${osmData.greenSpaces.join(', ')}`;
-      osmSummary += `\nReference: US city average is ~100-200 trees/sq km. Scores of 300+ indicate genuinely well-treed areas. Parks within 500m significantly enhance the walking experience.`;
-      evidenceSummary += osmSummary;
-    }
     if (hasWebData) {
-      evidenceSummary += `\n\nWEB & WIKIPEDIA RESEARCH:\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      evidenceSummary += `\n\nRESEARCH FINDINGS (Wikipedia, web sources):\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     }
 
-    // Build the prompt with ALL available evidence
+    // Build the prompt -- web research is primary, images are supplementary
     const scoringGuide = `
 Scoring guide (score reflects what a PEDESTRIAN experiences walking the streets):
 0-1: Industrial/highway, virtually no vegetation
 2-3: Dense commercial, mostly concrete, very few trees
 4-5: Some street trees but inconsistent, limited shade
 6-7: Good tree coverage, shade on most blocks, parks nearby, pleasant walking
-8-9: Well-treed, significant canopy, abundant shade, parks accessible
-10: Exceptional urban forest, continuous canopy, park-like
+8-9: Well-treed, significant canopy, tree-lined streets, parks accessible, high Walk Score area
+10: Exceptional urban forest, continuous canopy, park-like walking
 
-Tree density calibration (OSM data as primary ground truth):
-- 50-150 trees/sq km = score 3-5 range
-- 150-300 trees/sq km = score 5-6.5 range
-- 300-500 trees/sq km = score 6-7.5 range
-- 500+ trees/sq km = score 7-8.5 range
-- Named parks within 500m add +0.5 to the score
-- Tree-lined boulevards/rows add +0.5
+KEY SIGNALS from research -- use these to calibrate your score:
+- Walk Score 90+, Transit Score 90+ = highly walkable, well-designed streets, typically good tree coverage. Score 7+.
+- Mentions of "tree-lined boulevards", "urban forest", "street tree program", "tree canopy initiative" = active green infrastructure. Score 7+.
+- Mentions of specific parks, plazas, greenways within walking distance = adds to green experience. Each major park +0.5.
+- City known for trees (Portland, Savannah, Charlotte, Sacramento) = likely 7+.
+- Dense commercial/entertainment core (Times Square, Las Vegas Strip) = concrete canyon despite nearby parks. Score 2-4.
+- Suburban sprawl with strip malls and parking lots = low canopy despite possible yard trees. Score 3-5.
 
-IMPORTANT NUANCES - apply these adjustments:
-- Dense commercial/entertainment districts (Times Square, downtown cores, strip malls): trees may be counted nearby in parks but the WALKING STREETS themselves are concrete canyons. Reduce score by 1-2 points if the area is primarily commercial with trees concentrated in parks rather than lining streets.
-- Residential neighborhoods with tree-lined streets: trees are distributed ALONG sidewalks where people walk. Full credit.
-- Areas where Wikipedia/web research describes "tree-lined boulevards" or "urban forest programs" or high Walk Scores: this corroborates that trees enhance the walking experience. Full credit.
-- Photos showing concrete-dominant streetscape despite high tree count: the tree count includes parks nearby, but the actual walking corridors lack canopy. Adjust score down.
-
-The OSM tree count and park data is GROUND TRUTH. Photos may not be representative. Wikipedia/web sources provide important context. Synthesize ALL evidence to score the ACTUAL WALKING EXPERIENCE on the streets, not just the presence of trees within 500m.
+IMPORTANT: Your score should match what a person WALKING the streets actually experiences. If research says Walk Score 99 with tree-lined boulevards and parks, that's a 7-8, not a 5. Trust the research data.
 
 Return ONLY valid JSON, no other text:
 {
@@ -4511,9 +4421,9 @@ Return ONLY valid JSON, no other text:
 Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-Below are some photos found via web search. Note: these photos may only show a small part of the neighborhood and may not be representative. Use them as supplementary evidence alongside the OSM data and research above, which covers the entire area.` },
+Below are some photos of this area. Use them as supplementary visual evidence alongside the research findings above.` },
         ...imageContent,
-        { type: 'text', text: `Now synthesize ALL evidence (OSM ground truth data, Wikipedia/web research, and photos) to score ${locationName}. The OSM tree count and park data should be your PRIMARY scoring input since it covers the entire 500m radius, not just what a few photos show.${scoringGuide}` },
+        { type: 'text', text: `Synthesize the research findings and photos to score ${locationName}. The web research (Walk Score, tree canopy data, neighborhood descriptions) should be your PRIMARY input. Photos are supplementary.${scoringGuide}` },
       ];
     } else {
       content = `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
@@ -4521,7 +4431,7 @@ Below are some photos found via web search. Note: these photos may only show a s
 Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-${!hasWebData && !hasOSM ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Synthesize all the research data above with your knowledge of this area to score the pedestrian walking experience.'}
+${!hasWebData ? 'No web research was available. Use your knowledge of this area.' : 'Synthesize the research data above with your knowledge to score the pedestrian walking experience.'}
 ${scoringGuide}`;
     }
 
@@ -4558,11 +4468,6 @@ ${scoringGuide}`;
     const sources = [];
     if (hasImages) sources.push('Street Photos');
     if (hasWebData) sources.push('Web Research');
-    if (hasOSM) {
-      const osmParts = [`${osmTreeCount} trees`];
-      if (osmData.parks.length > 0) osmParts.push(`${osmData.parks.length} parks`);
-      sources.push(`OSM (${osmParts.join(', ')})`);
-    }
     if (sources.length === 0) sources.push('Claude Knowledge');
 
     const result = {
@@ -4571,8 +4476,6 @@ ${scoringGuide}`;
       greenCharacter: parsed.greenCharacter || null,
       knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
       imagesAnalyzed: imageContent.length,
-      osmTreeCount: osmTreeCount,
-      osmParks: osmData?.parks || [],
       webSnippetsUsed: webSnippets.length,
       dataSource: sources.join(' + '),
     };
