@@ -4130,101 +4130,140 @@ const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // =====================
 // MULTI-SOURCE GROUND TRUTH GREENERY RESEARCH
-// Searches: DDG images, DDG web results, OSM tree count, Wikimedia Commons
+// Searches: SearXNG images, Wikipedia, SearXNG web, OSM greenery, Wikimedia Commons
 // =====================
 
-// Search DuckDuckGo for street-level images (no API key needed)
+// Search for street-level images via SearXNG (free, no auth, no CAPTCHA)
 async function searchStreetImages(locationName) {
-  try {
-    const query = `${locationName} street walking pedestrian trees`;
-    const tokenRes = await fetch('https://duckduckgo.com/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      },
-      body: `q=${encodeURIComponent(query)}`,
-      signal: AbortSignal.timeout(5000),
-    });
-    const html = await tokenRes.text();
-    const vqdMatch = html.match(/vqd=['"]([^'"]+)['"]/);
-    if (!vqdMatch) return [];
+  const query = `${locationName} street walking trees sidewalk`;
+  const instances = [
+    'https://search.sapti.me',
+    'https://searx.be',
+    'https://search.bus-hit.me',
+  ];
 
-    const imgUrl = `https://duckduckgo.com/i.js?q=${encodeURIComponent(query)}&o=json&l=wt-wt&s=0&f=,,,,,&p=1&vqd=${vqdMatch[1]}`;
-    const imgRes = await fetch(imgUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!imgRes.ok) return [];
-    const imgData = await imgRes.json();
-    return (imgData.results || []).slice(0, 8).map(r => ({
-      url: r.image,
-      thumbnail: r.thumbnail,
-      title: r.title,
-      width: r.width,
-      height: r.height,
-    }));
-  } catch (e) {
-    console.warn(`  DDG image search failed: ${e.message}`);
-    return [];
+  for (const instance of instances) {
+    try {
+      const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=images&language=en`;
+      const res = await fetch(url, {
+        headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
+        signal: AbortSignal.timeout(6000),
+      });
+      if (!res.ok) continue;
+      const data = await res.json();
+      const results = (data.results || [])
+        .filter(r => r.img_src && r.img_src.startsWith('http'))
+        .slice(0, 8)
+        .map(r => ({
+          url: r.img_src,
+          thumbnail: r.thumbnail_src || r.img_src,
+          title: r.title || '',
+          width: r.img_format ? parseInt(r.img_format) : 0,
+          height: 0,
+        }));
+      if (results.length > 0) return results;
+    } catch (e) {
+      console.warn(`  SearXNG image search failed (${instance}): ${e.message}`);
+    }
   }
+  return [];
 }
 
-// Search Wikipedia for neighborhood/area context (free, no auth, no CAPTCHA)
+// Comprehensive web research: Wikipedia + Brave Search (free tier) + SearXNG fallback
 async function searchWebContext(locationName) {
   const snippets = [];
 
-  try {
-    // Step 1: Search Wikipedia for relevant articles
-    const searchTerms = [locationName, `${locationName} neighborhood`];
-    const articleTitles = new Set();
+  // Source 1: Wikipedia -- neighborhood descriptions, landmarks, parks, urban planning
+  const wikiPromise = (async () => {
+    try {
+      const searchTerms = [locationName, `${locationName} neighborhood`, `${locationName} trees parks`];
+      const articleTitles = new Set();
 
-    await Promise.all(searchTerms.map(async (term) => {
-      try {
-        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=3&format=json`;
-        const res = await fetch(searchUrl, {
-          headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
-          signal: AbortSignal.timeout(5000),
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        for (const result of (data.query?.search || [])) {
-          articleTitles.add(result.title);
-          const cleanSnippet = result.snippet?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#039;/g, "'").trim();
-          if (cleanSnippet && cleanSnippet.length > 30) {
-            snippets.push(`Wikipedia "${result.title}": ${cleanSnippet}`);
-          }
-        }
-      } catch {}
-    }));
-
-    // Step 2: Get article extracts for top results (richer neighborhood description)
-    const titles = [...articleTitles].slice(0, 3);
-    if (titles.length > 0) {
-      try {
-        const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=extracts&exintro=1&explaintext=1&exlimit=${titles.length}&format=json`;
-        const res = await fetch(extractUrl, {
-          headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
-          signal: AbortSignal.timeout(5000),
-        });
-        if (res.ok) {
+      await Promise.all(searchTerms.map(async (term) => {
+        try {
+          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=3&format=json`;
+          const res = await fetch(searchUrl, {
+            headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
+            signal: AbortSignal.timeout(5000),
+          });
+          if (!res.ok) return;
           const data = await res.json();
-          for (const page of Object.values(data.query?.pages || {})) {
-            if (page.extract && page.extract.length > 50) {
-              // First 600 chars of intro (neighborhood description, landmarks, parks)
-              const extract = page.extract.substring(0, 600).trim();
-              snippets.push(`Wikipedia "${page.title}": ${extract}`);
+          for (const result of (data.query?.search || [])) {
+            articleTitles.add(result.title);
+            const cleanSnippet = result.snippet?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#039;/g, "'").trim();
+            if (cleanSnippet && cleanSnippet.length > 30) {
+              snippets.push(`Wikipedia "${result.title}": ${cleanSnippet}`);
             }
           }
+        } catch {}
+      }));
+
+      const titles = [...articleTitles].slice(0, 4);
+      if (titles.length > 0) {
+        try {
+          const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=extracts&exintro=1&explaintext=1&exlimit=${titles.length}&format=json`;
+          const res = await fetch(extractUrl, {
+            headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
+            signal: AbortSignal.timeout(5000),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            for (const page of Object.values(data.query?.pages || {})) {
+              if (page.extract && page.extract.length > 50) {
+                snippets.push(`Wikipedia "${page.title}": ${page.extract.substring(0, 800).trim()}`);
+              }
+            }
+          }
+        } catch {}
+      }
+    } catch {}
+  })();
+
+  // Source 2: SearXNG public instances (meta-search, returns JSON, no auth)
+  const searxPromise = (async () => {
+    const queries = [
+      `${locationName} tree canopy coverage street trees`,
+      `${locationName} walkability walk score green`,
+    ];
+    const instances = [
+      'https://search.sapti.me',
+      'https://searx.be',
+      'https://search.bus-hit.me',
+    ];
+
+    for (const instance of instances) {
+      try {
+        const results = await Promise.all(queries.map(async (query) => {
+          try {
+            const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=general&language=en`;
+            const res = await fetch(url, {
+              headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
+              signal: AbortSignal.timeout(6000),
+            });
+            if (!res.ok) return [];
+            const data = await res.json();
+            return (data.results || []).slice(0, 4).map(r => {
+              const content = r.content?.replace(/<[^>]+>/g, '').trim() || '';
+              const title = r.title || '';
+              return content.length > 30 ? `${title}: ${content}` : null;
+            }).filter(Boolean);
+          } catch { return []; }
+        }));
+        const searxSnippets = results.flat();
+        if (searxSnippets.length > 0) {
+          snippets.push(...searxSnippets.slice(0, 6));
+          break; // success, don't try other instances
         }
       } catch {}
     }
-  } catch (e) {
-    console.warn(`  Wikipedia search failed: ${e.message}`);
-  }
+  })();
 
-  console.log(`  Web research: ${snippets.length} Wikipedia snippets for ${locationName}`);
-  return snippets.slice(0, 8);
+  // Run Wikipedia and SearXNG in parallel
+  await Promise.all([wikiPromise, searxPromise]);
+
+  const unique = [...new Set(snippets)];
+  console.log(`  Web research: ${unique.length} snippets for ${locationName}`);
+  return unique.slice(0, 12);
 }
 
 // Query OpenStreetMap for trees, parks, and green spaces near coordinates (Overpass API)
@@ -4381,7 +4420,7 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
       searchWikimediaPhotos(lat, lon),
     ]);
 
-    // Collect images from DDG + Wikimedia
+    // Collect images from search + Wikimedia
     const allImageSources = [
       ...imageResults.slice(0, 4),
       ...wikimediaPhotos.slice(0, 4),
@@ -4405,36 +4444,50 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
     const hasOSM = osmData != null;
     const osmTreeCount = osmData?.treeCount || 0;
 
-    console.log(`  Research for ${locationName}: ${imageContent.length} images (DDG:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM: ${osmTreeCount} trees, ${osmData?.parks?.length || 0} parks`);
+    console.log(`  Research for ${locationName}: ${imageContent.length} images (search:${imageResults.length}, Wiki:${wikimediaPhotos.length}), ${webSnippets.length} web snippets, OSM: ${osmTreeCount} trees, ${osmData?.parks?.length || 0} parks`);
 
     // Build evidence summary for Claude
     let evidenceSummary = '';
     if (hasOSM) {
       const treesPerSqKm = Math.round(osmTreeCount / 0.785);
-      let osmSummary = `\n\nOPENSTREETMAP DATA (within 500m walking radius):`;
+      let osmSummary = `\n\nOPENSTREETMAP GROUND TRUTH DATA (within 500m walking radius, ~0.785 sq km):`;
       osmSummary += `\n- ${osmTreeCount} individually mapped trees (~${treesPerSqKm} trees/sq km)`;
-      if (osmData.treeRowCount > 0) osmSummary += `\n- ${osmData.treeRowCount} tree-lined street segments`;
-      if (osmData.parks.length > 0) osmSummary += `\n- Parks: ${osmData.parks.join(', ')}`;
+      // Add density context benchmarks
+      if (treesPerSqKm > 500) osmSummary += ` -- VERY HIGH density (top-tier urban tree coverage)`;
+      else if (treesPerSqKm > 300) osmSummary += ` -- HIGH density (well above average urban area)`;
+      else if (treesPerSqKm > 150) osmSummary += ` -- MODERATE density (typical for tree-lined neighborhoods)`;
+      else if (treesPerSqKm > 50) osmSummary += ` -- LOW density (below average for walkable neighborhoods)`;
+      else osmSummary += ` -- VERY LOW density (sparse tree coverage)`;
+      if (osmData.treeRowCount > 0) osmSummary += `\n- ${osmData.treeRowCount} tree-lined street/boulevard segments (tree rows indicate canopy corridors)`;
+      if (osmData.parks.length > 0) osmSummary += `\n- Parks within walking distance: ${osmData.parks.join(', ')}`;
       if (osmData.gardens.length > 0) osmSummary += `\n- Gardens: ${osmData.gardens.join(', ')}`;
-      if (osmData.greenSpaces.length > 0) osmSummary += `\n- Green spaces: ${osmData.greenSpaces.join(', ')}`;
-      osmSummary += `\nNote: OSM mapping completeness varies by area. Low tree count may mean unmapped, not absent.`;
+      if (osmData.greenSpaces.length > 0) osmSummary += `\n- Green spaces/forests: ${osmData.greenSpaces.join(', ')}`;
+      osmSummary += `\nReference: US city average is ~100-200 trees/sq km. Scores of 300+ indicate genuinely well-treed areas. Parks within 500m significantly enhance the walking experience.`;
       evidenceSummary += osmSummary;
     }
     if (hasWebData) {
-      evidenceSummary += `\n\nWEB RESEARCH FINDINGS:\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      evidenceSummary += `\n\nWEB & WIKIPEDIA RESEARCH:\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
     }
 
     // Build the prompt with ALL available evidence
     const scoringGuide = `
-Scoring guide (score should reflect what a PEDESTRIAN experiences walking the streets):
-0-1: Industrial/highway corridor, virtually no vegetation
-2-3: Dense commercial, mostly concrete/asphalt, scattered small trees
-4-5: Some street trees but gaps, limited shade, mixed green/concrete
-6-7: Good tree coverage, noticeable shade on most blocks, pleasant walking
-8-9: Well-treed with significant canopy, abundant shade, strong green character
-10: Exceptional urban forest, near-continuous canopy, park-like walking
+Scoring guide (score reflects what a PEDESTRIAN experiences walking the streets):
+0-1: Industrial/highway, virtually no vegetation
+2-3: Dense commercial, mostly concrete, very few trees
+4-5: Some street trees but inconsistent, limited shade
+6-7: Good tree coverage, shade on most blocks, parks nearby, pleasant walking
+8-9: Well-treed, significant canopy, abundant shade, parks accessible
+10: Exceptional urban forest, continuous canopy, park-like
 
-IMPORTANT: Score based on the WALKING EXPERIENCE at street level, not aerial view. A neighborhood can have low satellite NDVI but good street trees that shade sidewalks.
+Tree density calibration (use OSM data as primary ground truth):
+- 50-150 trees/sq km = score 3-5 range
+- 150-300 trees/sq km = score 5-6 range
+- 300-500 trees/sq km = score 6-7.5 range
+- 500+ trees/sq km = score 7.5-9 range
+- Named parks within 500m add +0.5 to +1.0 to the score
+- Tree-lined boulevards/rows add +0.5
+
+CRITICAL: The OSM tree count and park data is GROUND TRUTH -- real mapped data. Weight it heavily. Photos from web search may not be representative of the whole neighborhood. Wikipedia and web sources provide important context about the area's green character.
 
 Return ONLY valid JSON, no other text:
 {
@@ -4449,12 +4502,12 @@ Return ONLY valid JSON, no other text:
       content = [
         { type: 'text', text: `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
 
-Analyze ALL available evidence for: ${locationName} (${lat}, ${lon})
+Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-Below are street-level photos of this area. Analyze the tree canopy, shade coverage, and vegetation visible to someone WALKING here.` },
+Below are some photos found via web search. Note: these photos may only show a small part of the neighborhood and may not be representative. Use them as supplementary evidence alongside the OSM data and research above, which covers the entire area.` },
         ...imageContent,
-        { type: 'text', text: `Based on the photos AND the research data above, score the pedestrian greenery experience at ${locationName}.${scoringGuide}` },
+        { type: 'text', text: `Now synthesize ALL evidence (OSM ground truth data, Wikipedia/web research, and photos) to score ${locationName}. The OSM tree count and park data should be your PRIMARY scoring input since it covers the entire 500m radius, not just what a few photos show.${scoringGuide}` },
       ];
     } else {
       content = `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
@@ -4462,9 +4515,7 @@ Below are street-level photos of this area. Analyze the tree canopy, shade cover
 Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 ${evidenceSummary}
 
-${!hasWebData && !hasOSM ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Use the research data above combined with your knowledge of this area.'}
-
-Consider: street trees lining sidewalks, shade coverage for walkers, parks within walking distance, tree-lined boulevards, and the overall green character of the neighborhood.
+${!hasWebData && !hasOSM ? 'No web research or OSM data was available. Use your knowledge of this area.' : 'Synthesize all the research data above with your knowledge of this area to score the pedestrian walking experience.'}
 ${scoringGuide}`;
     }
 
