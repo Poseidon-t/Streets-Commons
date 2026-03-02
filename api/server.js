@@ -2125,7 +2125,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
             `&geometryType=esriGeometryPoint` +
             `&inSR=4326` +
             `&spatialRel=esriSpatialRelIntersects` +
-            `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,NatWalkInd_Ranked,AutoOwn0,AutoOwn1,AutoOwn2p` +
+            `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,AutoOwn0,AutoOwn1,AutoOwn2p` +
             `&returnGeometry=false` +
             `&f=json`;
           // Try up to 2 attempts with increasing timeout
@@ -2139,7 +2139,9 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
                 headers: { 'User-Agent': 'SafeStreets/1.0' },
               });
               if (!resp.ok) throw new Error(`EPA API returned ${resp.status}`);
-              epaData = await resp.json();
+              const parsed = await resp.json();
+              if (parsed.error) throw new Error(`EPA query error: ${parsed.error.message || JSON.stringify(parsed.error)}`);
+              epaData = parsed;
               break;
             } catch (retryErr) {
               console.warn(`  ⚠️  EPA attempt ${attempt} failed: ${retryErr.message}`);
@@ -2165,7 +2167,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           else if (epaScore >= 40) category = 'Moderate street design';
           else if (epaScore >= 20) category = 'Car-oriented street design';
           else category = 'Very car-dependent design';
-          const result = { score: epaScore, category, d3bRank, d4aRank, d2bRank, natWalkInd, natWalkIndRank: attrs.NatWalkInd_Ranked ?? null, zeroCarPct, totalPop: attrs.TotPop ?? null, metroArea: attrs.CBSA_Name || null, dataSource: 'EPA National Walkability Index' };
+          const result = { score: epaScore, category, d3bRank, d4aRank, d2bRank, natWalkInd, zeroCarPct, totalPop: attrs.TotPop ?? null, metroArea: attrs.CBSA_Name || null, dataSource: 'EPA National Walkability Index' };
           epaCache.set(cacheKey, { data: result, timestamp: Date.now() });
           console.log(`  ✅ EPA Street Design: score=${epaScore}, D3B=${d3bRank}/20, D4A=${d4aRank}/20`);
           return result;
@@ -4111,7 +4113,7 @@ app.get('/api/street-design', async (req, res) => {
       `&geometryType=esriGeometryPoint` +
       `&inSR=4326` +
       `&spatialRel=esriSpatialRelIntersects` +
-      `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,D1A,D1B,AutoOwn0,AutoOwn1,AutoOwn2p,TotPop,Workers,Ac_Total,CBSA_Name,CSA_Name,NatWalkInd_Ranked` +
+      `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,D1A,D1B,AutoOwn0,AutoOwn1,AutoOwn2p,TotPop,Workers,Ac_Total,CBSA_Name,CSA_Name` +
       `&returnGeometry=false` +
       `&f=json`;
 
@@ -4184,7 +4186,7 @@ app.get('/api/street-design', async (req, res) => {
       d4aRank,         // Transit proximity (1-20)
       d2bRank,         // Land use mix (1-20)
       natWalkInd,      // EPA composite (1-20)
-      natWalkIndRank: attrs.NatWalkInd_Ranked ?? null,  // National percentile
+      // NatWalkInd_Ranked removed -- field no longer exists in EPA dataset
       zeroCarPct,
       totalPop: attrs.TotPop ?? null,
       metroArea: attrs.CBSA_Name || attrs.CSA_Name || null,
