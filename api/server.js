@@ -2110,12 +2110,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
         } catch (e) { console.warn('⚠️  Census ACS failed:', e.message); return null; }
       })(), 25000, null),
 
-      // EPA National Walkability Index — street design quality (15s timeout)
+      // EPA National Walkability Index -- street design quality
+      // Static census data (2018), cache for 30 days. Retry once on failure.
       withTimeout((async () => {
         try {
           const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
           const cached = epaCache.get(cacheKey);
-          if (cached && Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) {
+          if (cached && Date.now() - cached.timestamp < 30 * 24 * 60 * 60 * 1000) {
+            console.log(`  ✅ EPA Street Design (cached): score=${cached.data.score}`);
             return cached.data;
           }
           const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
@@ -2126,13 +2128,26 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
             `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,NatWalkInd_Ranked,AutoOwn0,AutoOwn1,AutoOwn2p` +
             `&returnGeometry=false` +
             `&f=json`;
-          const resp = await fetch(epaUrl, {
-            signal: AbortSignal.timeout(12000),
-            headers: { 'User-Agent': 'SafeStreets/1.0' },
-          });
-          if (!resp.ok) throw new Error(`EPA API returned ${resp.status}`);
-          const epaData = await resp.json();
-          if (!epaData.features || epaData.features.length === 0) return null;
+          // Try up to 2 attempts with increasing timeout
+          let epaData = null;
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+              const timeout = attempt === 1 ? 15000 : 25000;
+              console.log(`  🔄 EPA Street Design: attempt ${attempt}/2 (${timeout/1000}s timeout)...`);
+              const resp = await fetch(epaUrl, {
+                signal: AbortSignal.timeout(timeout),
+                headers: { 'User-Agent': 'SafeStreets/1.0' },
+              });
+              if (!resp.ok) throw new Error(`EPA API returned ${resp.status}`);
+              epaData = await resp.json();
+              break;
+            } catch (retryErr) {
+              console.warn(`  ⚠️  EPA attempt ${attempt} failed: ${retryErr.message}`);
+              if (attempt === 2) throw retryErr;
+              await new Promise(r => setTimeout(r, 1000)); // 1s pause before retry
+            }
+          }
+          if (!epaData?.features || epaData.features.length === 0) return null;
           const attrs = epaData.features[0].attributes;
           const d3bRank = attrs.D3B_Ranked ?? attrs.D3B ?? 0;
           const d4aRank = attrs.D4A_Ranked ?? attrs.D4A ?? 0;
@@ -2154,8 +2169,8 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           epaCache.set(cacheKey, { data: result, timestamp: Date.now() });
           console.log(`  ✅ EPA Street Design: score=${epaScore}, D3B=${d3bRank}/20, D4A=${d4aRank}/20`);
           return result;
-        } catch (e) { console.warn('⚠️  EPA Street Design failed:', e.message); return null; }
-      })(), 15000, null),
+        } catch (e) { console.warn('⚠️  EPA Street Design failed after retries:', e.message); return null; }
+      })(), 45000, null),
     ]);
 
     // Track validation metadata for report health check
@@ -2273,44 +2288,16 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     if (epaResult.status === 'fulfilled' && epaResult.value) {
       streetDesignData = epaResult.value;
     }
-    // Retry once if EPA failed (common on first deploy or slow networks)
+    // Check cache as final fallback if EPA fetch failed (main fetch already retries twice)
     if (!streetDesignData) {
-      try {
-        console.log('  🔄 EPA Street Design: retrying...');
-        const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
-        const cached = epaCache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) {
-          streetDesignData = cached.data;
-        } else {
-          const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
-            `geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects` +
-            `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,NatWalkInd_Ranked,AutoOwn0,AutoOwn1,AutoOwn2p` +
-            `&returnGeometry=false&f=json`;
-          const resp = await fetch(epaUrl, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
-          if (resp.ok) {
-            const epaData = await resp.json();
-            if (epaData.features?.length > 0) {
-              const attrs = epaData.features[0].attributes;
-              const d3bRank = attrs.D3B_Ranked ?? attrs.D3B ?? 0;
-              const d4aRank = attrs.D4A_Ranked ?? attrs.D4A ?? 0;
-              const d2bRank = attrs.D2B_Ranked ?? 0;
-              const natWalkInd = attrs.NatWalkInd ?? 0;
-              const epaScore = Math.round(Math.round((d3bRank/20)*100)*0.50 + Math.round((d4aRank/20)*100)*0.30 + Math.round((d2bRank/20)*100)*0.20);
-              const totalHH = (attrs.AutoOwn0??0)+(attrs.AutoOwn1??0)+(attrs.AutoOwn2p??0);
-              const zeroCarPct = totalHH > 0 ? Math.round((attrs.AutoOwn0/totalHH)*100) : null;
-              let category;
-              if (epaScore >= 80) category = 'Excellent street design for walking';
-              else if (epaScore >= 60) category = 'Good street design for walking';
-              else if (epaScore >= 40) category = 'Moderate street design';
-              else if (epaScore >= 20) category = 'Car-oriented street design';
-              else category = 'Very car-dependent design';
-              streetDesignData = { score: epaScore, category, d3bRank, d4aRank, d2bRank, natWalkInd, natWalkIndRank: attrs.NatWalkInd_Ranked??null, zeroCarPct, totalPop: attrs.TotPop??null, metroArea: attrs.CBSA_Name||null, dataSource: 'EPA National Walkability Index' };
-              epaCache.set(cacheKey, { data: streetDesignData, timestamp: Date.now() });
-              console.log(`  ✅ EPA Street Design (retry): score=${epaScore}, D3B=${d3bRank}/20, D4A=${d4aRank}/20`);
-            }
-          }
-        }
-      } catch (e) { console.warn('⚠️  EPA retry also failed:', e.message); }
+      const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+      const cached = epaCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < 30 * 24 * 60 * 60 * 1000) {
+        streetDesignData = cached.data;
+        console.log(`  ✅ EPA Street Design (cache fallback): score=${cached.data.score}`);
+      } else {
+        console.warn('  ⚠️  EPA Street Design: unavailable after retries, no cache hit');
+      }
     }
     if (streetDesignData) {
       streetDesignScore = Math.round(streetDesignData.score / 10 * 10) / 10; // EPA 0-100 → 0-10
@@ -4091,7 +4078,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
 // =====================
 
 const epaCache = new Map();
-const EPA_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours (data changes annually)
+const EPA_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days (census block data, updates every few years)
 
 app.get('/api/street-design', async (req, res) => {
   try {
@@ -4126,20 +4113,24 @@ app.get('/api/street-design', async (req, res) => {
       `&returnGeometry=false` +
       `&f=json`;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-
-    const response = await fetch(epaUrl, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'SafeStreets/1.0' },
-    });
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      throw new Error(`EPA API returned ${response.status}`);
+    // Try up to 2 attempts with increasing timeout
+    let epaData = null;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const timeoutMs = attempt === 1 ? 15000 : 25000;
+        const response = await fetch(epaUrl, {
+          signal: AbortSignal.timeout(timeoutMs),
+          headers: { 'User-Agent': 'SafeStreets/1.0' },
+        });
+        if (!response.ok) throw new Error(`EPA API returned ${response.status}`);
+        epaData = await response.json();
+        break;
+      } catch (retryErr) {
+        console.warn(`  EPA attempt ${attempt} failed: ${retryErr.message}`);
+        if (attempt === 2) throw retryErr;
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
-
-    const epaData = await response.json();
 
     if (!epaData.features || epaData.features.length === 0) {
       console.log(`🛣️ No EPA data for this location (likely outside US)`);
