@@ -59,7 +59,8 @@ I ran your listing at ${address} through it -- snapshot below, full report here:
 Curious what you think.
 
 Sarath
-Streets & Commons -- safestreets.streetsandcommons.com`;
+Streets & Commons
+safestreets.streetsandcommons.com`;
 }
 
 
