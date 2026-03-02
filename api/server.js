@@ -4129,209 +4129,10 @@ const greeneryCache = new Map();
 const GREENERY_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 // =====================
-// GROUND TRUTH GREENERY RESEARCH
-// Sources: SearXNG (images + web), Wikipedia, Wikimedia Commons
+// GROUND TRUTH GREENERY SCORING
+// Uses Claude Sonnet with web search tool to research any location
+// Searches: Walk Score, tree canopy data, Wikipedia, GitHub, city open data, news
 // =====================
-
-// Search for street-level images via SearXNG (free, no auth, no CAPTCHA)
-async function searchStreetImages(locationName) {
-  const query = `${locationName} street walking trees sidewalk`;
-  const instances = [
-    'https://search.sapti.me',
-    'https://searx.be',
-    'https://search.bus-hit.me',
-  ];
-
-  for (const instance of instances) {
-    try {
-      const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=images&language=en`;
-      const res = await fetch(url, {
-        headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
-        signal: AbortSignal.timeout(6000),
-      });
-      if (!res.ok) continue;
-      const data = await res.json();
-      const results = (data.results || [])
-        .filter(r => r.img_src && r.img_src.startsWith('http'))
-        .slice(0, 8)
-        .map(r => ({
-          url: r.img_src,
-          thumbnail: r.thumbnail_src || r.img_src,
-          title: r.title || '',
-          width: r.img_format ? parseInt(r.img_format) : 0,
-          height: 0,
-        }));
-      if (results.length > 0) return results;
-    } catch (e) {
-      console.warn(`  SearXNG image search failed (${instance}): ${e.message}`);
-    }
-  }
-  return [];
-}
-
-// Comprehensive web research: Wikipedia + Brave Search (free tier) + SearXNG fallback
-async function searchWebContext(locationName) {
-  const snippets = [];
-
-  // Source 1: Wikipedia -- neighborhood descriptions, landmarks, parks, urban planning
-  const wikiPromise = (async () => {
-    try {
-      const searchTerms = [locationName, `${locationName} neighborhood`, `${locationName} trees parks`];
-      const articleTitles = new Set();
-
-      await Promise.all(searchTerms.map(async (term) => {
-        try {
-          const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=3&format=json`;
-          const res = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
-            signal: AbortSignal.timeout(5000),
-          });
-          if (!res.ok) return;
-          const data = await res.json();
-          for (const result of (data.query?.search || [])) {
-            articleTitles.add(result.title);
-            const cleanSnippet = result.snippet?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#039;/g, "'").trim();
-            if (cleanSnippet && cleanSnippet.length > 30) {
-              snippets.push(`Wikipedia "${result.title}": ${cleanSnippet}`);
-            }
-          }
-        } catch {}
-      }));
-
-      const titles = [...articleTitles].slice(0, 4);
-      if (titles.length > 0) {
-        try {
-          const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=extracts&exintro=1&explaintext=1&exlimit=${titles.length}&format=json`;
-          const res = await fetch(extractUrl, {
-            headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
-            signal: AbortSignal.timeout(5000),
-          });
-          if (res.ok) {
-            const data = await res.json();
-            for (const page of Object.values(data.query?.pages || {})) {
-              if (page.extract && page.extract.length > 50) {
-                snippets.push(`Wikipedia "${page.title}": ${page.extract.substring(0, 800).trim()}`);
-              }
-            }
-          }
-        } catch {}
-      }
-    } catch {}
-  })();
-
-  // Source 2: SearXNG public instances (meta-search, returns JSON, no auth)
-  const searxPromise = (async () => {
-    const queries = [
-      `"${locationName}" walk score walkability`,
-      `"${locationName}" tree canopy street trees parks green`,
-    ];
-    const instances = [
-      'https://search.sapti.me',
-      'https://searx.be',
-      'https://search.bus-hit.me',
-    ];
-
-    for (const instance of instances) {
-      try {
-        const results = await Promise.all(queries.map(async (query) => {
-          try {
-            const url = `${instance}/search?q=${encodeURIComponent(query)}&format=json&categories=general&language=en`;
-            const res = await fetch(url, {
-              headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
-              signal: AbortSignal.timeout(6000),
-            });
-            if (!res.ok) return [];
-            const data = await res.json();
-            return (data.results || []).slice(0, 4).map(r => {
-              const content = r.content?.replace(/<[^>]+>/g, '').trim() || '';
-              const title = r.title || '';
-              return content.length > 30 ? `${title}: ${content}` : null;
-            }).filter(Boolean);
-          } catch { return []; }
-        }));
-        const searxSnippets = results.flat();
-        if (searxSnippets.length > 0) {
-          snippets.push(...searxSnippets.slice(0, 6));
-          break; // success, don't try other instances
-        }
-      } catch {}
-    }
-  })();
-
-  // Run Wikipedia and SearXNG in parallel
-  await Promise.all([wikiPromise, searxPromise]);
-
-  const unique = [...new Set(snippets)];
-  console.log(`  Web research: ${unique.length} snippets for ${locationName}`);
-  return unique.slice(0, 12);
-}
-
-// Search Wikimedia Commons for geotagged photos near coordinates
-async function searchWikimediaPhotos(lat, lon) {
-  try {
-    const url = `https://commons.wikimedia.org/w/api.php?action=query&list=geosearch&gscoord=${lat}|${lon}&gsradius=500&gslimit=10&gsnamespace=6&format=json`;
-    const res = await fetch(url, {
-      headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!res.ok) return [];
-    const data = await res.json();
-    const pages = data.query?.geosearch || [];
-    // Filter for likely outdoor/street photos
-    const outdoor = pages.filter(p => {
-      const t = p.title.toLowerCase();
-      return !t.includes('logo') && !t.includes('icon') && !t.includes('map') &&
-             (t.includes('street') || t.includes('tree') || t.includes('park') ||
-              t.includes('avenue') || t.includes('boulevard') || t.includes('view') ||
-              t.includes('building') || t.includes('neighborhood') || t.includes('.jpg') ||
-              t.includes('.jpeg') || t.includes('.png'));
-    });
-    // Get image URLs for top results
-    if (outdoor.length === 0) return [];
-    const titles = outdoor.slice(0, 4).map(p => p.title).join('|');
-    const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=800&format=json`;
-    const infoRes = await fetch(infoUrl, {
-      headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research)' },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!infoRes.ok) return [];
-    const infoData = await infoRes.json();
-    const results = [];
-    for (const page of Object.values(infoData.query?.pages || {})) {
-      const info = page.imageinfo?.[0];
-      if (info && info.mime?.startsWith('image/') && info.thumburl) {
-        results.push({
-          url: info.thumburl, // 800px thumbnail
-          title: page.title,
-          width: info.thumbwidth || info.width,
-          height: info.thumbheight || info.height,
-        });
-      }
-    }
-    return results;
-  } catch (e) {
-    console.warn(`  Wikimedia search failed: ${e.message}`);
-    return [];
-  }
-}
-
-// Download image and convert to base64 (for Claude Vision)
-async function downloadImageAsBase64(url) {
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(5000),
-      headers: { 'User-Agent': 'SafeStreets/2.0' },
-    });
-    if (!res.ok) return null;
-    const contentType = res.headers.get('content-type') || 'image/jpeg';
-    if (!contentType.startsWith('image/')) return null;
-    const buffer = await res.arrayBuffer();
-    if (buffer.byteLength < 5000 || buffer.byteLength > 5000000) return null;
-    const base64 = Buffer.from(buffer).toString('base64');
-    const mediaType = contentType.split(';')[0].trim();
-    return { base64, mediaType };
-  } catch { return null; }
-}
 
 async function fetchGroundTruthGreenery(lat, lon, locationName) {
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
@@ -4348,140 +4149,93 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
   }
 
   try {
-    // Run all research sources in parallel
-    const [imageResults, webSnippets, wikimediaPhotos] = await Promise.all([
-      searchStreetImages(locationName),
-      searchWebContext(locationName),
-      searchWikimediaPhotos(lat, lon),
-    ]);
-
-    // Collect images from SearXNG + Wikimedia
-    const allImageSources = [
-      ...imageResults.slice(0, 4),
-      ...wikimediaPhotos.slice(0, 4),
-    ];
-    const imageContent = [];
-    if (allImageSources.length > 0) {
-      const downloads = await Promise.all(
-        allImageSources.slice(0, 8).map(r => downloadImageAsBase64(r.url))
-      );
-      const validImages = downloads.filter(Boolean).slice(0, 4);
-      for (const img of validImages) {
-        imageContent.push({
-          type: 'image',
-          source: { type: 'base64', media_type: img.mediaType, data: img.base64 },
-        });
-      }
-    }
-
-    const hasImages = imageContent.length > 0;
-    const hasWebData = webSnippets.length > 0;
-
-    console.log(`  Research for ${locationName}: ${imageContent.length} images, ${webSnippets.length} web snippets`);
-
-    // Build evidence for Claude
-    let evidenceSummary = '';
-    if (hasWebData) {
-      evidenceSummary += `\n\nRESEARCH FINDINGS (Wikipedia, web sources):\n${webSnippets.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
-    }
-
-    // Build the prompt -- web research is primary, images are supplementary
-    const scoringGuide = `
-Scoring guide (score reflects what a PEDESTRIAN experiences walking the streets):
-0-1: Industrial/highway, virtually no vegetation
-2-3: Dense commercial, mostly concrete, very few trees
-4-5: Some street trees but inconsistent, limited shade
-6-7: Good tree coverage, shade on most blocks, parks nearby, pleasant walking
-8-9: Well-treed, significant canopy, tree-lined streets, parks accessible, high Walk Score area
-10: Exceptional urban forest, continuous canopy, park-like walking
-
-KEY SIGNALS from research -- use these to calibrate your score:
-- Walk Score 90+, Transit Score 90+ = highly walkable, well-designed streets, typically good tree coverage. Score 7+.
-- Mentions of "tree-lined boulevards", "urban forest", "street tree program", "tree canopy initiative" = active green infrastructure. Score 7+.
-- Mentions of specific parks, plazas, greenways within walking distance = adds to green experience. Each major park +0.5.
-- City known for trees (Portland, Savannah, Charlotte, Sacramento) = likely 7+.
-- Dense commercial/entertainment core (Times Square, Las Vegas Strip) = concrete canyon despite nearby parks. Score 2-4.
-- Suburban sprawl with strip malls and parking lots = low canopy despite possible yard trees. Score 3-5.
-
-IMPORTANT: Your score should match what a person WALKING the streets actually experiences. If research says Walk Score 99 with tree-lined boulevards and parks, that's a 7-8, not a 5. Trust the research data.
-
-Return ONLY valid JSON, no other text:
-{
-  "score": <0.0-10.0>,
-  "confidence": "high|medium|low",
-  "greenCharacter": "<one sentence describing the pedestrian greenery experience>",
-  "knownFeatures": ["feature1", "feature2", "feature3"]
-}`;
-
-    let content;
-    if (hasImages) {
-      content = [
-        { type: 'text', text: `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
-
-Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
-${evidenceSummary}
-
-Below are some photos found via web image search. These may show only commercial storefronts or a single block -- they do NOT represent the entire neighborhood. Do NOT let a few photos of a commercial street override strong research evidence of tree-lined boulevards, parks, and high walkability.` },
-        ...imageContent,
-        { type: 'text', text: `Score ${locationName} based PRIMARILY on the research findings above (Walk Score, Wikipedia, tree canopy data). Photos are minor supplementary evidence only -- a few photos of one block cannot override neighborhood-wide research data showing parks, tree-lined streets, and high walkability scores.${scoringGuide}` },
-      ];
-    } else {
-      content = `You are an urban forestry analyst scoring PEDESTRIAN-LEVEL tree canopy and greenery for a walkability tool.
-
-Score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
-${evidenceSummary}
-
-${!hasWebData ? 'No web research was available. Use your knowledge of this area.' : 'Synthesize the research data above with your knowledge to score the pedestrian walking experience.'}
-${scoringGuide}`;
-    }
+    console.log(`  Researching greenery for ${locationName} (${lat}, ${lon})...`);
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2025-01-01',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 400,
-        messages: [{ role: 'user', content }],
+        max_tokens: 1024,
+        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
+        messages: [{
+          role: 'user',
+          content: `You are an urban forestry analyst scoring pedestrian-level tree canopy and greenery for a walkability tool.
+
+Research and score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
+
+SEARCH the web for:
+1. Walk Score and walkability data for this specific neighborhood
+2. Tree canopy coverage, street trees, urban forestry programs
+3. Parks, boulevards, greenways within walking distance
+4. Any tree canopy studies, city forestry data, or GIS datasets
+
+After researching, return ONLY valid JSON (no other text, no markdown):
+{
+  "score": <0.0-10.0>,
+  "confidence": "high|medium|low",
+  "greenCharacter": "<one sentence describing the pedestrian greenery experience>",
+  "knownFeatures": ["feature1", "feature2", "feature3", "feature4", "feature5"]
+}
+
+Scoring guide:
+0-1: Industrial/highway, no vegetation
+2-3: Dense commercial core, concrete canyon, very few street trees (Times Square, downtown parking lots)
+4-5: Some street trees but inconsistent, limited shade
+6-7: Good tree coverage, shade on most blocks, parks nearby, pleasant walking
+7-8: Well-treed neighborhood, tree-lined streets, multiple parks, Walk Score 90+
+8-9: Exceptional canopy, famous for trees, continuous shade
+9-10: World-class urban forest (Savannah historic district, old-growth urban areas)
+
+Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find. Trust Walk Score, tree canopy percentages, and neighborhood descriptions over any single photo.`
+        }],
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      console.warn(`  Ground truth greenery: Claude API returned ${response.status}`);
+      console.warn(`  Ground truth greenery: API returned ${response.status}`);
       return null;
     }
     const data = await response.json();
-    const text = data.content?.[0]?.text;
+
+    // Extract the final text response (after web search tool use)
+    let text = null;
+    for (const block of (data.content || []).reverse()) {
+      if (block.type === 'text' && block.text) {
+        text = block.text;
+        break;
+      }
+    }
     if (!text) return null;
 
+    // Count web searches performed
+    const searchCount = (data.content || []).filter(b => b.type === 'server_tool_use').length;
+
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
+    // Extract JSON from text that may have surrounding content
+    const jsonMatch = jsonStr.match(/\{[\s\S]*"score"[\s\S]*"confidence"[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]);
 
     if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 10) return null;
     if (!['high', 'medium', 'low'].includes(parsed.confidence)) parsed.confidence = 'low';
-
-    // Determine data sources used
-    const sources = [];
-    if (hasImages) sources.push('Street Photos');
-    if (hasWebData) sources.push('Web Research');
-    if (sources.length === 0) sources.push('Claude Knowledge');
 
     const result = {
       score: Math.round(parsed.score * 10) / 10,
       confidence: parsed.confidence,
       greenCharacter: parsed.greenCharacter || null,
       knownFeatures: Array.isArray(parsed.knownFeatures) ? parsed.knownFeatures.slice(0, 5) : [],
-      imagesAnalyzed: imageContent.length,
-      webSnippetsUsed: webSnippets.length,
-      dataSource: sources.join(' + '),
+      webSearches: searchCount,
+      dataSource: searchCount > 0 ? `Web Research (${searchCount} searches)` : 'Claude Knowledge',
     };
 
     greeneryCache.set(cacheKey, { data: result, timestamp: Date.now() });
-    console.log(`  Ground truth: ${result.score}/10 (${result.confidence}) [${result.dataSource}] -- ${result.greenCharacter?.substring(0, 60)}`);
+    console.log(`  Ground truth: ${result.score}/10 (${result.confidence}) [${searchCount} searches] -- ${result.greenCharacter?.substring(0, 80)}`);
     return result;
   } catch (e) {
     console.warn(`  Ground truth greenery failed: ${e.message}`);
