@@ -4195,7 +4195,7 @@ Scoring guide:
 Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find. Trust Walk Score, tree canopy percentages, and neighborhood descriptions over any single photo.`
         }],
       }),
-      signal: AbortSignal.timeout(30000),
+      signal: AbortSignal.timeout(60000),
     });
 
     if (!response.ok) {
