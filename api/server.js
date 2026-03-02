@@ -2174,13 +2174,13 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
         } catch (e) { console.warn('⚠️  EPA Street Design failed after retries:', e.message); return null; }
       })(), 45000, null),
 
-      // Ground-truth greenery -- Claude knowledge assessment (15s timeout)
+      // Ground-truth greenery -- Claude web research assessment (45s timeout, web search takes 12-15s)
       withTimeout((async () => {
         try {
           const locationName = `${neighborhood || ''}${neighborhood ? ', ' : ''}${city}${state ? ', ' + state : ''}`;
           return await fetchGroundTruthGreenery(lat, lon, locationName);
         } catch (e) { console.warn('⚠️  Ground truth greenery failed:', e.message); return null; }
-      })(), 15000, null),
+      })(), 45000, null),
     ]);
 
     // Track validation metadata for report health check
@@ -4151,21 +4151,13 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
   try {
     console.log(`  Researching greenery for ${locationName} (${lat}, ${lon})...`);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-beta': 'web-search-2025-03-05',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 4096,
-        tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
-        messages: [{
-          role: 'user',
-          content: `You are an urban forestry analyst scoring pedestrian-level tree canopy and greenery for a walkability tool.
+    const requestBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 3 }],
+      messages: [{
+        role: 'user',
+        content: `You are an urban forestry analyst scoring pedestrian-level tree canopy and greenery for a walkability tool.
 
 Research and score the pedestrian greenery experience for: ${locationName} (${lat}, ${lon})
 
@@ -4193,17 +4185,48 @@ Scoring guide:
 9-10: World-class urban forest (Savannah historic district, old-growth urban areas)
 
 Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find. Trust Walk Score, tree canopy percentages, and neighborhood descriptions over any single photo.`
-        }],
-      }),
-      signal: AbortSignal.timeout(60000),
-    });
+      }],
+    };
 
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => '');
-      console.warn(`  Ground truth greenery: API returned ${response.status}: ${errBody.substring(0, 200)}`);
-      return null;
+    // Retry up to 2 times with backoff for rate limiting (429)
+    let data = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) {
+        const delay = attempt * 5000; // 5s, 10s backoff
+        console.log(`  Retrying greenery request (attempt ${attempt + 1}/3) after ${delay / 1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-beta': 'web-search-2025-03-05',
+        },
+        body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(60000),
+      });
+
+      if (response.status === 429) {
+        const errBody = await response.text().catch(() => '');
+        console.warn(`  Ground truth greenery: rate limited (429), attempt ${attempt + 1}/3: ${errBody.substring(0, 100)}`);
+        if (attempt < 2) continue; // retry
+        return null;
+      }
+
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => '');
+        console.warn(`  Ground truth greenery: API returned ${response.status}: ${errBody.substring(0, 200)}`);
+        return null;
+      }
+
+      data = await response.json();
+      break; // success
     }
-    const data = await response.json();
+
+    if (!data) return null;
 
     // Extract the final text response (after web search tool use)
     let text = null;
