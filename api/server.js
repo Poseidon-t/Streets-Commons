@@ -2205,17 +2205,21 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       _validation.treeCanopy = { status: 'failed', imageDate: null, cloudCover: null, peakRank: null, ndvi: null };
     }
 
-    // Blend NDVI with ground-truth knowledge assessment (confidence-weighted)
+    // Ground-truth knowledge assessment: Claude primary, NDVI as fallback
+    // Claude scores are more accurate for pedestrian experience in dense urban areas.
+    // NDVI only used when Claude is unavailable or has low confidence.
     let groundTruthData = null;
     const ndviOnlyScore = treeCanopyScore;
     if (greeneryResult.status === 'fulfilled' && greeneryResult.value?.score != null) {
       groundTruthData = greeneryResult.value;
-      const gtScore = groundTruthData.score;
-      const gtWeight = groundTruthData.confidence === 'high' ? 0.5
-                     : groundTruthData.confidence === 'medium' ? 0.35
-                     : 0.2;
-      treeCanopyScore = Math.round((gtScore * gtWeight + treeCanopyScore * (1 - gtWeight)) * 10) / 10;
-      console.log(`  🌳 Tree Canopy blended: NDVI ${ndviOnlyScore}/10 + GT ${gtScore}/10 (${groundTruthData.confidence}, w=${gtWeight}) = ${treeCanopyScore}/10`);
+      if (groundTruthData.confidence === 'high' || groundTruthData.confidence === 'medium') {
+        // Claude knows this area -- use its score directly
+        treeCanopyScore = groundTruthData.score;
+        console.log(`  🌳 Tree Canopy: Claude ${treeCanopyScore}/10 (${groundTruthData.confidence}) | NDVI ${ndviOnlyScore}/10 (fallback only)`);
+      } else {
+        // Low confidence -- fall back to NDVI
+        console.log(`  🌳 Tree Canopy: NDVI ${ndviOnlyScore}/10 (Claude low confidence: ${groundTruthData.score}/10)`);
+      }
     }
     // 5b. Neighborhood Intelligence — transit/park/food from OSM elements + CDC + FEMA
     const niTransit = { busStops: 0, railStations: 0, totalStops: 0, score: 0 };

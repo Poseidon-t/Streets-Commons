@@ -434,11 +434,10 @@ function App() {
         raw.ndvi = ndvi;
         scores.ndvi = scoreTreeCanopy(ndvi);
       }
-      // Blend with ground-truth knowledge assessment (confidence-weighted)
+      // Claude primary, NDVI as fallback for low-confidence areas
       promises.groundTruth.then(gt => {
-        if (gt?.score != null && scores.ndvi != null) {
-          const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
-          scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+        if (gt?.score != null && (gt.confidence === 'high' || gt.confidence === 'medium')) {
+          scores.ndvi = gt.score;
         }
         markLoaded('treeCanopy');
         recalc();
@@ -1105,9 +1104,8 @@ function App() {
                           satellitePromises.ndvi.then(v => {
                             if (v !== null) { scores.ndvi = scoreTreeCanopy(v); }
                             satellitePromises.groundTruth.then(gt => {
-                              if (gt?.score != null && scores.ndvi != null) {
-                                const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
-                                scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+                              if (gt?.score != null && (gt.confidence === 'high' || gt.confidence === 'medium')) {
+                                scores.ndvi = gt.score;
                               }
                               recalc();
                             });
@@ -1192,9 +1190,8 @@ function App() {
                           satellitePromises.ndvi.then(v => {
                             if (v !== null) { scores.ndvi = scoreTreeCanopy(v); }
                             satellitePromises.groundTruth.then(gt => {
-                              if (gt?.score != null && scores.ndvi != null) {
-                                const w = gt.confidence === 'high' ? 0.5 : gt.confidence === 'medium' ? 0.35 : 0.2;
-                                scores.ndvi = Math.round((gt.score * w + scores.ndvi * (1 - w)) * 10) / 10;
+                              if (gt?.score != null && (gt.confidence === 'high' || gt.confidence === 'medium')) {
+                                scores.ndvi = gt.score;
                               }
                               recalc();
                             });
