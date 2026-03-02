@@ -6,8 +6,10 @@ import type { WalkabilityMetrics } from '../../types';
 
 const METRIC_LABELS: Record<string, string> = {
   'daily needs access': 'daily needs access',
-  terrain: 'terrain accessibility',
   'tree canopy': 'tree canopy coverage',
+  'street grid': 'street network',
+  'street design': 'street design',
+  'commute mode': 'car-free commuting',
 };
 const ml = (key: string): string => METRIC_LABELS[key] || key;
 
@@ -17,11 +19,13 @@ const getRange = (s: number): 'critical' | 'poor' | 'fair' | 'good' =>
 function findWeakestMetric(metrics: WalkabilityMetrics): [string, number] {
   const entries: [string, number | undefined][] = [
     ['daily needs access', metrics.destinationAccess],
-    ['terrain', metrics.slope],
     ['tree canopy', metrics.treeCanopy],
+    ['street grid', metrics.streetGrid],
+    ['street design', metrics.streetDesign],
+    ['commute mode', metrics.commuteMode],
   ];
   return entries
-    .filter((e): e is [string, number] => typeof e[1] === 'number')
+    .filter((e): e is [string, number] => typeof e[1] === 'number' && e[1] > 0)
     .sort((a, b) => a[1] - b[1])[0] || ['walkability', metrics.overallScore];
 }
 
@@ -55,7 +59,9 @@ describe('Share Text Generation Logic', () => {
     it('should map all known metric keys to human-readable labels', () => {
       expect(ml('daily needs access')).toBe('daily needs access');
       expect(ml('tree canopy')).toBe('tree canopy coverage');
-      expect(ml('terrain')).toBe('terrain accessibility');
+      expect(ml('street grid')).toBe('street network');
+      expect(ml('street design')).toBe('street design');
+      expect(ml('commute mode')).toBe('car-free commuting');
     });
 
     it('should return key as-is for unknown metrics', () => {
@@ -67,8 +73,10 @@ describe('Share Text Generation Logic', () => {
     it('should find the metric with the lowest score', () => {
       const metrics: WalkabilityMetrics = {
         destinationAccess: 6,
-        slope: 8,
         treeCanopy: 2, // Weakest
+        streetGrid: 7,
+        streetDesign: 5,
+        commuteMode: 6,
         overallScore: 5.3,
         label: 'Fair',
       };
@@ -77,15 +85,15 @@ describe('Share Text Generation Logic', () => {
       expect(score).toBe(2);
     });
 
-    it('should handle all zeros', () => {
+    it('should handle all zeros by falling back to overall', () => {
       const metrics: WalkabilityMetrics = {
         destinationAccess: 0,
-        slope: 0,
         treeCanopy: 0,
         overallScore: 0,
         label: 'Critical',
       };
-      const [, score] = findWeakestMetric(metrics);
+      const [name, score] = findWeakestMetric(metrics);
+      expect(name).toBe('walkability');
       expect(score).toBe(0);
     });
   });
@@ -98,19 +106,19 @@ describe('Share Text Generation Logic', () => {
       const weakest: [string, number] = ['tree canopy', 3.2];
 
       // Simulate a twitter template
-      const text = `${shortName}: ${score}/10 walkability. Above average, but ${ml(weakest[0])} (${weakest[1].toFixed(1)}/10) drags it down.\n\nMeasured with satellite imagery against NACTO standards. Close to good \u2014 not there yet.\n\n${prodUrl}`;
+      const text = `${shortName}: ${score}/10 walkability. Above average, but ${ml(weakest[0])} (${weakest[1].toFixed(1)}/10) drags it down.\n\nMeasured with satellite imagery against NACTO standards. Close to good -- not there yet.\n\n${prodUrl}`;
       expect(text.length).toBeLessThanOrEqual(400); // Generous limit for template; actual tweets may trim
     });
   });
 
   describe('LinkedIn text content', () => {
     it('should include methodology references', () => {
-      const text = `I ran a walkability audit on Portland using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.`;
+      const text = `I ran a walkability audit on Portland using Sentinel-2 satellite imagery, OpenStreetMap data, and EPA walkability index, measured against NACTO Global Street Design Standards.`;
 
       expect(text).toContain('Sentinel-2');
       expect(text).toContain('NACTO');
-      expect(text).toContain('WHO');
       expect(text).toContain('OpenStreetMap');
+      expect(text).toContain('EPA');
     });
   });
 });

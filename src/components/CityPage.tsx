@@ -130,7 +130,7 @@ export default function CityPage() {
             Analyze {city.name} Now — Free
           </Link>
           <p className="text-xs mt-3" style={{ color: '#8a9a8a' }}>
-            No sign-up required · Powered by NASA & OpenStreetMap satellite data
+            No sign-up required · Powered by Sentinel-2 satellite & OpenStreetMap data
           </p>
         </div>
       </section>
@@ -142,13 +142,12 @@ export default function CityPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { title: 'Sidewalk Coverage', desc: 'Percentage of streets with sidewalks within 400m', icon: '🚶' },
+            { title: 'Street Grid', desc: 'Intersection density, block length, and network connectivity', icon: '🔀' },
             { title: 'Tree Canopy', desc: 'Satellite-measured vegetation and shade coverage', icon: '🌳' },
-            { title: 'Pedestrian Crossings', desc: 'Crossing density and safety infrastructure', icon: '🚦' },
-            { title: 'Street Lighting', desc: 'Lit street coverage for nighttime safety', icon: '💡' },
-            { title: 'Street Design', desc: 'EPA intersection density, transit, and land use', icon: '🛣️' },
-            { title: 'Traffic Safety', desc: 'NHTSA fatal crash data within 800m', icon: '🛡️' },
-            { title: '15-Minute City', desc: 'Are daily services within a 15-min walk?', icon: '🏪' },
+            { title: 'Street Design', desc: 'EPA intersection density, transit, and land use (US)', icon: '🛣️' },
+            { title: 'Destinations', desc: 'Grocery, restaurant, school, and park access within 15-min walk', icon: '🏪' },
+            { title: 'Commute Mode', desc: 'Car-free commuting rate from Census data (US)', icon: '🚶' },
+            { title: 'Neighborhood Intel', desc: 'Demographics, flood risk, health data, and more', icon: '📊' },
           ].map(item => (
             <div
               key={item.title}
@@ -171,7 +170,7 @@ export default function CityPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             { step: '1', title: 'Enter an Address', desc: `Type any address in ${city.name}, ${city.stateCode} into the search bar.` },
-            { step: '2', title: 'Get Your Score', desc: 'We analyze 8+ walkability metrics using satellite data from NASA, Sentinel-2, and OpenStreetMap.' },
+            { step: '2', title: 'Get Your Score', desc: 'We analyze 5 walkability metrics using Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.' },
             { step: '3', title: 'Take Action', desc: 'Use your analysis for planning or real estate decisions. Export as PDF, generate branded agent reports, or verify scores in the field.' },
           ].map(item => (
             <div key={item.step} className="text-center">
@@ -267,7 +266,7 @@ export default function CityPage() {
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>
         <p className="text-xs mt-2" style={{ color: '#5a6a5a' }}>
-          Free walkability analysis powered by NASA, Sentinel-2, and OpenStreetMap satellite data.
+          Free walkability analysis powered by Sentinel-2 satellite imagery, OpenStreetMap, EPA & Census data.
         </p>
       </footer>
     </div>

@@ -16,12 +16,12 @@ const STEPS: TourStep[] = [
   {
     targetSelector: '#score',
     title: 'Your Walkability Score',
-    description: 'Overall score and letter grade, powered by satellite imagery, OpenStreetMap, and crash databases.',
+    description: 'Overall score and letter grade, powered by Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.',
   },
   {
     targetSelector: '#metrics',
-    title: '8 Walkability Metrics',
-    description: 'Crossing safety, sidewalk coverage, tree canopy, thermal comfort, and more — every dimension analyzed.',
+    title: '5 Walkability Metrics',
+    description: 'Street grid, tree canopy, street design, destinations, and commute mode -- every dimension analyzed.',
   },
   {
     targetSelector: '#neighborhood',

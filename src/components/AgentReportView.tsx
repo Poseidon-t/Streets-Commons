@@ -336,7 +336,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Summary</h2>
             <p style={{ fontSize: '0.9375rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using OpenStreetMap data and NASA satellite imagery.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
+              This property scores <strong style={{ color: C.text }}>{displayScore.toFixed(1)} out of 10</strong> for walkability, rated <strong style={{ color: displayGradeInfo.color }}>{displayLabel}</strong>. The analysis covers {sortedMetrics.length} infrastructure and environmental metrics using Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.{fieldMode && hasAnyAdjustment && ' Scores have been adjusted based on ground observation.'}
             </p>
           </div>
 
@@ -537,7 +537,7 @@ export default function AgentReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This walkability assessment analyzes {sortedMetrics.length} metrics using satellite imagery (Sentinel-2, NASA), OpenStreetMap infrastructure data, and elevation models. Metrics are scored 0–10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
+              This walkability assessment analyzes {sortedMetrics.length} metrics using Sentinel-2 satellite imagery, OpenStreetMap infrastructure data, EPA walkability index, and US Census data. Metrics are scored 0-10 against international standards from NACTO, GSDG, and ITDP. View the interactive analysis at <strong>safestreets.streetsandcommons.com</strong>.
             </p>
           </div>
 

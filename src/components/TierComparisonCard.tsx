@@ -10,7 +10,7 @@ const TIERS = [
     subtitle: 'No sign-up needed',
     color: '#5a8a5a',
     features: [
-      { name: 'Walkability Analysis (8 metrics)', included: true },
+      { name: 'Walkability Analysis (5 metrics)', included: true },
       { name: 'Composite Score + Grade', included: true },
       { name: 'Equity Insights + Local Economy', included: true },
       { name: '15-Minute City Analysis', included: true },

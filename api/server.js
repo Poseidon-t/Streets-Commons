@@ -5447,12 +5447,6 @@ STREET DESIGN (scored metric — EPA National Walkability Index):
 - EPA ranks 1-20 per census block group, converted to 0-100 score
 - Source: geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex
 
-TERRAIN & SLOPE:
-- ADA max slope: 5% (1:20) accessible; 8.33% (1:12) absolute max with handrails
-- Comfortable walking: <3%; >6% strenuous
-- Slopes >3% significantly reduce elderly/wheelchair mobility
-- Steep streets (>10%) reduce pedestrian volumes 50-80%
-
 15-MINUTE CITY (Carlos Moreno, Sorbonne, 2016):
 - All daily needs within 15-min walk or bike
 - Six functions: living, working, commerce, healthcare, education, entertainment
@@ -5473,15 +5467,14 @@ DATA SOURCES & HONEST LIMITATIONS — READ THIS CAREFULLY:
 This tool uses two types of data with VERY different reliability levels. You MUST communicate this distinction honestly.
 
 HIGH-RELIABILITY (Satellite-based, scientifically validated):
-- Slope/Terrain: NASA SRTM 30m elevation data — consistent and accurate worldwide
 - Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution — measures actual vegetation, reliable
-- Thermal Comfort: NASA POWER surface temperature + Sentinel-2 SWIR heat island analysis — regional-level accuracy
+- Street Grid: OSM road network — intersection density, block length, dead-end ratio
+
+MEDIUM RELIABILITY (Government data sources):
+- Street Design: EPA National Walkability Index — census block group level, US only
+- Commute Mode: US Census ACS — car-free commuting percentage, US only
 
 MEDIUM-TO-LOW RELIABILITY (OpenStreetMap, volunteer-contributed):
-- Sidewalk Coverage: OSM highway=footway/sidewalk tags — measures whether sidewalks are TAGGED in OSM, not actual sidewalk presence or condition. Many cities have sidewalks that simply aren't mapped. A low score might mean poor mapping, not missing sidewalks
-- Crossing Safety: OSM highway=crossing nodes — depends entirely on whether local volunteers mapped crossings. A low score might mean few crossings OR just poor mapping coverage
-- Traffic Speed Safety: OSM maxspeed/lanes tags — often INFERRED from road type (e.g., "residential" assumed 25mph) when actual speed data is missing. These are estimates, not measurements
-- Night Safety (Lighting): OSM lit=yes/no tags — VERY sparse coverage. In most cities, <10% of streets have lighting data. This metric is heavily inferred and should be treated as a rough estimate only
 - Daily Needs Access: OSM amenity/shop/leisure POIs — captures major destinations but misses many small businesses, informal markets, and recent openings
 
 CRITICAL: OSM coverage varies enormously by city. Well-mapped cities (e.g., Portland, Berlin, Amsterdam) have rich data. Many cities in Africa, South Asia, Southeast Asia, parts of Australia, and smaller cities worldwide have sparse, incomplete, or outdated OSM data. Scores for these places may reflect MAPPING GAPS, not actual conditions on the ground.

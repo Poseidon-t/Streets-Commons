@@ -17,7 +17,7 @@ export default function ForRealEstate() {
               </h2>
               <p className="text-sm mb-4 leading-relaxed" style={{ color: '#6b7280' }}>
                 Every Walk Score point adds ~$3,500 to home value. Give your buyers the data they need —
-                and put your name on it. 8 metrics from satellite imagery and OpenStreetMap, formatted
+                and put your name on it. 5 metrics from satellite imagery and OpenStreetMap, formatted
                 as a print-ready PDF with your branding.
               </p>
               <div className="flex flex-wrap gap-3">
@@ -42,7 +42,7 @@ export default function ForRealEstate() {
             <div className="space-y-3">
               {[
                 { icon: '📊', title: 'Your Branding on Every Page', desc: 'Name, title, company, phone, and email' },
-                { icon: '🏠', title: 'Full Walkability Analysis', desc: '12 data layers, 15-min city & neighborhood intelligence' },
+                { icon: '🏠', title: 'Full Walkability Analysis', desc: '5 metrics, 15-min city analysis & neighborhood intelligence' },
                 { icon: '🖨️', title: 'Print-Ready PDF', desc: '3-page report optimized for print and email' },
                 { icon: '🌍', title: 'Any Address Worldwide', desc: 'Works for US listings and international properties' },
               ].map(f => (
