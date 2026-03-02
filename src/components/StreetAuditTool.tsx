@@ -75,7 +75,7 @@ const CATEGORIES: Category[] = [
     ],
   },
   {
-    id: 'accessibility', name: 'Accessibility', metricKey: 'slope',
+    id: 'accessibility', name: 'Accessibility', metricKey: 'overallScore',
     items: [
       { id: 'ac-1', label: 'Curb cuts at every crossing', hint: 'Ramps where the sidewalk meets the road at corners?' },
       { id: 'ac-2', label: 'Wheelchair / stroller passable', hint: 'Could someone in a wheelchair navigate the full route?' },
@@ -160,7 +160,7 @@ function getSmartHint(cat: Category, metrics: WalkabilityMetrics | null): string
     traffic: 'Speed exposure score is elevated. Observe actual traffic speeds and calming measures.',
     shade: 'Satellite imagery shows limited tree canopy. Note shade and comfort conditions.',
     lighting: 'Street lighting coverage appears low. Check for adequate illumination.',
-    accessibility: 'Terrain shows notable elevation changes. Check slope accessibility.',
+    accessibility: 'Accessibility score is low. Check curb cuts, path widths, and obstacles.',
     safety: 'Safety metrics indicate concerns. Pay attention to sight lines and activity.',
     amenities: 'Limited daily destinations detected nearby. Note what services are walkable.',
   };

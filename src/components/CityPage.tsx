@@ -146,8 +146,7 @@ export default function CityPage() {
             { title: 'Tree Canopy', desc: 'Satellite-measured vegetation and shade coverage', icon: '🌳' },
             { title: 'Pedestrian Crossings', desc: 'Crossing density and safety infrastructure', icon: '🚦' },
             { title: 'Street Lighting', desc: 'Lit street coverage for nighttime safety', icon: '💡' },
-            { title: 'Terrain Slope', desc: 'NASADEM elevation data for ADA accessibility', icon: '⛰️' },
-            { title: 'Air Quality', desc: 'Real-time PM2.5 and pollution monitoring', icon: '🌬️' },
+            { title: 'Street Design', desc: 'EPA intersection density, transit, and land use', icon: '🛣️' },
             { title: 'Traffic Safety', desc: 'NHTSA fatal crash data within 800m', icon: '🛡️' },
             { title: '15-Minute City', desc: 'Are daily services within a 15-min walk?', icon: '🏪' },
           ].map(item => (

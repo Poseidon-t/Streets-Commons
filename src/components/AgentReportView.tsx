@@ -57,7 +57,6 @@ const getScoreColor = (s: number) => {
 
 const metricsConfig = [
   { key: 'streetGrid', name: 'Street Grid', icon: '🔀', source: 'OpenStreetMap' },
-  { key: 'slope', name: 'Terrain', icon: '⛰️', source: 'NASA SRTM' },
   { key: 'treeCanopy', name: 'Tree Canopy', icon: '🌳', source: 'Sentinel-2' },
   { key: 'streetDesign', name: 'Street Design', icon: '🛣️', source: 'EPA Walkability Index' },
   { key: 'destinationAccess', name: 'Destinations', icon: '🏪', source: 'OpenStreetMap' },

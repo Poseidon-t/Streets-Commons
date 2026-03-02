@@ -23,7 +23,6 @@ import { captureUTMParams } from './utils/utm';
 import { trackEvent } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
-import { fetchSlope, scoreSlopeFromDegrees } from './services/elevation';
 import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
 import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { fetchAirQuality } from './services/airquality';
@@ -354,8 +353,6 @@ function App() {
 
   // Start all satellite fetches immediately (called before OSM completes)
   const startSatelliteFetches = (selectedLocation: Location) => ({
-    slope: fetchSlope(selectedLocation.lat, selectedLocation.lon)
-      .catch(() => null),
     ndvi: fetchNDVI(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
     surfaceTemp: fetchSurfaceTemperature(selectedLocation.lat, selectedLocation.lon)
@@ -382,7 +379,6 @@ function App() {
     abortController: AbortController,
   ) => {
     const scores: {
-      slope?: number;
       ndvi?: number;
       surfaceTemp?: number;
       airQuality?: number;
@@ -404,7 +400,6 @@ function App() {
         currentOsmData,
         selectedLocation.lat,
         selectedLocation.lon,
-        scores.slope,
         scores.ndvi,
       );
       setMetrics(updatedMetrics);
@@ -425,14 +420,6 @@ function App() {
       setSatelliteLoaded(prev => new Set(prev).add(key));
     };
 
-    promises.slope.then(slopeDeg => {
-      if (slopeDeg !== null) {
-        raw.slopeDegrees = slopeDeg;
-        scores.slope = scoreSlopeFromDegrees(slopeDeg);
-      }
-      markLoaded('slope');
-      recalc();
-    });
     promises.ndvi.then(ndvi => {
       if (ndvi !== null) {
         raw.ndvi = ndvi;
@@ -834,11 +821,10 @@ function App() {
                     <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
                       <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
                     </div>
-                    {/* 6 metrics grid */}
+                    {/* 5 metrics grid */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {[
                         { icon: '🔀', name: 'Street Grid', score: '7.8' },
-                        { icon: '⛰️', name: 'Terrain', score: '8.2' },
                         { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
                         { icon: '🛣️', name: 'Street Design', score: '7.4' },
                         { icon: '🏪', name: 'Destinations', score: '7.1' },
@@ -1090,7 +1076,7 @@ function App() {
                               fetchedOsmData,
                               selectedLocation.lat,
                               selectedLocation.lon,
-                              scores.slope, scores.ndvi,
+                              scores.ndvi,
                             );
                             const composite = calculateCompositeScore({
                               legacy: updated,
@@ -1101,7 +1087,6 @@ function App() {
                             });
                             setLocation1(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
-                          satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
                           satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
@@ -1169,7 +1154,7 @@ function App() {
                               fetchedOsmData,
                               selectedLocation.lat,
                               selectedLocation.lon,
-                              scores.slope, scores.ndvi,
+                              scores.ndvi,
                             );
                             const composite = calculateCompositeScore({
                               legacy: updated,
@@ -1180,7 +1165,6 @@ function App() {
                             });
                             setLocation2(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
-                          satellitePromises.slope.then(v => { if (v !== null) { scores.slope = scoreSlopeFromDegrees(v); recalc(); } });
                           satellitePromises.ndvi.then(v => { if (v !== null) { scores.ndvi = scoreTreeCanopy(v); recalc(); } });
                           satellitePromises.surfaceTemp.then(v => { if (v) { scores.surfaceTemp = v.score; recalc(); } });
                           satellitePromises.airQuality.then(v => { if (v) { scores.airQuality = v.score; recalc(); } });
@@ -1397,8 +1381,8 @@ function App() {
                 <div className="px-8 pb-8">
                   <div className="space-y-3 text-sm text-[#3a4a3a]">
                     <div>
-                      <strong className="block mb-1">6 Walkability Metrics</strong>
-                      <p className="text-[#4a5a4a]">We analyze street grid connectivity, terrain slope, tree canopy coverage, street design quality, daily destinations, and commute mode using data from OpenStreetMap, Sentinel-2 satellite imagery, NASADEM elevation data, EPA National Walkability Index, and US Census ACS.</p>
+                      <strong className="block mb-1">5 Walkability Metrics</strong>
+                      <p className="text-[#4a5a4a]">We analyze street grid connectivity, tree canopy coverage, street design quality, daily destinations, and commute mode using data from OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, and US Census ACS.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Global Standards</strong>
@@ -1449,7 +1433,7 @@ function App() {
                   {[
                     { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'Search any address with autocomplete suggestions', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
                     { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Walkability score with map and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and street design data calculated in seconds.' },
-                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: '6 walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: '6 scored metrics, neighborhood intelligence, health data, and flood risk.' },
+                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: '5 walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: '5 scored metrics, neighborhood intelligence, health data, and flood risk.' },
                   ].map((step) => (
                     <div key={step.num} className="text-center">
                       <div className="relative mb-4">
@@ -1502,7 +1486,6 @@ function App() {
                     <div className="space-y-3">
                       {[
                         { icon: '🔀', name: 'Street Grid', desc: 'Street connectivity and route options', source: 'OpenStreetMap' },
-                        { icon: '⛰️', name: 'Terrain', desc: 'Elevation and slope difficulty', source: 'NASA SRTM' },
                         { icon: '🌳', name: 'Tree Canopy', desc: 'Shade and vegetation coverage', source: 'Sentinel-2' },
                         { icon: '🛣️', name: 'Street Design', desc: 'Intersection density, transit proximity, land use mix', source: 'EPA' },
                         { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
@@ -1725,7 +1708,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Your score (out of 10) is a weighted average of 6 walkability metrics: <strong>street grid connectivity</strong> (how well streets connect and offer route options), <strong>terrain</strong> (elevation and slope difficulty from NASADEM data), <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>street design</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>destinations</strong> (daily needs within walking distance), and <strong>commute mode</strong> (walk, bike, and transit commute share from Census ACS). Each metric is scored independently so you can see exactly what's strong or weak about your area.
+                    Your score (out of 10) is a weighted average of 5 walkability metrics: <strong>street grid connectivity</strong> (how well streets connect and offer route options), <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>street design</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>destinations</strong> (daily needs within walking distance), and <strong>commute mode</strong> (walk, bike, and transit commute share from Census ACS). Each metric is scored independently so you can see exactly what's strong or weak about your area.
                   </p>
                 </div>
               </div>
@@ -1750,7 +1733,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood: terrain, shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
+                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood: shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
                   </p>
                 </div>
               </div>
@@ -1800,7 +1783,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>NASADEM</strong> (terrain), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>EPA National Walkability Index</strong> (street design quality), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international health data). These are the same sources used by governments and research institutions.
+                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>EPA National Walkability Index</strong> (street design quality), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international health data). These are the same sources used by governments and research institutions.
                   </p>
                 </div>
               </div>
@@ -1878,7 +1861,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 8 ? 'block' : 'hidden'}`}
                 >
                   <p className="mb-3">
-                    Yes! The core walkability analysis (6 metric scores, overall score, compare mode) works globally in 190+ countries using satellite data and OpenStreetMap.
+                    Yes! The core walkability analysis (5 metric scores, overall score, compare mode) works globally in 190+ countries using satellite data and OpenStreetMap.
                   </p>
                   <p className="mb-3">
                     <strong>US locations get extra data layers</strong> powered by federal sources: <strong>commute patterns</strong> (walk/bike/transit/car split from Census ACS), <strong>tract-level demographics</strong> (income, poverty rate, education from Census ACS), <strong>street design quality</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>community health</strong> (obesity, diabetes, asthma, physical inactivity rates from CDC PLACES), and <strong>flood risk</strong> (FEMA flood zone classification).

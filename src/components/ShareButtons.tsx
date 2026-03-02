@@ -20,7 +20,6 @@ const METRIC_LABELS: Record<string, string> = {
   'night safety': 'street lighting',
   'tree canopy': 'tree canopy coverage',
   'thermal comfort': 'thermal comfort',
-  terrain: 'terrain accessibility',
 };
 const ml = (key: string): string => METRIC_LABELS[key] || key;
 
@@ -64,8 +63,8 @@ const SHARE_TEMPLATES: Record<string, Record<string, TemplateFn[]>> = {
   },
   linkedin: {
     critical: [
-      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are 8 verified metrics derived from geospatial data: crossing safety, sidewalk coverage, traffic speed, daily needs access, night safety, terrain slope, tree canopy (NDVI), and thermal comfort.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
-      (d) => `Policy question: If ${d.shortName} scores ${d.score}/10 on a satellite-verified walkability audit using NACTO and WHO benchmarks, what does that mean for the people who walk there every day?\n\nIt means the gap between stated goals and built infrastructure is measurable. And now it's public.\n\nSafeStreets analyzes any location on Earth using Sentinel-2 imagery, SRTM elevation data, and OpenStreetMap. 8 metrics. Zero self-reported data. Free.\n\n${d.prodUrl}`,
+      (d) => `I ran a walkability audit on ${d.shortName} using satellite imagery (Sentinel-2, Landsat) and OpenStreetMap data, measured against NACTO Global Street Design Standards and WHO pedestrian safety guidelines.\n\nOverall score: ${d.score}/10.\nWeakest metric: ${ml(d.weakest[0])} \u2014 ${d.weakest[1].toFixed(1)}/10.\n\nThis isn't a subjective review. These are verified metrics derived from geospatial data: crossing safety, sidewalk coverage, traffic speed, daily needs access, night safety, tree canopy (NDVI), and thermal comfort.\n\nFree, open-source, and available for any address on Earth.\n\n${d.prodUrl}`,
+      (d) => `Policy question: If ${d.shortName} scores ${d.score}/10 on a satellite-verified walkability audit using NACTO and WHO benchmarks, what does that mean for the people who walk there every day?\n\nIt means the gap between stated goals and built infrastructure is measurable. And now it's public.\n\nSafeStreets analyzes any location on Earth using Sentinel-2 imagery and OpenStreetMap. Multiple verified metrics. Zero self-reported data. Free.\n\n${d.prodUrl}`,
     ],
     poor: [
       (d) => `I analyzed ${d.shortName}'s walkability using SafeStreets \u2014 a tool that measures 8 verified metrics against NACTO, WHO, and ADA standards using satellite imagery.\n\nScore: ${d.score}/10.\nKey gap: ${ml(d.weakest[0])} at ${d.weakest[1].toFixed(1)}/10.\n\nThis puts ${d.shortName} below global benchmarks but within range of meaningful improvement. The data identifies exactly where investment would have the highest impact.\n\nThe tool is free, open-source, and works for any address.\n\n${d.prodUrl}`,
@@ -129,7 +128,6 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
   const metricEntries: [string, number | undefined][] = [
     ['daily needs access', metrics.destinationAccess],
     ['tree canopy', metrics.treeCanopy],
-    ['terrain', metrics.slope],
   ];
   const weakest: [string, number] = metricEntries
     .filter((e): e is [string, number] => typeof e[1] === 'number')
@@ -224,7 +222,6 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
         overallScore: metrics.overallScore,
         label: metrics.label,
         destinationAccess: metrics.destinationAccess,
-        slope: metrics.slope,
         treeCanopy: metrics.treeCanopy,
       },
       timestamp: new Date().toISOString(),

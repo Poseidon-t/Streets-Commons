@@ -5,7 +5,7 @@
  *
  * Components:
  *   Network Design   35%  — intersection density, block length, network density, dead-end ratio (OSM topology)
- *   Environment      25%  — tree canopy (Sentinel-2 NDVI), slope (NASADEM)
+ *   Environment      25%  — tree canopy (Sentinel-2 NDVI)
  *   Street Design    15%  — EPA National Walkability Index (intersection density, transit proximity, land use mix)
  *   Accessibility    25%  — commute mode (Census ACS), destination access (OSM POIs)
  *
@@ -103,20 +103,14 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (25%) — Tree Canopy + Slope =====
+  // ===== 2. Environment (25%) — Tree Canopy =====
   const treeScore = scale10to100(legacy.treeCanopy);
-  const slopeScore = scale10to100(legacy.slope);
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy', score: treeScore, weight: 0.60 },
-    { name: 'Terrain', score: slopeScore, weight: 0.40 },
+    { name: 'Tree Canopy', score: treeScore, weight: 1.0 },
   ];
 
-  const envItems = [
-    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.60 },
-    { score: legacy.slope > 0 ? slopeScore : null, weight: 0.40 },
-  ];
-  const envScore = weightedAvg(envItems);
+  const envScore = legacy.treeCanopy > 0 ? treeScore : 50;
 
   const environmentalComfort: ComponentScore = {
     label: 'Environment',

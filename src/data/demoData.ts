@@ -24,9 +24,11 @@ export const DEMO_LOCATION: Location = {
 
 export const DEMO_METRICS: WalkabilityMetrics = {
   destinationAccess: 8.4,
-  slope: 7.8,
   treeCanopy: 5.2,
-  overallScore: 7.1,
+  streetGrid: 7.4,
+  streetDesign: 7.0,
+  commuteMode: 6.8,
+  overallScore: 7.0,
   label: 'Good',
 };
 
@@ -46,14 +48,11 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
       ],
     },
     environmentalComfort: {
-      label: 'Environmental Comfort',
-      score: 56,
+      label: 'Environment',
+      score: 52,
       weight: 0.25,
       metrics: [
-        { name: 'Tree Canopy', score: 52, rawValue: 'NDVI 0.34', weight: 0.3 },
-        { name: 'Thermal Comfort', score: 46, rawValue: '28.3°C surface', weight: 0.3 },
-        { name: 'Slope', score: 78, rawValue: '2.1°', weight: 0.2 },
-        { name: 'Air Quality', score: 61, rawValue: 'AQI 42 (Good)', weight: 0.2 },
+        { name: 'Tree Canopy', score: 52, rawValue: 'NDVI 0.34', weight: 1.0 },
       ],
     },
     safety: {
@@ -78,9 +77,11 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
   confidence: 82,
   legacy: {
     destinationAccess: 8.4,
-    slope: 7.8,
     treeCanopy: 5.2,
-    overallScore: 7.1,
+    streetGrid: 7.4,
+    streetDesign: 7.0,
+    commuteMode: 6.8,
+    overallScore: 7.0,
     label: 'Good',
   },
 };
@@ -109,7 +110,6 @@ export const DEMO_DEMOGRAPHIC_DATA: USCensusData = {
 export const DEMO_RAW_METRIC_DATA: RawMetricData = {
   temperature: 28.3,
   heatDifference: 3.1,
-  slopeDegrees: 2.1,
   ndvi: 0.34,
   crossingCount: 34,
   streetLength: 14.8,
@@ -157,5 +157,5 @@ export const DEMO_OSM_DATA: Pick<OSMData, 'crossings' | 'sidewalks' | 'streets' 
 
 // All satellite data source keys that should appear as "loaded" in demo
 export const DEMO_SATELLITE_SOURCES = [
-  'slope', 'ndvi', 'surfaceTemp', 'airQuality', 'heatIsland', 'populationDensity', 'streetDesign',
+  'ndvi', 'surfaceTemp', 'airQuality', 'heatIsland', 'populationDensity', 'streetDesign',
 ];

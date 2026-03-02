@@ -37,10 +37,9 @@ function getBadge(score: number): UserFriendlyMetric['badge'] {
 }
 
 /**
- * 3 metrics shown on the frontend:
+ * 2 metrics shown on the frontend:
  * 1. Daily Needs Nearby (OSM POIs)
- * 2. Flat Terrain (NASA SRTM)
- * 3. Shade & Greenery (Sentinel-2 NDVI)
+ * 2. Shade & Greenery (Sentinel-2 NDVI)
  */
 export function translateMetrics(
   metrics: WalkabilityMetrics,
@@ -49,7 +48,6 @@ export function translateMetrics(
 ): UserFriendlyMetric[] {
   return [
     translateDestinationAccess(metrics.destinationAccess, locationName, rawData),
-    translateSlope(metrics.slope, rawData),
     translateTreeCanopy(metrics.treeCanopy, rawData),
   ];
 }
@@ -100,58 +98,6 @@ function translateDestinationAccess(rawScore: number, _locationName: string, raw
     dataQuality: {
       level: 'medium',
       explanation: 'OpenStreetMap POI data. Major destinations are well-mapped; smaller businesses and new establishments may be missing.'
-    }
-  };
-}
-
-/**
- * Slope → Flat Terrain
- */
-function translateSlope(rawScore: number, raw?: RawMetricData): UserFriendlyMetric {
-  const score = convertToTenScale(rawScore);
-  const badge = getBadge(score);
-  const flatPercentage = Math.round((rawScore / 10) * 100);
-
-  const headlines = {
-    'safety-concern': 'Very Steep Hills',
-    'needs-improvement': 'Steep Hills Common',
-    'moderate': 'Some Hills, Mixed Terrain',
-    'good': 'Mostly Flat with Gentle Hills',
-    'excellent': 'Very Flat, Easy Walking'
-  };
-
-  const descriptions = {
-    'safety-concern': 'This area has very steep hills. Many walks will be challenging, especially for seniors, people with disabilities, or anyone carrying items.',
-    'needs-improvement': 'This area has frequent steep hills that make many walks difficult.',
-    'moderate': `About ${flatPercentage}% of routes have gentle slopes. You'll encounter some hills but many routes remain accessible.`,
-    'good': `${flatPercentage}% of routes are flat or gently sloped. Most walks are comfortable, with only occasional hills.`,
-    'excellent': `This area is very flat. ${flatPercentage}% of walks have gentle inclines comfortable for everyone.`
-  };
-
-  let rawValue: string | undefined;
-  if (raw?.slopeDegrees !== undefined) {
-    rawValue = `Average slope: ${raw.slopeDegrees.toFixed(1)}°`;
-  }
-
-  return {
-    icon: '⛰️',
-    headline: headlines[badge],
-    score,
-    badge,
-    description: descriptions[badge],
-    rawValue,
-    whyItMatters: 'Flat terrain makes walking accessible for everyone — seniors, wheelchair users, parents with strollers. Steep hills turn short walks into exhausting treks.',
-    example: score >= 8
-      ? 'Terrain is gentle enough for wheelchairs, strollers, and anyone with mobility concerns.'
-      : score < 4
-      ? 'Think San Francisco hills - walks will be strenuous.'
-      : undefined,
-    technicalMeasurement: 'Elevation changes along walking routes using satellite terrain data.',
-    recommendedStandard: 'ADA max: 5% grade. Slopes above 5% are challenging for many people. San Francisco hills exceed 10-15%.',
-    dataSource: 'SRTM elevation data (30-meter resolution) via Open-Elevation API',
-    dataQuality: {
-      level: 'high',
-      explanation: 'NASA SRTM satellite data — 30m resolution, verified and consistent worldwide.'
     }
   };
 }

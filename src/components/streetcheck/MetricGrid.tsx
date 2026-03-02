@@ -33,11 +33,6 @@ function getInsight(key: string, score: number): string {
         : score >= 6 ? 'Good street network with some dead ends'
         : score >= 4 ? 'Some connectivity gaps'
         : 'Limited route options, many dead ends';
-    case 'slope':
-      return score >= 8 ? 'Mostly flat, easy walking'
-        : score >= 6 ? 'Gentle slopes, manageable terrain'
-        : score >= 4 ? 'Hilly in spots — plan your routes'
-        : 'Steep terrain, challenging on foot';
     case 'treeCanopy':
       return score >= 8 ? 'Lush canopy, shaded walks'
         : score >= 6 ? 'Good shade coverage'
@@ -82,16 +77,6 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : s >= 6 ? 'Good connectivity with some dead-ends. Most trips can take a fairly direct walking route.'
       : s >= 4 ? 'Mixed connectivity — some areas are well-connected but others have limited route options.'
       : 'Many dead-ends and long blocks. Walking routes are often indirect, making trips longer than they need to be.',
-  },
-  slope: {
-    what: 'Average terrain slope around this location, measured from satellite elevation data.',
-    how: 'Elevation sampled from NASA\'s 30-meter digital elevation model at 5 points. Slope calculated in degrees.',
-    source: 'NASADEM via Microsoft Planetary Computer',
-    getMeans: (s) =>
-      s >= 8 ? 'Flat terrain — comfortable walking for all ages and abilities, including wheelchair users.'
-      : s >= 6 ? 'Gentle slopes that most people can handle comfortably. Not a barrier to walking.'
-      : s >= 4 ? 'Noticeable hills that may slow walkers and make some trips harder, especially for elderly or disabled residents.'
-      : 'Steep terrain that significantly limits walkability. Many residents may avoid walking due to difficulty.',
   },
   treeCanopy: {
     what: 'Vegetation and tree cover measured directly from satellite imagery using NDVI (vegetation index).',
@@ -153,14 +138,6 @@ const METRICS: MetricDef[] = [
     icon: '🔀',
     source: 'OpenStreetMap',
     getScore: (_m, cs) => cs ? cs.components.networkDesign.score / 10 : 0,
-  },
-  {
-    key: 'slope',
-    name: 'Terrain',
-    icon: '⛰️',
-    source: 'NASA SRTM',
-    satKey: 'slope',
-    getScore: (m) => m.slope,
   },
   {
     key: 'treeCanopy',

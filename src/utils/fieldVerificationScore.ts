@@ -2,14 +2,13 @@ import type { WalkabilityMetrics } from '../types';
 
 export type MetricKey =
   | 'destinationAccess'
-  | 'slope'
   | 'treeCanopy'
   | 'streetGrid'
   | 'streetDesign'
   | 'commuteMode';
 
 export const METRIC_KEYS: MetricKey[] = [
-  'destinationAccess', 'slope', 'treeCanopy',
+  'destinationAccess', 'treeCanopy',
   'streetGrid', 'streetDesign', 'commuteMode',
 ];
 

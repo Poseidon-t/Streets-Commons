@@ -86,7 +86,6 @@ export default function ReportView() {
 
   const metricsArray: { name: string; score: number; icon: string; description: string; key: MetricKey }[] = [
     { name: 'Destinations', score: metrics.destinationAccess, icon: '🏪', description: 'Essential services within walking distance (OpenStreetMap)', key: 'destinationAccess' },
-    { name: 'Terrain', score: metrics.slope, icon: '⛰️', description: 'Terrain difficulty (NASA SRTM)', key: 'slope' },
     { name: 'Tree Canopy', score: metrics.treeCanopy, icon: '🌳', description: 'Shade from trees (Sentinel-2 NDVI)', key: 'treeCanopy' },
   ];
 
@@ -412,7 +411,6 @@ export default function ReportView() {
               <div className="space-y-3">
                 {[
                   { label: 'Street Shading & Microclimate', key: 'treeCanopy' as MetricKey, threshold: 7 },
-                  { label: 'Accessible Terrain (≤5% grade)', key: 'slope' as MetricKey, threshold: 7 },
                   { label: 'Daily Needs Access', key: 'destinationAccess' as MetricKey, threshold: 7 },
                 ].map(item => {
                   const val = resolveMetric(item.key);
@@ -435,7 +433,6 @@ export default function ReportView() {
               <div className="space-y-3">
                 {[
                   { label: 'Street Shading & Tree Coverage', key: 'treeCanopy' as MetricKey, threshold: 7 },
-                  { label: 'Accessible Terrain', key: 'slope' as MetricKey, threshold: 7 },
                 ].map(item => {
                   const val = resolveMetric(item.key);
                   return (
@@ -457,7 +454,6 @@ export default function ReportView() {
               <div className="space-y-3">
                 {[
                   { label: '15-Minute City (Services Access)', key: 'destinationAccess' as MetricKey, threshold: 7 },
-                  { label: 'Terrain Accessibility (≤5% grade)', key: 'slope' as MetricKey, threshold: 7 },
                   { label: 'Tree Canopy & Shade', key: 'treeCanopy' as MetricKey, threshold: 6 },
                 ].map(item => {
                   const val = resolveMetric(item.key);

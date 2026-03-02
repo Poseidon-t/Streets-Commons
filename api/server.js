@@ -1950,60 +1950,15 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     });
     const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
 
-    // 5. Fetch slope, tree canopy, and other layers in parallel
-    console.log(`🛰️  Fetching slope, NDVI for ${lat}, ${lon}...`);
-    let slopeScore = 0;
+    // 5. Fetch tree canopy and other layers in parallel
+    console.log(`🛰️  Fetching NDVI, Census, EPA for ${lat}, ${lon}...`);
     let treeCanopyScore = 0;
 
     // Helper: race a promise against a timeout (prevents GeoTIFF hangs)
     const withTimeout = (promise, ms, fallback) =>
       Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 
-    const [slopeResult, ndviResult, fccResult, floodResult, popResult, epaResult] = await Promise.allSettled([
-      // NASADEM slope calculation (30s timeout)
-      withTimeout((async () => {
-        try {
-          const slopeOffset = 0.0003;
-          async function getElevAt(la, lo) {
-            const buf = 100 / 111000;
-            const bb = [lo - buf, la - buf, lo + buf, la + buf];
-            const sr = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ collections: ['nasadem'], bbox: bb, limit: 1 }),
-              signal: AbortSignal.timeout(15000),
-            });
-            if (!sr.ok) return null;
-            const sd = await sr.json();
-            if (!sd.features?.length) return null;
-            const asset = sd.features[0].assets?.elevation;
-            if (!asset) return null;
-            const signRes = await fetch(`https://planetarycomputer.microsoft.com/api/sas/v1/sign?href=${encodeURIComponent(asset.href)}`);
-            if (!signRes.ok) return null;
-            const signed = await signRes.json();
-            const tiff = await fromUrl(signed.href);
-            const image = await tiff.getImage();
-            const [minX, minY, maxX, maxY] = image.getBoundingBox();
-            const w = image.getWidth(), h = image.getHeight();
-            const px = Math.floor(((lo - minX) / (maxX - minX)) * w);
-            const py = Math.floor(((maxY - la) / (maxY - minY)) * h);
-            if (px < 0 || px >= w || py < 0 || py >= h) return null;
-            const data = await image.readRasters({ window: [px, py, px + 1, py + 1] });
-            return data[0][0];
-          }
-          const [eC, eN, eS, eE, eW] = await Promise.all([
-            getElevAt(lat, lon), getElevAt(lat + slopeOffset, lon), getElevAt(lat - slopeOffset, lon),
-            getElevAt(lat, lon + slopeOffset), getElevAt(lat, lon - slopeOffset),
-          ]);
-          if (eC == null || eN == null || eS == null || eE == null || eW == null) return { score: 5, slope: 0 };
-          const cellSize = 30;
-          const dz_dx = (eE - eW) / (2 * cellSize);
-          const dz_dy = (eN - eS) / (2 * cellSize);
-          const slopeDeg = Math.atan(Math.sqrt(dz_dx * dz_dx + dz_dy * dz_dy)) * (180 / Math.PI);
-          const sc = slopeDeg < 2 ? 10 : slopeDeg < 5 ? 8 : slopeDeg < 10 ? 6 : slopeDeg < 15 ? 4 : 2;
-          console.log(`  ✅ Slope: ${slopeDeg.toFixed(2)}° → ${sc}/10`);
-          return { score: sc, slope: Math.round(slopeDeg * 100) / 100 };
-        } catch (e) { console.warn('⚠️  Slope failed:', e.message); return { score: 5, slope: 0 }; }
-      })(), 30000, { score: 5, slope: 0 }),
+    const [ndviResult, fccResult, floodResult, popResult, epaResult] = await Promise.allSettled([
       // Sentinel-2 NDVI tree canopy (45s timeout)
       withTimeout((async () => {
         try {
@@ -2023,8 +1978,12 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           if (!sr.ok) return { score: 5, ndvi: null };
           const sd = await sr.json();
           if (!sd.features?.length) return { score: 5, ndvi: null };
-          sd.features.sort((a, b) => (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100));
-          const best = sd.features[0];
+          // Prefer growing-season images for accurate vegetation measurement
+          const isGrowing = (d) => { const m = new Date(d).getMonth() + 1; return lat > 0 ? (m >= 4 && m <= 10) : (m >= 10 || m <= 3); };
+          const growing = sd.features.filter(f => isGrowing(f.properties.datetime));
+          const candidates = growing.length > 0 ? growing : sd.features;
+          candidates.sort((a, b) => (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100));
+          const best = candidates[0];
           const b08 = best.assets.B08, b04 = best.assets.B04;
           if (!b08 || !b04) return { score: 5, ndvi: null };
           const signingEp = 'https://planetarycomputer.microsoft.com/api/sas/v1/sign';
@@ -2180,9 +2139,6 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       })(), 15000, null),
     ]);
 
-    if (slopeResult.status === 'fulfilled' && slopeResult.value) {
-      slopeScore = slopeResult.value.score;
-    }
     if (ndviResult.status === 'fulfilled' && ndviResult.value) {
       treeCanopyScore = ndviResult.value.score;
     }
@@ -2325,7 +2281,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
 
     // 7. Overall score — average of available metrics
-    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, commuteModeScore, streetDesignScore].filter(s => s > 0);
+    const available = [destinationAccess, treeCanopyScore, streetGridScore, commuteModeScore, streetDesignScore].filter(s => s > 0);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
@@ -2370,7 +2326,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const reportData = {
       location: { lat, lon, displayName },
       metrics: {
-        destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore,
+        destinationAccess, treeCanopy: treeCanopyScore,
         streetGrid: streetGridScore, commuteMode: commuteModeScore,
         streetDesign: streetDesignScore,
         overallScore, label,
@@ -3443,12 +3399,19 @@ app.get('/api/ndvi', async (req, res) => {
       });
     }
 
-    // Sort by cloud cover (ascending) and pick the clearest image
-    stacData.features.sort((a, b) =>
+    // Prefer growing-season images for accurate vegetation measurement
+    const isGrowingSeason = (dateStr) => {
+      const month = new Date(dateStr).getMonth() + 1;
+      if (latitude > 0) return month >= 4 && month <= 10;  // Apr-Oct (Northern)
+      return month >= 10 || month <= 3;                     // Oct-Mar (Southern)
+    };
+    const growingSeason = stacData.features.filter(f => isGrowingSeason(f.properties.datetime));
+    const candidates = growingSeason.length > 0 ? growingSeason : stacData.features;
+    candidates.sort((a, b) =>
       (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100)
     );
-    const bestImage = stacData.features[0];
-    console.log(`✅ Best image: ${bestImage.properties.datetime} (${bestImage.properties['eo:cloud_cover']}% cloud)`);
+    const bestImage = candidates[0];
+    console.log(`✅ Best image: ${bestImage.properties.datetime} (${bestImage.properties['eo:cloud_cover']}% cloud, growing-season: ${growingSeason.length > 0})`);
 
     // Use B08 (NIR 10m) + B04 (Red 10m) — SAME resolution, no mismatch
     const b08Asset = bestImage.assets.B08;

@@ -37,7 +37,6 @@ function getBarColor(score: number): string {
 
 const METRIC_LABELS: { key: keyof WalkabilityMetrics; label: string; icon: string }[] = [
   { key: 'destinationAccess', label: 'Destinations', icon: '🏪' },
-  { key: 'slope', label: 'Terrain', icon: '⛰️' },
   { key: 'treeCanopy', label: 'Tree Cover', icon: '🌳' },
 ];
 

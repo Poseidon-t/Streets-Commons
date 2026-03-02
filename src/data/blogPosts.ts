@@ -136,7 +136,7 @@ export const BLOG_POSTS: BlogPost[] = [
         <li><strong>Traffic speed</strong> — Are cars going 25 mph or 50 mph? Speed kills — literally.</li>
         <li><strong>Street trees</strong> — Is there shade, or just baking asphalt? Tree canopy affects comfort and property values (USDA Forest Service: 3-15% value increase from mature street trees).</li>
         <li><strong>Lighting</strong> — Is it safe to walk in the evening? Visit after dark to check.</li>
-        <li><strong>Terrain</strong> — Are there steep hills that limit accessibility for strollers, wheelchairs, or elderly residents?</li>
+        <li><strong>Accessibility</strong> — Are there curb cuts, ramps, and wide enough paths for strollers, wheelchairs, or elderly residents?</li>
       </ul>
 
       <h2>How to Evaluate Before You Buy</h2>
@@ -338,17 +338,7 @@ export const BLOG_POSTS: BlogPost[] = [
       </ul>
       <p>The data is updated every 5 days, meaning you can track seasonal changes, see the impact of tree planting programs, or compare vegetation between neighborhoods — all for free.</p>
 
-      <h3>2. NASADEM: Mapping Every Hill</h3>
-      <p>The NASA Digital Elevation Model provides global elevation data at approximately <strong>30-meter resolution</strong>. This lets anyone calculate terrain slope — a critical factor for accessibility that most urban analyses ignore.</p>
-      <p>Why slope matters:</p>
-      <ul>
-        <li><strong>ADA accessibility</strong> — Slopes above 5% are difficult for wheelchair users and people with mobility impairments. Above 8.3% is non-compliant with ADA standards.</li>
-        <li><strong>Walking comfort</strong> — Steep hills dramatically reduce walking for elderly residents, parents with strollers, and anyone carrying groceries</li>
-        <li><strong>Practical distance</strong> — A destination might be 10 minutes away on flat ground but 20 minutes with a steep hill in between</li>
-      </ul>
-      <p>San Francisco is a perfect example: the Mission District is highly walkable, but Nob Hill's terrain makes the same distances much harder. Elevation data captures this distinction objectively.</p>
-
-      <h3>3. OpenStreetMap: The Wikipedia of Infrastructure</h3>
+      <h3>2. OpenStreetMap: The Wikipedia of Infrastructure</h3>
       <p>OpenStreetMap (OSM) is a community-maintained database of global infrastructure — roads, sidewalks, crosswalks, buildings, and points of interest. With over 10 million contributors worldwide, it's the most detailed open map of the world.</p>
       <p>For streets and walkability, OSM provides data that no satellite can see:</p>
       <ul>

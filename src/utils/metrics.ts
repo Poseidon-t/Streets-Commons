@@ -120,22 +120,19 @@ export function calculateMetrics(
   data: OSMData,
   centerLat: number,
   centerLon: number,
-  slopeScore?: number,
   treeCanopyScore?: number,
 ): WalkabilityMetrics {
   const destinationAccess = calculateDestinationAccess(data, centerLat, centerLon);
-  const slope = slopeScore ?? 0;
   const treeCanopy = treeCanopyScore ?? 0;
 
   // Simple average of available metrics for legacy fallback score
-  const available = [destinationAccess, slope, treeCanopy].filter(s => s > 0);
+  const available = [destinationAccess, treeCanopy].filter(s => s > 0);
   const overallScore = available.length > 0
     ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
     : 0;
 
   return {
     destinationAccess,
-    slope,
     treeCanopy,
     overallScore,
     label: getScoreLabel(overallScore),

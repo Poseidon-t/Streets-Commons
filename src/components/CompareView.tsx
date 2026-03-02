@@ -30,7 +30,6 @@ export default function CompareView({
 
   const metrics = [
     { name: 'Destinations', score1: metrics1.destinationAccess, score2: metrics2.destinationAccess },
-    { name: 'Terrain', score1: metrics1.slope, score2: metrics2.slope },
     { name: 'Tree Canopy', score1: metrics1.treeCanopy, score2: metrics2.treeCanopy },
     { name: 'Overall Score', score1: metrics1.overallScore, score2: metrics2.overallScore },
   ];

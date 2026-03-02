@@ -9,7 +9,6 @@ export interface Location {
 
 export interface WalkabilityMetrics {
   destinationAccess: number; // OSM amenity/shop/leisure POIs (density + proximity)
-  slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
   streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
   streetDesign?: number; // EPA National Walkability Index (street connectivity, transit, land use)
@@ -125,9 +124,6 @@ export interface RawMetricData {
   // Thermal Comfort (consolidated)
   temperature?: number;       // °C (from NASA POWER)
   heatDifference?: number;    // °C (urban vs vegetation)
-
-  // Slope
-  slopeDegrees?: number;      // degrees
 
   // Tree Canopy
   ndvi?: number;              // 0-1 scale
