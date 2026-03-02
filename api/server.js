@@ -2061,7 +2061,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           let sc;
           if (avgNDVI < 0) sc = 0;
           else if (avgNDVI < 0.2) sc = Math.round((avgNDVI / 0.2) * 2 * 10) / 10;
-          else if (avgNDVI < 0.4) sc = Math.round(((avgNDVI - 0.2) / 0.2) * 5 * 10) / 10;
+          else if (avgNDVI < 0.4) sc = Math.round((2 + ((avgNDVI - 0.2) / 0.2) * 3) * 10) / 10;
           else if (avgNDVI < 0.6) sc = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
           else sc = 10;
           console.log(`  ✅ NDVI: ${avgNDVI.toFixed(3)} → ${sc}/10`);
@@ -2279,6 +2279,47 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     let streetDesignData = null;
     if (epaResult.status === 'fulfilled' && epaResult.value) {
       streetDesignData = epaResult.value;
+    }
+    // Retry once if EPA failed (common on first deploy or slow networks)
+    if (!streetDesignData) {
+      try {
+        console.log('  🔄 EPA Street Design: retrying...');
+        const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+        const cached = epaCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) {
+          streetDesignData = cached.data;
+        } else {
+          const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
+            `geometry=${lon},${lat}&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects` +
+            `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,NatWalkInd_Ranked,AutoOwn0,AutoOwn1,AutoOwn2p` +
+            `&returnGeometry=false&f=json`;
+          const resp = await fetch(epaUrl, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
+          if (resp.ok) {
+            const epaData = await resp.json();
+            if (epaData.features?.length > 0) {
+              const attrs = epaData.features[0].attributes;
+              const d3bRank = attrs.D3B_Ranked ?? attrs.D3B ?? 0;
+              const d4aRank = attrs.D4A_Ranked ?? attrs.D4A ?? 0;
+              const d2bRank = attrs.D2B_Ranked ?? 0;
+              const natWalkInd = attrs.NatWalkInd ?? 0;
+              const epaScore = Math.round(Math.round((d3bRank/20)*100)*0.50 + Math.round((d4aRank/20)*100)*0.30 + Math.round((d2bRank/20)*100)*0.20);
+              const totalHH = (attrs.AutoOwn0??0)+(attrs.AutoOwn1??0)+(attrs.AutoOwn2p??0);
+              const zeroCarPct = totalHH > 0 ? Math.round((attrs.AutoOwn0/totalHH)*100) : null;
+              let category;
+              if (epaScore >= 80) category = 'Excellent street design for walking';
+              else if (epaScore >= 60) category = 'Good street design for walking';
+              else if (epaScore >= 40) category = 'Moderate street design';
+              else if (epaScore >= 20) category = 'Car-oriented street design';
+              else category = 'Very car-dependent design';
+              streetDesignData = { score: epaScore, category, d3bRank, d4aRank, d2bRank, natWalkInd, natWalkIndRank: attrs.NatWalkInd_Ranked??null, zeroCarPct, totalPop: attrs.TotPop??null, metroArea: attrs.CBSA_Name||null, dataSource: 'EPA National Walkability Index' };
+              epaCache.set(cacheKey, { data: streetDesignData, timestamp: Date.now() });
+              console.log(`  ✅ EPA Street Design (retry): score=${epaScore}, D3B=${d3bRank}/20, D4A=${d4aRank}/20`);
+            }
+          }
+        }
+      } catch (e) { console.warn('⚠️  EPA retry also failed:', e.message); }
+    }
+    if (streetDesignData) {
       streetDesignScore = Math.round(streetDesignData.score / 10 * 10) / 10; // EPA 0-100 → 0-10
     }
     console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
