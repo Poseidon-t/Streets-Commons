@@ -4161,7 +4161,7 @@ async function fetchGroundTruthGreenery(lat, lon, locationName) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1024,
+        max_tokens: 4096,
         tools: [{ type: 'web_search_20250305', name: 'web_search', max_uses: 5 }],
         messages: [{
           role: 'user',
@@ -4199,7 +4199,8 @@ Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find
     });
 
     if (!response.ok) {
-      console.warn(`  Ground truth greenery: API returned ${response.status}`);
+      const errBody = await response.text().catch(() => '');
+      console.warn(`  Ground truth greenery: API returned ${response.status}: ${errBody.substring(0, 200)}`);
       return null;
     }
     const data = await response.json();
@@ -4212,7 +4213,10 @@ Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find
         break;
       }
     }
-    if (!text) return null;
+    if (!text) {
+      console.warn(`  Ground truth greenery: no text in response. stop_reason=${data.stop_reason}, blocks=${(data.content || []).map(b => b.type).join(',')}`);
+      return null;
+    }
 
     // Count web searches performed
     const searchCount = (data.content || []).filter(b => b.type === 'server_tool_use').length;
