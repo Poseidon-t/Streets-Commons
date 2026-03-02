@@ -5514,17 +5514,19 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
       if (context.metrics) {
         const m = context.metrics;
         systemPrompt += `\n\nMetric Scores (0-10 scale):`;
-        systemPrompt += `\n\nSatellite-based (high confidence):`;
-        if (m.slope !== undefined) systemPrompt += `\n- Terrain (Flatness): ${m.slope}/10`;
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
-        systemPrompt += `\n\nOpenStreetMap-based (depends on local mapping coverage — interpret with caution):`;
-        if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10 (based on mapped POIs — may miss smaller businesses)`;
+        if (m.streetGrid !== undefined) systemPrompt += `\n- Street Grid: ${m.streetGrid}/10`;
+        if (m.streetDesign !== undefined) systemPrompt += `\n- Street Design: ${m.streetDesign}/10`;
+        if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10`;
+        if (m.commuteMode !== undefined) systemPrompt += `\n- Commute Mode: ${m.commuteMode}/10`;
         if (m.overallScore !== undefined) systemPrompt += `\n\nOverall Score: ${m.overallScore}/10 (${m.label || 'N/A'})`;
 
         const metricEntries = [
           ['Daily Needs Access', m.destinationAccess],
-          ['Terrain', m.slope],
           ['Tree Canopy', m.treeCanopy],
+          ['Street Grid', m.streetGrid],
+          ['Street Design', m.streetDesign],
+          ['Commute Mode', m.commuteMode],
         ].filter(([, v]) => typeof v === 'number');
 
         const weakest = metricEntries.sort((a, b) => a[1] - b[1]).slice(0, 3);
