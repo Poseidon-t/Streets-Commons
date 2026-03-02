@@ -2030,11 +2030,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           }
           if (valid === 0) return { score: 5, ndvi: null };
           const avgNDVI = ndviSum / valid;
+          // Urban-calibrated NDVI scoring curve
+          // Dense urban areas (NDVI 0.05-0.15) get 2-4 instead of old 0.5-1.5
           let sc;
           if (avgNDVI < 0) sc = 0;
-          else if (avgNDVI < 0.2) sc = Math.round((avgNDVI / 0.2) * 2 * 10) / 10;
-          else if (avgNDVI < 0.4) sc = Math.round((2 + ((avgNDVI - 0.2) / 0.2) * 3) * 10) / 10;
-          else if (avgNDVI < 0.6) sc = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
+          else if (avgNDVI < 0.10) sc = Math.round((1 + (avgNDVI / 0.10) * 2) * 10) / 10;            // 0-0.10 -> 1-3
+          else if (avgNDVI < 0.20) sc = Math.round((3 + ((avgNDVI - 0.10) / 0.10) * 2) * 10) / 10;   // 0.10-0.20 -> 3-5
+          else if (avgNDVI < 0.35) sc = Math.round((5 + ((avgNDVI - 0.20) / 0.15) * 2.5) * 10) / 10; // 0.20-0.35 -> 5-7.5
+          else if (avgNDVI < 0.50) sc = Math.round((7.5 + ((avgNDVI - 0.35) / 0.15) * 2.5) * 10) / 10; // 0.35-0.50 -> 7.5-10
           else sc = 10;
           const imgDate = best.properties.datetime?.split('T')[0] || 'unknown';
           const imgCloud = best.properties['eo:cloud_cover'] || 0;
@@ -3619,23 +3622,26 @@ app.get('/api/ndvi', async (req, res) => {
     const pixelCoverage = (validPixels / nirValues.length * 100).toFixed(0);
     console.log(`✅ NDVI: ${avgNDVI.toFixed(3)} from ${validPixels}/${nirValues.length} pixels (${pixelCoverage}% valid)`);
 
-    // Score NDVI (0-10 scale) — authoritative scoring curve
-    // Aligned with frontend scoreTreeCanopy() thresholds
+    // Urban-calibrated NDVI scoring curve (0-10 scale)
+    // Dense urban areas (NDVI 0.05-0.15) get 2-4 instead of old 0.5-1.5
     let score;
     let category;
 
     if (avgNDVI < 0) {
       score = 0;
       category = 'No Vegetation';
-    } else if (avgNDVI < 0.2) {
-      score = Math.round((avgNDVI / 0.2) * 2 * 10) / 10;
-      category = 'Sparse Vegetation';
-    } else if (avgNDVI < 0.4) {
-      score = Math.round(((avgNDVI - 0.2) / 0.2) * 5 * 10) / 10;
-      category = 'Moderate Vegetation';
-    } else if (avgNDVI < 0.6) {
-      score = Math.round((5 + ((avgNDVI - 0.4) / 0.2) * 5) * 10) / 10;
-      category = 'Healthy Vegetation';
+    } else if (avgNDVI < 0.10) {
+      score = Math.round((1 + (avgNDVI / 0.10) * 2) * 10) / 10;              // 0-0.10 -> 1-3
+      category = 'Sparse Urban Greenery';
+    } else if (avgNDVI < 0.20) {
+      score = Math.round((3 + ((avgNDVI - 0.10) / 0.10) * 2) * 10) / 10;     // 0.10-0.20 -> 3-5
+      category = 'Moderate Urban Greenery';
+    } else if (avgNDVI < 0.35) {
+      score = Math.round((5 + ((avgNDVI - 0.20) / 0.15) * 2.5) * 10) / 10;   // 0.20-0.35 -> 5-7.5
+      category = 'Good Tree Cover';
+    } else if (avgNDVI < 0.50) {
+      score = Math.round((7.5 + ((avgNDVI - 0.35) / 0.15) * 2.5) * 10) / 10; // 0.35-0.50 -> 7.5-10
+      category = 'Excellent Tree Cover';
     } else {
       score = 10;
       category = 'Dense Vegetation';

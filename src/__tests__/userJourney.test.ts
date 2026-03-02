@@ -1,7 +1,7 @@
 /**
- * User Journey Tests — 10 Real-World Locations
+ * User Journey Tests -- 10 Real-World Locations
  *
- * Tests the full analysis pipeline (OSM → metrics → scores → labels)
+ * Tests the full analysis pipeline (OSM -> metrics -> scores -> labels)
  * with realistic data fixtures representing diverse global locations.
  * Each location simulates what the app would receive from APIs.
  */
@@ -9,8 +9,6 @@
 import { describe, it, expect } from 'vitest';
 import { calculateMetrics, assessDataQuality } from '../utils/metrics';
 import { scoreTreeCanopy } from '../services/treecanopy';
-// scoreAirQuality no longer drives a visible metric, but still called for API compat
-import { scoreSlopeFromDegrees } from '../services/elevation';
 import type { OSMData } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -65,11 +63,7 @@ interface LocationProfile {
   lon: number;
   osm: OSMData;
   satellite: {
-    slope: number;       // degrees → scoreSlopeFromDegrees
-    ndvi: number;        // 0-1 → scoreTreeCanopy
-    pm25: number;        // µg/m³ → scoreAirQuality
-    surfaceTemp: number; // pre-scored 0-10
-    heatIsland: number;  // pre-scored 0-10
+    ndvi: number;        // 0-1 -> scoreTreeCanopy
   };
   expectations: {
     minOverall: number;
@@ -80,8 +74,7 @@ interface LocationProfile {
 }
 
 const locations: LocationProfile[] = [
-  // 1. Amsterdam — world-class walkability
-  // High confidence requires: streets>50, crossings>10, pois>20
+  // 1. Amsterdam -- world-class walkability
   {
     name: 'Amsterdam, Netherlands',
     lat: 52.3676, lon: 4.9041,
@@ -98,11 +91,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.85, crossingCoords: true,
       centerLat: 52.3676, centerLon: 4.9041,
     }),
-    satellite: { slope: 1, ndvi: 0.52, pm25: 10, surfaceTemp: 8, heatIsland: 7 },
+    satellite: { ndvi: 0.52 },
     expectations: { minOverall: 5, maxOverall: 10, label: ['Excellent', 'Good'], confidence: 'high' },
   },
 
-  // 2. Manhattan, NYC — dense grid, good infrastructure
+  // 2. Manhattan, NYC -- dense grid, good infrastructure
   {
     name: 'Midtown Manhattan, New York',
     lat: 40.7580, lon: -73.9855,
@@ -119,11 +112,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.9, crossingCoords: true,
       centerLat: 40.7580, centerLon: -73.9855,
     }),
-    satellite: { slope: 1, ndvi: 0.25, pm25: 15, surfaceTemp: 5, heatIsland: 4 },
+    satellite: { ndvi: 0.25 },
     expectations: { minOverall: 4, maxOverall: 10, label: ['Excellent', 'Good', 'Fair'], confidence: 'high' },
   },
 
-  // 3. Tokyo, Shibuya — dense, mixed-use
+  // 3. Tokyo, Shibuya -- dense, mixed-use
   {
     name: 'Shibuya, Tokyo',
     lat: 35.6595, lon: 139.7004,
@@ -140,11 +133,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.7, crossingCoords: true,
       centerLat: 35.6595, centerLon: 139.7004,
     }),
-    satellite: { slope: 3, ndvi: 0.35, pm25: 18, surfaceTemp: 6, heatIsland: 5 },
+    satellite: { ndvi: 0.35 },
     expectations: { minOverall: 4, maxOverall: 10, label: ['Excellent', 'Good', 'Fair'], confidence: 'high' },
   },
 
-  // 4. Barcelona, Eixample — superblocks, good walkability
+  // 4. Barcelona, Eixample -- superblocks, good walkability
   {
     name: 'Eixample, Barcelona',
     lat: 41.3874, lon: 2.1686,
@@ -161,11 +154,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.75, crossingCoords: true,
       centerLat: 41.3874, centerLon: 2.1686,
     }),
-    satellite: { slope: 2, ndvi: 0.42, pm25: 14, surfaceTemp: 6, heatIsland: 5 },
+    satellite: { ndvi: 0.42 },
     expectations: { minOverall: 4, maxOverall: 10, label: ['Excellent', 'Good', 'Fair'], confidence: 'high' },
   },
 
-  // 5. Houston, TX — car-dependent suburban sprawl
+  // 5. Houston, TX -- car-dependent suburban sprawl
   {
     name: 'Westchase, Houston',
     lat: 29.7350, lon: -95.5595,
@@ -177,11 +170,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.1, crossingCoords: true,
       centerLat: 29.7350, centerLon: -95.5595,
     }),
-    satellite: { slope: 1, ndvi: 0.28, pm25: 22, surfaceTemp: 3, heatIsland: 3 },
+    satellite: { ndvi: 0.28 },
     expectations: { minOverall: 1, maxOverall: 10, label: ['Excellent', 'Good', 'Fair', 'Poor', 'Critical'], confidence: 'low' },
   },
 
-  // 6. Lagos, Nigeria — dense but limited infrastructure mapping
+  // 6. Lagos, Nigeria -- dense but limited infrastructure mapping
   {
     name: 'Lagos Island, Nigeria',
     lat: 6.4541, lon: 3.3947,
@@ -193,11 +186,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.15, crossingCoords: true,
       centerLat: 6.4541, centerLon: 3.3947,
     }),
-    satellite: { slope: 1, ndvi: 0.22, pm25: 45, surfaceTemp: 4, heatIsland: 3 },
-    expectations: { minOverall: 1, maxOverall: 6, label: ['Fair', 'Poor', 'Critical'], confidence: 'low' },
+    satellite: { ndvi: 0.22 },
+    expectations: { minOverall: 1, maxOverall: 7, label: ['Good', 'Fair', 'Poor', 'Critical'], confidence: 'low' },
   },
 
-  // 7. Singapore — well-planned, hot climate
+  // 7. Singapore -- well-planned, hot climate
   {
     name: 'Orchard Road, Singapore',
     lat: 1.3048, lon: 103.8318,
@@ -214,12 +207,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.65, crossingCoords: true,
       centerLat: 1.3048, centerLon: 103.8318,
     }),
-    satellite: { slope: 2, ndvi: 0.55, pm25: 20, surfaceTemp: 5, heatIsland: 4 },
+    satellite: { ndvi: 0.55 },
     expectations: { minOverall: 4, maxOverall: 10, label: ['Excellent', 'Good', 'Fair'], confidence: 'high' },
   },
 
-  // 8. New Delhi — high pollution, mixed walkability
-  // Medium confidence requires: streets>20, crossings>5, pois>10
+  // 8. New Delhi -- mixed walkability
   {
     name: 'Connaught Place, New Delhi',
     lat: 28.6315, lon: 77.2167,
@@ -235,11 +227,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.3, crossingCoords: true,
       centerLat: 28.6315, centerLon: 77.2167,
     }),
-    satellite: { slope: 1, ndvi: 0.25, pm25: 120, surfaceTemp: 3, heatIsland: 2 },
-    expectations: { minOverall: 1, maxOverall: 6, label: ['Fair', 'Poor', 'Critical'], confidence: 'medium' },
+    satellite: { ndvi: 0.25 },
+    expectations: { minOverall: 2, maxOverall: 8, label: ['Good', 'Fair', 'Poor', 'Critical'], confidence: 'medium' },
   },
 
-  // 9. San Francisco, Pacific Heights — hilly, good amenities
+  // 9. San Francisco, Pacific Heights -- hilly, good amenities
   {
     name: 'Pacific Heights, San Francisco',
     lat: 37.7925, lon: -122.4382,
@@ -255,11 +247,11 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0.6, crossingCoords: true,
       centerLat: 37.7925, centerLon: -122.4382,
     }),
-    satellite: { slope: 12, ndvi: 0.38, pm25: 12, surfaceTemp: 7, heatIsland: 6 },
-    expectations: { minOverall: 3, maxOverall: 8, label: ['Good', 'Fair', 'Poor'], confidence: 'medium' },
+    satellite: { ndvi: 0.38 },
+    expectations: { minOverall: 3, maxOverall: 9, label: ['Good', 'Fair', 'Poor'], confidence: 'medium' },
   },
 
-  // 10. Rural Kansas — no infrastructure
+  // 10. Rural Kansas -- no infrastructure
   {
     name: 'Rural Osborne, Kansas',
     lat: 39.4500, lon: -98.7000,
@@ -269,8 +261,8 @@ const locations: LocationProfile[] = [
       sidewalkTagRatio: 0, crossingCoords: false,
       centerLat: 39.4500, centerLon: -98.7000,
     }),
-    satellite: { slope: 1, ndvi: 0.32, pm25: 8, surfaceTemp: 7, heatIsland: 8 },
-    expectations: { minOverall: 0, maxOverall: 7, label: ['Good', 'Fair', 'Poor', 'Critical'], confidence: 'low' },
+    satellite: { ndvi: 0.32 },
+    expectations: { minOverall: 0, maxOverall: 8, label: ['Good', 'Fair', 'Poor', 'Critical'], confidence: 'low' },
   },
 ];
 
@@ -278,17 +270,14 @@ const locations: LocationProfile[] = [
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('User Journey — 10 Global Locations', () => {
+describe('User Journey -- 10 Global Locations', () => {
   locations.forEach((loc) => {
     describe(loc.name, () => {
-      // Compute scores once per location
-      const slopeScore = scoreSlopeFromDegrees(loc.satellite.slope);
       const treeScore = scoreTreeCanopy(loc.satellite.ndvi);
       const metrics = calculateMetrics(
         loc.osm,
         loc.lat,
         loc.lon,
-        slopeScore,
         treeScore,
       );
       const quality = assessDataQuality(loc.osm);
@@ -308,11 +297,14 @@ describe('User Journey — 10 Global Locations', () => {
 
       it('should keep all metric scores between 0 and 10', () => {
         const fields = [
-          'destinationAccess', 'slope', 'treeCanopy', 'overallScore',
+          'destinationAccess', 'treeCanopy', 'overallScore',
         ] as const;
         for (const f of fields) {
-          expect(metrics[f], `${f} out of range`).toBeGreaterThanOrEqual(0);
-          expect(metrics[f], `${f} out of range`).toBeLessThanOrEqual(10);
+          const val = metrics[f];
+          if (typeof val === 'number') {
+            expect(val, `${f} out of range`).toBeGreaterThanOrEqual(0);
+            expect(val, `${f} out of range`).toBeLessThanOrEqual(10);
+          }
         }
       });
 
@@ -327,15 +319,13 @@ describe('User Journey — 10 Global Locations', () => {
 
   // Cross-location comparisons
   describe('Cross-location comparisons', () => {
-    // Compute all metrics upfront
     const results = locations.map((loc) => {
-      const slopeScore = scoreSlopeFromDegrees(loc.satellite.slope);
       const treeScore = scoreTreeCanopy(loc.satellite.ndvi);
       return {
         name: loc.name,
         metrics: calculateMetrics(
           loc.osm, loc.lat, loc.lon,
-          slopeScore, treeScore,
+          treeScore,
         ),
       };
     });
@@ -354,7 +344,7 @@ describe('User Journey — 10 Global Locations', () => {
       expect(byName('Tokyo').overallScore).toBeGreaterThan(byName('Lagos').overallScore);
     });
 
-    it('Barcelona should outscore New Delhi (safety + infrastructure)', () => {
+    it('Barcelona should outscore New Delhi', () => {
       expect(byName('Barcelona').overallScore).toBeGreaterThan(byName('Delhi').overallScore);
     });
 

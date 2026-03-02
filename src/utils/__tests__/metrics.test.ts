@@ -67,11 +67,10 @@ const richOSMData: OSMData = {
 
 describe('calculateMetrics', () => {
   describe('basic structure', () => {
-    it('should return 3 metrics + overall score + label', () => {
+    it('should return destinationAccess + treeCanopy + overall score + label', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
       expect(metrics).toHaveProperty('destinationAccess');
-      expect(metrics).toHaveProperty('slope');
       expect(metrics).toHaveProperty('treeCanopy');
       expect(metrics).toHaveProperty('overallScore');
       expect(metrics).toHaveProperty('label');
@@ -80,11 +79,14 @@ describe('calculateMetrics', () => {
     it('should return all scores between 0 and 10', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
 
-      const scoreFields = ['destinationAccess', 'slope', 'treeCanopy', 'overallScore'] as const;
+      const scoreFields = ['destinationAccess', 'treeCanopy', 'overallScore'] as const;
 
       for (const field of scoreFields) {
-        expect(metrics[field]).toBeGreaterThanOrEqual(0);
-        expect(metrics[field]).toBeLessThanOrEqual(10);
+        const val = metrics[field];
+        if (typeof val === 'number') {
+          expect(val).toBeGreaterThanOrEqual(0);
+          expect(val).toBeLessThanOrEqual(10);
+        }
       }
     });
 
@@ -112,36 +114,27 @@ describe('calculateMetrics', () => {
     });
   });
 
-  describe('satellite metric injection', () => {
-    it('should use provided satellite scores directly', () => {
-      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8, 7);
-      expect(metrics.slope).toBe(8);
+  describe('tree canopy injection', () => {
+    it('should use provided tree canopy score directly', () => {
+      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 7);
       expect(metrics.treeCanopy).toBe(7);
     });
 
-    it('should default satellite scores to 0 when not provided', () => {
+    it('should default tree canopy to 0 when not provided', () => {
       const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      expect(metrics.slope).toBe(0);
       expect(metrics.treeCanopy).toBe(0);
     });
 
-    it('should incorporate satellite scores into overall', () => {
+    it('should incorporate tree canopy into overall', () => {
       const osmOnly = calculateMetrics(mockOSMData, 18.7888, 98.9858);
-      const withSatellite = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10, 10);
-      expect(withSatellite.overallScore).toBeGreaterThan(osmOnly.overallScore);
-    });
-
-    it('should handle partial satellite data', () => {
-      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8);
-      expect(metrics.slope).toBe(8);
-      expect(metrics.treeCanopy).toBe(0);
-      expect(metrics.overallScore).toBeGreaterThan(0);
+      const withTree = calculateMetrics(mockOSMData, 18.7888, 98.9858, 10);
+      expect(withTree.overallScore).toBeGreaterThan(osmOnly.overallScore);
     });
   });
 
   describe('score label mapping', () => {
     it('should label excellent for scores >= 8', () => {
-      const metrics = calculateMetrics(richOSMData, 18.7888, 98.9858, 10, 10);
+      const metrics = calculateMetrics(richOSMData, 18.7888, 98.9858, 10);
       if (metrics.overallScore >= 8) {
         expect(metrics.label).toBe('Excellent');
       }
@@ -157,9 +150,9 @@ describe('calculateMetrics', () => {
 
   describe('overall score', () => {
     it('should average available metrics', () => {
-      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 8, 6);
-      // destinationAccess > 0, slope = 8, treeCanopy = 6 → average of 3
-      const expected = (metrics.destinationAccess + 8 + 6) / 3;
+      const metrics = calculateMetrics(mockOSMData, 18.7888, 98.9858, 6);
+      // destinationAccess > 0, treeCanopy = 6 -> average of 2
+      const expected = (metrics.destinationAccess + 6) / 2;
       expect(metrics.overallScore).toBeCloseTo(expected, 0);
     });
 

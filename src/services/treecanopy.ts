@@ -149,25 +149,28 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
 }
 
 /**
- * Score tree canopy for walkability
+ * Urban-calibrated NDVI scoring curve
  * Higher NDVI = more vegetation/trees = better walkability (shade, air quality)
  *
- * Scoring (continuous curve, aligned with backend):
- * - NDVI < 0:     0 (water/bare soil)
- * - NDVI 0-0.2:   0-2 (sparse)
- * - NDVI 0.2-0.4: 2-5 (moderate)
- * - NDVI 0.4-0.6: 5-10 (healthy)
- * - NDVI >= 0.6:  10 (dense)
+ * Scoring (aligned with backend):
+ * - NDVI < 0:       0 (water/bare soil)
+ * - NDVI 0-0.10:    1-3 (sparse urban)
+ * - NDVI 0.10-0.20: 3-5 (moderate urban)
+ * - NDVI 0.20-0.35: 5-7.5 (good tree cover)
+ * - NDVI 0.35-0.50: 7.5-10 (excellent)
+ * - NDVI >= 0.50:   10 (dense vegetation)
  */
 export function scoreTreeCanopy(ndvi: number): number {
   if (ndvi < 0) {
     return 0;
-  } else if (ndvi < 0.2) {
-    return Math.round((ndvi / 0.2) * 2 * 10) / 10;
-  } else if (ndvi < 0.4) {
-    return Math.round((2 + ((ndvi - 0.2) / 0.2) * 3) * 10) / 10;
-  } else if (ndvi < 0.6) {
-    return Math.round((5 + ((ndvi - 0.4) / 0.2) * 5) * 10) / 10;
+  } else if (ndvi < 0.10) {
+    return Math.round((1 + (ndvi / 0.10) * 2) * 10) / 10;
+  } else if (ndvi < 0.20) {
+    return Math.round((3 + ((ndvi - 0.10) / 0.10) * 2) * 10) / 10;
+  } else if (ndvi < 0.35) {
+    return Math.round((5 + ((ndvi - 0.20) / 0.15) * 2.5) * 10) / 10;
+  } else if (ndvi < 0.50) {
+    return Math.round((7.5 + ((ndvi - 0.35) / 0.15) * 2.5) * 10) / 10;
   } else {
     return 10;
   }
