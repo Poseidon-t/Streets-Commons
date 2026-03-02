@@ -4222,8 +4222,8 @@ async function searchWebContext(locationName) {
   // Source 2: SearXNG public instances (meta-search, returns JSON, no auth)
   const searxPromise = (async () => {
     const queries = [
-      `${locationName} walk score walkability trees parks`,
-      `${locationName} tree canopy street trees urban forest green neighborhood`,
+      `"${locationName}" walk score walkability`,
+      `"${locationName}" tree canopy street trees parks green`,
     ];
     const instances = [
       'https://search.sapti.me',
@@ -4443,7 +4443,7 @@ ${scoringGuide}`;
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'claude-sonnet-4-6-20250514',
         max_tokens: 400,
         messages: [{ role: 'user', content }],
       }),
