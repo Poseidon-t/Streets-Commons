@@ -415,15 +415,13 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
       }
     });
 
-    test('Should display all 6 core metrics', async ({ page }) => {
+    test('Should display all core metrics', async ({ page }) => {
       const startTime = Date.now();
       const expectedMetrics = [
-        'Street Crossings',
-        'Street Network',
-        'Daily Needs',
-        'Parks Nearby',
-        'Terrain Slope',
-        'Tree Canopy'
+        'Tree Canopy',
+        'Street Design',
+        'Destinations',
+        'Commute Mode'
       ];
 
       try {
@@ -450,12 +448,12 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
         const allMetricsFound = foundMetrics.length === expectedMetrics.length;
 
         recordTestResult({
-          testName: 'All 6 core metrics display',
+          testName: 'All core metrics display',
           category: 'Single Location Analysis',
           status: allMetricsFound ? 'PASS' : 'FAIL',
           duration: Date.now() - startTime,
           screenshot,
-          details: `Found ${foundMetrics.length}/6 metrics: ${foundMetrics.join(', ')}`
+          details: `Found ${foundMetrics.length}/${expectedMetrics.length} metrics: ${foundMetrics.join(', ')}`
         });
 
         if (!allMetricsFound) {
@@ -465,14 +463,14 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
             title: 'Missing metrics in analysis results',
             description: `Not all expected metrics are displayed`,
             stepsToReproduce: ['Search for Times Square', 'Wait for analysis', 'Check displayed metrics'],
-            expectedBehavior: 'All 6 metrics should be visible',
+            expectedBehavior: 'All core metrics should be visible',
             actualBehavior: `Only ${foundMetrics.length} metrics found. Missing: ${missing.join(', ')}`,
             screenshot
           });
         }
       } catch (error) {
         recordTestResult({
-          testName: 'All 6 core metrics display',
+          testName: 'All core metrics display',
           category: 'Single Location Analysis',
           status: 'FAIL',
           duration: Date.now() - startTime,

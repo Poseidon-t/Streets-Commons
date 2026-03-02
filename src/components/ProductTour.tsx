@@ -20,8 +20,8 @@ const STEPS: TourStep[] = [
   },
   {
     targetSelector: '#metrics',
-    title: '5 Walkability Metrics',
-    description: 'Street grid, tree canopy, street design, destinations, and commute mode -- every dimension analyzed.',
+    title: 'Walkability Metrics',
+    description: 'Tree canopy, street design, destinations, and commute mode -- every dimension analyzed.',
   },
   {
     targetSelector: '#neighborhood',

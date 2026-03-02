@@ -827,10 +827,9 @@ function App() {
                     <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
                       <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
                     </div>
-                    {/* 5 metrics grid */}
+                    {/* 4 US metrics grid */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {[
-                        { icon: '🔀', name: 'Street Grid', score: '7.8' },
                         { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
                         { icon: '🛣️', name: 'Street Design', score: '7.4' },
                         { icon: '🏪', name: 'Destinations', score: '7.1' },
@@ -1387,8 +1386,8 @@ function App() {
                 <div className="px-8 pb-8">
                   <div className="space-y-3 text-sm text-[#3a4a3a]">
                     <div>
-                      <strong className="block mb-1">5 Walkability Metrics</strong>
-                      <p className="text-[#4a5a4a]">We analyze street grid connectivity, tree canopy coverage, street design quality, daily destinations, and commute mode using data from OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, and US Census ACS.</p>
+                      <strong className="block mb-1">Walkability Metrics</strong>
+                      <p className="text-[#4a5a4a]">US locations get 4 metrics: tree canopy, street design, destinations, and commute mode from Sentinel-2 satellite imagery, EPA National Walkability Index, OpenStreetMap, and Census ACS. International locations get 3 metrics with OSM street grid analysis replacing US-only data sources.</p>
                     </div>
                     <div>
                       <strong className="block mb-1">Global Standards</strong>
@@ -1439,7 +1438,7 @@ function App() {
                   {[
                     { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'Search any address with autocomplete suggestions', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
                     { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Walkability score with map and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and street design data calculated in seconds.' },
-                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: '5 walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: '5 scored metrics, neighborhood intelligence, health data, and flood risk.' },
+                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: 'walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: 'Scored metrics, neighborhood intelligence, health data, and flood risk.' },
                   ].map((step) => (
                     <div key={step.num} className="text-center">
                       <div className="relative mb-4">
@@ -1491,11 +1490,11 @@ function App() {
                     </h3>
                     <div className="space-y-3">
                       {[
-                        { icon: '🔀', name: 'Street Grid', desc: 'Street connectivity and route options', source: 'OpenStreetMap' },
                         { icon: '🌳', name: 'Tree Canopy', desc: 'Shade and vegetation coverage', source: 'Sentinel-2' },
-                        { icon: '🛣️', name: 'Street Design', desc: 'Intersection density, transit proximity, land use mix', source: 'EPA' },
+                        { icon: '🛣️', name: 'Street Design', desc: 'Intersection density, transit proximity, land use mix', source: 'EPA (US)' },
                         { icon: '🏪', name: 'Destinations', desc: 'Daily needs within walking distance', source: 'OpenStreetMap' },
-                        { icon: '🚶', name: 'Commute Mode', desc: 'Walk, bike, and transit commute share', source: 'Census ACS' },
+                        { icon: '🚶', name: 'Commute Mode', desc: 'Walk, bike, and transit commute share', source: 'Census ACS (US)' },
+                        { icon: '🔀', name: 'Street Grid', desc: 'Street connectivity and route options (international)', source: 'OpenStreetMap' },
                       ].map(item => (
                         <div key={item.name} className="flex items-start gap-3 p-3 rounded-xl bg-white border border-earth-border/60">
                           <span className="text-base mt-0.5">{item.icon}</span>
@@ -1714,7 +1713,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Your score (out of 10) is a weighted average of 5 walkability metrics: <strong>street grid connectivity</strong> (how well streets connect and offer route options), <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>street design</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>destinations</strong> (daily needs within walking distance), and <strong>commute mode</strong> (walk, bike, and transit commute share from Census ACS). Each metric is scored independently so you can see exactly what's strong or weak about your area.
+                    Your score (out of 10) is a weighted average of walkability metrics. For US locations: <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>street design</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>destinations</strong> (daily needs within walking distance), and <strong>commute mode</strong> (walk, bike, and transit commute share from Census ACS). International locations use <strong>street grid</strong> (OSM network connectivity) instead of EPA and Census metrics. Each metric is scored independently so you can see exactly what's strong or weak about your area.
                   </p>
                 </div>
               </div>
@@ -1987,7 +1986,7 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  5 walkability metrics (US)
+                  4 walkability metrics (US), 3 international
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>

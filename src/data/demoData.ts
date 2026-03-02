@@ -25,10 +25,10 @@ export const DEMO_LOCATION: Location = {
 export const DEMO_METRICS: WalkabilityMetrics = {
   destinationAccess: 8.4,
   treeCanopy: 5.2,
-  streetGrid: 7.4,
+  streetGrid: 0,
   streetDesign: 7.0,
   commuteMode: 6.8,
-  overallScore: 7.0,
+  overallScore: 6.9,
   label: 'Good',
 };
 
@@ -78,10 +78,10 @@ export const DEMO_COMPOSITE_SCORE: WalkabilityScoreV2 = {
   legacy: {
     destinationAccess: 8.4,
     treeCanopy: 5.2,
-    streetGrid: 7.4,
+    streetGrid: 0,
     streetDesign: 7.0,
     commuteMode: 6.8,
-    overallScore: 7.0,
+    overallScore: 6.9,
     label: 'Good',
   },
 };

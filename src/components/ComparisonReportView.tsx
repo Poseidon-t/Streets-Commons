@@ -429,7 +429,7 @@ export default function ComparisonReportView() {
           <div style={{ marginBottom: '2.5rem' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>About This Report</h2>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.7 }}>
-              This comparison analyzes {colCount} neighborhoods across 5 metrics using satellite imagery (Sentinel-2), OpenStreetMap infrastructure data, EPA National Walkability Index, and US Census ACS. Metrics are scored 0 to 10 against international standards. Value premium estimates are based on published research from Brookings Institution and CEOs for Cities.
+              This comparison analyzes {colCount} neighborhoods across multiple walkability metrics using satellite imagery (Sentinel-2), OpenStreetMap infrastructure data, EPA National Walkability Index, and US Census ACS. Metrics are scored 0 to 10 against international standards. Value premium estimates are based on published research from Brookings Institution and CEOs for Cities.
             </p>
           </div>
 

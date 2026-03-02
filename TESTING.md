@@ -35,11 +35,12 @@
 - [ ] Map is interactive (pan/zoom)
 
 #### Metrics Calculation
-- [ ] All 6 metrics display
-- [ ] Crossing Density score calculated
+- [ ] All core metrics display (4 for US, 3 for international)
 - [ ] Tree Canopy score calculated
-- [ ] Surface Temperature (proxy) calculated
-- [ ] Network Efficiency calculated
+- [ ] Street Design score calculated (US)
+- [ ] Destinations score calculated
+- [ ] Commute Mode score calculated (US)
+- [ ] Street Grid score calculated (international)
 - [ ] Slope (estimate) calculated
 - [ ] Destination Access calculated
 - [ ] Overall score averages correctly

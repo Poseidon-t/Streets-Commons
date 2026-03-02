@@ -130,6 +130,7 @@ interface MetricDef {
   source: string;
   satKey?: string;
   usOnly?: boolean;
+  internationalOnly?: boolean;
   getScore: (metrics: WalkabilityMetrics, compositeScore?: WalkabilityScoreV2 | null) => number;
 }
 
@@ -139,6 +140,7 @@ const METRICS: MetricDef[] = [
     name: 'Street Grid',
     icon: '🔀',
     source: 'OpenStreetMap',
+    internationalOnly: true,
     getScore: (_m, cs) => cs ? cs.components.networkDesign.score / 10 : 0,
   },
   {
@@ -311,7 +313,9 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
 export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
-  const visibleMetrics = METRICS.filter(def => !def.usOnly || isUS);
+  const visibleMetrics = METRICS.filter(def =>
+    (!def.usOnly || isUS) && (!def.internationalOnly || !isUS)
+  );
 
   const toggleMetric = (key: string) => {
     setExpandedMetric(prev => prev === key ? null : key);

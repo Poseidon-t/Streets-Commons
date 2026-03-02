@@ -142,11 +142,10 @@ export default function CityPage() {
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { title: 'Street Grid', desc: 'Intersection density, block length, and network connectivity', icon: '🔀' },
             { title: 'Tree Canopy', desc: 'Satellite-measured vegetation and shade coverage', icon: '🌳' },
-            { title: 'Street Design', desc: 'EPA intersection density, transit, and land use (US)', icon: '🛣️' },
+            { title: 'Street Design', desc: 'EPA intersection density, transit proximity, and land use mix', icon: '🛣️' },
             { title: 'Destinations', desc: 'Grocery, restaurant, school, and park access within 15-min walk', icon: '🏪' },
-            { title: 'Commute Mode', desc: 'Car-free commuting rate from Census data (US)', icon: '🚶' },
+            { title: 'Commute Mode', desc: 'Car-free commuting rate from Census data', icon: '🚶' },
             { title: 'Neighborhood Intel', desc: 'Demographics, flood risk, health data, and more', icon: '📊' },
           ].map(item => (
             <div
@@ -170,7 +169,7 @@ export default function CityPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             { step: '1', title: 'Enter an Address', desc: `Type any address in ${city.name}, ${city.stateCode} into the search bar.` },
-            { step: '2', title: 'Get Your Score', desc: 'We analyze 5 walkability metrics using Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.' },
+            { step: '2', title: 'Get Your Score', desc: 'We analyze walkability metrics using Sentinel-2 satellite imagery, OpenStreetMap, EPA, and Census data.' },
             { step: '3', title: 'Take Action', desc: 'Use your analysis for planning or real estate decisions. Export as PDF, generate branded agent reports, or verify scores in the field.' },
           ].map(item => (
             <div key={item.step} className="text-center">

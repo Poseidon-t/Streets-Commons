@@ -2275,14 +2275,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       flood: floodData,
     };
 
-    // 6. Commute Mode score (0-10) — % walking/biking/transit from Census ACS
-    let commuteModeScore = 5; // default: neutral (data unavailable)
+    // 6. Commute Mode score (0-10) -- % walking/biking/transit from Census ACS (US only)
+    let commuteModeScore = 0;
     let censusAcsData = null;
     if (popResult.status === 'fulfilled' && popResult.value) {
       censusAcsData = popResult.value;
       commuteModeScore = censusAcsData.commuteScore;
     }
-    console.log(`  ✅ Commute Mode: ${commuteModeScore}/10${!censusAcsData ? ' (default — Census ACS unavailable)' : ` (${censusAcsData.altPct}% walk/bike/transit)`}`);
+    console.log(`  ✅ Commute Mode: ${commuteModeScore}/10${!censusAcsData ? ' (Census ACS unavailable -- non-US or API failure)' : ` (${censusAcsData.altPct}% walk/bike/transit)`}`);
 
     // 6b. Street Design score (0-10) from EPA National Walkability Index
     let streetDesignScore = 0;
@@ -2316,8 +2316,15 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
 
     console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
 
-    // 7. Overall score — average of available metrics
-    const available = [destinationAccess, treeCanopyScore, streetGridScore, commuteModeScore, streetDesignScore].filter(s => s > 0);
+    // 7. Overall score -- US vs International metric selection
+    // US: Destinations + Tree Canopy + Street Design (EPA) + Commute Mode (Census ACS)
+    // International: Destinations + Tree Canopy + Street Grid (OSM) -- no EPA/Census
+    const isUS = censusAcsData !== null || streetDesignData !== null;
+    const metricsForOverall = isUS
+      ? [destinationAccess, treeCanopyScore, streetDesignScore, commuteModeScore]
+      : [destinationAccess, treeCanopyScore, streetGridScore];
+    const available = metricsForOverall.filter(s => s > 0);
+    console.log(`  📍 Location type: ${isUS ? 'US' : 'International'}, metrics for overall: ${available.length}`);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
@@ -2359,11 +2366,14 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     console.log(`  📊 Percentile: ${percentileValue}th (${popContext})`);
 
     // 8. Build report data
+    // For US: streetGrid is reference-only (not in overall). For international: streetDesign/commuteMode are 0.
     const reportData = {
       location: { lat, lon, displayName },
+      isUS,
       metrics: {
         destinationAccess, treeCanopy: treeCanopyScore,
-        streetGrid: streetGridScore, commuteMode: commuteModeScore,
+        streetGrid: isUS ? 0 : streetGridScore,
+        commuteMode: commuteModeScore,
         streetDesign: streetDesignScore,
         overallScore, label,
       },
@@ -2377,16 +2387,17 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       reportHealth: {
         generatedAt: new Date().toISOString(),
         metricsAvailable: available.length,
-        metricsTotal: 5,
+        metricsTotal: isUS ? 4 : 3,
+        isUS,
         metrics: _validation,
         issues: [
           ...(_validation.treeCanopy.status === 'warning' ? [`Tree Canopy score ${treeCanopyScore} is very low -- satellite image may be from wrong season (image: ${_validation.treeCanopy.imageDate})`] : []),
           ...(_validation.treeCanopy.status === 'failed' ? ['Tree Canopy: satellite data fetch failed, using default score'] : []),
-          ...(_validation.streetDesign.status === 'timeout' ? ['Street Design: EPA API timed out after 2 attempts -- metric excluded from score'] : []),
-          ...(_validation.commuteMode.status === 'unavailable' ? ['Commute Mode: Census ACS data unavailable -- using default score'] : []),
-          ...(streetGridScore < 3 ? [`Street Grid score ${streetGridScore} is unusually low -- OSM data may be sparse for this area`] : []),
+          ...(isUS && _validation.streetDesign.status === 'timeout' ? ['Street Design: EPA API timed out after 2 attempts -- metric excluded from score'] : []),
+          ...(isUS && _validation.commuteMode.status === 'unavailable' ? ['Commute Mode: Census ACS data unavailable'] : []),
+          ...(!isUS && streetGridScore < 3 ? [`Street Grid score ${streetGridScore} is unusually low -- OSM data may be sparse for this area`] : []),
         ],
-        overallHealth: available.length >= 4 && !_validation.treeCanopy.status.match(/warning|failed/) ? 'good' : available.length >= 3 ? 'fair' : 'poor',
+        overallHealth: available.length >= (isUS ? 3 : 2) && !_validation.treeCanopy.status.match(/warning|failed/) ? 'good' : available.length >= 2 ? 'fair' : 'poor',
       },
     };
 
@@ -5547,16 +5558,18 @@ DATA SOURCES & HONEST LIMITATIONS — READ THIS CAREFULLY:
 
 This tool uses two types of data with VERY different reliability levels. You MUST communicate this distinction honestly.
 
-HIGH-RELIABILITY (Satellite-based, scientifically validated):
-- Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution — measures actual vegetation, reliable
-- Street Grid: OSM road network — intersection density, block length, dead-end ratio
+US LOCATIONS (4 metrics):
+- Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution — measures actual vegetation, reliable (HIGH)
+- Street Design: EPA National Walkability Index — intersection density, transit proximity, land use mix (MEDIUM)
+- Destinations: OSM amenity/shop/leisure POIs — captures major destinations but misses many small businesses (MEDIUM-LOW)
+- Commute Mode: US Census ACS — car-free commuting percentage (MEDIUM)
 
-MEDIUM RELIABILITY (Government data sources):
-- Street Design: EPA National Walkability Index — census block group level, US only
-- Commute Mode: US Census ACS — car-free commuting percentage, US only
+INTERNATIONAL LOCATIONS (3 metrics):
+- Tree Canopy: ESA Sentinel-2 NDVI at 10m resolution (HIGH)
+- Street Grid: OSM road network — intersection density, block length, dead-end ratio (MEDIUM)
+- Destinations: OSM amenity/shop/leisure POIs (MEDIUM-LOW)
 
-MEDIUM-TO-LOW RELIABILITY (OpenStreetMap, volunteer-contributed):
-- Daily Needs Access: OSM amenity/shop/leisure POIs — captures major destinations but misses many small businesses, informal markets, and recent openings
+Note: Street Grid is excluded for US locations because EPA Street Design already captures intersection density, avoiding double-counting. EPA and Census data are US-only, so international locations use OSM Street Grid instead.
 
 CRITICAL: OSM coverage varies enormously by city. Well-mapped cities (e.g., Portland, Berlin, Amsterdam) have rich data. Many cities in Africa, South Asia, Southeast Asia, parts of Australia, and smaller cities worldwide have sparse, incomplete, or outdated OSM data. Scores for these places may reflect MAPPING GAPS, not actual conditions on the ground.
 
@@ -5611,7 +5624,7 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
         const m = context.metrics;
         systemPrompt += `\n\nMetric Scores (0-10 scale):`;
         if (m.treeCanopy !== undefined) systemPrompt += `\n- Tree Canopy: ${m.treeCanopy}/10`;
-        if (m.streetGrid !== undefined) systemPrompt += `\n- Street Grid: ${m.streetGrid}/10`;
+        if (m.streetGrid !== undefined && m.streetGrid > 0) systemPrompt += `\n- Street Grid: ${m.streetGrid}/10`;
         if (m.streetDesign !== undefined) systemPrompt += `\n- Street Design: ${m.streetDesign}/10`;
         if (m.destinationAccess !== undefined) systemPrompt += `\n- Daily Needs Access: ${m.destinationAccess}/10`;
         if (m.commuteMode !== undefined) systemPrompt += `\n- Commute Mode: ${m.commuteMode}/10`;
@@ -5623,7 +5636,7 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
           ['Street Grid', m.streetGrid],
           ['Street Design', m.streetDesign],
           ['Commute Mode', m.commuteMode],
-        ].filter(([, v]) => typeof v === 'number');
+        ].filter(([, v]) => typeof v === 'number' && v > 0);
 
         const weakest = metricEntries.sort((a, b) => a[1] - b[1]).slice(0, 3);
         if (weakest.length > 0) {
