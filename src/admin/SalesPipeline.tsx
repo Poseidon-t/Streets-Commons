@@ -42,10 +42,10 @@ const ALL_STATUSES: OutreachStatus[] = ['not_started', 'email_sent', 'followed_u
 
 // ── Email Template ──────────────────────────────────────────────────────────
 
-function generateEmail(lead: QualifiedLead): string {
+function generateEmail(lead: QualifiedLead, reportLink?: string): string {
   const firstName = lead.agentName.split(' ')[0];
   const address = lead.sampleListing && !lead.sampleListing.startsWith('Check') ? lead.sampleListing : `[FULL ADDRESS]`;
-  const reportLink = `[REPORT LINK]`;
+  const link = reportLink || '[REPORT LINK]';
   return `Subject: Walkability report for your ${lead.neighborhood} listing
 
 Hi ${firstName},
@@ -54,7 +54,7 @@ ${lead.neighborhood} is one of the most walkable neighbourhoods in ${lead.city} 
 
 SafeStreets measures street design, tree canopy, nearby destinations, commute patterns, flood risk, and health outcomes -- from satellite imagery and government data. Objective neighbourhood data buyers can't easily find anywhere else.
 
-I ran your listing at ${address} through it -- snapshot below, full report here: ${reportLink}
+I ran your listing at ${address} through it -- snapshot below, full report here: ${link}
 
 Curious what you think.
 
@@ -96,6 +96,8 @@ export default function SalesPipeline() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFindModal, setShowFindModal] = useState(false);
   const [emailModalLead, setEmailModalLead] = useState<QualifiedLead | null>(null);
+  const [emailReportLink, setEmailReportLink] = useState<string | null>(null);
+  const [generatingEmail, setGeneratingEmail] = useState<number | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [validating, setValidating] = useState<Set<number>>(new Set());
   const [validatingAll, setValidatingAll] = useState(false);
@@ -190,6 +192,43 @@ export default function SalesPipeline() {
       setShowAddModal(false);
     } catch (err) {
       setError((err as Error).message);
+    }
+  };
+
+  const handleGenerateEmail = async (lead: QualifiedLead) => {
+    setGeneratingEmail(lead.rank);
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || '';
+      const reportData = await generateReport({
+        neighborhood: lead.neighborhood,
+        city: lead.city,
+        state: lead.state,
+        agentProfile: {
+          name: lead.agentName,
+          company: lead.brokerage || undefined,
+          email: lead.email.startsWith('Check') ? undefined : lead.email,
+          phone: lead.phone.startsWith('Check') ? undefined : lead.phone,
+        },
+      });
+      // Save report and get shareable link
+      let reportLink = '[REPORT LINK]';
+      try {
+        const saveRes = await fetch(`${apiUrl}/api/reports`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportData }),
+        });
+        if (saveRes.ok) {
+          const { shareUrl } = await saveRes.json();
+          reportLink = `https://safestreets.streetsandcommons.com${shareUrl}`;
+        }
+      } catch { /* fallback to placeholder */ }
+      setEmailReportLink(reportLink);
+      setEmailModalLead(lead);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setGeneratingEmail(null);
     }
   };
 
@@ -511,7 +550,8 @@ export default function SalesPipeline() {
                 onToggle={() => setExpandedRank(expandedRank === lead.rank ? null : lead.rank)}
                 onStatusChange={handleStatusChange}
                 onNotesChange={handleNotesChange}
-                onGenerateEmail={() => setEmailModalLead(lead)}
+                onGenerateEmail={() => handleGenerateEmail(lead)}
+                isGeneratingEmail={generatingEmail === lead.rank}
                 onValidateEmail={() => handleValidateEmail(lead)}
                 onActiveListingsChange={handleActiveListingsChange}
                 onGenerateReport={() => handleGenerateReport(lead)}
@@ -559,7 +599,7 @@ export default function SalesPipeline() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl max-w-2xl w-full p-6 relative my-8">
             <button
-              onClick={() => { setEmailModalLead(null); setCopySuccess(false); }}
+              onClick={() => { setEmailModalLead(null); setEmailReportLink(null); setCopySuccess(false); }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
             >×</button>
             <h2 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>
@@ -573,11 +613,11 @@ export default function SalesPipeline() {
               )}
             </p>
             <pre className="bg-gray-50 rounded-xl p-4 text-sm whitespace-pre-wrap font-sans leading-relaxed border border-gray-200 max-h-[60vh] overflow-y-auto">
-              {generateEmail(emailModalLead)}
+              {generateEmail(emailModalLead, emailReportLink || undefined)}
             </pre>
             <div className="flex items-center gap-3 mt-4">
               <button
-                onClick={() => handleCopyEmail(generateEmail(emailModalLead))}
+                onClick={() => handleCopyEmail(generateEmail(emailModalLead, emailReportLink || undefined))}
                 className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
                 style={{ backgroundColor: '#e07850' }}
               >
@@ -585,7 +625,7 @@ export default function SalesPipeline() {
               </button>
               {!emailModalLead.email.startsWith('Check') && (
                 <a
-                  href={`mailto:${emailModalLead.email}?subject=${encodeURIComponent(`Walkability data for your ${emailModalLead.neighborhood} listing`)}&body=${encodeURIComponent(generateEmail(emailModalLead).split('\n').slice(2).join('\n'))}`}
+                  href={`mailto:${emailModalLead.email}?subject=${encodeURIComponent(`Walkability data for your ${emailModalLead.neighborhood} listing`)}&body=${encodeURIComponent(generateEmail(emailModalLead, emailReportLink || undefined).split('\n').slice(2).join('\n'))}`}
                   className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
                   style={{ color: '#2a3a2a' }}
                 >
@@ -635,6 +675,7 @@ function LeadRow({
   onStatusChange,
   onNotesChange,
   onGenerateEmail,
+  isGeneratingEmail,
   onValidateEmail,
   onActiveListingsChange,
   onGenerateReport,
@@ -652,6 +693,7 @@ function LeadRow({
   onStatusChange: (rank: number, status: OutreachStatus) => void;
   onNotesChange: (rank: number, notes: string) => void;
   onGenerateEmail: () => void;
+  isGeneratingEmail: boolean;
   onValidateEmail: () => void;
   onActiveListingsChange: (rank: number, activeListings: string) => void;
   onGenerateReport: () => void;
@@ -737,10 +779,11 @@ function LeadRow({
           <div className="flex items-center gap-1.5">
             <button
               onClick={e => { e.stopPropagation(); onGenerateEmail(); }}
-              className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+              disabled={isGeneratingEmail}
+              className="text-xs font-medium px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition disabled:opacity-50"
               style={{ color: '#e07850' }}
             >
-              Email
+              {isGeneratingEmail ? 'Loading...' : 'Email'}
             </button>
             <button
               onClick={e => { e.stopPropagation(); onGenerateReport(); }}
