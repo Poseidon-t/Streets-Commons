@@ -420,6 +420,12 @@ function App() {
       setSatelliteLoaded(prev => new Set(prev).add(key));
     };
 
+    // For non-US locations, mark US-only sources as loaded immediately
+    if (selectedLocation.countryCode !== 'us') {
+      markLoaded('populationDensity');
+      markLoaded('streetDesign');
+    }
+
     promises.ndvi.then(ndvi => {
       if (ndvi !== null) {
         raw.ndvi = ndvi;
@@ -1319,7 +1325,7 @@ function App() {
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} />
             </div>
 
             {/* Share + Export — right after metrics so users can act immediately */}

@@ -15,6 +15,7 @@ interface MetricGridProps {
   osmData?: OSMData | null;
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
+  countryCode?: string;
 }
 
 function getScoreColor(score: number): string {
@@ -128,6 +129,7 @@ interface MetricDef {
   icon: string;
   source: string;
   satKey?: string;
+  usOnly?: boolean;
   getScore: (metrics: WalkabilityMetrics, compositeScore?: WalkabilityScoreV2 | null) => number;
 }
 
@@ -153,6 +155,7 @@ const METRICS: MetricDef[] = [
     icon: '🛣️',
     source: 'EPA',
     satKey: 'streetDesign',
+    usOnly: true,
     getScore: (_m, cs) => {
       const sdMetric = cs?.components.safety.metrics[0];
       return sdMetric ? sdMetric.score / 10 : 0;
@@ -171,6 +174,7 @@ const METRICS: MetricDef[] = [
     icon: '🚶',
     source: 'Census ACS',
     satKey: 'populationDensity',
+    usOnly: true,
     getScore: (_m, cs) => {
       const popMetric = cs?.components.densityContext.metrics.find(m => m.name === 'Commute Mode');
       if (popMetric) return popMetric.score / 10;
@@ -304,8 +308,10 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
+  const isUS = countryCode === 'us';
+  const visibleMetrics = METRICS.filter(def => !def.usOnly || isUS);
 
   const toggleMetric = (key: string) => {
     setExpandedMetric(prev => prev === key ? null : key);
@@ -318,7 +324,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {METRICS.map(def => {
+        {visibleMetrics.map(def => {
           const score = def.getScore(metrics, compositeScore);
           const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
           return (
@@ -336,7 +342,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
 
       {/* Expanded detail panel — appears below the grid */}
       {expandedMetric && (() => {
-        const def = METRICS.find(m => m.key === expandedMetric);
+        const def = visibleMetrics.find(m => m.key === expandedMetric);
         if (!def) return null;
         const score = def.getScore(metrics, compositeScore);
         return (
