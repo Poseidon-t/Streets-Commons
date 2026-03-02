@@ -4170,83 +4170,61 @@ async function searchStreetImages(locationName) {
   }
 }
 
-// Search DuckDuckGo for web results (news, studies, GIS data, urban forestry reports)
+// Search Wikipedia for neighborhood/area context (free, no auth, no CAPTCHA)
 async function searchWebContext(locationName) {
-  const queries = [
-    `${locationName} tree canopy coverage urban forest street trees`,
-    `${locationName} walkability green infrastructure parks`,
-  ];
+  const snippets = [];
 
-  // Run both queries in parallel
-  const results = await Promise.all(queries.map(async (query) => {
-    try {
-      // Use DuckDuckGo Lite (simpler HTML, less likely to block)
-      const res = await fetch('https://lite.duckduckgo.com/lite/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
-        body: `q=${encodeURIComponent(query)}`,
-        signal: AbortSignal.timeout(8000),
-      });
-      const html = await res.text();
+  try {
+    // Step 1: Search Wikipedia for relevant articles
+    const searchTerms = [locationName, `${locationName} neighborhood`];
+    const articleTitles = new Set();
 
-      const snippets = [];
-      // DDG Lite uses <td> with class "result-snippet" or plain text in table cells
-      // Try multiple patterns for robustness
-      const patterns = [
-        /class="result-snippet"[^>]*>(.*?)<\/td>/gs,
-        /class="result__snippet"[^>]*>(.*?)<\/a>/gs,
-        /class="result__snippet"[^>]*>(.*?)<\/td>/gs,
-      ];
-      for (const pattern of patterns) {
-        const matches = [...html.matchAll(pattern)];
-        for (const match of matches.slice(0, 5)) {
-          const text = match[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"').trim();
-          if (text.length > 30) snippets.push(text);
-        }
-        if (snippets.length > 0) break;
-      }
-
-      // Fallback: extract any substantial text from table cells (DDG Lite format)
-      if (snippets.length === 0) {
-        const tdMatches = [...html.matchAll(/<td[^>]*class="[^"]*snippet[^"]*"[^>]*>(.*?)<\/td>/gs)];
-        for (const m of tdMatches.slice(0, 5)) {
-          const text = m[1].replace(/<[^>]+>/g, '').trim();
-          if (text.length > 30) snippets.push(text);
-        }
-      }
-
-      // Last fallback: try the full HTML endpoint
-      if (snippets.length === 0) {
-        const fullRes = await fetch('https://html.duckduckgo.com/html/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          },
-          body: `q=${encodeURIComponent(query)}`,
-          signal: AbortSignal.timeout(8000),
+    await Promise.all(searchTerms.map(async (term) => {
+      try {
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(term)}&srlimit=3&format=json`;
+        const res = await fetch(searchUrl, {
+          headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
+          signal: AbortSignal.timeout(5000),
         });
-        const fullHtml = await fullRes.text();
-        const fullMatches = [...fullHtml.matchAll(/class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g)];
-        for (const m of fullMatches.slice(0, 5)) {
-          const text = m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").trim();
-          if (text.length > 30) snippets.push(text);
+        if (!res.ok) return;
+        const data = await res.json();
+        for (const result of (data.query?.search || [])) {
+          articleTitles.add(result.title);
+          const cleanSnippet = result.snippet?.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&#039;/g, "'").trim();
+          if (cleanSnippet && cleanSnippet.length > 30) {
+            snippets.push(`Wikipedia "${result.title}": ${cleanSnippet}`);
+          }
         }
-      }
+      } catch {}
+    }));
 
-      return snippets;
-    } catch (e) {
-      console.warn(`  DDG web search failed for "${query}": ${e.message}`);
-      return [];
+    // Step 2: Get article extracts for top results (richer neighborhood description)
+    const titles = [...articleTitles].slice(0, 3);
+    if (titles.length > 0) {
+      try {
+        const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=extracts&exintro=1&explaintext=1&exlimit=${titles.length}&format=json`;
+        const res = await fetch(extractUrl, {
+          headers: { 'User-Agent': 'SafeStreets/2.0 (walkability research; contact@streetsandcommons.com)' },
+          signal: AbortSignal.timeout(5000),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          for (const page of Object.values(data.query?.pages || {})) {
+            if (page.extract && page.extract.length > 50) {
+              // First 600 chars of intro (neighborhood description, landmarks, parks)
+              const extract = page.extract.substring(0, 600).trim();
+              snippets.push(`Wikipedia "${page.title}": ${extract}`);
+            }
+          }
+        }
+      } catch {}
     }
-  }));
+  } catch (e) {
+    console.warn(`  Wikipedia search failed: ${e.message}`);
+  }
 
-  const allSnippets = [...new Set(results.flat())]; // deduplicate
-  console.log(`  Web research: ${allSnippets.length} snippets found for ${locationName}`);
-  return allSnippets.slice(0, 10);
+  console.log(`  Web research: ${snippets.length} Wikipedia snippets for ${locationName}`);
+  return snippets.slice(0, 8);
 }
 
 // Query OpenStreetMap for trees, parks, and green spaces near coordinates (Overpass API)
