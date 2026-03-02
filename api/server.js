@@ -1950,9 +1950,8 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     });
     const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
 
-    // 5. Fetch slope, tree canopy, crash data, and other layers in parallel
-    console.log(`🛰️  Fetching slope, NDVI, crash data for ${lat}, ${lon}...`);
-    let crashData = null;
+    // 5. Fetch slope, tree canopy, and other layers in parallel
+    console.log(`🛰️  Fetching slope, NDVI for ${lat}, ${lon}...`);
     let slopeScore = 0;
     let treeCanopyScore = 0;
 
@@ -1960,7 +1959,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const withTimeout = (promise, ms, fallback) =>
       Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 
-    const [slopeResult, ndviResult, crashResult, fccResult, floodResult, popResult] = await Promise.allSettled([
+    const [slopeResult, ndviResult, fccResult, floodResult, popResult, epaResult] = await Promise.allSettled([
       // NASADEM slope calculation (30s timeout)
       withTimeout((async () => {
         try {
@@ -2069,33 +2068,6 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           return { score: sc, ndvi: parseFloat(avgNDVI.toFixed(3)) };
         } catch (e) { console.warn('⚠️  NDVI failed:', e.message); return { score: 5, ndvi: null }; }
       })(), 45000, { score: 5, ndvi: null }),
-      // US crash data — FCC + FARS direct
-      (async () => {
-        try {
-          const fcc = await fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, { signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
-          if (!fcc.ok) return null;
-          const fccData = await fcc.json();
-          const r0 = fccData.results?.[0];
-          if (!r0?.state_fips || !r0?.county_fips) return null;
-          const fars = await fetch(`https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCrashesByLocation?fromCaseYear=2018&toCaseYear=2022&state=${r0.state_fips}&county=${r0.county_fips}&format=json`, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'SafeStreets/1.0' } });
-          if (!fars.ok) return null;
-          const fd = await fars.json();
-          let cr = Array.isArray(fd) ? fd : (fd.Results || fd.results || []);
-          if (cr.length > 0 && Array.isArray(cr[0])) cr = cr.flat();
-          const nearby = [];
-          for (const c of cr) {
-            const cLat = parseFloat(c.LATITUDE || c.latitude || '');
-            const cLon = parseFloat(c.LONGITUD || c.LONGITUDE || '');
-            if (isNaN(cLat) || isNaN(cLon) || cLat === 0) continue;
-            const d = haversineDistance(lat, lon, cLat, cLon);
-            if (d <= 800) nearby.push({ distance: Math.round(d), fatalities: parseInt(c.FATALS || '1', 10), year: parseInt(c.CaseYear || '0', 10), road: c.TWAY_ID || 'Unknown' });
-          }
-          const ym = {}; for (let y = 2018; y <= 2022; y++) ym[y] = { year: y, crashes: 0, fatalities: 0 };
-          for (const c of nearby) { if (ym[c.year]) { ym[c.year].crashes++; ym[c.year].fatalities += c.fatalities; } }
-          const near = nearby.sort((a, b) => a.distance - b.distance)[0];
-          return { type: 'local', totalCrashes: nearby.length, totalFatalities: nearby.reduce((s, c) => s + c.fatalities, 0), yearRange: { from: 2018, to: 2022 }, yearlyBreakdown: Object.values(ym), nearestCrash: near ? { distance: near.distance, year: near.year, fatalities: near.fatalities, road: near.road } : undefined, radiusMeters: 800, dataSource: 'NHTSA FARS' };
-        } catch { return null; }
-      })(),
       // FCC Census geocode (for CDC health data)
       fetch(`https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`, {
         signal: AbortSignal.timeout(8000), headers: { 'User-Agent': 'SafeStreets/1.0' },
@@ -2159,6 +2131,53 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           return { commuteScore, walkPct, bikePct, transitPct, altPct, medianIncome, medianHomeValue, totalPop, estDensity, dataSource: 'Census ACS 2022' };
         } catch (e) { console.warn('⚠️  Census ACS failed:', e.message); return null; }
       })(), 25000, null),
+
+      // EPA National Walkability Index — street design quality (15s timeout)
+      withTimeout((async () => {
+        try {
+          const cacheKey = `${lat.toFixed(4)},${lon.toFixed(4)}`;
+          const cached = epaCache.get(cacheKey);
+          if (cached && Date.now() - cached.timestamp < 24 * 60 * 60 * 1000) {
+            return cached.data;
+          }
+          const epaUrl = `https://geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex/MapServer/0/query?` +
+            `geometry=${lon},${lat}` +
+            `&geometryType=esriGeometryPoint` +
+            `&inSR=4326` +
+            `&spatialRel=esriSpatialRelIntersects` +
+            `&outFields=NatWalkInd,D3B,D3B_Ranked,D4A,D4A_Ranked,D2B_E8MIXA,D2B_Ranked,TotPop,CBSA_Name,NatWalkInd_Ranked,AutoOwn0,AutoOwn1,AutoOwn2p` +
+            `&returnGeometry=false` +
+            `&f=json`;
+          const resp = await fetch(epaUrl, {
+            signal: AbortSignal.timeout(12000),
+            headers: { 'User-Agent': 'SafeStreets/1.0' },
+          });
+          if (!resp.ok) throw new Error(`EPA API returned ${resp.status}`);
+          const epaData = await resp.json();
+          if (!epaData.features || epaData.features.length === 0) return null;
+          const attrs = epaData.features[0].attributes;
+          const d3bRank = attrs.D3B_Ranked ?? attrs.D3B ?? 0;
+          const d4aRank = attrs.D4A_Ranked ?? attrs.D4A ?? 0;
+          const d2bRank = attrs.D2B_Ranked ?? 0;
+          const natWalkInd = attrs.NatWalkInd ?? 0;
+          const d3bScoreEpa = Math.round((d3bRank / 20) * 100);
+          const d4aScoreEpa = Math.round((d4aRank / 20) * 100);
+          const d2bScoreEpa = Math.round((d2bRank / 20) * 100);
+          const epaScore = Math.round(d3bScoreEpa * 0.50 + d4aScoreEpa * 0.30 + d2bScoreEpa * 0.20);
+          const totalHH = (attrs.AutoOwn0 ?? 0) + (attrs.AutoOwn1 ?? 0) + (attrs.AutoOwn2p ?? 0);
+          const zeroCarPct = totalHH > 0 ? Math.round((attrs.AutoOwn0 / totalHH) * 100) : null;
+          let category;
+          if (epaScore >= 80) category = 'Excellent street design for walking';
+          else if (epaScore >= 60) category = 'Good street design for walking';
+          else if (epaScore >= 40) category = 'Moderate street design';
+          else if (epaScore >= 20) category = 'Car-oriented street design';
+          else category = 'Very car-dependent design';
+          const result = { score: epaScore, category, d3bRank, d4aRank, d2bRank, natWalkInd, natWalkIndRank: attrs.NatWalkInd_Ranked ?? null, zeroCarPct, totalPop: attrs.TotPop ?? null, metroArea: attrs.CBSA_Name || null, dataSource: 'EPA National Walkability Index' };
+          epaCache.set(cacheKey, { data: result, timestamp: Date.now() });
+          console.log(`  ✅ EPA Street Design: score=${epaScore}, D3B=${d3bRank}/20, D4A=${d4aRank}/20`);
+          return result;
+        } catch (e) { console.warn('⚠️  EPA Street Design failed:', e.message); return null; }
+      })(), 15000, null),
     ]);
 
     if (slopeResult.status === 'fulfilled' && slopeResult.value) {
@@ -2167,11 +2186,6 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     if (ndviResult.status === 'fulfilled' && ndviResult.value) {
       treeCanopyScore = ndviResult.value.score;
     }
-    if (crashResult.status === 'fulfilled' && crashResult.value) {
-      crashData = crashResult.value;
-      console.log(`  ✅ Crashes: ${crashData.totalCrashes}`);
-    }
-
     // 5b. Neighborhood Intelligence — transit/park/food from OSM elements + CDC + FEMA
     const niTransit = { busStops: 0, railStations: 0, totalStops: 0, score: 0 };
     const niParks = { parks: 0, playgrounds: 0, gardens: 0, totalGreenSpaces: 0, nearestParkMeters: null, score: 0 };
@@ -2251,51 +2265,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       flood: floodData,
     };
 
-    // 6. Crash History score (0-10) — FARS data if available, else OSM infrastructure safety proxy
-    let crashHistoryScore = 5; // default: neutral (data unavailable)
-    let crashScoreSource = 'default';
-    if (crashData) {
-      if (crashData.type === 'local') {
-        const years = crashData.yearRange.to - crashData.yearRange.from + 1;
-        const fatalitiesPerYear = years > 0 ? crashData.totalFatalities / years : crashData.totalFatalities;
-        const crashScore100 = fatalitiesPerYear === 0 ? 100 : fatalitiesPerYear <= 1 ? 80 : fatalitiesPerYear <= 3 ? 60 : fatalitiesPerYear <= 5 ? 40 : 20;
-        crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
-        crashScoreSource = 'NHTSA FARS';
-      } else if (crashData.type === 'country') {
-        const rate = crashData.deathRatePer100k;
-        const crashScore100 = rate <= 3 ? 95 : rate <= 6 ? 80 : rate <= 10 ? 60 : rate <= 15 ? 40 : 20;
-        crashHistoryScore = Math.round(crashScore100 / 10 * 10) / 10;
-        crashScoreSource = 'WHO';
-      }
-    }
-    // Fallback: OSM infrastructure safety proxy (crossings, sidewalks, road types)
-    if (!crashData || crashScoreSource === 'default') {
-      const totalStreets = Math.max(streets.length, 1);
-      const crossingRatio = crossings.length / totalStreets;
-      const sidewalkRatio = sidewalks.length / totalStreets;
-      const highSpeedRoads = streets.filter(s => s.tags?.highway === 'primary' || s.tags?.highway === 'secondary').length;
-      const highSpeedRatio = highSpeedRoads / totalStreets;
-      // Base score 5, adjust up for good infrastructure, down for dangerous roads
-      let safetyScore = 5;
-      if (crossingRatio > 0.4) safetyScore += 2;
-      else if (crossingRatio > 0.2) safetyScore += 1.5;
-      else if (crossingRatio > 0.1) safetyScore += 1;
-      else if (crossingRatio > 0.03) safetyScore += 0.5;
-      if (sidewalkRatio > 0.4) safetyScore += 2;
-      else if (sidewalkRatio > 0.2) safetyScore += 1.5;
-      else if (sidewalkRatio > 0.1) safetyScore += 1;
-      else if (sidewalkRatio > 0.03) safetyScore += 0.5;
-      // Penalize for high-speed roads
-      if (highSpeedRatio > 0.3) safetyScore -= 2;
-      else if (highSpeedRatio > 0.15) safetyScore -= 1;
-      else if (highSpeedRatio > 0.05) safetyScore -= 0.5;
-      crashHistoryScore = Math.round(Math.min(10, Math.max(0, safetyScore)) * 10) / 10;
-      crashScoreSource = 'OSM infrastructure';
-      crashData = { type: 'infrastructure', totalCrashes: 0, totalFatalities: 0, crossings: crossings.length, sidewalks: sidewalks.length, streets: streets.length, highSpeedRoads, safetyScore: crashHistoryScore, dataSource: 'OpenStreetMap (infrastructure proxy)' };
-    }
-    console.log(`  ✅ Crash History: ${crashHistoryScore}/10 (${crashScoreSource})`);
-
-    // 7. Commute Mode score (0-10) — % walking/biking/transit from Census ACS
+    // 6. Commute Mode score (0-10) — % walking/biking/transit from Census ACS
     let commuteModeScore = 5; // default: neutral (data unavailable)
     let censusAcsData = null;
     if (popResult.status === 'fulfilled' && popResult.value) {
@@ -2304,15 +2274,24 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     }
     console.log(`  ✅ Commute Mode: ${commuteModeScore}/10${!censusAcsData ? ' (default — Census ACS unavailable)' : ` (${censusAcsData.altPct}% walk/bike/transit)`}`);
 
-    // 8. Overall score — average of all 6 metrics
-    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, crashHistoryScore, commuteModeScore].filter(s => s > 0);
+    // 6b. Street Design score (0-10) from EPA National Walkability Index
+    let streetDesignScore = 0;
+    let streetDesignData = null;
+    if (epaResult.status === 'fulfilled' && epaResult.value) {
+      streetDesignData = epaResult.value;
+      streetDesignScore = Math.round(streetDesignData.score / 10 * 10) / 10; // EPA 0-100 → 0-10
+    }
+    console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
+
+    // 7. Overall score — average of available metrics
+    const available = [destinationAccess, slopeScore, treeCanopyScore, streetGridScore, commuteModeScore, streetDesignScore].filter(s => s > 0);
     const overallScore = available.length > 0
       ? Math.round((available.reduce((a, b) => a + b, 0) / available.length) * 10) / 10
       : 0;
     const grade = overallScore >= 8 ? 'A' : overallScore >= 6.5 ? 'B' : overallScore >= 5 ? 'C' : overallScore >= 3 ? 'D' : 'F';
     const label = overallScore >= 8 ? 'Excellent' : overallScore >= 6 ? 'Good' : overallScore >= 4 ? 'Fair' : overallScore >= 2 ? 'Poor' : 'Critical';
 
-    // 8b. Percentile ranking — research-backed reference distributions
+    // 7b. Percentile ranking — research-backed reference distributions
     // Based on Walk Score research + urban planning literature (NACTO, ITDP)
     const PERCENTILE_REFS = {
       urban:    { p10: 3.5, p25: 5.0, p50: 6.5, p75: 7.5, p90: 8.5 },
@@ -2346,17 +2325,18 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     };
     console.log(`  📊 Percentile: ${percentileValue}th (${popContext})`);
 
-    // 9. Build report data
+    // 8. Build report data
     const reportData = {
       location: { lat, lon, displayName },
       metrics: {
         destinationAccess, slope: slopeScore, treeCanopy: treeCanopyScore,
-        streetGrid: streetGridScore, crashHistory: crashHistoryScore, commuteMode: commuteModeScore,
+        streetGrid: streetGridScore, commuteMode: commuteModeScore,
+        streetDesign: streetDesignScore,
         overallScore, label,
       },
+      streetDesignData,
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
-      crashData,
       neighborhoodIntel,
       agentProfile,
       percentile,
@@ -3991,24 +3971,6 @@ app.get('/api/population-density', async (req, res) => {
   }
 });
 
-// =====================
-// CRASH / FATALITY DATA
-// =====================
-
-// WHO road traffic death rates per 100k (2021) — static dataset, updates every 2-3 years
-// Source: WHO Global Health Observatory, Indicator RS_198
-import { readFileSync } from 'fs';
-const WHO_DATA_PATH = path.join(__dirname, '..', 'src', 'data', 'whoRoadDeaths.json');
-let whoRoadDeaths = {};
-try {
-  whoRoadDeaths = JSON.parse(readFileSync(WHO_DATA_PATH, 'utf-8'));
-} catch (e) {
-  console.warn('⚠️  WHO road deaths data not found, international crash data disabled');
-}
-
-// In-memory cache for FARS county data (static historical data)
-const farsCache = new Map();
-const FARS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371000; // Earth radius in meters
@@ -4019,232 +3981,6 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     Math.sin(dLon / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
-
-// Nominatim country code is ISO 3166-1 alpha-2, WHO uses alpha-3
-// Only need the US check here; for WHO lookup we accept alpha-2 and map to alpha-3
-const iso2to3 = {
-  AF:'AFG',AL:'ALB',DZ:'DZA',AD:'AND',AO:'AGO',AG:'ATG',AR:'ARG',AM:'ARM',AU:'AUS',AT:'AUT',
-  AZ:'AZE',BS:'BHS',BH:'BHR',BD:'BGD',BB:'BRB',BY:'BLR',BE:'BEL',BZ:'BLZ',BJ:'BEN',BT:'BTN',
-  BO:'BOL',BA:'BIH',BW:'BWA',BR:'BRA',BN:'BRN',BG:'BGR',BI:'BDI',KH:'KHM',CM:'CMR',CA:'CAN',
-  CV:'CPV',CF:'CAF',CL:'CHL',CN:'CHN',CO:'COL',KM:'COM',CD:'COD',CR:'CRI',CI:'CIV',HR:'HRV',
-  CU:'CUB',CY:'CYP',DK:'DNK',DJ:'DJI',DM:'DMA',DO:'DOM',EC:'ECU',EG:'EGY',ER:'ERI',EE:'EST',
-  ET:'ETH',FJ:'FJI',FI:'FIN',FR:'FRA',GA:'GAB',GM:'GMB',DE:'DEU',GH:'GHA',GR:'GRC',GD:'GRD',
-  GT:'GTM',GN:'GIN',GW:'GNB',GY:'GUY',HT:'HTI',HN:'HND',HU:'HUN',IS:'ISL',IN:'IND',ID:'IDN',
-  IR:'IRN',IQ:'IRQ',IE:'IRL',IL:'ISR',IT:'ITA',JM:'JAM',JP:'JPN',JO:'JOR',KZ:'KAZ',KE:'KEN',
-  KI:'KIR',KW:'KWT',KG:'KGZ',LA:'LAO',LV:'LVA',LB:'LBN',LS:'LSO',LY:'LBY',LT:'LTU',MG:'MDG',
-  MW:'MWI',MY:'MYS',MV:'MDV',ML:'MLI',MT:'MLT',MH:'MHL',MR:'MRT',MU:'MUS',MX:'MEX',MD:'MDA',
-  MC:'MCO',MN:'MNG',ME:'MNE',MZ:'MOZ',MM:'MMR',NA:'NAM',NR:'NRU',NP:'NPL',NL:'NLD',NZ:'NZL',
-  NI:'NIC',NE:'NER',NG:'NGA',MK:'MKD',NO:'NOR',OM:'OMN',PK:'PAK',PW:'PLW',PS:'PSE',PA:'PAN',
-  PG:'PNG',PY:'PRY',PH:'PHL',PL:'POL',PT:'PRT',PR:'PRI',QA:'QAT',KR:'KOR',RO:'ROU',RU:'RUS',
-  RW:'RWA',KN:'KNA',LC:'LCA',VC:'VCT',WS:'WSM',SM:'SMR',SA:'SAU',RS:'SRB',SL:'SLE',SG:'SGP',
-  SI:'SVN',SB:'SLB',SO:'SOM',ZA:'ZAF',SS:'SSD',ES:'ESP',LK:'LKA',SD:'SDN',SR:'SUR',SZ:'SWZ',
-  SE:'SWE',CH:'CHE',SY:'SYR',TJ:'TJK',TZ:'TZA',TH:'THA',TL:'TLS',TG:'TGO',TO:'TON',TT:'TTO',
-  TR:'TUR',TM:'TKM',TV:'TUV',UG:'UGA',UA:'UKR',AE:'ARE',GB:'GBR',US:'USA',UY:'URY',UZ:'UZB',
-  VU:'VUT',VE:'VEN',VN:'VNM',YE:'YEM',ZM:'ZMB',GQ:'GNQ',PE:'PER',CZ:'CZE',SK:'SVK',HR:'HRV',
-};
-
-app.get('/api/crash-data', async (req, res) => {
-  try {
-    const { lat, lon, country } = req.query;
-
-    if (!lat || !lon) {
-      return res.status(400).json({ error: 'Missing required parameters: lat, lon' });
-    }
-
-    const latNum = parseFloat(lat);
-    const lonNum = parseFloat(lon);
-
-    if (latNum < -90 || latNum > 90 || lonNum < -180 || lonNum > 180) {
-      return res.status(400).json({ error: 'Invalid coordinates' });
-    }
-
-    const countryCode = (country || '').toUpperCase();
-    const isUS = countryCode === 'US' || countryCode === 'USA';
-
-    // --- Non-US: return WHO country-level data ---
-    if (!isUS) {
-      const iso3 = iso2to3[countryCode] || countryCode; // try direct if already alpha-3
-      const whoEntry = whoRoadDeaths[iso3];
-
-      if (!whoEntry) {
-        return res.json({
-          success: true,
-          data: null, // no data available for this country
-        });
-      }
-
-      console.log(`🌍 WHO crash data for ${whoEntry.name}: ${whoEntry.rate}/100k`);
-
-      return res.json({
-        success: true,
-        data: {
-          type: 'country',
-          deathRatePer100k: whoEntry.rate,
-          totalDeaths: 0, // WHO RS_198 only gives rate, not absolute count
-          countryName: whoEntry.name,
-          year: whoRoadDeaths._meta?.year || 2021,
-          dataSource: 'WHO Global Health Observatory',
-        },
-      });
-    }
-
-    // --- US: FARS street-level data ---
-    console.log(`🚨 Fetching US crash data for: ${lat}, ${lon}`);
-
-    // Step 1: Get state/county FIPS from FCC Census API
-    const fccController = new AbortController();
-    const fccTimeout = setTimeout(() => fccController.abort(), 10000);
-
-    const fccUrl = `https://geo.fcc.gov/api/census/area?lat=${lat}&lon=${lon}&format=json`;
-    const fccResponse = await fetch(fccUrl, {
-      signal: fccController.signal,
-      headers: { 'User-Agent': 'SafeStreets/1.0' },
-    });
-    clearTimeout(fccTimeout);
-
-    if (!fccResponse.ok) {
-      throw new Error(`FCC API returned ${fccResponse.status}`);
-    }
-
-    const fccData = await fccResponse.json();
-
-    if (!fccData.results || fccData.results.length === 0) {
-      // Not a valid US location (e.g. ocean, territory not covered)
-      return res.json({ success: true, data: null });
-    }
-
-    const stateFips = fccData.results[0].state_fips;
-    const countyFips = fccData.results[0].county_fips;
-    const countyName = fccData.results[0].county_name || '';
-
-    if (!stateFips || !countyFips) {
-      return res.json({ success: true, data: null });
-    }
-
-    console.log(`📍 FIPS: state=${stateFips}, county=${countyFips} (${countyName})`);
-
-    // Step 2: Query FARS (with caching)
-    const fromYear = 2018;
-    const toYear = 2022;
-    const cacheKey = `crashes:${stateFips}:${countyFips}:${fromYear}-${toYear}`;
-
-    let crashes;
-    const cached = farsCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < FARS_CACHE_TTL) {
-      crashes = cached.data;
-      console.log(`📦 FARS cache hit: ${crashes.length} crashes in ${countyName}`);
-    } else {
-      const farsUrl = `https://crashviewer.nhtsa.dot.gov/CrashAPI/crashes/GetCrashesByLocation?fromCaseYear=${fromYear}&toCaseYear=${toYear}&state=${stateFips}&county=${countyFips}&format=json`;
-
-      const farsController = new AbortController();
-      const farsTimeout = setTimeout(() => farsController.abort(), 15000);
-
-      let farsOk = false;
-      try {
-        const farsResponse = await fetch(farsUrl, {
-          signal: farsController.signal,
-          headers: { 'User-Agent': 'SafeStreets/1.0' },
-        });
-        clearTimeout(farsTimeout);
-
-        if (!farsResponse.ok) {
-          console.warn(`FARS API returned ${farsResponse.status}, falling back to no data`);
-        } else {
-          const farsData = await farsResponse.json();
-
-          // FARS returns { Results: [{ ... }] } or array depending on format
-          crashes = Array.isArray(farsData) ? farsData :
-            (farsData.Results || farsData.results || []);
-
-          // Flatten if nested arrays
-          if (crashes.length > 0 && Array.isArray(crashes[0])) {
-            crashes = crashes.flat();
-          }
-
-          farsCache.set(cacheKey, { data: crashes, timestamp: Date.now() });
-          console.log(`FARS: ${crashes.length} total crashes in ${countyName} (${fromYear}-${toYear})`);
-          farsOk = true;
-        }
-      } catch (farsErr) {
-        clearTimeout(farsTimeout);
-        console.warn('FARS API unavailable:', farsErr.message);
-      }
-
-      if (!farsOk) {
-        // FARS unavailable — return null so frontend can use OSM fallback
-        return res.json({ success: true, data: null });
-      }
-    }
-
-    // Step 3: Filter crashes within 800m
-    const radiusMeters = 800;
-    const nearbyCrashes = [];
-
-    for (const crash of crashes) {
-      const crashLat = parseFloat(crash.LATITUDE || crash.latitude);
-      const crashLon = parseFloat(crash.LONGITUD || crash.LONGITUDE || crash.longitude || crash.longitud);
-
-      if (isNaN(crashLat) || isNaN(crashLon) || crashLat === 0 || crashLon === 0) continue;
-
-      const dist = haversineDistance(latNum, lonNum, crashLat, crashLon);
-      if (dist <= radiusMeters) {
-        nearbyCrashes.push({
-          distance: Math.round(dist),
-          fatalities: parseInt(crash.FATALS || crash.fatals || '1', 10),
-          year: parseInt(crash.CaseYear || crash.CASEYEAR || crash.caseyear || '0', 10),
-          road: crash.TWAY_ID || crash.tway_id || 'Unknown road',
-          totalVehicles: parseInt(crash.TOTALVEHICLES || crash.totalvehicles || '0', 10),
-        });
-      }
-    }
-
-    // Step 4: Aggregate
-    const totalCrashes = nearbyCrashes.length;
-    const totalFatalities = nearbyCrashes.reduce((sum, c) => sum + c.fatalities, 0);
-
-    // Yearly breakdown
-    const yearMap = {};
-    for (let y = fromYear; y <= toYear; y++) yearMap[y] = { year: y, crashes: 0, fatalities: 0 };
-    for (const c of nearbyCrashes) {
-      if (yearMap[c.year]) {
-        yearMap[c.year].crashes++;
-        yearMap[c.year].fatalities += c.fatalities;
-      }
-    }
-    const yearlyBreakdown = Object.values(yearMap);
-
-    // Nearest crash
-    const nearest = nearbyCrashes.sort((a, b) => a.distance - b.distance)[0] || null;
-
-    console.log(`🚨 Result: ${totalCrashes} crashes, ${totalFatalities} fatalities within ${radiusMeters}m`);
-
-    res.json({
-      success: true,
-      data: {
-        type: 'local',
-        totalCrashes,
-        totalFatalities,
-        yearRange: { from: fromYear, to: toYear },
-        yearlyBreakdown,
-        nearestCrash: nearest ? {
-          distance: nearest.distance,
-          year: nearest.year,
-          fatalities: nearest.fatalities,
-          road: nearest.road,
-        } : undefined,
-        radiusMeters,
-        dataSource: 'NHTSA FARS',
-      },
-    });
-
-  } catch (error) {
-    console.error('❌ Error fetching crash data:', error);
-    res.status(500).json({
-      error: error.message || 'Failed to fetch crash data',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-    });
-  }
-});
 
 // =====================
 // STREET DESIGN (EPA National Walkability Index)
@@ -5678,13 +5414,12 @@ THERMAL COMFORT (consolidated surface temperature + urban heat island):
 - Heat islands disproportionately affect low-income and minority neighborhoods
 - EPA: living within 200m of high-traffic roads → asthma, cardiovascular disease, lung cancer
 
-TRAFFIC FATALITY DATA (contextual — not a scored metric):
-- US data: NHTSA Fatality Analysis Reporting System (FARS) — fatal crashes within 800m
-- International: WHO Global Health Observatory — road traffic death rate per 100,000
-- Global average: 15.0 deaths/100k (WHO 2021); best: Norway 1.5/100k
-- US rate: 14.2/100k — nearly 3x European average of 5-6/100k
-- Pedestrians represent 23% of all road traffic deaths globally (WHO 2023)
-- 40,990 US road deaths in 2023 (NHTSA preliminary); pedestrian deaths hit 40-year high
+STREET DESIGN (scored metric — EPA National Walkability Index):
+- D3B: Street intersection density (weighted 50%)
+- D4A: Distance to nearest transit stop (weighted 30%)
+- D2B: Land use diversity/employment mix (weighted 20%)
+- EPA ranks 1-20 per census block group, converted to 0-100 score
+- Source: geodata.epa.gov/arcgis/rest/services/OA/WalkabilityIndex
 
 TERRAIN & SLOPE:
 - ADA max slope: 5% (1:20) accessible; 8.33% (1:12) absolute max with handrails
@@ -5999,7 +5734,6 @@ app.listen(PORT, () => {
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);
   console.log(`   🔥 Urban Heat Island: GET /api/heat-island`);
   console.log(`   🚶 Commute Mode: GET /api/population-density`);
-  console.log(`   🚨 Crash Data: GET /api/crash-data (FARS + WHO)`);
   console.log(`   🛣️  Street Design: GET /api/street-design (EPA Walkability Index)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
   console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);

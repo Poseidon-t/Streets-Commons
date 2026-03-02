@@ -12,8 +12,6 @@ export interface WalkabilityMetrics {
   slope: number; // From NASADEM elevation data
   treeCanopy: number; // From Sentinel-2 NDVI data
   streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
-  crashHistory?: number; // NHTSA FARS / WHO road fatality data
-  populationDensity?: number; // GHS-POP satellite population grid (legacy, main app)
   commuteMode?: number; // Census ACS walk/bike/transit commute share
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
@@ -103,32 +101,6 @@ export interface StreetAttributes {
   lit?: boolean;
   osmId?: number;
 }
-
-// --- Crash / fatality data ---
-
-/** US street-level crash data from NHTSA FARS */
-export interface LocalCrashData {
-  type: 'local';
-  totalCrashes: number;
-  totalFatalities: number;
-  yearRange: { from: number; to: number };
-  yearlyBreakdown: { year: number; crashes: number; fatalities: number }[];
-  nearestCrash?: { distance: number; year: number; fatalities: number; road: string };
-  radiusMeters: number;
-  dataSource: 'NHTSA FARS';
-}
-
-/** International country-level data from WHO */
-export interface CountryCrashData {
-  type: 'country';
-  deathRatePer100k: number;
-  totalDeaths: number;
-  countryName: string;
-  year: number;
-  dataSource: 'WHO Global Health Observatory';
-}
-
-export type CrashData = LocalCrashData | CountryCrashData;
 
 // --- Street Design data (EPA National Walkability Index) ---
 

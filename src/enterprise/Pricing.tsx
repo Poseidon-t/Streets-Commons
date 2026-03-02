@@ -24,7 +24,7 @@ const FEATURES = [
   { name: 'Network connectivity analysis', core: false, complete: true },
   { name: 'Traffic volume assessment', core: false, complete: true },
   { name: 'Speed environment analysis', core: false, complete: true },
-  { name: 'Crash history & risk mapping', core: false, complete: true },
+  { name: 'Street design & EPA walkability', core: false, complete: true },
 
   // Citizen Advocacy
   { name: 'Community survey tool', core: true, complete: true },
@@ -60,7 +60,7 @@ const FAQS = [
   },
   {
     q: 'What data sources do you use beyond field audits?',
-    a: 'We integrate municipal GIS data, census demographics, transit schedules, crash databases, land use records, and satellite imagery. All data sources are documented in the methodology appendix of every report.',
+    a: 'We integrate municipal GIS data, census demographics, transit schedules, EPA walkability data, land use records, and satellite imagery. All data sources are documented in the methodology appendix of every report.',
   },
   {
     q: 'Do you work outside the United States?',

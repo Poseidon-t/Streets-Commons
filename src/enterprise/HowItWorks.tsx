@@ -48,7 +48,7 @@ const PHASES = [
     number: '04',
     title: 'Analysis & Modeling',
     duration: 'Week 3-5',
-    description: 'Field observations and citizen input are combined with municipal data, census demographics, transit schedules, and crash databases into a multi-source pedestrian safety model.',
+    description: 'Field observations and citizen input are combined with municipal data, census demographics, transit schedules, and EPA walkability data into a multi-source pedestrian safety model.',
     details: [
       'Field data digitization and quality review',
       'Integration of citizen advocacy data with field observations',
@@ -80,7 +80,7 @@ const DATA_SOURCES = [
   { name: 'Municipal GIS', desc: 'Parcel data, zoning, infrastructure, public right-of-way' },
   { name: 'Census & Demographics', desc: 'Population density, income, age distribution, commute patterns' },
   { name: 'Transit Data', desc: 'GTFS feeds, service frequency, route coverage, ridership' },
-  { name: 'Crash Databases', desc: 'FARS, state DOT records, police reports, severity coding' },
+  { name: 'EPA Walkability Index', desc: 'Intersection density, transit proximity, land use mix, street connectivity' },
   { name: 'Satellite & Aerial', desc: 'Land cover, canopy analysis, impervious surface mapping' },
   { name: 'Community Input', desc: 'Citizen surveys, voice recordings, cultural context interviews, community feedback' },
 ];

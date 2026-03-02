@@ -61,7 +61,6 @@ function weightedAvg(items: { score: number | null; weight: number }[]): number 
 export interface CompositeScoreInput {
   legacy: WalkabilityMetrics;
   networkGraph?: NetworkGraph;
-  buildingDensityScore?: number;     // 0-100 from NDBI
   populationDensityScore?: number;   // 0-100 from Census ACS
   streetDesignScore?: number;        // 0-100 from EPA Walkability Index
 }
@@ -69,7 +68,7 @@ export interface CompositeScoreInput {
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, buildingDensityScore, populationDensityScore, streetDesignScore } = input;
+  const { legacy, networkGraph, populationDensityScore, streetDesignScore } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];

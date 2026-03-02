@@ -57,7 +57,7 @@ export default function ForResearch() {
         { name: 'ADA Compliance', category: 'Infrastructure' },
         { name: 'Destination Density', category: 'Access' },
         { name: 'Noise & Pollution', category: 'Environment' },
-        { name: 'Crash History', category: 'Safety' },
+        { name: 'Street Design', category: 'Design' },
         { name: 'Speed Environment', category: 'Safety' },
       ]}
       ctaTitle="Partner with us on pedestrian safety research"

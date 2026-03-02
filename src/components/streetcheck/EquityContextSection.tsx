@@ -1,10 +1,9 @@
-import type { DemographicData, WalkabilityMetrics, CrashData, WalkabilityScoreV2 } from '../../types';
+import type { DemographicData, WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import type { LocalEconomicProfile } from '../../utils/localEconomicAnalysis';
 
 interface EquityContextProps {
   demographicData: DemographicData | null;
   metrics: WalkabilityMetrics;
-  crashData: CrashData | null;
   compositeScore: WalkabilityScoreV2 | null;
   localEconomy: LocalEconomicProfile | null;
 }
@@ -24,7 +23,7 @@ interface DemographicStat {
   contextColor?: string;
 }
 
-function buildDemographicStats(demographics: DemographicData, crashData: CrashData | null): DemographicStat[] {
+function buildDemographicStats(demographics: DemographicData): DemographicStat[] {
   const stats: DemographicStat[] = [];
 
   if (demographics.type === 'us') {
@@ -100,33 +99,12 @@ function buildDemographicStats(demographics: DemographicData, crashData: CrashDa
     }
   }
 
-  // Add crash context as a stat
-  if (crashData) {
-    if (crashData.type === 'local') {
-      stats.push({
-        label: 'Fatal Crashes Nearby',
-        value: `${crashData.totalFatalities}`,
-        context: crashData.totalFatalities > 0 ? `Within 800m (${crashData.dataSource})` : 'None within 800m',
-        contextColor: crashData.totalFatalities > 2 ? '#dc2626' : crashData.totalFatalities > 0 ? '#ca8a04' : '#65a30d',
-      });
-    } else if (crashData.type === 'country') {
-      const rate = crashData.deathRatePer100k;
-      stats.push({
-        label: 'Road Deaths',
-        value: `${rate.toFixed(1)}/100k`,
-        context: rate > 20 ? 'Well above global avg (15.0)' : rate > 15 ? 'Above global avg (15.0)' : 'Below global avg (15.0)',
-        contextColor: rate > 20 ? '#dc2626' : rate > 15 ? '#ca8a04' : '#65a30d',
-      });
-    }
-  }
-
   return stats;
 }
 
 function computeEquityAnalysis(
   demographics: DemographicData | null,
   metrics: WalkabilityMetrics,
-  crashData: CrashData | null,
   compositeScore: WalkabilityScoreV2 | null,
   localEconomy: LocalEconomicProfile | null,
 ): { level: ConcernLevel; insights: EquityInsight[]; context: string } | null {
@@ -194,35 +172,6 @@ function computeEquityAnalysis(
     }
   }
 
-  // --- Safety Burden ---
-  if (crashData) {
-    const isLowIncome = demographics.type === 'us'
-      ? (demographics.povertyRate !== null && demographics.povertyRate > 15)
-      : (demographics.type === 'international' && demographics.gdpPerCapita !== null && demographics.gdpPerCapita < 10000);
-
-    if (crashData.type === 'local' && crashData.totalFatalities > 0 && isLowIncome) {
-      concernPoints += 2;
-      insights.push({
-        icon: '⚠️',
-        label: 'Disproportionate safety burden',
-        detail: `${crashData.totalFatalities} fatal crash${crashData.totalFatalities > 1 ? 'es' : ''} near a low-income area. Research shows pedestrian fatality rates are 2x higher in underinvested neighborhoods (Smart Growth America).`,
-      });
-    } else if (crashData.type === 'country' && crashData.deathRatePer100k > 15) {
-      concernPoints += isLowIncome ? 1 : 0;
-      insights.push({
-        icon: '⚠️',
-        label: 'Elevated road safety risk',
-        detail: `${crashData.countryName}'s road death rate of ${crashData.deathRatePer100k.toFixed(1)}/100k is above the global average of 15.0. ${isLowIncome ? 'Lower-income countries bear 90% of the world\'s road traffic deaths (WHO).' : 'Pedestrians and cyclists are disproportionately affected.'}`,
-      });
-    } else if (crashData.type === 'local' && crashData.totalFatalities > 0) {
-      insights.push({
-        icon: '⚠️',
-        label: 'Road safety concern',
-        detail: `${crashData.totalFatalities} fatal crash${crashData.totalFatalities > 1 ? 'es' : ''} recorded within 800m (NHTSA FARS, 2018-2022).`,
-      });
-    }
-  }
-
   // --- Service Desert ---
   if (localEconomy && localEconomy.gaps.length > 0) {
     const isDisadvantaged = demographics.type === 'us'
@@ -264,14 +213,13 @@ const LEVEL_CONFIG = {
 export default function EquityContextSection({
   demographicData,
   metrics,
-  crashData,
   compositeScore,
   localEconomy,
 }: EquityContextProps) {
   if (!demographicData) return null;
 
-  const analysis = computeEquityAnalysis(demographicData, metrics, crashData, compositeScore, localEconomy);
-  const stats = buildDemographicStats(demographicData, crashData);
+  const analysis = computeEquityAnalysis(demographicData, metrics, compositeScore, localEconomy);
+  const stats = buildDemographicStats(demographicData);
   const config = analysis ? LEVEL_CONFIG[analysis.level] : LEVEL_CONFIG.low;
 
   const sourceLabel = demographicData.type === 'us'
@@ -337,7 +285,7 @@ export default function EquityContextSection({
           </p>
         )}
         <p className="text-xs" style={{ color: '#b0a8a0' }}>
-          {sourceLabel}{crashData ? ` · ${crashData.dataSource}` : ''} · Smart Growth America
+          {sourceLabel} · Smart Growth America
         </p>
       </div>
     </div>

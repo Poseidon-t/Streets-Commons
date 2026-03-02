@@ -57,7 +57,7 @@ export default function ForGovernments() {
         { name: 'Sidewalk Quality', category: 'Infrastructure' },
         { name: 'Crossing Safety', category: 'Infrastructure' },
         { name: 'Lighting & Visibility', category: 'Environment' },
-        { name: 'Crash History', category: 'Safety' },
+        { name: 'Street Design', category: 'Design' },
         { name: 'Network Connectivity', category: 'Access' },
       ]}
       ctaTitle="Ready to build your pedestrian safety baseline?"

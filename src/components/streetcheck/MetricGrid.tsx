@@ -383,7 +383,6 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           <EquityContextSection
             demographicData={demographicData}
             metrics={metrics}
-            crashData={null}
             compositeScore={compositeScore ?? null}
             localEconomy={osmData ? analyzeLocalEconomy(osmData) : null}
           />
