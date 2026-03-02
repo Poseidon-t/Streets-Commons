@@ -640,6 +640,8 @@ function LeadRow({
   onActiveListingsChange,
   onGenerateReport,
   isGeneratingReport,
+  onGenerateImage,
+  isGeneratingImage,
   isSelected,
   onToggleSelect,
 }: {
