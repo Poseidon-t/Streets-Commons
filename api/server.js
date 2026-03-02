@@ -1855,7 +1855,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const radius = 800;
     const poiRadius = 1200;
     const overpassQuery = `[out:json][timeout:25];
-(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|unclassified|service)$"];);out body; >; out skel qt;
+(node(around:${radius},${lat},${lon})["highway"="crossing"];way(around:${radius},${lat},${lon})["footway"="sidewalk"];way(around:${radius},${lat},${lon})["highway"~"^(footway|primary|secondary|tertiary|residential|living_street|pedestrian|unclassified|service)$"];);out body; >; out skel qt;
 (node(around:${poiRadius},${lat},${lon})["amenity"];node(around:${poiRadius},${lat},${lon})["shop"];way(around:${poiRadius},${lat},${lon})["amenity"="school"];way(around:${poiRadius},${lat},${lon})["leisure"="park"];node(around:${poiRadius},${lat},${lon})["public_transport"="stop_position"];node(around:${poiRadius},${lat},${lon})["highway"="bus_stop"];node(around:${poiRadius},${lat},${lon})["railway"="station"];);out center;`;
 
     const overpassEndpoints = [
@@ -1978,12 +1978,25 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           if (!sr.ok) return { score: 5, ndvi: null };
           const sd = await sr.json();
           if (!sd.features?.length) return { score: 5, ndvi: null };
-          // Prefer growing-season images for accurate vegetation measurement
-          const isGrowing = (d) => { const m = new Date(d).getMonth() + 1; return lat > 0 ? (m >= 4 && m <= 10) : (m >= 10 || m <= 3); };
-          const growing = sd.features.filter(f => isGrowing(f.properties.datetime));
-          const candidates = growing.length > 0 ? growing : sd.features;
-          candidates.sort((a, b) => (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100));
-          const best = candidates[0];
+          // Prefer peak growing-season images for accurate vegetation measurement
+          // Peak months have greenest vegetation; avoids Mediterranean dry-season brown
+          const peakRank = (d) => {
+            const m = new Date(d).getMonth() + 1;
+            const peak = lat > 0 ? [5, 6] : [11, 12];       // May-Jun NH, Nov-Dec SH
+            const good = lat > 0 ? [4, 7] : [10, 1];         // Apr/Jul NH, Oct/Jan SH
+            const ok   = lat > 0 ? [3, 8] : [9, 2];          // Mar/Aug NH, Sep/Feb SH
+            if (peak.includes(m)) return 0;
+            if (good.includes(m)) return 1;
+            if (ok.includes(m)) return 2;
+            return 3; // off-season
+          };
+          // Sort: peak months first, then by cloud cover within each tier
+          sd.features.sort((a, b) => {
+            const ra = peakRank(a.properties.datetime), rb = peakRank(b.properties.datetime);
+            if (ra !== rb) return ra - rb;
+            return (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100);
+          });
+          const best = sd.features[0];
           const b08 = best.assets.B08, b04 = best.assets.B04;
           if (!b08 || !b04) return { score: 5, ndvi: null };
           const signingEp = 'https://planetarycomputer.microsoft.com/api/sas/v1/sign';
@@ -2278,6 +2291,8 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     if (streetDesignData) {
       streetDesignScore = Math.round(streetDesignData.score / 10 * 10) / 10; // EPA 0-100 → 0-10
     }
+    // If EPA unavailable for US locations, exclude from scoring (don't penalize with 0)
+    // streetDesignScore stays 0 which gets filtered out by the available.filter(s => s > 0)
     console.log(`  ✅ Street Design: ${streetDesignScore}/10${!streetDesignData ? ' (EPA data unavailable)' : ` (EPA score: ${streetDesignData.score}/100)`}`);
 
     // 7. Overall score — average of available metrics
@@ -3399,19 +3414,26 @@ app.get('/api/ndvi', async (req, res) => {
       });
     }
 
-    // Prefer growing-season images for accurate vegetation measurement
-    const isGrowingSeason = (dateStr) => {
-      const month = new Date(dateStr).getMonth() + 1;
-      if (latitude > 0) return month >= 4 && month <= 10;  // Apr-Oct (Northern)
-      return month >= 10 || month <= 3;                     // Oct-Mar (Southern)
+    // Prefer peak growing-season images for accurate vegetation measurement
+    // Peak months have greenest vegetation; avoids Mediterranean dry-season brown
+    const peakRank = (dateStr) => {
+      const m = new Date(dateStr).getMonth() + 1;
+      const peak = latitude > 0 ? [5, 6] : [11, 12];       // May-Jun NH, Nov-Dec SH
+      const good = latitude > 0 ? [4, 7] : [10, 1];         // Apr/Jul NH, Oct/Jan SH
+      const ok   = latitude > 0 ? [3, 8] : [9, 2];          // Mar/Aug NH, Sep/Feb SH
+      if (peak.includes(m)) return 0;
+      if (good.includes(m)) return 1;
+      if (ok.includes(m)) return 2;
+      return 3; // off-season
     };
-    const growingSeason = stacData.features.filter(f => isGrowingSeason(f.properties.datetime));
-    const candidates = growingSeason.length > 0 ? growingSeason : stacData.features;
-    candidates.sort((a, b) =>
-      (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100)
-    );
-    const bestImage = candidates[0];
-    console.log(`✅ Best image: ${bestImage.properties.datetime} (${bestImage.properties['eo:cloud_cover']}% cloud, growing-season: ${growingSeason.length > 0})`);
+    // Sort: peak months first, then by cloud cover within each tier
+    stacData.features.sort((a, b) => {
+      const ra = peakRank(a.properties.datetime), rb = peakRank(b.properties.datetime);
+      if (ra !== rb) return ra - rb;
+      return (a.properties['eo:cloud_cover'] || 100) - (b.properties['eo:cloud_cover'] || 100);
+    });
+    const bestImage = stacData.features[0];
+    console.log(`✅ Best image: ${bestImage.properties.datetime} (${bestImage.properties['eo:cloud_cover']}% cloud, peakRank: ${peakRank(bestImage.properties.datetime)})`);
 
     // Use B08 (NIR 10m) + B04 (Red 10m) — SAME resolution, no mismatch
     const b08Asset = bestImage.assets.B08;

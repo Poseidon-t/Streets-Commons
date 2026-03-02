@@ -184,6 +184,7 @@ export default function AgentReportView() {
 
   const sortedMetrics = metricsConfig
     .map(m => ({ ...m, score: resolveMetric(m.key as MetricKey) }))
+    .filter(m => m.score > 0) // Exclude metrics with no data
     .sort((a, b) => b.score - a.score);
 
   const strengths = sortedMetrics.filter(m => m.score >= 7).slice(0, 3);
@@ -371,7 +372,10 @@ export default function AgentReportView() {
           <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: C.text, marginBottom: '1.5rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Detailed Metrics</h2>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-            {metricsConfig.map(m => {
+            {metricsConfig.filter(m => {
+              const val = resolveMetric(m.key as MetricKey);
+              return val > 0; // Hide metrics with no data (e.g. EPA timeout)
+            }).map(m => {
               const key = m.key as MetricKey;
               const originalVal = (metrics[m.key as keyof WalkabilityMetrics] as number) ?? 0;
               const val = resolveMetric(key);

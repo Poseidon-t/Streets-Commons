@@ -291,12 +291,16 @@ export default function ComparisonReportView() {
                 </div>
               ))}
             </div>
-            {/* Metric rows */}
-            {metricsConfig.map((m, mIdx) => {
+            {/* Metric rows — hide metrics where all neighborhoods scored 0 */}
+            {(() => {
+              const visibleMetrics = metricsConfig.filter(m =>
+                reports.some(r => ((r.metrics[m.key as keyof WalkabilityMetrics] as number) ?? 0) > 0)
+              );
+              return visibleMetrics.map((m, mIdx) => {
               const metricScores = reports.map(r => (r.metrics[m.key as keyof WalkabilityMetrics] as number) ?? 0);
               const maxMetric = Math.max(...metricScores);
               return (
-                <div key={m.key} style={{ display: 'grid', gridTemplateColumns: `10rem repeat(${colCount}, 1fr)`, borderBottom: mIdx < metricsConfig.length - 1 ? `1px solid ${C.border}` : 'none' }}>
+                <div key={m.key} style={{ display: 'grid', gridTemplateColumns: `10rem repeat(${colCount}, 1fr)`, borderBottom: mIdx < visibleMetrics.length - 1 ? `1px solid ${C.border}` : 'none' }}>
                   <div style={{ padding: '0.875rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <span style={{ fontSize: '1rem' }}>{m.icon}</span>
                     <div>
@@ -320,7 +324,8 @@ export default function ComparisonReportView() {
                   })}
                 </div>
               );
-            })}
+            });
+            })()}
           </div>
 
           {/* Walkability Value Premium */}
