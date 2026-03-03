@@ -777,13 +777,13 @@ app.get('/api/blog/posts/:slug', (req, res) => {
 
 // ─── Admin API ──────────────────────────────────────────────────────────────
 
-app.get('/api/admin/stats', (req, res) => {
+app.get('/api/admin/stats', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   ensureTodayExists();
   res.json(analyticsStore);
 });
 
-app.get('/api/admin/emails', (req, res) => {
+app.get('/api/admin/emails', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   try {
     const emailData = loadEmails();
@@ -793,7 +793,7 @@ app.get('/api/admin/emails', (req, res) => {
   }
 });
 
-app.get('/api/admin/inquiries', (req, res) => {
+app.get('/api/admin/inquiries', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   try {
     const data = loadInquiries();
@@ -803,7 +803,7 @@ app.get('/api/admin/inquiries', (req, res) => {
   }
 });
 
-app.get('/api/admin/blog/posts', (req, res) => {
+app.get('/api/admin/blog/posts', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const list = posts
@@ -812,7 +812,7 @@ app.get('/api/admin/blog/posts', (req, res) => {
   res.json(list);
 });
 
-app.get('/api/admin/blog/posts/:slug', (req, res) => {
+app.get('/api/admin/blog/posts/:slug', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const post = posts.find(p => p.slug === req.params.slug);
@@ -820,7 +820,7 @@ app.get('/api/admin/blog/posts/:slug', (req, res) => {
   res.json(post);
 });
 
-app.post('/api/admin/blog/posts', (req, res) => {
+app.post('/api/admin/blog/posts', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const { title, content, category, tags, metaTitle, metaDescription, excerpt, author, date, status } = req.body || {};
@@ -857,7 +857,7 @@ app.post('/api/admin/blog/posts', (req, res) => {
   res.status(201).json(post);
 });
 
-app.put('/api/admin/blog/posts/:slug', (req, res) => {
+app.put('/api/admin/blog/posts/:slug', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const index = posts.findIndex(p => p.slug === req.params.slug);
@@ -887,7 +887,7 @@ app.put('/api/admin/blog/posts/:slug', (req, res) => {
   res.json(updated);
 });
 
-app.delete('/api/admin/blog/posts/:slug', (req, res) => {
+app.delete('/api/admin/blog/posts/:slug', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const index = posts.findIndex(p => p.slug === req.params.slug);
@@ -1624,14 +1624,14 @@ Write the complete blog post now. Remember: output ONLY a valid JSON object, no 
 // ─── Content Queue (Editorial Calendar) ─────────────────────────────────────
 
 // GET /api/admin/content-queue — list all planned posts
-app.get('/api/admin/content-queue', (req, res) => {
+app.get('/api/admin/content-queue', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const calendar = loadEditorialCalendar();
   res.json(calendar);
 });
 
 // PUT /api/admin/content-queue/:id — update a single calendar post status
-app.put('/api/admin/content-queue/:id', (req, res) => {
+app.put('/api/admin/content-queue/:id', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const id = parseInt(req.params.id, 10);
   const calendar = loadEditorialCalendar();
@@ -1747,7 +1747,7 @@ Return ONLY a JSON array (no markdown code fences) with this structure:
 });
 
 // POST /api/admin/content-queue/add — add a new post to the editorial calendar
-app.post('/api/admin/content-queue/add', (req, res) => {
+app.post('/api/admin/content-queue/add', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
 
   const { title, region = 'global', keywords = [], dataSources = [], primaryMessage = '', tone = 'informed_advocate', postType = 'standard' } = req.body;
@@ -1809,14 +1809,14 @@ function saveLeads(leads) {
 }
 
 // GET /api/admin/sales/leads — return all leads
-app.get('/api/admin/sales/leads', (req, res) => {
+app.get('/api/admin/sales/leads', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const leads = loadLeads();
   res.json({ leads, count: leads.length });
 });
 
 // PUT /api/admin/sales/leads/:rank — update a lead
-app.put('/api/admin/sales/leads/:rank', (req, res) => {
+app.put('/api/admin/sales/leads/:rank', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const rank = parseInt(req.params.rank, 10);
   const leads = loadLeads();
@@ -2660,7 +2660,7 @@ app.post('/api/reports/:id/lead', (req, res) => {
 });
 
 // POST /api/admin/sales/leads — add a new lead
-app.post('/api/admin/sales/leads', (req, res) => {
+app.post('/api/admin/sales/leads', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
   const { agentName, city, state } = req.body;
   if (!agentName || !city || !state) {
