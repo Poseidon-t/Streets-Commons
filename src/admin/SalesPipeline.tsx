@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { fetchLeads, updateLead, addLead, searchAgents, validateEmail, generateReport, generateComparison } from './adminApi';
+import { useAdminApi } from './adminApi';
 import EmailReportCard from './EmailReportCard';
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -80,6 +80,7 @@ function getAgentSearchLinks(lead: QualifiedLead) {
 // ── Component ───────────────────────────────────────────────────────────────
 
 export default function SalesPipeline() {
+  const { fetchLeads, updateLead, addLead, validateEmail, generateReport, generateComparison } = useAdminApi();
   const [leads, setLeads] = useState<QualifiedLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1083,6 +1084,7 @@ function FindAgentsModal({ onClose, onAddAgent }: {
   onClose: () => void;
   onAddAgent: (agent: Record<string, string>) => Promise<void>;
 }) {
+  const { searchAgents } = useAdminApi();
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [neighborhoods, setNeighborhoods] = useState('');

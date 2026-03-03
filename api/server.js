@@ -17,6 +17,7 @@ import dotenv from 'dotenv';
 import { fromUrl } from 'geotiff';
 import Stripe from 'stripe';
 import helmet from 'helmet';
+import { createClerkClient } from '@clerk/clerk-sdk-node';
 
 import dns from 'node:dns';
 import { promisify } from 'node:util';
@@ -116,15 +117,33 @@ if (fs.existsSync(SEED_DIR)) {
 }
 
 const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(__dirname, '..', 'data', 'analytics.json');
-const ANALYTICS_SECRET = process.env.ANALYTICS_SECRET || (process.env.STRIPE_SECRET_KEY?.slice(0, 16) || 'dev-secret-key');
+const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
 
-function requireAdminKey(req, res) {
-  const key = req.headers['x-admin-key'];
-  if (key !== ANALYTICS_SECRET) {
+const clerkClient = process.env.CLERK_SECRET_KEY
+  ? createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY })
+  : null;
+
+async function requireAdminKey(req, res) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+  if (!token) {
     res.status(401).json({ error: 'Unauthorized' });
     return false;
   }
-  return true;
+
+  try {
+    if (!clerkClient) throw new Error('Clerk not configured');
+    const payload = await clerkClient.verifyToken(token);
+    if (!ADMIN_USER_ID || payload.sub !== ADMIN_USER_ID) {
+      res.status(403).json({ error: 'Forbidden' });
+      return false;
+    }
+    return true;
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
+    return false;
+  }
 }
 
 // In-memory analytics store
@@ -759,13 +778,13 @@ app.get('/api/blog/posts/:slug', (req, res) => {
 // ─── Admin API ──────────────────────────────────────────────────────────────
 
 app.get('/api/admin/stats', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   ensureTodayExists();
   res.json(analyticsStore);
 });
 
 app.get('/api/admin/emails', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   try {
     const emailData = loadEmails();
     res.json(emailData);
@@ -775,7 +794,7 @@ app.get('/api/admin/emails', (req, res) => {
 });
 
 app.get('/api/admin/inquiries', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   try {
     const data = loadInquiries();
     res.json(data);
@@ -785,7 +804,7 @@ app.get('/api/admin/inquiries', (req, res) => {
 });
 
 app.get('/api/admin/blog/posts', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const list = posts
     .map(({ content, ...meta }) => meta)
@@ -794,7 +813,7 @@ app.get('/api/admin/blog/posts', (req, res) => {
 });
 
 app.get('/api/admin/blog/posts/:slug', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const post = posts.find(p => p.slug === req.params.slug);
   if (!post) return res.status(404).json({ error: 'Post not found' });
@@ -802,7 +821,7 @@ app.get('/api/admin/blog/posts/:slug', (req, res) => {
 });
 
 app.post('/api/admin/blog/posts', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const { title, content, category, tags, metaTitle, metaDescription, excerpt, author, date, status } = req.body || {};
 
@@ -839,7 +858,7 @@ app.post('/api/admin/blog/posts', (req, res) => {
 });
 
 app.put('/api/admin/blog/posts/:slug', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const index = posts.findIndex(p => p.slug === req.params.slug);
   if (index === -1) return res.status(404).json({ error: 'Post not found' });
@@ -869,7 +888,7 @@ app.put('/api/admin/blog/posts/:slug', (req, res) => {
 });
 
 app.delete('/api/admin/blog/posts/:slug', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const posts = loadBlogPosts();
   const index = posts.findIndex(p => p.slug === req.params.slug);
   if (index === -1) return res.status(404).json({ error: 'Post not found' });
@@ -1502,7 +1521,7 @@ Tone: Teaching and empowering. Make readers feel smarter and more observant. Use
 };
 
 app.post('/api/admin/blog/generate', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {
@@ -1606,14 +1625,14 @@ Write the complete blog post now. Remember: output ONLY a valid JSON object, no 
 
 // GET /api/admin/content-queue — list all planned posts
 app.get('/api/admin/content-queue', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const calendar = loadEditorialCalendar();
   res.json(calendar);
 });
 
 // PUT /api/admin/content-queue/:id — update a single calendar post status
 app.put('/api/admin/content-queue/:id', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const id = parseInt(req.params.id, 10);
   const calendar = loadEditorialCalendar();
   const post = calendar.posts.find(p => p.id === id);
@@ -1638,7 +1657,7 @@ app.put('/api/admin/content-queue/:id', (req, res) => {
 
 // POST /api/admin/content-queue/suggest — AI-powered topic idea generator
 app.post('/api/admin/content-queue/suggest', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {
@@ -1729,7 +1748,7 @@ Return ONLY a JSON array (no markdown code fences) with this structure:
 
 // POST /api/admin/content-queue/add — add a new post to the editorial calendar
 app.post('/api/admin/content-queue/add', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
 
   const { title, region = 'global', keywords = [], dataSources = [], primaryMessage = '', tone = 'informed_advocate', postType = 'standard' } = req.body;
 
@@ -1791,14 +1810,14 @@ function saveLeads(leads) {
 
 // GET /api/admin/sales/leads — return all leads
 app.get('/api/admin/sales/leads', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const leads = loadLeads();
   res.json({ leads, count: leads.length });
 });
 
 // PUT /api/admin/sales/leads/:rank — update a lead
 app.put('/api/admin/sales/leads/:rank', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const rank = parseInt(req.params.rank, 10);
   const leads = loadLeads();
   const idx = leads.findIndex(l => l.rank === rank);
@@ -1818,7 +1837,7 @@ app.put('/api/admin/sales/leads/:rank', (req, res) => {
 
 // POST /api/admin/sales/validate-email — validate email format + MX records
 app.post('/api/admin/sales/validate-email', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const { email } = req.body;
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'email is required' });
@@ -2454,7 +2473,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
 
 // POST /api/admin/sales/generate-report — single location report
 app.post('/api/admin/sales/generate-report', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const { neighborhood, city, state, agentProfile } = req.body;
   if (!city || !agentProfile?.name) {
     return res.status(400).json({ error: 'city and agentProfile.name are required' });
@@ -2498,7 +2517,7 @@ app.post('/api/regenerate-report', async (req, res) => {
 
 // POST /api/admin/sales/generate-comparison — compare 2-4 neighborhoods
 app.post('/api/admin/sales/generate-comparison', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const { neighborhoods, agentProfile } = req.body;
   if (!Array.isArray(neighborhoods) || neighborhoods.length < 2 || neighborhoods.length > 4) {
     return res.status(400).json({ error: '2-4 neighborhoods required' });
@@ -2642,7 +2661,7 @@ app.post('/api/reports/:id/lead', (req, res) => {
 
 // POST /api/admin/sales/leads — add a new lead
 app.post('/api/admin/sales/leads', (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
   const { agentName, city, state } = req.body;
   if (!agentName || !city || !state) {
     return res.status(400).json({ error: 'agentName, city, and state are required' });
@@ -2673,7 +2692,7 @@ app.post('/api/admin/sales/leads', (req, res) => {
 
 // POST /api/admin/sales/search — AI-powered agent search & qualification
 app.post('/api/admin/sales/search', async (req, res) => {
-  if (!requireAdminKey(req, res)) return;
+  if (!(await requireAdminKey(req, res))) return;
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   if (!anthropicKey) {

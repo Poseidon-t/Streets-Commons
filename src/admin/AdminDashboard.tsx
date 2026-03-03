@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchStats } from './adminApi';
+import { useAdminApi } from './adminApi';
 
 interface DayStats {
   pageViews?: number;
@@ -62,6 +62,7 @@ function ListTable({ data, emptyText = 'No data yet' }: { data: [string, number]
 }
 
 export default function AdminDashboard() {
+  const { fetchStats } = useAdminApi();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

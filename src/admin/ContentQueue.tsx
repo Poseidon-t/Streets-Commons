@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  fetchContentQueue,
-  updateContentQueuePost,
-  generateBlogPost,
-  createPost,
-  suggestTopics,
-  addCalendarPost,
-  type Region,
-  type PostType,
-  type Tone,
-} from './adminApi';
+import { useAdminApi, type Region, type PostType, type Tone } from './adminApi';
 
 interface CalendarPost {
   id: number;
@@ -310,6 +300,7 @@ function SuggestModal({
   onClose: () => void;
   onAdded: () => void;
 }) {
+  const { suggestTopics, addCalendarPost } = useAdminApi();
   const [region, setRegion] = useState<Region>('global');
   const [postType, setPostType] = useState('');
   const [count, setCount] = useState(5);
@@ -488,6 +479,7 @@ function SuggestModal({
 
 // ─── Main Component ─────────────────────────────────────────────
 export default function ContentQueue() {
+  const { fetchContentQueue, updateContentQueuePost, generateBlogPost, createPost } = useAdminApi();
   const navigate = useNavigate();
   const [calendar, setCalendar] = useState<Calendar | null>(null);
   const [loading, setLoading] = useState(true);

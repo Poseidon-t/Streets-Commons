@@ -6,7 +6,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
-import { fetchAdminPost, createPost, updatePost, generateBlogPost, type Region } from './adminApi';
+import { useAdminApi, type Region } from './adminApi';
 
 function generateSlug(title: string) {
   return title
@@ -323,6 +323,7 @@ function AIGeneratePanel({
 
 // ─── Main Editor ─────────────────────────────────
 export default function BlogEditor() {
+  const { fetchAdminPost, createPost, updatePost, generateBlogPost } = useAdminApi();
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const isEditing = Boolean(slug);

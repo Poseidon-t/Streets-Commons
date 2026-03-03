@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchEmails } from './adminApi';
+import { useAdminApi } from './adminApi';
 
 interface EmailEntry {
   email: string;
@@ -9,6 +9,7 @@ interface EmailEntry {
 }
 
 export default function EmailCaptures() {
+  const { fetchEmails } = useAdminApi();
   const [emails, setEmails] = useState<EmailEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);

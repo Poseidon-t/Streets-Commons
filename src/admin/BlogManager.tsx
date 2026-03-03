@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchAdminPosts, deletePost } from './adminApi';
+import { useAdminApi } from './adminApi';
 
 interface PostMeta {
   slug: string;
@@ -12,6 +12,7 @@ interface PostMeta {
 }
 
 export default function BlogManager() {
+  const { fetchAdminPosts, deletePost } = useAdminApi();
   const [posts, setPosts] = useState<PostMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
