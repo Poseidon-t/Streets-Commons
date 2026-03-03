@@ -5,11 +5,9 @@
  * Includes field verification: users can adjust scores based on ground observation.
  */
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../types';
-import { recalculateScore, createEmptyFieldData, METRIC_KEYS } from '../utils/fieldVerificationScore';
-import type { MetricKey, FieldData } from '../utils/fieldVerificationScore';
 
 interface ShareableReportCardProps {
   location: { displayName: string; lat: number; lon: number };
@@ -18,6 +16,8 @@ interface ShareableReportCardProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+// ---- helpers ----------------------------------------------------------------
 
 function getScoreColor(score: number): string {
   if (score >= 80) return '#22c55e';
@@ -35,10 +35,98 @@ function getBarColor(score: number): string {
   return '#ef4444';
 }
 
-const METRIC_LABELS: { key: keyof WalkabilityMetrics; label: string; icon: string }[] = [
-  { key: 'destinationAccess', label: 'Destinations', icon: '🏪' },
-  { key: 'treeCanopy', label: 'Tree Cover', icon: '🌳' },
-];
+// ---- display metric definitions ---------------------------------------------
+
+interface DisplayMetric {
+  key: string;
+  label: string;
+  icon: string;
+  baseScore: number; // 0-10 scale
+}
+
+function buildDisplayMetrics(
+  metrics: WalkabilityMetrics,
+  compositeScore: WalkabilityScoreV2 | null,
+): DisplayMetric[] {
+  const result: DisplayMetric[] = [];
+
+  // Street Grid — from OSM network topology (largest component: 35%)
+  const networkScore = compositeScore
+    ? compositeScore.components.networkDesign.score / 10
+    : 0;
+  if (networkScore > 0) {
+    result.push({ key: 'streetGrid', label: 'Street Grid', icon: '🔀', baseScore: networkScore });
+  }
+
+  // Destinations — from OSM POIs
+  if (metrics.destinationAccess > 0) {
+    result.push({ key: 'destinationAccess', label: 'Destinations', icon: '🏪', baseScore: metrics.destinationAccess });
+  }
+
+  // Tree Cover — from Sentinel-2 NDVI
+  if (metrics.treeCanopy > 0) {
+    result.push({ key: 'treeCanopy', label: 'Tree Cover', icon: '🌳', baseScore: metrics.treeCanopy });
+  }
+
+  // Street Design — EPA (US only, shown when available)
+  const sdScore = compositeScore
+    ? compositeScore.components.safety.score / 10
+    : 0;
+  if (sdScore > 0) {
+    result.push({ key: 'streetDesign', label: 'Street Design', icon: '🛣️', baseScore: sdScore });
+  }
+
+  // Commute Mode — Census ACS (US only, shown when available)
+  const popMetric = compositeScore?.components.densityContext.metrics.find(
+    m => m.name === 'Commute Mode' || m.name === 'Population Density',
+  );
+  const commuteScore = popMetric ? popMetric.score / 10 : 0;
+  if (commuteScore > 0) {
+    result.push({ key: 'commuteMode', label: 'Commute Mode', icon: '🚶', baseScore: commuteScore });
+  }
+
+  return result;
+}
+
+// ---- field verify state -----------------------------------------------------
+
+type FieldAdjustments = Record<string, number | null>;
+
+function createEmptyAdjustments(metrics: DisplayMetric[]): FieldAdjustments {
+  const result: FieldAdjustments = {};
+  for (const m of metrics) result[m.key] = null;
+  return result;
+}
+
+/** Recalculate overall score (0–100) from adjusted metric scores. */
+function recalcOverall(
+  displayMetrics: DisplayMetric[],
+  adjustments: FieldAdjustments,
+  compositeScore: WalkabilityScoreV2 | null,
+): number {
+  if (displayMetrics.length === 0) return compositeScore?.overallScore ?? 0;
+
+  // Use weights that mirror compositeScore.ts where possible
+  const WEIGHTS: Record<string, number> = {
+    streetGrid: 0.35,
+    treeCanopy: 0.25,
+    streetDesign: 0.15,
+    destinationAccess: 0.25,
+    commuteMode: 0.25,
+  };
+
+  let totalWeight = 0;
+  let weightedSum = 0;
+  for (const m of displayMetrics) {
+    const score = (adjustments[m.key] ?? m.baseScore) * 10; // 0-100
+    const w = WEIGHTS[m.key] ?? 1 / displayMetrics.length;
+    totalWeight += w;
+    weightedSum += score * w;
+  }
+  return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+}
+
+// ---- component --------------------------------------------------------------
 
 export default function ShareableReportCard({
   location,
@@ -50,47 +138,43 @@ export default function ShareableReportCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
-
-  // Field verification state
   const [fieldMode, setFieldMode] = useState(false);
-  const [fieldData, setFieldData] = useState<FieldData>(createEmptyFieldData);
+
+  const displayMetrics = buildDisplayMetrics(metrics, compositeScore);
+  const [adjustments, setAdjustments] = useState<FieldAdjustments>(() =>
+    createEmptyAdjustments(displayMetrics),
+  );
 
   if (!isOpen) return null;
 
-  // Field verification computed values
-  const hasAnyAdjustment = METRIC_KEYS.some(k => fieldData[k].adjustedScore !== null);
+  const hasAnyAdjustment = Object.values(adjustments).some(v => v !== null);
 
-  const fieldOverall = fieldMode && hasAnyAdjustment ? recalculateScore(metrics, fieldData) : null;
+  // Resolve display score
+  const baseOverall = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
+  const overallScore = fieldMode && hasAnyAdjustment
+    ? recalcOverall(displayMetrics, adjustments, compositeScore)
+    : baseOverall;
 
-  // Resolved display values (field-verified when active, original otherwise)
-  const overallScore = fieldMode && fieldOverall
-    ? fieldOverall.overallScore * 10  // recalculateScore returns 0-10; this component uses 0-100
-    : (compositeScore?.overallScore ?? metrics.overallScore * 10);
   const displayScore = (overallScore / 10).toFixed(1);
-  const grade = compositeScore?.grade || '';
   const scoreColor = getScoreColor(overallScore);
   const shortName = location.displayName.split(',').slice(0, 2).join(',').trim();
 
-  const resolveMetric = (key: keyof WalkabilityMetrics): number => {
-    if (fieldMode && fieldData[key as MetricKey]?.adjustedScore !== null) {
-      return fieldData[key as MetricKey].adjustedScore!;
-    }
-    return metrics[key] as number;
-  };
+  const resolveScore = (key: string, base: number): number =>
+    fieldMode && adjustments[key] !== null ? adjustments[key]! : base;
 
-  // Field verification handlers
-  const handleAdjust = (key: MetricKey, delta: number) => {
-    const current = fieldData[key].adjustedScore ?? (metrics[key as keyof WalkabilityMetrics] as number);
+  const handleAdjust = (key: string, delta: number) => {
+    const base = displayMetrics.find(m => m.key === key)?.baseScore ?? 5;
+    const current = adjustments[key] ?? base;
     const next = Math.min(10, Math.max(0, Math.round((current + delta) * 2) / 2));
-    setFieldData(prev => ({ ...prev, [key]: { ...prev[key], adjustedScore: next } }));
+    setAdjustments(prev => ({ ...prev, [key]: next }));
   };
 
-  const handleResetMetric = (key: MetricKey) => {
-    setFieldData(prev => ({ ...prev, [key]: { ...prev[key], adjustedScore: null } }));
+  const handleResetMetric = (key: string) => {
+    setAdjustments(prev => ({ ...prev, [key]: null }));
   };
 
   const handleResetAll = () => {
-    setFieldData(createEmptyFieldData());
+    setAdjustments(createEmptyAdjustments(displayMetrics));
   };
 
   const handleDownload = async () => {
@@ -130,9 +214,15 @@ export default function ShareableReportCard({
     const text = `My street in ${shortName} scored ${displayScore}/10 for walkability. Check yours for free:`;
     window.open(
       `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
-      '_blank'
+      '_blank',
     );
   };
+
+  const scoreLabel =
+    overallScore >= 80 ? 'Highly Walkable' :
+    overallScore >= 60 ? 'Moderately Walkable' :
+    overallScore >= 40 ? 'Car-Dependent' :
+    overallScore >= 20 ? 'Difficult to Walk' : 'Hostile to Pedestrians';
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -149,7 +239,7 @@ export default function ShareableReportCard({
 
         <h2 className="text-lg font-bold mb-4" style={{ color: '#2a3a2a' }}>Share Your Walkability Score</h2>
 
-        {/* The Card — this is what gets captured as an image */}
+        {/* The Card — captured as image */}
         <div
           ref={cardRef}
           style={{
@@ -160,7 +250,7 @@ export default function ShareableReportCard({
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: fieldMode && hasAnyAdjustment ? '8px' : '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: hasAnyAdjustment && fieldMode ? '8px' : '16px' }}>
             <svg width="28" height="28" viewBox="0 0 44 44">
               <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850"/>
               <rect x="10" y="14" width="6" height="16" fill="white" rx="1"/>
@@ -170,20 +260,13 @@ export default function ShareableReportCard({
             <span style={{ fontSize: '16px', fontWeight: 700, color: '#e07850' }}>SafeStreets</span>
           </div>
 
-          {/* Field-Verified badge — appears in captured image */}
+          {/* Field-Verified badge */}
           {fieldMode && hasAnyAdjustment && (
             <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '3px 10px',
-              borderRadius: '6px',
-              backgroundColor: '#eff6ff',
-              border: '1px solid #bfdbfe',
-              marginBottom: '8px',
-              fontSize: '10px',
-              fontWeight: 600,
-              color: '#2563eb',
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '3px 10px', borderRadius: '6px',
+              backgroundColor: '#eff6ff', border: '1px solid #bfdbfe',
+              marginBottom: '8px', fontSize: '10px', fontWeight: 600, color: '#2563eb',
             }}>
               &#x2713; Field-Verified
             </div>
@@ -195,9 +278,8 @@ export default function ShareableReportCard({
             {shortName}
           </div>
 
-          {/* Score Circle + Grade */}
+          {/* Score + Label */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-            {/* Mini circular score */}
             <div style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0 }}>
               <svg viewBox="0 0 100 100" width="80" height="80" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="50" cy="50" r="42" stroke="#e0dbd0" strokeWidth="8" fill="none" />
@@ -209,34 +291,21 @@ export default function ShareableReportCard({
                   strokeLinecap="round"
                 />
               </svg>
-              <div style={{
-                position: 'absolute', inset: 0,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <span style={{ fontSize: '24px', fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{displayScore}</span>
                 <span style={{ fontSize: '9px', color: '#8a9a8a' }}>out of 10</span>
               </div>
             </div>
-
-            <div>
-              <div style={{
-                display: 'inline-block',
-                padding: '4px 12px',
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '16px',
-                color: scoreColor,
-                backgroundColor: `${scoreColor}15`,
-              }}>
-                {overallScore >= 80 ? 'Highly Walkable' :
-                 overallScore >= 60 ? 'Moderately Walkable' :
-                 overallScore >= 40 ? 'Car-Dependent' :
-                 overallScore >= 20 ? 'Difficult to Walk' : 'Hostile to Pedestrians'}
-              </div>
+            <div style={{
+              display: 'inline-block', padding: '4px 12px', borderRadius: '8px',
+              fontWeight: 700, fontSize: '16px', color: scoreColor,
+              backgroundColor: `${scoreColor}15`,
+            }}>
+              {scoreLabel}
             </div>
           </div>
 
-          {/* Walker Infographic (compact) */}
+          {/* Walker Infographic */}
           <div style={{ padding: '8px 0', marginBottom: '6px', borderTop: '1px solid #e0dbd0', borderBottom: '1px solid #e0dbd0' }}>
             <p style={{ textAlign: 'center', fontSize: '10px', color: '#8a9a8a', marginBottom: '6px' }}>
               Out of 10 walkers, how many feel safe?
@@ -261,19 +330,16 @@ export default function ShareableReportCard({
             </div>
           </div>
 
-          {/* Metric Bars */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {METRIC_LABELS.map(({ key, label, icon }) => {
-              const score = resolveMetric(key);
-              const isAdjusted = fieldMode && fieldData[key as MetricKey]?.adjustedScore !== null;
+          {/* All Metric Bars */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '10px' }}>
+            {displayMetrics.map(({ key, label, icon, baseScore }) => {
+              const score = resolveScore(key, baseScore);
+              const isAdjusted = fieldMode && adjustments[key] !== null;
               return (
                 <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '12px', width: '18px', textAlign: 'center' }}>{icon}</span>
-                  <span style={{ fontSize: '11px', width: '80px', color: '#5a6a5a', fontWeight: 500 }}>{label}</span>
-                  <div style={{
-                    flex: 1, height: '8px', borderRadius: '4px',
-                    backgroundColor: '#e0dbd0', overflow: 'hidden',
-                  }}>
+                  <span style={{ fontSize: '11px', width: '82px', color: '#5a6a5a', fontWeight: 500, flexShrink: 0 }}>{label}</span>
+                  <div style={{ flex: 1, height: '8px', borderRadius: '4px', backgroundColor: '#e0dbd0', overflow: 'hidden' }}>
                     <div style={{
                       width: `${Math.min(score * 10, 100)}%`,
                       height: '100%', borderRadius: '4px',
@@ -281,7 +347,10 @@ export default function ShareableReportCard({
                       transition: 'width 0.5s ease-out',
                     }} />
                   </div>
-                  <span style={{ fontSize: '11px', fontWeight: 600, width: '28px', textAlign: 'right', color: isAdjusted ? '#2563eb' : '#2a3a2a' }}>
+                  <span style={{
+                    fontSize: '11px', fontWeight: 600, width: '28px', textAlign: 'right',
+                    color: isAdjusted ? '#2563eb' : '#2a3a2a',
+                  }}>
                     {score.toFixed(1)}
                   </span>
                 </div>
@@ -291,39 +360,32 @@ export default function ShareableReportCard({
 
           {/* Footer CTA */}
           <div style={{
-            marginTop: '16px', paddingTop: '12px',
-            borderTop: '1px solid #e0dbd0',
+            marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #e0dbd0',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span style={{ fontSize: '11px', color: '#8a9a8a' }}>safestreets.streetsandcommons.com</span>
             <span style={{
               fontSize: '11px', fontWeight: 600, color: '#e07850',
-              padding: '3px 10px', borderRadius: '6px',
-              border: '1px solid #e07850',
+              padding: '3px 10px', borderRadius: '6px', border: '1px solid #e07850',
             }}>
               Check yours free
             </span>
           </div>
         </div>
 
-        {/* Field Verification Controls — OUTSIDE cardRef, NOT captured in image */}
+        {/* Field Verification Controls — OUTSIDE cardRef, not captured in image */}
         <div className="mt-4 border rounded-xl p-4" style={{ borderColor: '#e0dbd0' }}>
           <div className="flex items-center justify-between mb-1">
             <button
               onClick={() => setFieldMode(!fieldMode)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                fieldMode
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                fieldMode ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {fieldMode ? '\u2713 Field Verify ON' : '\uD83D\uDCCB Field Verify'}
+              {fieldMode ? '✓ Field Verify ON' : '📋 Field Verify'}
             </button>
             {fieldMode && hasAnyAdjustment && (
-              <button
-                onClick={handleResetAll}
-                className="text-xs text-red-500 hover:text-red-700 underline"
-              >
+              <button onClick={handleResetAll} className="text-xs text-red-500 hover:text-red-700 underline">
                 Reset All
               </button>
             )}
@@ -331,43 +393,33 @@ export default function ShareableReportCard({
 
           {fieldMode && (
             <div className="mt-3 space-y-2">
-              <p className="text-xs text-gray-500 mb-2">
-                Adjust scores based on what you observed on the ground:
-              </p>
-              {METRIC_LABELS.map(({ key, label }) => {
-                const metricKey = key as MetricKey;
-                const current = fieldData[metricKey].adjustedScore ?? (metrics[key] as number);
-                const isAdjusted = fieldData[metricKey].adjustedScore !== null;
+              <p className="text-xs text-gray-500 mb-2">Adjust scores based on what you observed on the ground:</p>
+              {displayMetrics.map(({ key, label, baseScore }) => {
+                const current = adjustments[key] ?? baseScore;
+                const isAdjusted = adjustments[key] !== null;
                 return (
                   <div key={key} className="flex items-center gap-2">
-                    <span className="text-xs w-20 text-gray-600 font-medium truncate">{label}</span>
+                    <span className="text-xs w-24 text-gray-600 font-medium truncate">{label}</span>
                     <div className="flex items-center rounded-md border overflow-hidden" style={{ borderColor: '#d0cbc0' }}>
                       <button
-                        onClick={() => handleAdjust(metricKey, -0.5)}
+                        onClick={() => handleAdjust(key, -0.5)}
                         className="px-2 py-1 text-xs font-bold hover:bg-gray-100 transition"
                         aria-label={`Decrease ${label} score`}
                       >-</button>
                       <span
                         className="px-2 py-1 text-xs font-semibold tabular-nums min-w-[2.5rem] text-center border-x"
-                        style={{
-                          borderColor: '#d0cbc0',
-                          backgroundColor: '#faf8f5',
-                          color: isAdjusted ? '#2563eb' : '#2a3a2a',
-                        }}
+                        style={{ borderColor: '#d0cbc0', backgroundColor: '#faf8f5', color: isAdjusted ? '#2563eb' : '#2a3a2a' }}
                       >
                         {current.toFixed(1)}
                       </span>
                       <button
-                        onClick={() => handleAdjust(metricKey, 0.5)}
+                        onClick={() => handleAdjust(key, 0.5)}
                         className="px-2 py-1 text-xs font-bold hover:bg-gray-100 transition"
                         aria-label={`Increase ${label} score`}
                       >+</button>
                     </div>
                     {isAdjusted && (
-                      <button
-                        onClick={() => handleResetMetric(metricKey)}
-                        className="text-[10px] text-gray-400 hover:text-gray-600 underline"
-                      >
+                      <button onClick={() => handleResetMetric(key)} className="text-[10px] text-gray-400 hover:text-gray-600 underline">
                         Reset
                       </button>
                     )}

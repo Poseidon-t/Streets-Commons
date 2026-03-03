@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { COLORS } from '../constants';
 import { trackEvent } from '../utils/analytics';
-import type { Location, WalkabilityMetrics, DataQuality } from '../types';
+import type { Location, WalkabilityMetrics, DataQuality, WalkabilityScoreV2 } from '../types';
 
 interface ShareButtonsProps {
   location: Location;
   metrics: WalkabilityMetrics;
+  compositeScore?: WalkabilityScoreV2 | null;
   dataQuality?: DataQuality;
   isPremium?: boolean;
   onShareReport?: () => void;
@@ -108,28 +109,44 @@ function pickTemplate(platform: string, scoreRange: string): TemplateFn {
   return templates[idx];
 }
 
-export default function ShareButtons({ location, metrics, dataQuality, isPremium = false, onShareReport }: ShareButtonsProps) {
+export default function ShareButtons({ location, metrics, compositeScore, dataQuality, isPremium = false, onShareReport }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
 
-  // Build shareable URL with location params
-  const baseUrl = window.location.origin;
-  const shareUrl = `${baseUrl}/?lat=${location.lat}&lon=${location.lon}&name=${encodeURIComponent(location.displayName)}`;
   const buildShareUrl = (platform: string) =>
     `https://safestreets.streetsandcommons.com/?lat=${location.lat}&lon=${location.lon}&utm_source=${platform}&utm_medium=social&utm_campaign=share`;
   const prodUrl = buildShareUrl('organic');
   const shortName = location.city || location.displayName.split(',')[0] || 'This area';
-  const score = metrics.overallScore.toFixed(1);
-  const scoreRange = getRange(metrics.overallScore);
 
-  // Find weakest metric for dynamic messaging
+  // Use composite overall score (0-10) when available, fall back to legacy
+  const overallScore10 = compositeScore
+    ? compositeScore.overallScore / 10
+    : metrics.overallScore;
+  const score = overallScore10.toFixed(1);
+  const scoreRange = getRange(overallScore10);
+
+  // Find weakest metric across all available scores for dynamic messaging
+  const networkScore = compositeScore
+    ? compositeScore.components.networkDesign.score / 10
+    : undefined;
+  const sdScore = compositeScore?.components.safety.score
+    ? compositeScore.components.safety.score / 10
+    : undefined;
+  const commuteMetric = compositeScore?.components.densityContext.metrics.find(
+    m => m.name === 'Commute Mode' || m.name === 'Population Density',
+  );
+  const commuteScore = commuteMetric ? commuteMetric.score / 10 : undefined;
+
   const metricEntries: [string, number | undefined][] = [
+    ['street grid', networkScore],
     ['daily needs access', metrics.destinationAccess],
     ['tree canopy', metrics.treeCanopy],
+    ...(sdScore !== undefined ? [['street design', sdScore] as [string, number]] : []),
+    ...(commuteScore !== undefined ? [['commute mode', commuteScore] as [string, number]] : []),
   ];
   const weakest: [string, number] = metricEntries
-    .filter((e): e is [string, number] => typeof e[1] === 'number')
-    .sort((a, b) => a[1] - b[1])[0] || ['walkability', metrics.overallScore];
+    .filter((e): e is [string, number] => typeof e[1] === 'number' && e[1] > 0)
+    .sort((a, b) => a[1] - b[1])[0] || ['walkability', overallScore10];
 
   const shareData: ShareData = { shortName, score, prodUrl, weakest };
 
@@ -216,15 +233,42 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
         city: location.city,
         country: location.country,
       },
-      metrics: {
-        overallScore: metrics.overallScore,
+      score: {
+        overall: overallScore10,
+        grade: compositeScore?.grade ?? null,
         label: metrics.label,
+      },
+      components: compositeScore ? {
+        networkDesign: {
+          score: compositeScore.components.networkDesign.score / 10,
+          weight: compositeScore.components.networkDesign.weight,
+          subMetrics: compositeScore.components.networkDesign.metrics.map(m => ({
+            name: m.name,
+            score: m.score / 10,
+            rawValue: m.rawValue ?? null,
+          })),
+        },
+        environment: {
+          score: compositeScore.components.environmentalComfort.score / 10,
+          weight: compositeScore.components.environmentalComfort.weight,
+        },
+        streetDesign: {
+          score: compositeScore.components.safety.score / 10,
+          weight: compositeScore.components.safety.weight,
+        },
+        accessibility: {
+          score: compositeScore.components.densityContext.score / 10,
+          weight: compositeScore.components.densityContext.weight,
+        },
+      } : null,
+      legacyMetrics: {
         destinationAccess: metrics.destinationAccess,
         treeCanopy: metrics.treeCanopy,
       },
+      dataConfidence: compositeScore?.confidence ?? null,
       timestamp: new Date().toISOString(),
       tool: 'SafeStreets',
-      version: '1.0',
+      version: '2.0',
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -244,11 +288,12 @@ export default function ShareButtons({ location, metrics, dataQuality, isPremium
       return;
     }
 
-    // Store report data in sessionStorage
+    // Store report data in sessionStorage (include compositeScore for full PDF)
     const reportData = {
       location,
       metrics,
       dataQuality,
+      compositeScore: compositeScore ?? null,
     };
     sessionStorage.setItem('reportData', JSON.stringify(reportData));
 

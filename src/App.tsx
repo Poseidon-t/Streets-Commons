@@ -1359,6 +1359,7 @@ function App() {
                 <ShareButtons
                   location={location}
                   metrics={metrics}
+                  compositeScore={compositeScore}
                   dataQuality={dataQuality || undefined}
                   isPremium={true}
                   onShareReport={() => setShowReportCard(true)}
