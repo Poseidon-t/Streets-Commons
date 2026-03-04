@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAdminApi } from './adminApi';
 
 interface RedditPost {
@@ -48,11 +48,15 @@ export default function RedditMonitor() {
   const [filter, setFilter] = useState<'all' | 'new' | 'engaged' | 'dismissed'>('all');
   const [subFilter, setSubFilter] = useState<string>('all');
 
+  // Use a ref so load() is stable and doesn't trigger re-render loops
+  const fetchRef = useRef(fetchRedditFeed);
+  fetchRef.current = fetchRedditFeed;
+
   const load = useCallback(async (refresh = false) => {
     try {
       if (refresh) setRefreshing(true);
       else setLoading(true);
-      const data = await fetchRedditFeed(refresh);
+      const data = await fetchRef.current(refresh);
       setFeed(data.data);
       setError(null);
     } catch (e) {
@@ -61,7 +65,7 @@ export default function RedditMonitor() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [fetchRedditFeed]);
+  }, []); // stable - no deps
 
   useEffect(() => { load(); }, [load]);
 
