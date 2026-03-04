@@ -16,9 +16,7 @@ export default function ForRealEstate() {
                 Branded Walkability Reports for Your Listings
               </h2>
               <p className="text-sm mb-4 leading-relaxed" style={{ color: '#6b7280' }}>
-                Every Walk Score point adds ~$3,500 to home value. Give your buyers the data they need —
-                and put your name on it. Walkability metrics from satellite imagery and OpenStreetMap, formatted
-                as a print-ready PDF with your branding.
+                Give your buyers the walkability data they need — and put your name on it. Metrics from satellite imagery and OpenStreetMap, formatted as a print-ready PDF with your branding.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link

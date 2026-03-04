@@ -4,7 +4,7 @@
 
 ## What SafeStreets Is
 
-SafeStreets is a free, no-sign-up tool that analyzes the walkability of any address worldwide and returns a composite score (0–10) with tier labels and persona-specific verdicts. It is the free alternative to Walk Score with deeper data, including CDC health outcomes, FEMA flood risk, satellite tree canopy, and 15-minute city analysis.
+SafeStreets is a free, no-sign-up tool that analyzes the walkability of any address worldwide and returns a composite score (0–10) with tier labels and persona-specific verdicts. It includes CDC health outcomes, FEMA flood risk, satellite tree canopy, and 15-minute city analysis.
 
 The tool is used by:
 - People choosing a neighborhood to rent or buy in
@@ -32,18 +32,6 @@ SafeStreets answers the real-life questions people have when choosing a neighbor
 - **"Good for aging in place?"** — Verdict: Yes / Borderline / Unlikely
 
 Each verdict is computed from the relevant sub-scores and shown with a plain-language explanation.
-
-## How SafeStreets Differs from Walk Score
-
-Walk Score only measures proximity to destinations (restaurants, transit stops, schools) using a proprietary algorithm. SafeStreets measures:
-
-- **Actual shade and comfort**: Sentinel-2 satellite tree canopy analysis
-- **Street design quality**: EPA National Walkability Index (intersection density, land use mix)
-- **CDC health outcomes**: Obesity, diabetes, asthma, and physical inactivity rates by census tract — correlated with walkability
-- **FEMA flood risk**: Flood zone classification for the exact address
-- **Persona verdicts**: Answers "can I go car-free?", "safe for kids?", "good for aging in place?"
-- **15-minute city scoring**: Whether grocery, school, park, pharmacy, and transit are within a 15-min walk
-- **Completely free**: Walk Score charges developers $115+/month for API access. SafeStreets is free with no sign-up.
 
 ## Features
 

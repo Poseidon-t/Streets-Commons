@@ -72,7 +72,7 @@ const metricsConfig = [
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-// Value premium per Walk Score point (midpoint of $700–$3,250 research range)
+// Estimated value premium per walkability score point (urban economics research range: $700–$3,250)
 const VALUE_PER_POINT = 2000;
 
 export default function ComparisonReportView() {
@@ -334,7 +334,7 @@ export default function ComparisonReportView() {
               Estimated Walkability Value Premium
             </h3>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, marginBottom: '1rem', lineHeight: 1.6 }}>
-              Research shows each Walk Score point adds $700–$3,250 to home value (Brookings Institution, CEOs for Cities). Estimates below use the $2,000 midpoint.
+              Research shows each walkability score point adds $700–$3,250 to home value (Brookings Institution, CEOs for Cities). Estimates below use the $2,000 midpoint.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${colCount}, 1fr)`, gap: '1rem' }}>
               {reports.map((r, i) => {

@@ -1836,7 +1836,7 @@ function App() {
                   aria-controls="faq-3-content"
                 >
                   <h3 className="text-lg font-bold text-earth-text-dark">
-                    How is this different from Walk Score?
+                    What makes SafeStreets different from other tools?
                   </h3>
                   <span className="text-2xl text-gray-500" aria-hidden="true">
                     {openFaq === 3 ? '−' : '+'}
@@ -1847,7 +1847,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual experience of living in a neighborhood: shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data, not just distance calculations. And it's free.
+                    Most tools give you a single number with no breakdown. SafeStreets analyzes the actual experience of walking in a neighborhood: shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data — not just distance calculations. And it's completely free, no sign-up.
                   </p>
                 </div>
               </div>
