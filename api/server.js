@@ -6361,10 +6361,13 @@ async function pollReddit() {
   console.log('🔴 Polling Reddit for walkability mentions...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
+  // Only accept posts from the last 30 days (Reddit ignores t=month with sort=new)
+  const thirtyDaysAgo = Date.now() / 1000 - 30 * 24 * 3600;
 
   for (const sub of REDDIT_SUBREDDITS) {
     try {
-      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=25&restrict_sr=true&t=month`;
+      // sort=relevance&t=month actually respects the time filter; sort=new ignores t=
+      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=relevance&limit=25&restrict_sr=true&t=month`;
       const resp = await fetch(url, {
         headers: { 'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: admin@streetsandcommons.com)' },
         signal: AbortSignal.timeout(10000),
@@ -6377,6 +6380,8 @@ async function pollReddit() {
       for (const child of children) {
         const p = child.data;
         if (seenIds.has(p.id)) continue;
+        // Skip posts older than 30 days (belt-and-suspenders on top of t=month)
+        if (!p.permalink || p.created_utc < thirtyDaysAgo) continue;
 
         const text = `${p.title} ${p.selftext || ''}`.toLowerCase();
         const matched = REDDIT_KEYWORDS.filter(kw => text.includes(kw));
@@ -6386,7 +6391,7 @@ async function pollReddit() {
           id: p.id,
           subreddit: `r/${sub}`,
           title: p.title,
-          url: `https://reddit.com${p.permalink}`,
+          url: `https://www.reddit.com${p.permalink}`,
           snippet: (p.selftext || '').slice(0, 200).trim(),
           score: p.score,
           numComments: p.num_comments,
