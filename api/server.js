@@ -6099,11 +6099,13 @@ const REDDIT_SUBREDDITS = [
   'realestateinvesting', 'Landlord', 'urbanplanning', 'walkable_cities', 'fuckcars',
 ];
 const REDDIT_KEYWORDS = [
-  'walkab', 'walk score', 'walkability', 'pedestrian safety', 'safestreets',
-  'safe streets', 'stroad', '15 minute city', 'car dependent', 'car-dependent',
-  'sidewalk', 'crossing', 'vision zero',
+  'walkab', 'walkable', 'walkability', 'walk score',
+  'pedestrian', 'sidewalk', 'crosswalk', 'crossing',
+  'stroad', 'car dependent', 'car-dependent',
+  '15-minute', '15 minute city',
+  'vision zero', 'safestreets', 'safe streets',
 ];
-const REDDIT_SEARCH_QUERY = 'walkab OR "walk score" OR pedestrian OR stroad OR "15 minute" OR "car dependent" OR sidewalk OR "vision zero"';
+const REDDIT_SEARCH_QUERY = 'walkable OR walkability OR "walk score" OR pedestrian OR stroad OR "15 minute" OR "car dependent" OR sidewalk OR "vision zero" OR crosswalk';
 
 let redditCache = { lastUpdated: null, posts: [] };
 
@@ -6126,14 +6128,15 @@ async function pollReddit() {
 
   for (const sub of REDDIT_SUBREDDITS) {
     try {
-      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=15&restrict_sr=true&t=week`;
+      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=25&restrict_sr=true&t=month`;
       const resp = await fetch(url, {
-        headers: { 'User-Agent': 'SafeStreets/2.0 (admin monitor)' },
+        headers: { 'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: admin@streetsandcommons.com)' },
         signal: AbortSignal.timeout(10000),
       });
-      if (!resp.ok) continue;
+      if (!resp.ok) { console.log(`  Reddit r/${sub}: HTTP ${resp.status}`); continue; }
       const data = await resp.json();
       const children = data?.data?.children || [];
+      console.log(`  Reddit r/${sub}: ${children.length} results from API`);
 
       for (const child of children) {
         const p = child.data;
