@@ -153,6 +153,7 @@ function EditorToolbar({ editor }: { editor: ReturnType<typeof useEditor> }) {
 function AIGeneratePanel({
   onGenerated,
   onClose,
+  generateBlogPost,
 }: {
   onGenerated: (data: {
     title: string;
@@ -164,6 +165,7 @@ function AIGeneratePanel({
     content: string;
   }) => void;
   onClose: () => void;
+  generateBlogPost: ReturnType<typeof useAdminApi>['generateBlogPost'];
 }) {
   const [topic, setTopic] = useState('');
   const [keywords, setKeywords] = useState('');
@@ -499,6 +501,7 @@ export default function BlogEditor() {
         <AIGeneratePanel
           onGenerated={handleAIGenerated}
           onClose={() => setShowAIPanel(false)}
+          generateBlogPost={generateBlogPost}
         />
       )}
 
