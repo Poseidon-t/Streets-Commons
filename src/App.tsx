@@ -685,12 +685,7 @@ function App() {
             }}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <svg width="40" height="40" viewBox="0 0 44 44">
-              <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850"/>
-              <rect x="10" y="14" width="6" height="16" fill="white" rx="1"/>
-              <rect x="19" y="14" width="6" height="16" fill="white" rx="1"/>
-              <rect x="28" y="14" width="6" height="16" fill="white" rx="1"/>
-            </svg>
+            <img src="/logo-nobg.png" alt="SafeStreets logo" className="w-10 h-10" />
             <div className="text-left">
               <span className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</span>
               <p className="text-xs tracking-wider uppercase font-mono text-earth-text-mid">Walkability Analysis</p>

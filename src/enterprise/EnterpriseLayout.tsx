@@ -11,11 +11,7 @@ export default function EnterpriseLayout() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/enterprise" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-enterprise-navy flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </div>
+            <img src="/logo-nobg.png" alt="SafeStreets logo" className="w-9 h-9" />
             <span className="text-lg font-semibold text-enterprise-slate">
               SafeStreets <span className="text-enterprise-navy">Intelligence</span>
             </span>
