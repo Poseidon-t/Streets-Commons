@@ -174,7 +174,7 @@ export default function LearnIndex() {
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
+            <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
             <span className="text-xl font-bold" style={{ color: '#e07850' }}>SafeStreets</span>
           </Link>
           <div className="flex items-center gap-3">

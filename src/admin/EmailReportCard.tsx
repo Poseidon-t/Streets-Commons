@@ -176,7 +176,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 22, height: 22 }} />
+              <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 22, height: 22 }} />
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#e07850' }}>SafeStreets</span>
             </div>
           </div>

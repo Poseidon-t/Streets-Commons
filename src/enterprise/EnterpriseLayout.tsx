@@ -11,7 +11,7 @@ export default function EnterpriseLayout() {
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <Link to="/enterprise" className="flex items-center gap-2">
-            <img src="/logo-nobg.png" alt="SafeStreets logo" className="w-9 h-9" />
+            <img src="/logo.svg" alt="SafeStreets logo" className="w-9 h-9" />
             <span className="text-lg font-semibold text-enterprise-slate">
               SafeStreets <span className="text-enterprise-navy">Intelligence</span>
             </span>

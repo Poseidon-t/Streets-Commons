@@ -20,7 +20,7 @@ export default function AdminLayout() {
         <aside className="w-60 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#2a3a2a' }}>
           <div className="p-5 border-b border-white/10">
             <a href="/" className="flex items-center gap-2">
-              <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />
+              <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />
               <span className="text-lg font-bold" style={{ color: '#e07850' }}>
                 Admin
               </span>

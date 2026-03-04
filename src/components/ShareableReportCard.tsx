@@ -251,7 +251,7 @@ export default function ShareableReportCard({
         >
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: hasAnyAdjustment && fieldMode ? '8px' : '16px' }}>
-            <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />
+            <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />
             <span style={{ fontSize: '16px', fontWeight: 700, color: '#e07850' }}>SafeStreets</span>
           </div>
 

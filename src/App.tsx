@@ -685,7 +685,7 @@ function App() {
             }}
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
-            <img src="/logo-nobg.png" alt="SafeStreets logo" className="w-10 h-10" />
+            <img src="/logo.svg" alt="SafeStreets logo" className="w-10 h-10" />
             <div className="text-left">
               <span className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</span>
               <p className="text-xs tracking-wider uppercase font-mono text-earth-text-mid">Walkability Analysis</p>
@@ -2040,7 +2040,7 @@ function App() {
             {/* About Column */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
+                <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
                 <h3 className="text-xl font-bold text-terra">SafeStreets</h3>
               </div>
               <p className="text-sm mb-4 leading-relaxed text-earth-text-light">
