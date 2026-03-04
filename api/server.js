@@ -6089,6 +6089,117 @@ app.get('/api/debug/epa-raw', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message, name: e.name }); }
 });
 
+// =============================================
+// REDDIT MONITOR
+// =============================================
+
+const REDDIT_MONITOR_FILE = process.env.REDDIT_MONITOR_FILE || path.join(__dirname, '..', 'data', 'reddit-monitor.json');
+const REDDIT_SUBREDDITS = [
+  'FirstTimeHomeBuyer', 'realestate', 'homebuying', 'moving',
+  'realestateinvesting', 'Landlord', 'urbanplanning', 'walkable_cities', 'fuckcars',
+];
+const REDDIT_KEYWORDS = [
+  'walkab', 'walk score', 'walkability', 'pedestrian safety', 'safestreets',
+  'safe streets', 'stroad', '15 minute city', 'car dependent', 'car-dependent',
+  'sidewalk', 'crossing', 'vision zero',
+];
+const REDDIT_SEARCH_QUERY = 'walkab OR "walk score" OR pedestrian OR stroad OR "15 minute" OR "car dependent" OR sidewalk OR "vision zero"';
+
+let redditCache = { lastUpdated: null, posts: [] };
+
+function loadRedditMonitor() {
+  try {
+    if (fs.existsSync(REDDIT_MONITOR_FILE)) {
+      redditCache = JSON.parse(fs.readFileSync(REDDIT_MONITOR_FILE, 'utf8'));
+    }
+  } catch {}
+}
+
+function saveRedditMonitor() {
+  try { fs.writeFileSync(REDDIT_MONITOR_FILE, JSON.stringify(redditCache, null, 2)); } catch {}
+}
+
+async function pollReddit() {
+  console.log('🔴 Polling Reddit for walkability mentions...');
+  const newPosts = [];
+  const seenIds = new Set(redditCache.posts.map(p => p.id));
+
+  for (const sub of REDDIT_SUBREDDITS) {
+    try {
+      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=15&restrict_sr=true&t=week`;
+      const resp = await fetch(url, {
+        headers: { 'User-Agent': 'SafeStreets/2.0 (admin monitor)' },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      const children = data?.data?.children || [];
+
+      for (const child of children) {
+        const p = child.data;
+        if (seenIds.has(p.id)) continue;
+
+        const text = `${p.title} ${p.selftext || ''}`.toLowerCase();
+        const matched = REDDIT_KEYWORDS.filter(kw => text.includes(kw));
+        if (matched.length === 0) continue;
+
+        newPosts.push({
+          id: p.id,
+          subreddit: `r/${sub}`,
+          title: p.title,
+          url: `https://reddit.com${p.permalink}`,
+          snippet: (p.selftext || '').slice(0, 200).trim(),
+          score: p.score,
+          numComments: p.num_comments,
+          author: p.author,
+          created: p.created_utc,
+          matchedKeywords: matched,
+          status: 'new',
+        });
+        seenIds.add(p.id);
+      }
+      await new Promise(r => setTimeout(r, 800)); // rate limit
+    } catch (err) {
+      console.log(`  Reddit ${sub} error: ${err.message}`);
+    }
+  }
+
+  if (newPosts.length > 0) {
+    redditCache.posts = [...newPosts, ...redditCache.posts].slice(0, 200);
+    console.log(`  Found ${newPosts.length} new Reddit posts`);
+  }
+  redditCache.lastUpdated = new Date().toISOString();
+  saveRedditMonitor();
+}
+
+// GET /api/admin/reddit-feed
+app.get('/api/admin/reddit-feed', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const { refresh } = req.query;
+  if (refresh === 'true' || !redditCache.lastUpdated) {
+    await pollReddit();
+  }
+  res.json({ success: true, data: redditCache });
+});
+
+// POST /api/admin/reddit-feed/status — update post status (dismissed | engaged | new)
+app.post('/api/admin/reddit-feed/status', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const { id, status } = req.body;
+  if (!id || !['new', 'dismissed', 'engaged'].includes(status)) {
+    return res.status(400).json({ error: 'Missing id or invalid status' });
+  }
+  const post = redditCache.posts.find(p => p.id === id);
+  if (post) { post.status = status; saveRedditMonitor(); }
+  res.json({ success: true });
+});
+
+// Initial load + schedule polling every 30 min
+loadRedditMonitor();
+setInterval(pollReddit, 30 * 60 * 1000);
+// Poll once on startup after 10s delay
+setTimeout(pollReddit, 10000);
+
 // Start server
 app.listen(PORT, () => {
   console.log(`\n🚀 SafeStreets API Server`);

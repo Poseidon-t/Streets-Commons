@@ -84,5 +84,11 @@ export function useAdminApi() {
       adminFetch('/api/admin/sales/generate-report', { method: 'POST', body: JSON.stringify(params) }),
     generateComparison: (params: { neighborhoods: Array<{ neighborhood: string; city: string; state: string }>; agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string } }) =>
       adminFetch('/api/admin/sales/generate-comparison', { method: 'POST', body: JSON.stringify(params) }),
+
+    // Reddit Monitor
+    fetchRedditFeed: (refresh = false) =>
+      adminFetch(`/api/admin/reddit-feed${refresh ? '?refresh=true' : ''}`),
+    updateRedditPostStatus: (id: string, status: 'new' | 'dismissed' | 'engaged') =>
+      adminFetch('/api/admin/reddit-feed/status', { method: 'POST', body: JSON.stringify({ id, status }) }),
   };
 }

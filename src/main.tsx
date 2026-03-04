@@ -40,6 +40,7 @@ const BlogEditor = lazy(() => import('./admin/BlogEditor'))
 const ContentQueue = lazy(() => import('./admin/ContentQueue'))
 const EmailCaptures = lazy(() => import('./admin/EmailCaptures'))
 const SalesPipeline = lazy(() => import('./admin/SalesPipeline'))
+const RedditMonitor = lazy(() => import('./admin/RedditMonitor'))
 
 // Import Clerk publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -100,6 +101,7 @@ createRoot(document.getElementById('root')!).render(
             </Suspense>
           }>
             <Route index element={<AdminDashboard />} />
+            <Route path="reddit" element={<RedditMonitor />} />
             <Route path="content-queue" element={<ContentQueue />} />
             <Route path="blog" element={<BlogManager />} />
             <Route path="blog/new" element={<BlogEditor />} />
