@@ -135,6 +135,7 @@ async function requireAdminKey(req, res) {
   try {
     if (!clerkClient) throw new Error('Clerk not configured');
     const payload = await clerkClient.verifyToken(token);
+    console.log('[auth] payload.sub:', payload.sub, '| ADMIN_USER_ID:', ADMIN_USER_ID);
     if (!ADMIN_USER_ID || payload.sub !== ADMIN_USER_ID) {
       res.status(403).json({ error: 'Forbidden' });
       return false;
