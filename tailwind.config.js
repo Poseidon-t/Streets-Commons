@@ -25,7 +25,7 @@ export default {
         terra: {
           DEFAULT: '#e07850',
         },
-        enterprise: {
+        platform: {
           navy: '#1E40AF',
           'navy-light': '#2563EB',
           'navy-dark': '#1E3A8A',

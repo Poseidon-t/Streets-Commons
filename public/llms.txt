@@ -10,7 +10,7 @@ The tool is used by:
 - People choosing a neighborhood to rent or buy in
 - Real estate agents generating branded walkability reports for listings
 - Urban planners and researchers analyzing pedestrian infrastructure
-- Organizations that need custom street intelligence dashboards (enterprise)
+- Organizations that need custom street intelligence dashboards (platform)
 
 ## The Walkability Score
 
@@ -44,7 +44,7 @@ Each verdict is computed from the relevant sub-scores and shown with a plain-lan
 - **Metric Grid**: 12 scored metrics with expandable detail — tree canopy, sidewalk quality, crossing safety, transit access, destinations, lighting, and more
 - **Compare Mode**: Side-by-side walkability comparison of up to 4 addresses
 - **Agent Reports**: Print-ready branded PDFs for real estate agents — first 3 free, unlimited for $49 one-time
-- **Enterprise Platform**: Custom dashboards and decisioning workflows for governments, developers, mobility operators, and research institutions
+- **platform**: Custom dashboards and decisioning workflows for governments, developers, mobility operators, and research institutions
 
 ## Data Sources
 
@@ -61,7 +61,7 @@ Each verdict is computed from the relevant sub-scores and shown with a plain-lan
 
 US addresses receive the full data stack. International addresses receive walkability metrics from OpenStreetMap and Sentinel-2.
 
-## Enterprise Platform
+## platform
 
 SafeStreets Intelligence builds custom dashboards and decisioning workflows for organizations that need street intelligence at scale:
 
@@ -76,7 +76,7 @@ Platform is built on OpenStreetMap, Sentinel-2, EPA, and Census data — plus cl
 
 - **Core walkability tool**: Free, no sign-up, no usage limits
 - **Agent Reports** (branded PDFs for listings): First 3 free, then $49 one-time for unlimited
-- **Enterprise Platform**: Custom pricing based on geography, integrations, and deployment scope
+- **platform**: Custom pricing based on geography, integrations, and deployment scope
 
 ## Common Questions SafeStreets Answers
 
@@ -96,7 +96,7 @@ Platform is built on OpenStreetMap, Sentinel-2, EPA, and Census data — plus cl
 - Homepage / Tool: https://safestreets.streetsandcommons.com/
 - Blog (walkability research and city guides): https://safestreets.streetsandcommons.com/blog
 - City Walkability Guides: https://safestreets.streetsandcommons.com/walkability
-- Enterprise Platform: https://safestreets.streetsandcommons.com/enterprise
+- platform: https://safestreets.streetsandcommons.com/platform
 - Sitemap: https://safestreets.streetsandcommons.com/sitemap.xml
 
 ## Built By

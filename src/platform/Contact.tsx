@@ -80,14 +80,14 @@ export default function Contact() {
     return (
       <section className="py-32">
         <div className="max-w-lg mx-auto px-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 text-enterprise-green flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 rounded-full bg-green-100 text-platform-green flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-enterprise-slate mb-3">Thank you</h1>
+          <h1 className="text-3xl font-bold text-platform-slate mb-3">Thank you</h1>
           <p className="text-gray-600 mb-8">We've received your inquiry and will be in touch within 1-2 business days to discuss your project.</p>
-          <Link to="/enterprise" className="text-enterprise-navy font-medium hover:underline">&larr; Back to Walkability & Street Intelligence</Link>
+          <Link to="/platform" className="text-platform-navy font-medium hover:underline">&larr; Back to Walkability & Street Intelligence</Link>
         </div>
       </section>
     );
@@ -95,20 +95,20 @@ export default function Contact() {
 
   return (
     <>
-      <section className="bg-enterprise-gray py-20 md:py-28">
+      <section className="bg-platform-gray py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-5 gap-8 md:gap-16">
             {/* Left — Info */}
             <div className="md:col-span-2">
-              <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Contact Sales</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-4">Let's discuss your project</h1>
+              <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">Contact Sales</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-platform-slate mb-4">Let's discuss your project</h1>
               <p className="text-gray-600 mb-10 leading-relaxed">
                 Tell us about your pedestrian safety intelligence needs and we'll put together a tailored proposal for your project.
               </p>
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-sm font-semibold text-enterprise-slate mb-1">What happens next?</h3>
+                  <h3 className="text-sm font-semibold text-platform-slate mb-1">What happens next?</h3>
                   <ul className="space-y-2.5 mt-3">
                     {[
                       'We review your project details',
@@ -116,7 +116,7 @@ export default function Contact() {
                       'Deliver a tailored proposal within a week',
                     ].map((step, i) => (
                       <li key={i} className="flex items-center gap-3 text-sm text-gray-600">
-                        <span className="w-6 h-6 rounded-full bg-blue-50 text-enterprise-navy text-xs font-bold flex items-center justify-center flex-shrink-0">
+                        <span className="w-6 h-6 rounded-full bg-blue-50 text-platform-navy text-xs font-bold flex items-center justify-center flex-shrink-0">
                           {i + 1}
                         </span>
                         {step}
@@ -130,12 +130,12 @@ export default function Contact() {
                     href="https://tidycal.com/sarathsabarish/streets-and-commons-30-min-consultation"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition text-sm"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-platform-navy text-white font-semibold rounded-lg hover:bg-platform-navy-light transition text-sm"
                   >
                     Book a 30-Min Call
                   </a>
                   <p className="text-sm text-gray-500 mt-4">Or email us directly at</p>
-                  <a href="mailto:hello@streetsandcommons.com" className="text-enterprise-navy font-medium hover:underline">
+                  <a href="mailto:hello@streetsandcommons.com" className="text-platform-navy font-medium hover:underline">
                     hello@streetsandcommons.com
                   </a>
                 </div>
@@ -144,32 +144,32 @@ export default function Contact() {
 
             {/* Right — Form */}
             <div className="md:col-span-3">
-              <form onSubmit={handleSubmit} className="bg-enterprise-gray rounded-2xl p-8 space-y-5">
+              <form onSubmit={handleSubmit} className="bg-platform-gray rounded-2xl p-8 space-y-5">
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Name *</label>
-                    <input name="name" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy" />
+                    <input name="name" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Email *</label>
-                    <input name="email" type="email" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy" />
+                    <input name="email" type="email" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy" />
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Organization</label>
-                    <input name="organization" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy" />
+                    <input name="organization" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Role</label>
-                    <input name="role" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy" />
+                    <input name="role" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Project Type *</label>
-                  <select name="projectType" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy">
+                  <select name="projectType" required className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy">
                     <option value="">Select project type</option>
                     {PROJECT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                   </select>
@@ -177,20 +177,20 @@ export default function Contact() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">Location / City</label>
-                  <input name="location" placeholder="e.g., Austin, TX" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy" />
+                  <input name="location" placeholder="e.g., Austin, TX" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy" />
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Budget Range</label>
-                    <select name="budget" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy">
+                    <select name="budget" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy">
                       <option value="">Select budget</option>
                       {BUDGET_RANGES.map((b) => <option key={b} value={b}>{b}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Timeline</label>
-                    <select name="timeline" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy">
+                    <select name="timeline" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy">
                       <option value="">Select timeline</option>
                       {TIMELINES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -204,7 +204,7 @@ export default function Contact() {
                     required
                     rows={4}
                     placeholder="Tell us about your use case — e.g. ADA compliance monitoring, Vision Zero prioritization, site selection, transit planning, or research. What decisions do you need to make?"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy resize-none"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export default function Contact() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition disabled:opacity-60"
+                  className="w-full py-3.5 bg-platform-navy text-white font-semibold rounded-lg hover:bg-platform-navy-light transition disabled:opacity-60"
                 >
                   {loading ? 'Sending...' : 'Send Inquiry'}
                 </button>

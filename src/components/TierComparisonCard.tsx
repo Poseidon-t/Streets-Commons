@@ -117,7 +117,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
             )}
             {tier.name === 'Custom Analysis' && (
               <a
-                href="/enterprise"
+                href="/platform"
                 className="block w-full py-3 rounded-xl font-bold text-sm text-center transition-all hover:shadow-md border-2"
                 style={{ borderColor: '#1E40AF', color: '#1E40AF', backgroundColor: 'white' }}
               >

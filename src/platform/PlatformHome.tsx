@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function EnterpriseHome() {
+export default function PlatformHome() {
   useEffect(() => {
-    document.title = 'Street Intelligence Platform — SafeStreets Enterprise';
+    document.title = 'Street Intelligence Platform — SafeStreets Platform';
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', 'Infrastructure intelligence platform for municipal planners, real estate developers, impact investors, and community organizations. Custom dashboards, decisioning workflows, and scenario modeling.');
   }, []);
@@ -11,10 +11,10 @@ export default function EnterpriseHome() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-enterprise-gray py-24 md:py-32">
+      <section className="bg-platform-gray py-24 md:py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">SafeStreets Intelligence</p>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
+          <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-4">SafeStreets Intelligence</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-platform-slate mb-6 leading-tight">
             Street Intelligence Platform
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
@@ -22,14 +22,14 @@ export default function EnterpriseHome() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/enterprise/contact"
-              className="px-8 py-4 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-dark transition text-base"
+              to="/platform/contact"
+              className="px-8 py-4 bg-platform-navy text-white font-semibold rounded-lg hover:bg-platform-navy-dark transition text-base"
             >
               Request a Demo
             </Link>
             <Link
               to="/"
-              className="px-8 py-4 border-2 border-gray-300 text-enterprise-slate font-semibold rounded-lg hover:border-enterprise-navy transition text-base"
+              className="px-8 py-4 border-2 border-gray-300 text-platform-slate font-semibold rounded-lg hover:border-platform-navy transition text-base"
             >
               Try the Free Tool
             </Link>
@@ -50,7 +50,7 @@ export default function EnterpriseHome() {
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">A Platform, Not a Report</h2>
+            <h2 className="text-3xl font-bold text-platform-slate mb-3">A Platform, Not a Report</h2>
             <p className="text-gray-600 max-w-xl mx-auto">
               A configurable platform built around your workflows, data sources, and decisioning requirements.
             </p>
@@ -85,11 +85,11 @@ export default function EnterpriseHome() {
                 ),
               },
             ].map((cap) => (
-              <div key={cap.title} className="bg-white border border-gray-100 rounded-xl p-8 hover:shadow-md hover:border-enterprise-navy/20 transition">
-                <div className="w-11 h-11 rounded-lg bg-blue-50 text-enterprise-navy flex items-center justify-center mb-5">
+              <div key={cap.title} className="bg-white border border-gray-100 rounded-xl p-8 hover:shadow-md hover:border-platform-navy/20 transition">
+                <div className="w-11 h-11 rounded-lg bg-blue-50 text-platform-navy flex items-center justify-center mb-5">
                   {cap.icon}
                 </div>
-                <h3 className="text-base font-semibold text-enterprise-slate mb-2">{cap.title}</h3>
+                <h3 className="text-base font-semibold text-platform-slate mb-2">{cap.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{cap.desc}</p>
               </div>
             ))}
@@ -98,10 +98,10 @@ export default function EnterpriseHome() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-enterprise-gray">
+      <section className="py-20 bg-platform-gray">
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">From Data to Decisions</h2>
+            <h2 className="text-3xl font-bold text-platform-slate mb-3">From Data to Decisions</h2>
             <p className="text-gray-600">Live platform in 5–6 weeks.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -111,8 +111,8 @@ export default function EnterpriseHome() {
               { step: '03', title: 'Launch & Iterate', desc: 'Live platform with team onboarding, scheduled data refresh, and dedicated support for ongoing iteration as your needs evolve.' },
             ].map((s) => (
               <div key={s.step} className="bg-white rounded-xl p-8 border border-gray-100">
-                <p className="text-4xl font-bold text-enterprise-navy/20 mb-4">{s.step}</p>
-                <h3 className="text-lg font-semibold text-enterprise-slate mb-2">{s.title}</h3>
+                <p className="text-4xl font-bold text-platform-navy/20 mb-4">{s.step}</p>
+                <h3 className="text-lg font-semibold text-platform-slate mb-2">{s.title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{s.desc}</p>
               </div>
             ))}
@@ -123,13 +123,13 @@ export default function EnterpriseHome() {
       {/* Pricing */}
       <section className="py-20">
         <div className="max-w-2xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold text-enterprise-slate mb-4">Custom Pricing</h2>
+          <h2 className="text-3xl font-bold text-platform-slate mb-4">Custom Pricing</h2>
           <p className="text-gray-600 mb-10 leading-relaxed">
             Every engagement is scoped to your project — geography, data depth, integrations, and deployment model. Tell us what you need and we'll put together a proposal.
           </p>
           <Link
-            to="/enterprise/contact"
-            className="inline-block px-10 py-4 bg-enterprise-navy text-white font-bold rounded-lg hover:bg-enterprise-navy-dark transition"
+            to="/platform/contact"
+            className="inline-block px-10 py-4 bg-platform-navy text-white font-bold rounded-lg hover:bg-platform-navy-dark transition"
           >
             Request a Proposal
           </Link>
@@ -137,9 +137,9 @@ export default function EnterpriseHome() {
       </section>
 
       {/* Who It's For */}
-      <section className="py-20 bg-enterprise-gray">
+      <section className="py-20 bg-platform-gray">
         <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-enterprise-slate text-center mb-12">Built for Your Sector</h2>
+          <h2 className="text-3xl font-bold text-platform-slate text-center mb-12">Built for Your Sector</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             {[
               { title: 'Municipal Planners', desc: 'Which streets need intervention most? Prioritize capital budgets by pedestrian risk score, map Vision Zero high-injury corridors, and build the data case for ADA compliance investments.' },
@@ -148,7 +148,7 @@ export default function EnterpriseHome() {
               { title: 'Community Organizations', desc: 'Fight for your neighborhood with data. Generate infrastructure audit reports, map pedestrian gaps, and make a compelling case to planners and elected officials.' },
             ].map((v) => (
               <div key={v.title} className="bg-white rounded-xl p-6 border border-gray-100">
-                <h3 className="font-semibold text-enterprise-slate mb-2">{v.title}</h3>
+                <h3 className="font-semibold text-platform-slate mb-2">{v.title}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
               </div>
             ))}
@@ -157,13 +157,13 @@ export default function EnterpriseHome() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-enterprise-navy">
+      <section className="py-20 bg-platform-navy">
         <div className="max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to build your street intelligence platform?</h2>
           <p className="text-lg text-blue-200 mb-8">Tell us about your project and we'll put together a tailored proposal.</p>
           <Link
-            to="/enterprise/contact"
-            className="inline-block px-10 py-4 bg-white text-enterprise-navy font-bold rounded-lg hover:opacity-90 transition text-base"
+            to="/platform/contact"
+            className="inline-block px-10 py-4 bg-white text-platform-navy font-bold rounded-lg hover:opacity-90 transition text-base"
           >
             Contact Sales →
           </Link>

@@ -50,7 +50,7 @@ export default function ForRealEstate() {
         </div>
       </section>
 
-      {/* Existing enterprise-focused content for developers/investors */}
+      {/* Existing platform-focused content for developers/investors */}
       <VerticalPage
         metaTitle="Walkability & Street Intelligence for Real Estate"
         metaDescription="Branded walkability reports for agents. Site selection insights for developers. Data-driven pedestrian analysis powered by satellite imagery."

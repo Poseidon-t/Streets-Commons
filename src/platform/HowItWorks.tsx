@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import EnterpriseCTA from './components/EnterpriseCTA';
+import PlatformCTA from './components/PlatformCTA';
 
 const PHASES = [
   {
@@ -95,10 +95,10 @@ export default function HowItWorks() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-enterprise-gray py-20 md:py-28">
+      <section className="bg-platform-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">How It Works</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">From Raw Data to Decisions</h1>
+          <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">How It Works</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-platform-slate mb-6">From Raw Data to Decisions</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             A structured 5-phase process that takes your organization from scattered street data to a live decisioning platform — configured around how your team actually works.
           </p>
@@ -111,13 +111,13 @@ export default function HowItWorks() {
           {/* Horizontal progress bar (desktop) */}
           <div className="hidden md:flex items-center justify-between mb-16 relative">
             <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200" />
-            <div className="absolute top-5 left-0 right-0 h-0.5 bg-enterprise-navy" style={{ width: '100%' }} />
+            <div className="absolute top-5 left-0 right-0 h-0.5 bg-platform-navy" style={{ width: '100%' }} />
             {PHASES.map((p) => (
               <div key={p.number} className="relative z-10 text-center">
-                <div className="w-10 h-10 rounded-full bg-enterprise-navy text-white text-sm font-bold flex items-center justify-center mx-auto">
+                <div className="w-10 h-10 rounded-full bg-platform-navy text-white text-sm font-bold flex items-center justify-center mx-auto">
                   {p.number}
                 </div>
-                <p className="text-sm font-medium text-enterprise-slate mt-2">{p.title}</p>
+                <p className="text-sm font-medium text-platform-slate mt-2">{p.title}</p>
                 <p className="text-xs text-gray-400">{p.duration}</p>
               </div>
             ))}
@@ -129,21 +129,21 @@ export default function HowItWorks() {
               <div key={phase.number} className={`grid md:grid-cols-2 gap-10 items-start ${i % 2 === 1 ? 'md:direction-rtl' : ''}`}>
                 <div className={i % 2 === 1 ? 'md:order-2' : ''}>
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-sm font-bold text-enterprise-navy bg-blue-50 w-10 h-10 rounded-lg flex items-center justify-center">
+                    <span className="text-sm font-bold text-platform-navy bg-blue-50 w-10 h-10 rounded-lg flex items-center justify-center">
                       {phase.number}
                     </span>
                     <div>
-                      <h3 className="text-xl font-bold text-enterprise-slate">{phase.title}</h3>
+                      <h3 className="text-xl font-bold text-platform-slate">{phase.title}</h3>
                       <p className="text-xs text-gray-400">{phase.duration}</p>
                     </div>
                   </div>
                   <p className="text-gray-600 leading-relaxed mb-4">{phase.description}</p>
                 </div>
-                <div className={`bg-enterprise-gray rounded-xl p-6 ${i % 2 === 1 ? 'md:order-1' : ''}`}>
+                <div className={`bg-platform-gray rounded-xl p-6 ${i % 2 === 1 ? 'md:order-1' : ''}`}>
                   <ul className="space-y-2.5">
                     {phase.details.map((d, j) => (
                       <li key={j} className="flex items-start gap-2.5">
-                        <svg className="w-4 h-4 text-enterprise-green mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-4 h-4 text-platform-green mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                         <span className="text-sm text-gray-700">{d}</span>
@@ -158,16 +158,16 @@ export default function HowItWorks() {
       </section>
 
       {/* Data Sources */}
-      <section className="py-20 bg-enterprise-gray">
+      <section className="py-20 bg-platform-gray">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Data Sources</h2>
+            <h2 className="text-3xl font-bold text-platform-slate mb-3">Data Sources</h2>
             <p className="text-gray-600 max-w-xl mx-auto">The intelligence engine integrates multiple authoritative sources — plus your own datasets — for a complete picture of pedestrian conditions.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {DATA_SOURCES.map((ds) => (
               <div key={ds.name} className="bg-white rounded-xl border border-gray-100 p-6">
-                <h3 className="text-base font-semibold text-enterprise-slate mb-2">{ds.name}</h3>
+                <h3 className="text-base font-semibold text-platform-slate mb-2">{ds.name}</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">{ds.desc}</p>
               </div>
             ))}
@@ -179,12 +179,12 @@ export default function HowItWorks() {
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">What You Get</h2>
+            <h2 className="text-3xl font-bold text-platform-slate mb-3">What You Get</h2>
             <p className="text-gray-500 max-w-xl mx-auto">A live platform built around your decisions — not a one-time report that sits in a drawer.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Intelligence Platform</p>
+              <p className="text-sm font-semibold text-platform-navy uppercase tracking-wider mb-4">Intelligence Platform</p>
               <ul className="space-y-3">
                 {[
                   'Custom dashboard with your metric configuration',
@@ -196,7 +196,7 @@ export default function HowItWorks() {
                   'Team onboarding and documentation',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
-                    <svg className="w-4 h-4 text-enterprise-navy mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-platform-navy mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
@@ -204,8 +204,8 @@ export default function HowItWorks() {
                 ))}
               </ul>
             </div>
-            <div className="bg-enterprise-slate rounded-2xl p-8 text-white">
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Custom Decisioning Build</p>
+            <div className="bg-platform-slate rounded-2xl p-8 text-white">
+              <p className="text-sm font-semibold text-platform-green-light uppercase tracking-wider mb-4">Custom Decisioning Build</p>
               <p className="text-xs text-gray-400 mb-4">Everything in Platform, plus:</p>
               <ul className="space-y-3">
                 {[
@@ -219,7 +219,7 @@ export default function HowItWorks() {
                   'Multi-geography or portfolio-wide analysis',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
-                    <svg className="w-4 h-4 text-enterprise-green flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <svg className="w-4 h-4 text-platform-green flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
                     {item}
@@ -229,14 +229,14 @@ export default function HowItWorks() {
             </div>
           </div>
           <div className="text-center mt-10">
-            <Link to="/enterprise/pricing" className="text-sm font-medium text-enterprise-navy hover:underline">
+            <Link to="/platform/pricing" className="text-sm font-medium text-platform-navy hover:underline">
               See pricing options &rarr;
             </Link>
           </div>
         </div>
       </section>
 
-      <EnterpriseCTA
+      <PlatformCTA
         dark
         title="Ready to build your street intelligence platform?"
         description="Tell us about your organization and we'll scope a custom engagement."

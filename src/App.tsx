@@ -695,7 +695,7 @@ function App() {
             <a href="#faq" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); }}} className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">FAQ</a>
             <a href="/blog" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Blog</a>
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
-            <a href="/enterprise" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Enterprise</a>
+            <a href="/platform" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Platform</a>
             <div className="flex items-center gap-1.5">
               {isSignedIn && userIsPremium && (
                 <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: '#e07850' }}>Pro</span>
@@ -734,7 +734,7 @@ function App() {
             <a href="/blog" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Blog</a>
             <a href="/learn" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Learn</a>
             <a href="#faq" className="block text-sm font-medium py-2 text-earth-text-body" onClick={(e) => { if (location || compareMode || demoMode) { e.preventDefault(); setCompareMode(false); setLocation(null); setMetrics(null); setDemoMode(false); setShowTour(false); setTimeout(() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' }), 100); } setMobileMenuOpen(false); }}>FAQ</a>
-            <a href="/enterprise" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Enterprise</a>
+            <a href="/platform" className="block text-sm font-medium py-2 text-earth-text-body" onClick={() => setMobileMenuOpen(false)}>Platform</a>
             {!isSignedIn && (
               <button onClick={() => { setShowSignInModal(true); setMobileMenuOpen(false); }} className="block text-sm font-medium py-2 text-earth-text-body cursor-pointer bg-transparent border-none w-full text-left">Sign In</button>
             )}
@@ -2063,7 +2063,7 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  <a href="/enterprise" className="transition hover:text-white text-earth-text-light">Enterprise solutions</a>
+                  <a href="/platform" className="transition hover:text-white text-earth-text-light">Platform</a>
                 </li>
               </ul>
             </div>
@@ -2135,7 +2135,7 @@ function App() {
                 Built for walkable cities, inspired by Jane Jacobs
               </p>
               <div className="flex items-center gap-4">
-                <a href="/enterprise" className="transition hover:text-white text-earth-text-muted">Enterprise</a>
+                <a href="/platform" className="transition hover:text-white text-earth-text-muted">Platform</a>
                 <a href="/blog" className="transition hover:text-white text-earth-text-muted">Blog</a>
                 <a href="#faq" className="transition hover:text-white text-earth-text-muted">FAQ</a>
                 <a href="mailto:hello@streetsandcommons.com" className="transition hover:text-white text-earth-text-muted">Contact</a>

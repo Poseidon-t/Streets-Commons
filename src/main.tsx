@@ -20,17 +20,17 @@ import AgentReportView from './components/AgentReportView'
 import SharedReportView from './components/SharedReportView'
 const ComparisonReportView = lazy(() => import('./components/ComparisonReportView'))
 
-// Enterprise marketing pages (lazy-loaded)
-const EnterpriseLayout = lazy(() => import('./enterprise/EnterpriseLayout'))
-const EnterpriseHome = lazy(() => import('./enterprise/EnterpriseHome'))
-const ForGovernments = lazy(() => import('./enterprise/ForGovernments'))
-const ForRealEstate = lazy(() => import('./enterprise/ForRealEstate'))
-const ForMobility = lazy(() => import('./enterprise/ForMobility'))
-const ForResearch = lazy(() => import('./enterprise/ForResearch'))
-const HowItWorks = lazy(() => import('./enterprise/HowItWorks'))
-const EnterpriseMetrics = lazy(() => import('./enterprise/Metrics'))
-const EnterprisePricing = lazy(() => import('./enterprise/Pricing'))
-const EnterpriseContact = lazy(() => import('./enterprise/Contact'))
+// Platform marketing pages (lazy-loaded)
+const PlatformLayout = lazy(() => import('./platform/PlatformLayout'))
+const PlatformHome = lazy(() => import('./platform/PlatformHome'))
+const ForGovernments = lazy(() => import('./platform/ForGovernments'))
+const ForRealEstate = lazy(() => import('./platform/ForRealEstate'))
+const ForMobility = lazy(() => import('./platform/ForMobility'))
+const ForResearch = lazy(() => import('./platform/ForResearch'))
+const HowItWorks = lazy(() => import('./platform/HowItWorks'))
+const PlatformMetrics = lazy(() => import('./platform/Metrics'))
+const PlatformPricing = lazy(() => import('./platform/Pricing'))
+const PlatformContact = lazy(() => import('./platform/Contact'))
 
 // Admin panel (lazy-loaded, code-split)
 const AdminLayout = lazy(() => import('./admin/AdminLayout'))
@@ -79,21 +79,21 @@ createRoot(document.getElementById('root')!).render(
           } />
           {/* Shareable reports */}
           <Route path="/r/:reportId" element={<SharedReportView />} />
-          {/* Enterprise marketing pages */}
-          <Route path="/enterprise" element={
+          {/* Platform marketing pages */}
+          <Route path="/platform" element={
             <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white"><div className="text-gray-400">Loading...</div></div>}>
-              <EnterpriseLayout />
+              <PlatformLayout />
             </Suspense>
           }>
-            <Route index element={<EnterpriseHome />} />
+            <Route index element={<PlatformHome />} />
             <Route path="governments" element={<ForGovernments />} />
             <Route path="real-estate" element={<ForRealEstate />} />
             <Route path="mobility" element={<ForMobility />} />
             <Route path="research" element={<ForResearch />} />
             <Route path="how-it-works" element={<HowItWorks />} />
-            <Route path="metrics" element={<EnterpriseMetrics />} />
-            <Route path="pricing" element={<EnterprisePricing />} />
-            <Route path="contact" element={<EnterpriseContact />} />
+            <Route path="metrics" element={<PlatformMetrics />} />
+            <Route path="pricing" element={<PlatformPricing />} />
+            <Route path="contact" element={<PlatformContact />} />
           </Route>
           {/* Admin panel */}
           <Route path="/admin" element={

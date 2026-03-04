@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import MetricCard from './components/MetricCard';
-import EnterpriseCTA from './components/EnterpriseCTA';
+import PlatformCTA from './components/PlatformCTA';
 
 const CATEGORIES = [
   {
     name: 'Infrastructure',
     description: 'Physical built environment that supports or hinders walking',
-    color: 'bg-blue-50 text-enterprise-navy',
+    color: 'bg-blue-50 text-platform-navy',
     metrics: [
       {
         title: 'Sidewalk Quality',
@@ -44,7 +44,7 @@ const CATEGORIES = [
   {
     name: 'Environment',
     description: 'Comfort and sensory experience of the walking environment',
-    color: 'bg-green-50 text-enterprise-green',
+    color: 'bg-green-50 text-platform-green',
     metrics: [
       {
         title: 'Lighting & Visibility',
@@ -165,10 +165,10 @@ export default function Metrics() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-enterprise-gray py-20 md:py-28">
+      <section className="bg-platform-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
+          <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-platform-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Every SafeStreets platform deployment is built on a rigorous framework of 12 metrics across 4 categories — measured through satellite imagery, open data, and census sources, and surfaced in your configurable dashboard.
           </p>
@@ -179,11 +179,11 @@ export default function Metrics() {
       <section className="border-b border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-enterprise-navy">Intelligence Platform</span>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-platform-navy">Intelligence Platform</span>
             <span className="text-sm text-gray-600">Core metrics included</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-enterprise-green">Custom Decisioning Build</span>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-platform-green">Custom Decisioning Build</span>
             <span className="text-sm text-gray-600">All 12 metrics + full configuration</span>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function Metrics() {
 
       {/* Categories */}
       {CATEGORIES.map((cat) => (
-        <section key={cat.name} className="py-16 even:bg-enterprise-gray">
+        <section key={cat.name} className="py-16 even:bg-platform-gray">
           <div className="max-w-6xl mx-auto px-6">
             <div className="mb-10">
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3 ${cat.color}`}>
@@ -211,22 +211,22 @@ export default function Metrics() {
       {/* Summary */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-2xl font-bold text-enterprise-slate mb-4">Comprehensive Coverage</h2>
+          <h2 className="text-2xl font-bold text-platform-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
             All 12 metrics are available in the platform with configurable weights, custom scoring logic, and composite scores tuned to your organization's decisions. Pricing is custom — contact us to scope your engagement.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/enterprise/pricing" className="px-6 py-3 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition">
+            <Link to="/platform/pricing" className="px-6 py-3 bg-platform-navy text-white font-semibold rounded-lg hover:bg-platform-navy-light transition">
               Compare Packages
             </Link>
-            <Link to="/enterprise/how-it-works" className="px-6 py-3 border-2 border-gray-300 text-enterprise-slate font-semibold rounded-lg hover:border-enterprise-navy transition">
+            <Link to="/platform/how-it-works" className="px-6 py-3 border-2 border-gray-300 text-platform-slate font-semibold rounded-lg hover:border-platform-navy transition">
               See Methodology
             </Link>
           </div>
         </div>
       </section>
 
-      <EnterpriseCTA dark />
+      <PlatformCTA dark />
     </>
   );
 }

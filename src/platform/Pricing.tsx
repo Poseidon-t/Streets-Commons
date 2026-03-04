@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import EnterpriseCTA from './components/EnterpriseCTA';
+import PlatformCTA from './components/PlatformCTA';
 
 const PLATFORM_FEATURES = [
   { name: 'Custom dashboard', platform: 'Configured for your use case', custom: 'Multi-view, role-based' },
@@ -67,10 +67,10 @@ export default function Pricing() {
   return (
     <>
       {/* Hero */}
-      <section className="bg-enterprise-gray py-20 md:py-28">
+      <section className="bg-platform-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Pricing</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">Platform Pricing</h1>
+          <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">Pricing</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-platform-slate mb-6">Platform Pricing</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Two tiers designed for different levels of customization and integration. Both include a configured dashboard, API access, and ongoing data. Priced per engagement based on geography, scope, and integration requirements.
           </p>
@@ -83,30 +83,30 @@ export default function Pricing() {
           <div className="grid md:grid-cols-2 gap-8 mb-20">
             {/* Intelligence Platform */}
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8 md:p-10">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-3">Intelligence Platform</p>
-              <p className="text-4xl font-bold text-enterprise-slate mb-1">Custom Pricing</p>
+              <p className="text-sm font-semibold text-platform-navy uppercase tracking-wider mb-3">Intelligence Platform</p>
+              <p className="text-4xl font-bold text-platform-slate mb-1">Custom Pricing</p>
               <p className="text-sm text-gray-500 mb-2">Based on geography and scope</p>
               <p className="text-sm text-gray-600 mb-8">
                 A configured dashboard for your geography, with your metric weights, decisioning thresholds, API access, and quarterly data updates. The fastest path to live street intelligence.
               </p>
-              <Link to="/enterprise/contact" className="block text-center py-3.5 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition mb-6">
+              <Link to="/platform/contact" className="block text-center py-3.5 border-2 border-platform-navy text-platform-navy font-semibold rounded-lg hover:bg-platform-navy hover:text-white transition mb-6">
                 Request a Quote
               </Link>
               <p className="text-xs text-gray-400 text-center">Typical deployment: 5–6 weeks</p>
             </div>
 
             {/* Custom Decisioning Build */}
-            <div className="bg-enterprise-slate rounded-2xl p-8 md:p-10 text-white relative">
-              <div className="absolute top-6 right-6 px-3 py-1 bg-enterprise-green/20 text-enterprise-green-light text-xs font-semibold rounded-full">
+            <div className="bg-platform-slate rounded-2xl p-8 md:p-10 text-white relative">
+              <div className="absolute top-6 right-6 px-3 py-1 bg-platform-green/20 text-platform-green-light text-xs font-semibold rounded-full">
                 Most Flexible
               </div>
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-3">Custom Decisioning Build</p>
+              <p className="text-sm font-semibold text-platform-green-light uppercase tracking-wider mb-3">Custom Decisioning Build</p>
               <p className="text-4xl font-bold mb-1">Custom Pricing</p>
               <p className="text-sm text-gray-400 mb-2">Based on scope, integrations, and deployment</p>
               <p className="text-sm text-gray-300 mb-8">
                 Bespoke decisioning workflows, white-label or embedded deployment, full system integrations, and continuous data updates. Built for organizations that need the intelligence engine embedded into their own operations.
               </p>
-              <Link to="/enterprise/contact" className="block text-center py-3.5 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition mb-6">
+              <Link to="/platform/contact" className="block text-center py-3.5 bg-platform-green text-white font-semibold rounded-lg hover:bg-platform-green-light transition mb-6">
                 Contact Sales
               </Link>
               <p className="text-xs text-gray-500 text-center">Typical deployment: 6–10 weeks</p>
@@ -115,13 +115,13 @@ export default function Pricing() {
 
           {/* Feature Comparison */}
           <div>
-            <h2 className="text-2xl font-bold text-enterprise-slate mb-8 text-center">Feature Comparison</h2>
+            <h2 className="text-2xl font-bold text-platform-slate mb-8 text-center">Feature Comparison</h2>
             <div className="bg-white border border-gray-100 rounded-2xl overflow-x-auto">
               <div className="min-w-[600px]">
-                <div className="grid grid-cols-3 bg-enterprise-gray px-6 py-4 border-b border-gray-100">
+                <div className="grid grid-cols-3 bg-platform-gray px-6 py-4 border-b border-gray-100">
                   <div className="text-sm font-semibold text-gray-500">Feature</div>
-                  <div className="text-sm font-semibold text-enterprise-navy text-center">Intelligence Platform</div>
-                  <div className="text-sm font-semibold text-enterprise-green text-center">Custom Decisioning Build</div>
+                  <div className="text-sm font-semibold text-platform-navy text-center">Intelligence Platform</div>
+                  <div className="text-sm font-semibold text-platform-green text-center">Custom Decisioning Build</div>
                 </div>
                 {PLATFORM_FEATURES.map((f, i) => (
                   <div key={i} className={`grid grid-cols-3 px-6 py-3.5 items-center ${i % 2 === 0 ? '' : 'bg-gray-50/50'}`}>
@@ -131,7 +131,7 @@ export default function Pricing() {
                         <span className="text-sm text-gray-700">{f.platform}</span>
                       ) : f.platform ? (
                         <>
-                          <svg className="w-5 h-5 text-enterprise-navy mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                          <svg className="w-5 h-5 text-platform-navy mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                           <span className="sr-only">Included</span>
@@ -145,7 +145,7 @@ export default function Pricing() {
                         <span className="text-sm text-gray-700">{f.custom}</span>
                       ) : f.custom ? (
                         <>
-                          <svg className="w-5 h-5 text-enterprise-green mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
+                          <svg className="w-5 h-5 text-platform-green mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                           <span className="sr-only">Included</span>
@@ -163,9 +163,9 @@ export default function Pricing() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 bg-enterprise-gray">
+      <section className="py-20 bg-platform-gray">
         <div className="max-w-3xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-enterprise-slate mb-10 text-center">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-platform-slate mb-10 text-center">Frequently Asked Questions</h2>
           <div className="space-y-3">
             {FAQS.map((faq, i) => (
               <div key={i} className="bg-white rounded-xl border border-gray-100">
@@ -173,7 +173,7 @@ export default function Pricing() {
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full text-left px-6 py-4 flex items-center justify-between"
                 >
-                  <span className="text-sm font-medium text-enterprise-slate pr-4">{faq.q}</span>
+                  <span className="text-sm font-medium text-platform-slate pr-4">{faq.q}</span>
                   <svg
                     className={`w-5 h-5 text-gray-400 flex-shrink-0 transition ${openFaq === i ? 'rotate-180' : ''}`}
                     fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
@@ -193,12 +193,12 @@ export default function Pricing() {
       </section>
 
       {/* CTA */}
-      <EnterpriseCTA
+      <PlatformCTA
         title="Ready to build your intelligence platform?"
         description="Contact our team to scope a custom engagement and receive a proposal."
         primaryLabel="Contact Sales"
         secondaryLabel="How It Works"
-        secondaryHref="/enterprise/how-it-works"
+        secondaryHref="/platform/how-it-works"
       />
     </>
   );
