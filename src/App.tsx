@@ -692,7 +692,7 @@ function App() {
               <rect x="28" y="14" width="6" height="16" fill="white" rx="1"/>
             </svg>
             <div className="text-left">
-              <h1 className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</h1>
+              <span className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</span>
               <p className="text-xs tracking-wider uppercase font-mono text-earth-text-mid">Walkability Analysis</p>
             </div>
           </button>

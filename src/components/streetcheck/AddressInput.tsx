@@ -81,10 +81,16 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
       )}
 
       {results.length > 0 && (
-        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-60 sm:max-h-72 md:max-h-80 overflow-y-auto">
+        <div
+          role="listbox"
+          data-testid="address-suggestions"
+          className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-60 sm:max-h-72 md:max-h-80 overflow-y-auto"
+        >
           {results.map((location, index) => (
             <button
               key={index}
+              role="option"
+              aria-selected={false}
               onClick={() => handleSelect(location)}
               className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b last:border-b-0"
             >
@@ -95,7 +101,11 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
       )}
 
       {results.length === 0 && searchedOnce && query.trim().length > 2 && !isLoading && !hasSelected && (
-        <div className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl p-4 text-center text-sm" style={{ color: '#8a9a8a' }}>
+        <div
+          data-testid="search-no-results"
+          className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl p-4 text-center text-sm"
+          style={{ color: '#8a9a8a' }}
+        >
           No results found. Try a more specific address.
         </div>
       )}

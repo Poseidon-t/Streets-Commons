@@ -82,7 +82,10 @@ function setupMonitoring(page: Page) {
   });
 
   page.on('requestfailed', (request) => {
-    networkErrors.push(`Failed: ${request.url()} - ${request.failure()?.errorText}`);
+    const url = request.url();
+    // Ignore fire-and-forget analytics beacons — these abort on page navigation by design
+    if (url.includes('/api/track') || url.includes('/api/error')) return;
+    networkErrors.push(`Failed: ${url} - ${request.failure()?.errorText}`);
   });
 }
 
@@ -392,8 +395,8 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
 
         const screenshot = await captureScreenshot(page, 'autocomplete');
 
-        // Look for autocomplete dropdown
-        const dropdown = page.locator('[role="listbox"], .autocomplete, [class*="suggestion"], [class*="dropdown"]');
+        // Look for autocomplete dropdown (rendered with role="listbox" or data-testid)
+        const dropdown = page.locator('[role="listbox"], [data-testid="address-suggestions"]');
         const hasDropdown = await dropdown.count() > 0;
 
         recordTestResult({
@@ -493,8 +496,8 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
 
         const screenshot = await captureScreenshot(page, 'walkability-score');
 
-        // Look for score display
-        const scoreElement = page.locator('text=/score|walkability/i, [class*="score"]');
+        // Look for score display — use .or() to combine text and class selectors
+        const scoreElement = page.locator('text=/walkability/i').or(page.locator('[class*="score"]'));
         const hasScore = await scoreElement.count() > 0;
 
         recordTestResult({
@@ -766,8 +769,8 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
 
         const screenshot = await captureScreenshot(page, 'invalid-address');
 
-        // Look for error message
-        const errorMessage = page.locator('text=/error|invalid|not found/i');
+        // Look for error message — includes AddressInput "no results" state and any visible error text
+        const errorMessage = page.locator('[data-testid="search-no-results"]').or(page.locator('text=/no results|not found|invalid/i'));
         const hasError = await errorMessage.count() > 0;
 
         recordTestResult({
@@ -895,7 +898,7 @@ test.describe('Streets Commons - Comprehensive Test Suite', () => {
 
     test('Should check API endpoints availability', async ({ request }) => {
       const endpoints = [
-        '/api/overpass',
+        '/api/street-design',  // GET endpoint for street network analysis
         '/api/slope',
         '/api/ndvi',
         '/api/nasa-power-temperature',
