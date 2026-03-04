@@ -2040,12 +2040,7 @@ function App() {
             {/* About Column */}
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <svg width="32" height="32" viewBox="0 0 44 44">
-                  <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850"/>
-                  <rect x="10" y="14" width="6" height="16" fill="white" rx="1"/>
-                  <rect x="19" y="14" width="6" height="16" fill="white" rx="1"/>
-                  <rect x="28" y="14" width="6" height="16" fill="white" rx="1"/>
-                </svg>
+                <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
                 <h3 className="text-xl font-bold text-terra">SafeStreets</h3>
               </div>
               <p className="text-sm mb-4 leading-relaxed text-earth-text-light">

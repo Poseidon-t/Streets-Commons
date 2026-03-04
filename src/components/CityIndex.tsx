@@ -57,12 +57,7 @@ export default function CityIndex() {
       <header className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <svg width="32" height="32" viewBox="0 0 44 44">
-              <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850"/>
-              <rect x="10" y="14" width="6" height="16" fill="white" rx="1"/>
-              <rect x="19" y="14" width="6" height="16" fill="white" rx="1"/>
-              <rect x="28" y="14" width="6" height="16" fill="white" rx="1"/>
-            </svg>
+            <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 32, height: 32 }} />
             <span className="text-xl font-bold" style={{ color: '#e07850' }}>SafeStreets</span>
           </Link>
           <Link

@@ -176,12 +176,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <svg width="22" height="22" viewBox="0 0 44 44">
-                <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850"/>
-                <rect x="10" y="14" width="6" height="16" fill="white" rx="1"/>
-                <rect x="19" y="14" width="6" height="16" fill="white" rx="1"/>
-                <rect x="28" y="14" width="6" height="16" fill="white" rx="1"/>
-              </svg>
+              <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 22, height: 22 }} />
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#e07850' }}>SafeStreets</span>
             </div>
           </div>

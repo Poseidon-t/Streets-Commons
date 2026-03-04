@@ -20,12 +20,7 @@ export default function AdminLayout() {
         <aside className="w-60 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#2a3a2a' }}>
           <div className="p-5 border-b border-white/10">
             <a href="/" className="flex items-center gap-2">
-              <svg width="28" height="28" viewBox="0 0 44 44">
-                <rect x="2" y="2" width="40" height="40" rx="10" fill="#e07850" />
-                <rect x="10" y="14" width="6" height="16" fill="white" rx="1" />
-                <rect x="19" y="14" width="6" height="16" fill="white" rx="1" />
-                <rect x="28" y="14" width="6" height="16" fill="white" rx="1" />
-              </svg>
+              <img src="/logo-nobg.png" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />
               <span className="text-lg font-bold" style={{ color: '#e07850' }}>
                 Admin
               </span>
