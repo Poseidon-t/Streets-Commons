@@ -6361,13 +6361,13 @@ async function pollReddit() {
   console.log('🔴 Polling Reddit for walkability mentions...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
-  // Only accept posts from the last 30 days (Reddit ignores t=month with sort=new)
   const thirtyDaysAgo = Date.now() / 1000 - 30 * 24 * 3600;
 
   for (const sub of REDDIT_SUBREDDITS) {
     try {
-      // sort=new returns most recent posts; t= is ignored with sort=new so we filter server-side
-      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=25&restrict_sr=true`;
+      // Use /new.json directly — far more reliable than the search endpoint
+      // which frequently returns 0 results for smaller subreddits
+      const url = `https://www.reddit.com/r/${sub}/new.json?limit=50`;
       const resp = await fetch(url, {
         headers: { 'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: admin@streetsandcommons.com)' },
         signal: AbortSignal.timeout(10000),
@@ -6375,18 +6375,19 @@ async function pollReddit() {
       if (!resp.ok) { console.log(`  Reddit r/${sub}: HTTP ${resp.status}`); continue; }
       const data = await resp.json();
       const children = data?.data?.children || [];
-      console.log(`  Reddit r/${sub}: ${children.length} results from API`);
+      console.log(`  Reddit r/${sub}: ${children.length} posts fetched`);
 
+      let matched_count = 0;
       for (const child of children) {
         const p = child.data;
         if (seenIds.has(p.id)) continue;
-        // Skip posts older than 30 days (belt-and-suspenders on top of t=month)
         if (!p.permalink || p.created_utc < thirtyDaysAgo) continue;
 
         const text = `${p.title} ${p.selftext || ''}`.toLowerCase();
         const matched = REDDIT_KEYWORDS.filter(kw => text.includes(kw));
         if (matched.length === 0) continue;
 
+        matched_count++;
         newPosts.push({
           id: p.id,
           subreddit: `r/${sub}`,
@@ -6402,9 +6403,10 @@ async function pollReddit() {
         });
         seenIds.add(p.id);
       }
-      await new Promise(r => setTimeout(r, 800)); // rate limit
+      console.log(`  Reddit r/${sub}: ${matched_count} matched keywords`);
+      await new Promise(r => setTimeout(r, 500));
     } catch (err) {
-      console.log(`  Reddit ${sub} error: ${err.message}`);
+      console.log(`  Reddit r/${sub} error: ${err.message}`);
     }
   }
 
