@@ -1646,7 +1646,7 @@ function App() {
               </div>
             </section>
 
-            {/* Agent Reports CTA */}
+            {/* Branded Reports CTA */}
             <section className="py-12 bg-white/30">
               <div className="max-w-5xl mx-auto px-6">
                 <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#2a3a2a' }}>
@@ -1655,7 +1655,7 @@ function App() {
                       {/* Content */}
                       <div className="flex-1 text-center lg:text-left">
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
-                          Agent Reports
+                          Branded Reports
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
                           Branded Walkability Reports for Any Address
