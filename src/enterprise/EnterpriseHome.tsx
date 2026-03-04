@@ -20,18 +20,12 @@ export default function EnterpriseHome() {
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
             Custom dashboards, decisioning workflows, and API access — built on satellite imagery, open data, and census sources.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Link
               to="/enterprise/contact"
               className="px-8 py-4 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-dark transition text-base"
             >
               Request a Demo
-            </Link>
-            <Link
-              to="/"
-              className="px-8 py-4 border-2 border-gray-300 text-enterprise-slate font-semibold rounded-lg hover:border-enterprise-navy transition text-base"
-            >
-              Try the Free Tool
             </Link>
           </div>
         </div>
@@ -113,50 +107,17 @@ export default function EnterpriseHome() {
 
       {/* Pricing */}
       <section className="py-20">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Two Tiers, Custom Pricing</h2>
-            <p className="text-gray-600">Priced based on geography, scope, and integrations.</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="bg-white border border-gray-200 rounded-xl p-8">
-              <h3 className="text-xl font-bold text-enterprise-slate mb-2">Intelligence Platform</h3>
-              <p className="text-sm text-gray-600 mb-6 leading-relaxed">Configured dashboard for your geography, with your metric weights, decisioning thresholds, API access, and quarterly data updates.</p>
-              <ul className="space-y-3 mb-8">
-                {['Custom dashboard & metric weights', 'Decisioning rules & threshold alerts', 'API access & GIS export', 'Quarterly data refresh', 'Team onboarding'].map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-gray-700">
-                    <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-sm text-gray-500 mb-4">Typical deployment: 5–6 weeks</p>
-              <Link to="/enterprise/contact" className="block w-full text-center py-3 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition text-sm">
-                Request a Quote
-              </Link>
-            </div>
-            <div className="bg-enterprise-slate rounded-xl p-8 text-white">
-              <div className="inline-block text-xs font-bold uppercase tracking-wider bg-enterprise-green text-white px-3 py-1 rounded-full mb-4">Most Flexible</div>
-              <h3 className="text-xl font-bold mb-2">Custom Decisioning Build</h3>
-              <p className="text-sm text-gray-300 mb-6 leading-relaxed">Bespoke decisioning workflows, white-label or embedded deployment, full system integrations, and continuous data updates.</p>
-              <ul className="space-y-3 mb-8">
-                {['Everything in Intelligence Platform', 'White-label or embedded deployment', 'Custom composite score logic', 'Integration with your systems', 'Continuous data updates', 'Dedicated support'].map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-gray-200">
-                    <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-sm text-gray-400 mb-4">Typical deployment: 6–10 weeks</p>
-              <Link to="/enterprise/contact" className="block w-full text-center py-3 bg-enterprise-green text-white font-semibold rounded-lg hover:opacity-90 transition text-sm">
-                Contact Sales
-              </Link>
-            </div>
-          </div>
+        <div className="max-w-2xl mx-auto px-6 text-center">
+          <h2 className="text-3xl font-bold text-enterprise-slate mb-4">Custom Pricing</h2>
+          <p className="text-gray-600 mb-10 leading-relaxed">
+            Every engagement is scoped to your project — geography, data depth, integrations, and deployment model. Tell us what you need and we'll put together a proposal.
+          </p>
+          <Link
+            to="/enterprise/contact"
+            className="inline-block px-10 py-4 bg-enterprise-navy text-white font-bold rounded-lg hover:bg-enterprise-navy-dark transition"
+          >
+            Request a Proposal
+          </Link>
         </div>
       </section>
 
