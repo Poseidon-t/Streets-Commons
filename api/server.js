@@ -988,6 +988,93 @@ const BLOG_IMAGE_BANK = {
   ],
 };
 
+// ─── City-specific curated image bank ────────────────────────────────────────
+// Manually verified Unsplash photos that clearly show each city's street character.
+const CITY_IMAGE_BANK = {
+  barcelona: [
+    { url: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=1200&q=80&fit=crop', alt: 'Las Ramblas pedestrian boulevard in Barcelona', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1567593810070-7a3d471af022?w=1200&q=80&fit=crop', alt: 'Barcelona street with Gothic architecture and pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=1200&q=80&fit=crop', alt: 'Barcelona Eixample grid intersection with cycling infrastructure', credit: 'Unsplash' },
+  ],
+  amsterdam: [
+    { url: 'https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?w=1200&q=80&fit=crop', alt: 'Amsterdam canal street with cyclists and pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1534351590666-13e3e96b5017?w=1200&q=80&fit=crop', alt: 'Amsterdam protected cycling lane along canal', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1576838132710-3df4b7e61c37?w=1200&q=80&fit=crop', alt: 'Amsterdam city centre with trams and cyclists', credit: 'Unsplash' },
+  ],
+  oslo: [
+    { url: 'https://images.unsplash.com/photo-1580745294613-73cc2dfef7c4?w=1200&q=80&fit=crop', alt: 'Oslo car-free city centre pedestrian street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1602530844181-e0ec11736bcd?w=1200&q=80&fit=crop', alt: 'Oslo waterfront promenade and urban park', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1543161949-1f9193812ce8?w=1200&q=80&fit=crop', alt: 'Oslo street with tram and protected pedestrian crossing', credit: 'Unsplash' },
+  ],
+  tokyo: [
+    { url: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200&q=80&fit=crop', alt: 'Shibuya crossing Tokyo with thousands of pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1513407030348-c983a97b98d8?w=1200&q=80&fit=crop', alt: 'Tokyo shopping arcade covered walkway', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1480796927426-f609979314bd?w=1200&q=80&fit=crop', alt: 'Tokyo pedestrian street and urban neighbourhood', credit: 'Unsplash' },
+  ],
+  bogota: [
+    { url: 'https://images.unsplash.com/photo-1591696205602-2f950c417cb9?w=1200&q=80&fit=crop', alt: 'Bogotá Ciclovía cyclists on car-free Sunday streets', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1622547748225-3fc4abd2cca0?w=1200&q=80&fit=crop', alt: 'Bogotá TransMilenio BRT station with pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1566132127697-4524fea60007?w=1200&q=80&fit=crop', alt: 'Bogotá urban street with protected pedestrian infrastructure', credit: 'Unsplash' },
+  ],
+  copenhagen: [
+    { url: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&q=80&fit=crop', alt: 'Copenhagen Strøget pedestrian street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1513622470522-26c3c8a854bc?w=1200&q=80&fit=crop', alt: 'Copenhagen cycling infrastructure and colourful townhouses', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=1200&q=80&fit=crop', alt: 'Copenhagen cycle superhighway with commuter cyclists', credit: 'Unsplash' },
+  ],
+  paris: [
+    { url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=80&fit=crop', alt: 'Paris pedestrian boulevard along the Seine', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1549144511-f099e773c147?w=1200&q=80&fit=crop', alt: 'Paris protected cycle lane on Rue de Rivoli', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?w=1200&q=80&fit=crop', alt: 'Paris street cafe and pedestrian crossing', credit: 'Unsplash' },
+  ],
+  singapore: [
+    { url: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=1200&q=80&fit=crop', alt: 'Singapore covered walkway network for pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1508964942454-1a56651d54ac?w=1200&q=80&fit=crop', alt: 'Singapore MRT station and integrated pedestrian hub', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1565967511849-76a60a516170?w=1200&q=80&fit=crop', alt: 'Singapore Marina Bay waterfront pedestrian promenade', credit: 'Unsplash' },
+  ],
+  nairobi: [
+    { url: 'https://images.unsplash.com/photo-1611348524140-53c9a25263d6?w=1200&q=80&fit=crop', alt: 'Nairobi CBD pedestrian street and informal vendors', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1567880905822-56f8e06fe630?w=1200&q=80&fit=crop', alt: 'Nairobi busy urban street with matatus and pedestrians', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1614977645540-7abd88ba8e36?w=1200&q=80&fit=crop', alt: 'Nairobi walkway alongside Uhuru Highway', credit: 'Unsplash' },
+  ],
+  london: [
+    { url: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&q=80&fit=crop', alt: 'London pedestrians on London Bridge', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?w=1200&q=80&fit=crop', alt: 'London South Bank pedestrian riverside walk', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1543832923-44667a44c804?w=1200&q=80&fit=crop', alt: 'London protected bus and cycle lane in congestion zone', credit: 'Unsplash' },
+  ],
+  new_york: [
+    { url: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=1200&q=80&fit=crop', alt: 'New York City pedestrian plaza Times Square', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1518235506717-e1ed3306a89b?w=1200&q=80&fit=crop', alt: 'NYC protected bike lane on Manhattan street', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1200&q=80&fit=crop', alt: 'New York busy pedestrian crosswalk and yellow cabs', credit: 'Unsplash' },
+  ],
+  stockholm: [
+    { url: 'https://images.unsplash.com/photo-1509356843151-3e7d96241e11?w=1200&q=80&fit=crop', alt: 'Stockholm pedestrian street in Gamla Stan old town', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1573843981267-be1999ff37cd?w=1200&q=80&fit=crop', alt: 'Stockholm waterfront promenade with cyclists', credit: 'Unsplash' },
+    { url: 'https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?w=1200&q=80&fit=crop', alt: 'Stockholm tram and protected pedestrian crossing', credit: 'Unsplash' },
+  ],
+};
+
+function detectCityFromContent(title, keywords) {
+  const text = `${title || ''} ${(keywords || []).join(' ')}`.toLowerCase();
+  const cityMap = {
+    barcelona: ['barcelona', 'superblock', 'eixample', 'superblocks'],
+    amsterdam: ['amsterdam', 'netherlands', 'dutch', 'holland'],
+    oslo: ['oslo', 'norway', 'norwegian'],
+    tokyo: ['tokyo', 'japan', 'japanese', 'shibuya'],
+    bogota: ['bogotá', 'bogota', 'colombia', 'colombian', 'ciclovia', 'ciclovía'],
+    copenhagen: ['copenhagen', 'denmark', 'danish', 'nørrebro'],
+    paris: ['paris', 'france', 'french', 'parisian'],
+    singapore: ['singapore', 'singaporean'],
+    nairobi: ['nairobi', 'kenya', 'kenyan'],
+    london: ['london', 'uk', 'britain', 'british', 'england'],
+    new_york: ['new york', 'nyc', 'manhattan', 'brooklyn'],
+    stockholm: ['stockholm', 'sweden', 'swedish'],
+  };
+  for (const [city, terms] of Object.entries(cityMap)) {
+    if (terms.some(t => text.includes(t))) return city;
+  }
+  return null;
+}
+
 // Select relevant images from static bank (used for education posts and as fallback)
 function selectStaticImages(category, keywords, region, count = 3) {
   const keywordStr = (keywords || []).join(' ').toLowerCase();
@@ -1168,7 +1255,15 @@ async function selectBlogImages(title, category, keywords, region, postType, cou
     return [...dynamicImages, ...staticFill].slice(0, count);
   }
 
-  // No API key — fall back to static bank
+  // No Unsplash API key — check city-specific bank first, then region static bank
+  const cityKey = detectCityFromContent(title, keywords);
+  if (cityKey && CITY_IMAGE_BANK[cityKey]) {
+    const cityImages = CITY_IMAGE_BANK[cityKey];
+    if (cityImages.length >= count) return cityImages.slice(0, count);
+    // Supplement with static bank if not enough city images
+    const fill = selectStaticImages(category, keywords, region, count - cityImages.length);
+    return [...cityImages, ...fill].slice(0, count);
+  }
   console.log('📸 No Unsplash API key — using static image bank');
   return selectStaticImages(category, keywords, region, count);
 }
@@ -1320,7 +1415,20 @@ MINIMUM VISUAL TARGETS PER POST:
 - 2-3 key-takeaway boxes
 - 1+ comparison-box
 - 2-3 data charts/infographics (bar charts, metric cards, timelines, or donut stats)
-- 1+ data table where comparing cities, interventions, or time periods`;
+- 1+ data table where comparing cities, interventions, or time periods
+
+LOCATION SPECIFICITY (NON-NEGOTIABLE FOR CASE STUDIES AND DATA REPORTS):
+- Name specific streets, intersections, districts — not vague references. "Barcelona's Carrer del Consell de Cent in the Eixample district", not "a street in Barcelona".
+- Reference LOCAL decision-makers, planners, and activists by name when known: Ada Colau (Barcelona), Enrique Peñalosa (Bogotá), Janette Sadik-Khan (NYC), Jan Gehl (Copenhagen/global), Jaime Lerner (Curitiba).
+- Use LOCAL primary data sources before global ones:
+  • India: MoRTH Annual Report, CRRI (Central Road Research Institute), city-specific traffic police data
+  • Europe: ETSC (European Transport Safety Council), national road safety agencies (RDW Netherlands, Statens vegvesen Norway)
+  • North America: NHTSA FARS, FHWA, city Vision Zero reports (NYC DOT, SFMTA, Seattle SDOT)
+  • Latin America: IPEA (Brazil), local ministry data
+  • Africa: WHO Africa region data, city-specific transport authority reports
+- Provide city-specific before/after figures with YEARS: "Oslo's city centre recorded zero pedestrian deaths in 2019, 2020, and 2021 — after removing 700 parking spaces and banning through-traffic."
+- For Global South cities, draw on LOCAL innovation — Bogotá's Ciclovía, Medellín's cable car urbanism, Nairobi's matatu network, Lagos BRT, Curitiba's integrated bus system. Don't default to European examples when writing about these regions.
+- Avoid Eurocentrism: if writing about walkability globally, your "best examples" must include at least one city from Africa, Latin America, or South/Southeast Asia.`;
 
 // Universal 7-Part Article Structure adapted per post type
 const POST_TYPE_PROMPTS = {
