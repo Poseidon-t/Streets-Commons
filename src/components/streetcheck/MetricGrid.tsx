@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence } from '../../types';
+import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence, StreetCharacterAnalysis } from '../../types';
 import EconomicContextSection from './EconomicContextSection';
 import EquityContextSection from './EquityContextSection';
 import NeighborhoodIntelSection from './NeighborhoodIntelSection';
+import StreetNetworkPanel from './StreetNetworkPanel';
 import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
 
 interface MetricGridProps {
@@ -16,6 +17,8 @@ interface MetricGridProps {
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
+  streetCharacter?: StreetCharacterAnalysis | null;
+  streetCharacterLoading?: boolean;
 }
 
 function getScoreColor(score: number): string {
@@ -310,7 +313,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, streetCharacter, streetCharacterLoading }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
@@ -360,6 +363,15 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           </div>
         );
       })()}
+
+      {/* Street Network Deep-Dive */}
+      {compositeScore?.components.networkDesign && (
+        <StreetNetworkPanel
+          networkDesign={compositeScore.components.networkDesign}
+          streetCharacter={streetCharacter ?? null}
+          streetCharacterLoading={streetCharacterLoading ?? false}
+        />
+      )}
 
       {/* Neighborhood Intelligence */}
       <NeighborhoodIntelSection neighborhoodIntel={neighborhoodIntel ?? null} />

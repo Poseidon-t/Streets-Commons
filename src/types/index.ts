@@ -102,6 +102,24 @@ export interface StreetAttributes {
   osmId?: number;
 }
 
+// --- Street Character (AI-generated synthesis of network metrics) ---
+
+export type StreetNetworkType =
+  | 'Complete Streets'
+  | 'Well-Connected Grid'
+  | 'Organic Urban'
+  | 'Mixed Pattern'
+  | 'Car-Centric Grid'
+  | 'Suburban Sprawl'
+  | 'Disconnected Network';
+
+export interface StreetCharacterAnalysis {
+  type: StreetNetworkType;
+  assessment: string;  // 2-3 sentences of plain-English analysis
+  strength: string;    // single biggest walkability strength
+  concern: string;     // single biggest walkability concern
+}
+
 // --- Street Design data (EPA National Walkability Index) ---
 
 export interface StreetDesignData {

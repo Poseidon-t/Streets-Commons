@@ -40,7 +40,7 @@ import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
 import { computeTransitAccess, computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -66,6 +66,8 @@ function App() {
   const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
   const [demographicLoading, setDemographicLoading] = useState(false);
   const [neighborhoodIntel, setNeighborhoodIntel] = useState<NeighborhoodIntelligence | null>(null);
+  const [streetCharacter, setStreetCharacter] = useState<StreetCharacterAnalysis | null>(null);
+  const [streetCharacterLoading, setStreetCharacterLoading] = useState(false);
 
   // Premium access - Clerk integration
   const { user, isSignedIn } = useUser();
@@ -228,6 +230,8 @@ function App() {
     setSatelliteLoaded(new Set());
     setStreetDesignScore(undefined);
     setCompositeScore(null);
+    setStreetCharacter(null);
+    setStreetCharacterLoading(false);
     setDemographicData(null);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
@@ -264,10 +268,31 @@ function App() {
       });
 
       // Compute initial composite score from OSM data alone
-      setCompositeScore(calculateCompositeScore({
+      const initialComposite = calculateCompositeScore({
         legacy: calculatedMetrics,
         networkGraph: fetchedOsmData.networkGraph,
-      }));
+      });
+      setCompositeScore(initialComposite);
+
+      // Fetch AI street character assessment (non-blocking)
+      if (initialComposite.components.networkDesign.metrics.length > 0 && initialComposite.components.networkDesign.score > 0) {
+        setStreetCharacter(null);
+        setStreetCharacterLoading(true);
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        fetch(`${apiUrl}/api/street-character`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            metrics: initialComposite.components.networkDesign.metrics,
+            locationName: selectedLocation.displayName,
+          }),
+          signal: abortController.signal,
+        })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => { if (data?.success) setStreetCharacter(data.data); })
+          .catch(() => {})
+          .finally(() => setStreetCharacterLoading(false));
+      }
 
       // Update URL with current location (shareable link)
       const url = new URL(window.location.href);
@@ -1349,7 +1374,7 @@ function App() {
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} />
             </div>
 
             {/* Share + Export — right after metrics so users can act immediately */}

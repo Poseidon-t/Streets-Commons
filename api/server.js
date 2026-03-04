@@ -4512,6 +4512,75 @@ Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find
 }
 
 // GET /api/ground-truth-greenery -- standalone endpoint for testing + frontend
+// POST /api/street-character — AI synthesis of network metrics into plain-language assessment
+app.post('/api/street-character', async (req, res) => {
+  try {
+    const { metrics, locationName } = req.body;
+    if (!metrics || !Array.isArray(metrics) || metrics.length === 0) {
+      return res.status(400).json({ error: 'metrics array required' });
+    }
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) return res.status(503).json({ error: 'AI not configured' });
+
+    const metricsText = metrics.map(m => `- ${m.name}: ${m.rawValue || m.score + '/100'} (score: ${m.score}/100)`).join('\n');
+    const place = locationName || 'this location';
+
+    const prompt = `You are analyzing OpenStreetMap street network data for ${place}.
+
+Street Network Metrics:
+${metricsText}
+
+Respond with valid JSON only — no markdown, no explanation outside the JSON:
+{
+  "type": "<one of: Complete Streets, Well-Connected Grid, Organic Urban, Mixed Pattern, Car-Centric Grid, Suburban Sprawl, Disconnected Network>",
+  "assessment": "<2-3 sentences of plain-English analysis specific to these numbers. What does this mean for someone trying to walk here? Be concrete and reference the actual values.>",
+  "strength": "<the single biggest walkability strength in 5-8 words>",
+  "concern": "<the single biggest walkability concern in 5-8 words>"
+}
+
+Type selection guide:
+- Complete Streets: all four scores ≥75
+- Well-Connected Grid: overall ≥65, intersections high, dead-ends low
+- Organic Urban: medium mixed scores, typical of old pre-grid cities
+- Mixed Pattern: high variance — some metrics good, others poor
+- Car-Centric Grid: network/intersection scores decent but block length and dead-end poor
+- Suburban Sprawl: low intersection density AND high dead-end ratio
+- Disconnected Network: majority of scores below 35`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Street character AI error:', response.status, err);
+      return res.status(502).json({ error: 'AI service error' });
+    }
+
+    const data = await response.json();
+    const text = data.content?.[0]?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.status(500).json({ error: 'Could not parse AI response' });
+
+    const result = JSON.parse(jsonMatch[0]);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error('Street character error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/ground-truth-greenery', async (req, res) => {
   try {
     const { lat, lon, name } = req.query;
