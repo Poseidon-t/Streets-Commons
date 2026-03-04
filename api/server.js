@@ -6366,8 +6366,8 @@ async function pollReddit() {
 
   for (const sub of REDDIT_SUBREDDITS) {
     try {
-      // sort=relevance&t=month actually respects the time filter; sort=new ignores t=
-      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=relevance&limit=25&restrict_sr=true&t=month`;
+      // sort=new returns most recent posts; t= is ignored with sort=new so we filter server-side
+      const url = `https://www.reddit.com/r/${sub}/search.json?q=${encodeURIComponent(REDDIT_SEARCH_QUERY)}&sort=new&limit=25&restrict_sr=true`;
       const resp = await fetch(url, {
         headers: { 'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: admin@streetsandcommons.com)' },
         signal: AbortSignal.timeout(10000),
