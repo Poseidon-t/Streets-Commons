@@ -2,7 +2,7 @@
  * Pro Upgrade Modal — handles sign-in + pro subscription flow for agent reports.
  * State 1: Not signed in → Clerk SignIn
  * State 2: Signed in, trial available (< 3 reports) → "Generate Free Report" + subscribe link
- * State 3: Signed in, trial expired, not pro → Feature list + "$99 one-time" purchase button
+ * State 3: Signed in, trial expired, not pro → Feature list + "$49 one-time" purchase button
  * State 4: Signed in, pro → auto-close (handled via onReady callback)
  */
 
@@ -17,18 +17,10 @@ interface ProUpgradeModalProps {
   context?: 'agent' | 'feature'; // 'agent' = report generation flow, 'feature' = general pro unlock
 }
 
-const PRO_FEATURES_AGENT = [
-  { icon: '📊', name: 'Neighborhood Comparisons', desc: 'Side-by-side analysis of 2-4 neighborhoods for buyer consultations' },
-  { icon: '🏠', name: 'Branded Agent Reports', desc: 'Your logo, brand colors & contact on every page' },
-  { icon: '🔗', name: 'Shareable Links + Lead Capture', desc: 'Send reports to buyers and capture their contact info' },
-  { icon: '📈', name: 'Walkability Value Premiums', desc: 'Dollar estimates of walkability impact on home value' },
-];
-
-const PRO_FEATURES_GENERAL = [
-  { icon: '🔍', name: 'Detailed Metric Breakdowns', desc: 'Understand exactly what\'s driving each score with data sources and benchmarks' },
-  { icon: '🚗', name: 'Persona Verdicts', desc: 'Car-free viability, kid safety, and aging-in-place suitability for any address' },
-  { icon: '🤖', name: 'AI Street Character Analysis', desc: 'Deep analysis of street network design, connectivity, and pedestrian infrastructure' },
-  { icon: '📅', name: 'Historical Improvement Tracker', desc: 'See 3-year walkability changes using OpenStreetMap data' },
+const PRO_FEATURES = [
+  { icon: '📊', name: 'Compare up to 4 addresses', desc: 'Score neighborhoods side by side — for moving decisions, property comparisons, or school catchment areas' },
+  { icon: '📄', name: 'Shareable walkability report', desc: 'Export as PDF or link — send to a partner, landlord, council, or attach to a listing' },
+  { icon: '🏷️', name: 'Your branding on reports', desc: 'Add your logo and contact details for professional use' },
 ];
 
 export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'agent' }: ProUpgradeModalProps) {
@@ -162,7 +154,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'a
                 disabled={loading}
                 className="text-sm font-medium text-[#e07850] hover:underline disabled:opacity-50"
               >
-                {loading ? 'Redirecting...' : 'Or get unlimited — $99 one-time'}
+                {loading ? 'Redirecting...' : 'Or get unlimited — $49 one-time'}
               </button>
             </div>
 
@@ -180,18 +172,16 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'a
         {isSignedIn && (!canGenerate || context === 'feature') && !isPro && (
           <>
             <div className="text-center mb-5">
-              <div className="text-4xl mb-3">{context === 'feature' ? '🔓' : '📊'}</div>
-              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Upgrade to Pro</h2>
+              <div className="text-4xl mb-3">📊</div>
+              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Compare streets. Share your findings.</h2>
               <p className="text-sm text-[#8a9a8a]">
-                {context === 'feature'
-                  ? 'One payment, lifetime access to detailed walkability analysis.'
-                  : 'You\'ve used all 3 free trial reports. Get Pro for unlimited branded reports — one payment, lifetime access.'}
+                One payment, lifetime access. Compare neighborhoods side by side and export shareable reports.
               </p>
             </div>
 
             {/* Feature list */}
             <div className="space-y-3 mb-5">
-              {(context === 'feature' ? PRO_FEATURES_GENERAL : PRO_FEATURES_AGENT).map(f => (
+              {PRO_FEATURES.map(f => (
                 <div key={f.name} className="flex items-start gap-3 p-3 rounded-lg bg-[#faf8f4] border border-[#f0ebe0]">
                   <span className="text-lg flex-shrink-0">{f.icon}</span>
                   <div>
@@ -212,7 +202,7 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'a
               className="w-full py-4 rounded-xl font-bold text-white text-lg transition-all hover:opacity-90 disabled:opacity-60"
               style={{ backgroundColor: '#e07850' }}
             >
-              {loading ? 'Redirecting to checkout...' : 'Get Pro — $99 One-Time'}
+              {loading ? 'Redirecting to checkout...' : 'Get Pro — $49 One-Time'}
             </button>
 
             <div className="mt-3 flex items-center justify-center gap-4 text-xs text-[#8a9a8a]">

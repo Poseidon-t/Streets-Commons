@@ -1367,38 +1367,49 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={true} />
             </div>
 
-            {/* Pro upsell — one clear moment, not scattered gates */}
+            {/* Pro upsell — compare + report, one clear pitch */}
             {!effectivePremium && (
-              <div className="rounded-2xl border p-6" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-                <div className="text-center mb-4">
-                  <div className="text-xs font-semibold tracking-wide mb-1" style={{ color: '#8a9a8a' }}>SAFESTREETS PRO · $99 ONE-TIME</div>
-                  <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Go deeper with your analysis</h3>
-                  <p className="text-sm mt-1" style={{ color: '#6a7a6a' }}>For agents, planners, and anyone making a serious decision about a neighborhood.</p>
+              <div className="rounded-2xl border overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
+                <div className="px-6 pt-6 pb-4">
+                  <div className="text-xs font-semibold tracking-wide mb-2" style={{ color: '#8a9a8a' }}>SAFESTREETS PRO · $49 ONE-TIME</div>
+                  <h3 className="text-xl font-bold mb-1" style={{ color: '#2a3a2a' }}>Compare streets. Share your findings.</h3>
+                  <p className="text-sm" style={{ color: '#6a7a6a' }}>
+                    Deciding between two neighborhoods? Moving somewhere new? Pro lets you run a side-by-side comparison and share the results as a clean, shareable report.
+                  </p>
                 </div>
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  {[
-                    { icon: '🤖', label: 'AI Street Character', desc: 'Deep analysis of network design and pedestrian infrastructure' },
-                    { icon: '📊', label: 'Compare Neighborhoods', desc: 'Side-by-side analysis of 2–4 addresses' },
-                    { icon: '🏠', label: 'Branded Agent Reports', desc: 'Your logo and contact on every PDF page' },
-                    { icon: '🔗', label: 'Shareable Links', desc: 'Send reports to clients with lead capture' },
-                  ].map(f => (
-                    <div key={f.label} className="flex gap-2.5 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
-                      <span className="text-base flex-shrink-0 mt-0.5">{f.icon}</span>
-                      <div>
-                        <div className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>{f.label}</div>
-                        <div className="text-xs leading-snug mt-0.5" style={{ color: '#8a9a8a' }}>{f.desc}</div>
-                      </div>
+                <div className="px-6 pb-5 space-y-3">
+                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
+                    <span className="text-xl mt-0.5">📊</span>
+                    <div>
+                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Compare up to 4 addresses</div>
+                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Score two neighborhoods side by side — great for choosing between flats, investment properties, or school catchment areas</div>
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
+                    <span className="text-xl mt-0.5">📄</span>
+                    <div>
+                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Shareable walkability report</div>
+                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Export as a PDF or shareable link — send to a partner, landlord, planning council, or attach to a property listing</div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
+                    <span className="text-xl mt-0.5">🏷️</span>
+                    <div>
+                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Your branding on every report</div>
+                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Add your logo and contact details — useful if you're an agent, planner, or journalist</div>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
-                  className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
-                  style={{ backgroundColor: '#2a3a2a' }}
-                >
-                  Unlock Pro — $99 one-time →
-                </button>
-                <p className="text-center text-xs mt-2" style={{ color: '#b0a8a0' }}>Lifetime access · No subscription · Works for any address</p>
+                <div className="px-6 pb-6">
+                  <button
+                    onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
+                    className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
+                    style={{ backgroundColor: '#2a3a2a' }}
+                  >
+                    Get Pro — $49 one-time →
+                  </button>
+                  <p className="text-center text-xs mt-2" style={{ color: '#b0a8a0' }}>Lifetime access · No subscription · Instant unlock</p>
+                </div>
               </div>
             )}
 
