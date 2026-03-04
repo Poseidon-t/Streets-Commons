@@ -111,7 +111,7 @@ export default function PersonaCards({ compositeScore, isPremium, onUpgradeClick
 
       {!isPremium && (
         <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor: '#f0ebe0' }}>
-          <span className="text-xs" style={{ color: '#8a9a8a' }}>Unlock verdicts for this address</span>
+          <span className="text-xs" style={{ color: '#8a9a8a' }}>Unlock verdicts · $99 one-time</span>
           <button
             onClick={onUpgradeClick}
             className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-90"

@@ -119,14 +119,14 @@ function App() {
     >
       <div>
         <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>🔒 {title}</div>
-        <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{description} · Pro feature</div>
+        <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{description}</div>
       </div>
       <button
         onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
         className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
         style={{ backgroundColor: '#2a3a2a' }}
       >
-        Unlock Pro →
+        Pro · $99 →
       </button>
     </div>
   );

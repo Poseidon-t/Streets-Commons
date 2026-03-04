@@ -137,8 +137,8 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'a
           </>
         )}
 
-        {/* State 2: Signed in, trial available */}
-        {isSignedIn && canGenerate && !isPro && (
+        {/* State 2: Signed in, trial available — agent flow only */}
+        {isSignedIn && canGenerate && !isPro && context !== 'feature' && (
           <>
             <div className="text-center mb-5">
               <div className="text-4xl mb-3">📊</div>
