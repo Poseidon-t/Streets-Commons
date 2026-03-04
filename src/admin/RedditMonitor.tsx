@@ -44,6 +44,7 @@ export default function RedditMonitor() {
   const [feed, setFeed] = useState<RedditFeed | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'new' | 'engaged' | 'dismissed'>('all');
   const [subFilter, setSubFilter] = useState<string>('all');
@@ -52,11 +53,12 @@ export default function RedditMonitor() {
   const fetchRef = useRef(fetchRedditFeed);
   fetchRef.current = fetchRedditFeed;
 
-  const load = useCallback(async (refresh = false) => {
+  const load = useCallback(async (refresh = false, reset = false) => {
     try {
-      if (refresh) setRefreshing(true);
+      if (reset) setResetting(true);
+      else if (refresh) setRefreshing(true);
       else setLoading(true);
-      const data = await fetchRef.current(refresh);
+      const data = await fetchRef.current(refresh, reset);
       setFeed(data.data);
       setError(null);
     } catch (e) {
@@ -64,6 +66,7 @@ export default function RedditMonitor() {
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setResetting(false);
     }
   }, []); // stable - no deps
 
@@ -116,7 +119,7 @@ export default function RedditMonitor() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Reddit Monitor</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Walkability mentions across 9 subreddits · auto-refreshes every 5 min
+            Walkability mentions across 16 subreddits · auto-refreshes every 5 min
             {feed?.lastUpdated && (
               <span className="ml-2 font-mono text-xs text-gray-400">
                 Last poll: {new Date(feed.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -124,23 +127,43 @@ export default function RedditMonitor() {
             )}
           </p>
         </div>
-        <button
-          onClick={() => load(true)}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
-        >
-          {refreshing ? (
-            <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          )}
-          {refreshing ? 'Polling Reddit...' : 'Refresh Now'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => load(false, true)}
+            disabled={resetting || refreshing}
+            title="Clear all cached posts and re-poll from scratch with the new subreddit list"
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {resetting ? (
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            )}
+            {resetting ? 'Clearing...' : 'Reset Feed'}
+          </button>
+          <button
+            onClick={() => load(true)}
+            disabled={refreshing || resetting}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {refreshing ? (
+              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            )}
+            {refreshing ? 'Polling Reddit...' : 'Refresh Now'}
+          </button>
+        </div>
       </div>
 
       {/* Stats */}

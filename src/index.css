@@ -347,12 +347,276 @@ body {
   color: #2a3a2a;
 }
 
+/* ─── Infographic Cards (embedded in blog posts) ───────────────────────────── */
+
+/* Base card wrapper */
+.infographic-card {
+  margin: 2rem 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+.infographic-card .ig-header {
+  background: #2a3a2a;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.infographic-card .ig-eyebrow {
+  color: #e07850;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.infographic-card .ig-title {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.infographic-card .ig-subtitle {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+.infographic-card .ig-footer {
+  background: #2a3a2a;
+  padding: 8px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.infographic-card .ig-footer-brand {
+  color: rgba(255,255,255,0.3);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.infographic-card .ig-footer-cta {
+  color: #e07850;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* City Score Card */
+.infographic-card.city-score .ig-score-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid var(--score-color, #e07850);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.infographic-card.city-score .ig-score-num {
+  color: var(--score-color, #e07850);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.infographic-card.city-score .ig-score-label {
+  color: var(--score-color, #e07850);
+  font-size: 0.55rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.infographic-card.city-score .ig-body {
+  background: #f9f9f7;
+  padding: 16px 24px;
+}
+.infographic-card.city-score .ig-metric-bar {
+  margin-bottom: 10px;
+}
+.infographic-card.city-score .ig-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 0.75rem;
+}
+.infographic-card.city-score .ig-metric-name {
+  font-weight: 700;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.infographic-card.city-score .ig-metric-val {
+  font-weight: 800;
+  color: #e07850;
+}
+.infographic-card.city-score .ig-bar-track {
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.infographic-card.city-score .ig-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #e07850 0%, #c06040 100%);
+}
+.infographic-card.city-score .ig-bar-fill.good { background: linear-gradient(90deg, #4ade80 0%, #16a34a 100%); }
+.infographic-card.city-score .ig-bar-fill.warn { background: linear-gradient(90deg, #fbbf24 0%, #d97706 100%); }
+.infographic-card.city-score .ig-highlights {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.infographic-card.city-score .ig-highlight {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+.infographic-card.city-score .ig-highlight.good {
+  background: #f0fdf4;
+  border-left: 3px solid #22c55e;
+  color: #14532d;
+}
+.infographic-card.city-score .ig-highlight.warn {
+  background: #fff7ed;
+  border-left: 3px solid #f97316;
+  color: #7c2d12;
+}
+.infographic-card.city-score .ig-highlight strong {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+/* Data Story Card */
+.infographic-card.data-story {
+  background: #2a3a2a;
+}
+.infographic-card.data-story .ig-header {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.infographic-card.data-story .ig-body {
+  padding: 20px 24px;
+}
+.infographic-card.data-story .ig-big-stat {
+  color: #e07850;
+  font-size: 3rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.infographic-card.data-story .ig-big-stat span {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  margin-left: 6px;
+}
+.infographic-card.data-story .ig-context {
+  color: rgba(255,255,255,0.7);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  border-left: 3px solid #e07850;
+  padding-left: 10px;
+  margin: 10px 0 14px;
+}
+.infographic-card.data-story .ig-facts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.infographic-card.data-story .ig-facts li {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  padding-left: 18px;
+  position: relative;
+}
+.infographic-card.data-story .ig-facts li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #e07850;
+  font-weight: 700;
+}
+.infographic-card.data-story .ig-source {
+  color: rgba(255,255,255,0.3);
+  font-size: 0.7rem;
+  margin-top: 12px;
+}
+
+/* Transformation Card (enhanced before/after) */
+.infographic-card.transformation .ig-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.infographic-card.transformation .ig-before {
+  background: #fff5f5;
+  padding: 18px 20px;
+  border-right: 1px solid #fecaca;
+}
+.infographic-card.transformation .ig-after {
+  background: #f0fdf4;
+  padding: 18px 20px;
+}
+.infographic-card.transformation .ig-ba-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.infographic-card.transformation .ig-before .ig-ba-label { color: #ef4444; }
+.infographic-card.transformation .ig-after .ig-ba-label { color: #22c55e; }
+.infographic-card.transformation .ig-ba-stat {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.infographic-card.transformation .ig-before .ig-ba-stat { color: #ef4444; }
+.infographic-card.transformation .ig-after .ig-ba-stat { color: #16a34a; }
+.infographic-card.transformation .ig-ba-desc {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.infographic-card.transformation .ig-before .ig-ba-desc { color: #991b1b; }
+.infographic-card.transformation .ig-after .ig-ba-desc { color: #14532d; }
+.infographic-card.transformation .ig-lesson {
+  background: #f9f9f7;
+  padding: 12px 24px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  color: #555;
+  font-style: italic;
+}
+
 @media (max-width: 640px) {
   .comparison-box {
     grid-template-columns: 1fr;
   }
   .stat-highlight .stat-number {
     font-size: 2rem;
+  }
+  .infographic-card.city-score .ig-highlights {
+    grid-template-columns: 1fr;
+  }
+  .infographic-card.transformation .ig-split {
+    grid-template-columns: 1fr;
   }
   .metric-row {
     grid-template-columns: repeat(2, 1fr);

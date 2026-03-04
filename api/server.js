@@ -1417,6 +1417,104 @@ MINIMUM VISUAL TARGETS PER POST:
 - 2-3 data charts/infographics (bar charts, metric cards, timelines, or donut stats)
 - 1+ data table where comparing cities, interventions, or time periods
 
+INFOGRAPHIC CARDS (use 1 per post when the article has a specific focus city, key stat, or transformation story):
+These are branded visual cards that embed directly in the article. Use one of the three types when the content warrants a standalone visual anchor.
+
+CITY WALKABILITY SCORE CARD — use in city-focused articles, case studies, or "how walkable is X" content:
+<div class="infographic-card city-score">
+  <div class="ig-header">
+    <div>
+      <div class="ig-eyebrow">WALKABILITY ANALYSIS</div>
+      <div class="ig-title">CITY NAME</div>
+      <div class="ig-subtitle">YEAR Assessment</div>
+    </div>
+    <div class="ig-score-badge">
+      <div class="ig-score-num">SCORE</div>
+      <div class="ig-score-label">/ 100</div>
+    </div>
+  </div>
+  <div class="ig-body">
+    <div class="ig-metric-bar">
+      <div class="ig-metric-row"><span class="ig-metric-name">Pedestrian Safety</span><span class="ig-metric-val">SCORE/100</span></div>
+      <div class="ig-bar-track"><div class="ig-bar-fill good" style="width: PERCENT%"></div></div>
+    </div>
+    <div class="ig-metric-bar">
+      <div class="ig-metric-row"><span class="ig-metric-name">Transit Access</span><span class="ig-metric-val">SCORE/100</span></div>
+      <div class="ig-bar-track"><div class="ig-bar-fill good" style="width: PERCENT%"></div></div>
+    </div>
+    <div class="ig-metric-bar">
+      <div class="ig-metric-row"><span class="ig-metric-name">Street Connectivity</span><span class="ig-metric-val">SCORE/100</span></div>
+      <div class="ig-bar-track"><div class="ig-bar-fill warn" style="width: PERCENT%"></div></div>
+    </div>
+    <div class="ig-metric-bar">
+      <div class="ig-metric-row"><span class="ig-metric-name">Cycling Infrastructure</span><span class="ig-metric-val">SCORE/100</span></div>
+      <div class="ig-bar-track"><div class="ig-bar-fill warn" style="width: PERCENT%"></div></div>
+    </div>
+    <div class="ig-highlights">
+      <div class="ig-highlight good"><strong>Strength:</strong> WHAT THE CITY DOES WELL</div>
+      <div class="ig-highlight warn"><strong>Challenge:</strong> MAIN WEAKNESS TO ADDRESS</div>
+    </div>
+  </div>
+  <div class="ig-footer">
+    <span class="ig-footer-brand">SafeStreets Walkability Index</span>
+    <span class="ig-footer-cta">safestreets.in</span>
+  </div>
+</div>
+
+DATA STORY CARD — use when a single statistic or finding is the emotional/rhetorical core of the section:
+<div class="infographic-card data-story">
+  <div class="ig-header">
+    <div class="ig-eyebrow">DATA POINT</div>
+    <div class="ig-title">HEADLINE (max 8 words)</div>
+  </div>
+  <div class="ig-body">
+    <div class="ig-big-stat">NUMBER<span>UNIT</span></div>
+    <div class="ig-context">ONE SENTENCE EXPLAINING WHAT THIS NUMBER MEANS IN HUMAN TERMS</div>
+    <ul class="ig-facts">
+      <li>SUPPORTING FACT 1 WITH SOURCE</li>
+      <li>SUPPORTING FACT 2 WITH SOURCE</li>
+      <li>SUPPORTING FACT 3 — comparative context</li>
+    </ul>
+    <div class="ig-source">Source: CITATION</div>
+  </div>
+  <div class="ig-footer">
+    <span class="ig-footer-brand">SafeStreets</span>
+    <span class="ig-footer-cta">safestreets.in</span>
+  </div>
+</div>
+
+CITY TRANSFORMATION CARD — use when describing a specific intervention or policy change with measurable before/after results:
+<div class="infographic-card transformation">
+  <div class="ig-header">
+    <div class="ig-eyebrow">CITY TRANSFORMATION</div>
+    <div class="ig-title">CITY: INTERVENTION NAME</div>
+    <div class="ig-subtitle">YEAR RANGE</div>
+  </div>
+  <div class="ig-split">
+    <div class="ig-before">
+      <div class="ig-ba-label">Before</div>
+      <div class="ig-ba-stat">NUMBER</div>
+      <div class="ig-ba-desc">BEFORE METRIC (e.g. "pedestrian deaths/year")</div>
+    </div>
+    <div class="ig-after">
+      <div class="ig-ba-label">After</div>
+      <div class="ig-ba-stat">NUMBER</div>
+      <div class="ig-ba-desc">AFTER METRIC (same unit as before)</div>
+    </div>
+  </div>
+  <div class="ig-lesson">KEY LESSON: ONE SENTENCE TAKEAWAY FROM THIS TRANSFORMATION</div>
+  <div class="ig-footer">
+    <span class="ig-footer-brand">SafeStreets</span>
+    <span class="ig-footer-cta">safestreets.in</span>
+  </div>
+</div>
+
+USE INFOGRAPHIC CARDS WHEN:
+- Analyzing a specific city's walkability profile → City Score Card
+- A statistic is the emotional anchor of a section (deaths, injuries, % change) → Data Story Card
+- Describing a real intervention with verified before/after data → Transformation Card
+Place each card AFTER the introductory paragraph of the section it supports, not at the start.
+
 LOCATION SPECIFICITY (NON-NEGOTIABLE FOR CASE STUDIES AND DATA REPORTS):
 - Name specific streets, intersections, districts — not vague references. "Barcelona's Carrer del Consell de Cent in the Eixample district", not "a street in Barcelona".
 - Reference LOCAL decision-makers, planners, and activists by name when known: Ada Colau (Barcelona), Enrique Peñalosa (Bogotá), Janette Sadik-Khan (NYC), Jan Gehl (Copenhagen/global), Jaime Lerner (Curitiba).
@@ -6203,17 +6301,47 @@ app.get('/api/debug/epa-raw', async (req, res) => {
 
 const REDDIT_MONITOR_FILE = process.env.REDDIT_MONITOR_FILE || path.join(__dirname, '..', 'data', 'reddit-monitor.json');
 const REDDIT_SUBREDDITS = [
-  'FirstTimeHomeBuyer', 'realestate', 'homebuying', 'moving',
-  'realestateinvesting', 'Landlord', 'urbanplanning', 'walkable_cities', 'fuckcars',
+  // Core walkability & street safety communities
+  'walkable_cities',        // purpose-built for this topic
+  'fuckcars',               // anti-car-dependence, strong overlap
+  'notjustbikes',           // largest pro-walkable-city community
+  'urbanplanning',          // planning discussions, zoning, street design
+  'urbandesign',            // urban design and street aesthetics
+  'VisionZero',             // road safety movement
+  'strongtowns',            // Strong Towns urbanism
+  'streetdesign',           // street-level design discussions
+  'ActiveTravel',           // walking/cycling as transport
+  'NewUrbanism',            // mixed-use, walkable neighbourhood design
+  // Transit — deeply linked to walkability (last mile, station access)
+  'transit',
+  'PublicTransit',
+  // Cycling infrastructure — shares pedestrian safety wins
+  'bicycling',
+  'bikecommuting',
+  // Real estate where walkability score is a stated factor
+  'realestate',
+  'FirstTimeHomeBuyer',
 ];
 const REDDIT_KEYWORDS = [
-  'walkab', 'walkable', 'walkability', 'walk score',
-  'pedestrian', 'sidewalk', 'crosswalk', 'crossing',
-  'stroad', 'car dependent', 'car-dependent',
-  '15-minute', '15 minute city',
-  'vision zero', 'safestreets', 'safe streets',
+  // Walkability core
+  'walkab', 'walkable', 'walkability', 'walk score', 'walkscore',
+  // Pedestrian safety
+  'pedestrian', 'sidewalk', 'crosswalk', 'crossing', 'pedestrian safety',
+  'pedestrian death', 'pedestrian killed', 'hit by car', 'struck by vehicle',
+  // Street design
+  'stroad', 'road diet', 'traffic calming', 'complete streets', 'street design',
+  'protected intersection', 'curb extension', 'bulb-out', 'raised crosswalk',
+  'bike lane', 'protected lane', 'cycle track', 'separated path',
+  // Car dependence
+  'car dependent', 'car-dependent', 'car-free', 'car free', 'auto-oriented',
+  'auto-centric', 'sprawl', 'suburban sprawl',
+  // Movements & standards
+  '15-minute', '15 minute city', 'vision zero', 'strong towns',
+  'new urbanism', 'transit oriented', 'mixed use', 'mixed-use',
+  // SafeStreets direct
+  'safestreets', 'safe streets',
 ];
-const REDDIT_SEARCH_QUERY = 'walkable OR walkability OR "walk score" OR pedestrian OR stroad OR "15 minute" OR "car dependent" OR sidewalk OR "vision zero" OR crosswalk';
+const REDDIT_SEARCH_QUERY = 'walkable OR walkability OR "walk score" OR pedestrian OR stroad OR "15-minute city" OR "car dependent" OR "car-free" OR sidewalk OR "vision zero" OR "bike lane" OR "complete streets" OR "traffic calming" OR "road diet" OR "street design"';
 
 let redditCache = { lastUpdated: null, posts: [] };
 
@@ -6286,8 +6414,13 @@ async function pollReddit() {
 // GET /api/admin/reddit-feed
 app.get('/api/admin/reddit-feed', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
-  const { refresh } = req.query;
-  if (refresh === 'true' || !redditCache.lastUpdated) {
+  const { refresh, reset } = req.query;
+  if (reset === 'true') {
+    redditCache = { lastUpdated: null, posts: [] };
+    saveRedditMonitor();
+    console.log('🔄 Reddit cache cleared — re-polling from scratch');
+  }
+  if (reset === 'true' || refresh === 'true' || !redditCache.lastUpdated) {
     await pollReddit();
   }
   res.json({ success: true, data: redditCache });

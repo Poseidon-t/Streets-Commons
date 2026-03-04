@@ -86,8 +86,8 @@ export function useAdminApi() {
       adminFetch('/api/admin/sales/generate-comparison', { method: 'POST', body: JSON.stringify(params) }),
 
     // Reddit Monitor
-    fetchRedditFeed: (refresh = false) =>
-      adminFetch(`/api/admin/reddit-feed${refresh ? '?refresh=true' : ''}`),
+    fetchRedditFeed: (refresh = false, reset = false) =>
+      adminFetch(`/api/admin/reddit-feed${reset ? '?reset=true' : refresh ? '?refresh=true' : ''}`),
     updateRedditPostStatus: (id: string, status: 'new' | 'dismissed' | 'engaged') =>
       adminFetch('/api/admin/reddit-feed/status', { method: 'POST', body: JSON.stringify({ id, status }) }),
   };
