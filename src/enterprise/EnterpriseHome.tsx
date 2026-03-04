@@ -15,10 +15,10 @@ export default function EnterpriseHome() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">SafeStreets Intelligence</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Infrastructure Intelligence for Cities and Investors
+            Street Intelligence Platform
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
-            From <em>"how walkable is this street?"</em> to <em>"should I invest in this neighborhood?"</em>, <em>"which corridors need intervention most?"</em>, and <em>"what's the impact of adding a crosswalk?"</em>
+            From <em>"how walkable is this street?"</em> to <em>"should I invest in this neighborhood?"</em>, <em>"which corridors need intervention most?"</em>, and <em>"what's the ROI of this infrastructure change?"</em>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
