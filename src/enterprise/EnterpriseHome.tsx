@@ -5,7 +5,7 @@ export default function EnterpriseHome() {
   useEffect(() => {
     document.title = 'Street Intelligence Platform — SafeStreets Enterprise';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Custom dashboards and decisioning workflows for neighborhood and street intelligence. Built for governments, real estate, mobility operators, and research institutions.');
+    if (desc) desc.setAttribute('content', 'Infrastructure intelligence platform for municipal planners, real estate developers, impact investors, and community organizations. Custom dashboards, decisioning workflows, and scenario modeling.');
   }, []);
 
   return (
@@ -15,10 +15,10 @@ export default function EnterpriseHome() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">SafeStreets Intelligence</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Street Intelligence for Organizations
+            Infrastructure Intelligence for Cities and Investors
           </h1>
-          <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-            Custom dashboards, decisioning workflows, and API access — built on the data sources that matter to your project.
+          <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-10">
+            From <em>"how walkable is this street?"</em> to <em>"should I invest in this neighborhood?"</em>, <em>"which corridors need intervention most?"</em>, and <em>"what's the impact of adding a crosswalk?"</em>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -37,6 +37,15 @@ export default function EnterpriseHome() {
         </div>
       </section>
 
+      {/* Why It Matters */}
+      <section className="py-16 border-b border-gray-100">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <p className="text-lg text-gray-600 leading-relaxed">
+            Streets are the foundation of how communities function. Walkable neighborhoods foster social connection, drive economic vitality, and strengthen cultural identity. SafeStreets turns that principle into actionable intelligence — for planners, developers, investors, and the communities they serve.
+          </p>
+        </div>
+      </section>
+
       {/* Platform Capabilities */}
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
@@ -49,16 +58,16 @@ export default function EnterpriseHome() {
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                title: 'Custom Dashboards',
-                desc: 'Configurable views across city, corridor, census tract, or parcel. Score and rank streets by sidewalk coverage, intersection density, shade canopy, flood risk, or any weighted combination.',
+                title: 'Investment & Site Intelligence',
+                desc: 'Score and rank neighborhoods, corridors, and parcels to find underinvested areas, quantify pedestrian access, and build the data case for where to build or invest next.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                   </svg>
                 ),
               },
               {
-                title: 'Decisioning Engine',
+                title: 'Infrastructure Decisioning',
                 desc: 'Set rules that turn scores into action — flag corridors below an ADA threshold, prioritize Vision Zero interventions by injury density, or trigger capital budget alerts when a zone drops below a target score.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -67,11 +76,11 @@ export default function EnterpriseHome() {
                 ),
               },
               {
-                title: 'API & Integrations',
-                desc: 'Connect to ArcGIS, Carto, PostGIS, or internal asset management systems. Bulk export in GeoJSON/CSV, scheduled data refreshes, and white-label or embedded deployment.',
+                title: 'Scenario & Impact Modeling',
+                desc: 'Model what-if interventions before committing budget. Project property value impacts, estimate safety outcomes, and track before/after changes over time with temporal analysis.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
                   </svg>
                 ),
               },
@@ -131,16 +140,16 @@ export default function EnterpriseHome() {
       <section className="py-20 bg-enterprise-gray">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-3xl font-bold text-enterprise-slate text-center mb-12">Built for Your Sector</h2>
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 gap-4">
             {[
-              { title: 'Governments', desc: 'ADA transition plan gap analysis, Vision Zero high-injury network mapping, capital improvement prioritization by pedestrian risk score' },
-              { title: 'Real Estate', desc: 'Walkability due diligence across 100+ parcels, portfolio-wide pedestrian intelligence, site selection scoring by access and safety metrics' },
-              { title: 'Mobility', desc: 'Last-mile connectivity scoring for transit stop placement, micromobility deployment zones ranked by pedestrian demand, GTFS overlay analysis' },
-              { title: 'Research', desc: 'Configurable composite score weights, bulk API access for multi-city studies, census-tract-level exports in GeoJSON and CSV' },
+              { title: 'Municipal Planners', desc: 'Which streets need intervention most? Prioritize capital budgets by pedestrian risk score, map Vision Zero high-injury corridors, and build the data case for ADA compliance investments.' },
+              { title: 'Real Estate & Development', desc: 'Should I invest in this neighborhood? Score sites by walkability, accessibility, and growth potential across 100+ parcels. Portfolio-wide pedestrian intelligence for due diligence and site selection.' },
+              { title: 'Impact Investors', desc: 'Find underinvested neighborhoods with strong fundamentals. Quantify the economic upside of walkability improvements and model ROI projections before committing capital.' },
+              { title: 'Community Organizations', desc: 'Fight for your neighborhood with data. Generate infrastructure audit reports, map pedestrian gaps, and make a compelling case to planners and elected officials.' },
             ].map((v) => (
               <div key={v.title} className="bg-white rounded-xl p-6 border border-gray-100">
                 <h3 className="font-semibold text-enterprise-slate mb-2">{v.title}</h3>
-                <p className="text-xs text-gray-500 leading-relaxed">{v.desc}</p>
+                <p className="text-sm text-gray-500 leading-relaxed">{v.desc}</p>
               </div>
             ))}
           </div>
