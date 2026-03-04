@@ -2,6 +2,8 @@ import type { WalkabilityScoreV2 } from '../../types';
 
 interface PersonaCardsProps {
   compositeScore: WalkabilityScoreV2;
+  isPremium?: boolean;
+  onUpgradeClick?: () => void;
 }
 
 interface PersonaResult {
@@ -65,7 +67,7 @@ const VERDICT_STYLE: Record<'yes' | 'borderline' | 'unlikely', { label: string; 
   unlikely:  { label: 'Unlikely',  bg: 'rgba(239,68,68,0.08)',  text: '#b91c1c', dot: '#ef4444' },
 };
 
-export default function PersonaCards({ compositeScore }: PersonaCardsProps) {
+export default function PersonaCards({ compositeScore, isPremium, onUpgradeClick }: PersonaCardsProps) {
   const personas = computePersonas(compositeScore);
 
   return (
@@ -80,24 +82,45 @@ export default function PersonaCards({ compositeScore }: PersonaCardsProps) {
             <div
               key={p.question}
               className="rounded-xl p-3"
-              style={{ backgroundColor: style.bg }}
+              style={{ backgroundColor: isPremium ? style.bg : 'rgba(240,235,224,0.4)' }}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-base">{p.icon}</span>
                 <span className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>{p.question}</span>
               </div>
-              <div className="flex items-center gap-1.5 mb-1.5">
+              <div
+                className="flex items-center gap-1.5 mb-1.5"
+                style={{ filter: isPremium ? 'none' : 'blur(3px)', userSelect: isPremium ? 'auto' : 'none' }}
+              >
                 <span
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: style.dot }}
                 />
                 <span className="text-sm font-bold" style={{ color: style.text }}>{style.label}</span>
               </div>
-              <p className="text-xs leading-relaxed" style={{ color: '#4a5a4a' }}>{p.reason}</p>
+              <p
+                className="text-xs leading-relaxed"
+                style={{ color: '#4a5a4a', filter: isPremium ? 'none' : 'blur(3px)', userSelect: isPremium ? 'auto' : 'none' }}
+              >
+                {p.reason}
+              </p>
             </div>
           );
         })}
       </div>
+
+      {!isPremium && (
+        <div className="mt-3 pt-3 border-t flex items-center justify-between" style={{ borderColor: '#f0ebe0' }}>
+          <span className="text-xs" style={{ color: '#8a9a8a' }}>Unlock verdicts for this address</span>
+          <button
+            onClick={onUpgradeClick}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition hover:opacity-90"
+            style={{ backgroundColor: '#2a3a2a', color: 'white' }}
+          >
+            Unlock Pro →
+          </button>
+        </div>
+      )}
     </div>
   );
 }

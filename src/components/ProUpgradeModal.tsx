@@ -14,16 +14,24 @@ interface ProUpgradeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onReady: () => void; // Called when user can generate a report (pro or trial available)
+  context?: 'agent' | 'feature'; // 'agent' = report generation flow, 'feature' = general pro unlock
 }
 
-const PRO_FEATURES = [
+const PRO_FEATURES_AGENT = [
   { icon: '📊', name: 'Neighborhood Comparisons', desc: 'Side-by-side analysis of 2-4 neighborhoods for buyer consultations' },
   { icon: '🏠', name: 'Branded Agent Reports', desc: 'Your logo, brand colors & contact on every page' },
   { icon: '🔗', name: 'Shareable Links + Lead Capture', desc: 'Send reports to buyers and capture their contact info' },
   { icon: '📈', name: 'Walkability Value Premiums', desc: 'Dollar estimates of walkability impact on home value' },
 ];
 
-export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgradeModalProps) {
+const PRO_FEATURES_GENERAL = [
+  { icon: '🔍', name: 'Detailed Metric Breakdowns', desc: 'Understand exactly what\'s driving each score with data sources and benchmarks' },
+  { icon: '🚗', name: 'Persona Verdicts', desc: 'Car-free viability, kid safety, and aging-in-place suitability for any address' },
+  { icon: '🤖', name: 'AI Street Character Analysis', desc: 'Deep analysis of street network design, connectivity, and pedestrian infrastructure' },
+  { icon: '📅', name: 'Historical Improvement Tracker', desc: 'See 3-year walkability changes using OpenStreetMap data' },
+];
+
+export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'agent' }: ProUpgradeModalProps) {
   const { user, isSignedIn } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,9 +112,15 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgrade
         {!isSignedIn && (
           <>
             <div className="text-center mb-6">
-              <div className="text-4xl mb-3">📊</div>
-              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Agent Reports</h2>
-              <p className="text-sm text-[#8a9a8a]">Sign in to generate branded walkability reports for your listings.</p>
+              <div className="text-4xl mb-3">{context === 'feature' ? '🔓' : '📊'}</div>
+              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">
+                {context === 'feature' ? 'Unlock Pro Features' : 'Agent Reports'}
+              </h2>
+              <p className="text-sm text-[#8a9a8a]">
+                {context === 'feature'
+                  ? 'Sign in to access detailed walkability analysis and persona verdicts.'
+                  : 'Sign in to generate branded walkability reports for your listings.'}
+              </p>
             </div>
             <div className="flex flex-col items-center">
               <SignIn
@@ -162,20 +176,22 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady }: ProUpgrade
           </>
         )}
 
-        {/* State 3: Signed in, trial expired, not pro */}
-        {isSignedIn && !canGenerate && !isPro && (
+        {/* State 3: Signed in, trial expired (or feature context), not pro */}
+        {isSignedIn && (!canGenerate || context === 'feature') && !isPro && (
           <>
             <div className="text-center mb-5">
-              <div className="text-4xl mb-3">📊</div>
+              <div className="text-4xl mb-3">{context === 'feature' ? '🔓' : '📊'}</div>
               <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Upgrade to Pro</h2>
               <p className="text-sm text-[#8a9a8a]">
-                You've used all 3 free trial reports. Get Pro for unlimited branded reports — one payment, lifetime access.
+                {context === 'feature'
+                  ? 'One payment, lifetime access to detailed walkability analysis.'
+                  : 'You\'ve used all 3 free trial reports. Get Pro for unlimited branded reports — one payment, lifetime access.'}
               </p>
             </div>
 
             {/* Feature list */}
             <div className="space-y-3 mb-5">
-              {PRO_FEATURES.map(f => (
+              {(context === 'feature' ? PRO_FEATURES_GENERAL : PRO_FEATURES_AGENT).map(f => (
                 <div key={f.name} className="flex items-start gap-3 p-3 rounded-lg bg-[#faf8f4] border border-[#f0ebe0]">
                   <span className="text-lg flex-shrink-0">{f.icon}</span>
                   <div>

@@ -108,6 +108,7 @@ function App() {
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
+  const [proUpgradeContext, setProUpgradeContext] = useState<'agent' | 'feature'>('agent');
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
 
   // Helper: renders a locked Pro feature teaser card
@@ -121,7 +122,7 @@ function App() {
         <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{description} · Pro feature</div>
       </div>
       <button
-        onClick={() => setShowProUpgradeModal(true)}
+        onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
         className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
         style={{ backgroundColor: '#2a3a2a' }}
       >
@@ -571,6 +572,7 @@ function App() {
   // Agent Report flow: check access → profile → generate
   const handleAgentReportClick = () => {
     if (!isSignedIn || !canGenerateAgentReport(user)) {
+      setProUpgradeContext('agent');
       setShowProUpgradeModal(true);
       return;
     }
@@ -656,6 +658,7 @@ function App() {
           isOpen={showProUpgradeModal}
           onClose={() => setShowProUpgradeModal(false)}
           onReady={handleProUpgradeReady}
+          context={proUpgradeContext}
         />
       </Suspense>
 
@@ -1374,16 +1377,18 @@ function App() {
               </div>
             )}
 
-            {/* Persona quick-answers — Pro feature */}
+            {/* Persona quick-answers — shown to all, verdicts blurred for free users */}
             {compositeScore && (
-              effectivePremium
-                ? <PersonaCards compositeScore={compositeScore} />
-                : proLock('Quick Answers For Your Situation', 'Car-free viability, kid safety, and aging-in-place suitability')
+              <PersonaCards
+                compositeScore={compositeScore}
+                isPremium={effectivePremium}
+                onUpgradeClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
+              />
             )}
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={effectivePremium} onUpgradeClick={() => setShowProUpgradeModal(true)} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={effectivePremium} onUpgradeClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }} />
             </div>
 
             {/* Street Network Analysis — Pro feature */}
@@ -1397,15 +1402,13 @@ function App() {
                 : proLock('AI Street Character Analysis', 'Deep dive into street network design, connectivity, and pedestrian infrastructure')
             )}
 
-            {/* Has this area improved? — Pro feature */}
+            {/* Has this area improved? — free for all, good differentiator */}
             {compositeScore && (
-              effectivePremium
-                ? <HistoricalComparison
-                    lat={location.lat}
-                    lon={location.lon}
-                    compositeScore={compositeScore}
-                  />
-                : proLock('Historical Improvement Tracker', 'See how this area\'s walkability has changed over the past 3 years')
+              <HistoricalComparison
+                lat={location.lat}
+                lon={location.lon}
+                compositeScore={compositeScore}
+              />
             )}
 
             {/* Street Audit CTA — surface the buried tool */}
