@@ -136,6 +136,116 @@ out center;`;
   }
 }
 
+export interface HistoricalSnapshot {
+  isoDate: string;
+  intersectionCount: number;
+  deadEndCount: number;
+  totalStreetLengthKm: number;
+  amenityCount: number;
+}
+
+/**
+ * Fetch a lightweight street-topology + amenity count snapshot from OSM
+ * as it existed on a specific date, using the Overpass `[date:"..."]` filter.
+ * Used for "how has this area changed?" comparisons.
+ */
+export async function fetchHistoricalSnapshot(
+  lat: number,
+  lon: number,
+  isoDate: string,   // e.g. "2022-01-01T00:00:00Z"
+): Promise<HistoricalSnapshot> {
+  const radius = ANALYSIS_RADIUS;
+  const poiRadius = 1200;
+
+  // Streets + crossings for network topology
+  const streetQuery = `[out:json][date:"${isoDate}"][timeout:20];
+(
+  way(around:${radius},${lat},${lon})["highway"~"^(primary|secondary|tertiary|residential|unclassified|service|living_street)$"];
+);
+out body; >; out skel qt;`;
+
+  // Amenity node count only (lightweight)
+  const amenityQuery = `[out:json][date:"${isoDate}"][timeout:15];
+(
+  node(around:${poiRadius},${lat},${lon})["amenity"];
+  node(around:${poiRadius},${lat},${lon})["shop"];
+);
+out count;`;
+
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+
+  async function runQuery(q: string): Promise<any> {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 18000);
+      const res = await fetch(`${apiUrl}/api/overpass`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+        signal: ctrl.signal,
+      });
+      clearTimeout(t);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json.data;
+    } catch {
+      return await queryOverpassDirect(q);
+    }
+  }
+
+  const [streetData, amenityData] = await Promise.all([
+    runQuery(streetQuery),
+    runQuery(amenityQuery),
+  ]);
+
+  // Build node map from street data
+  const nodes = new Map<string, { lat: number; lon: number }>();
+  streetData.elements
+    .filter((e: any) => e.type === 'node' && e.lat !== undefined)
+    .forEach((n: any) => nodes.set(n.id.toString(), { lat: n.lat, lon: n.lon }));
+
+  const streetWays = streetData.elements.filter(
+    (e: any) => e.type === 'way' && STREET_HIGHWAY_TYPES.includes(e.tags?.highway) && e.nodes?.length >= 2,
+  );
+
+  // Degree map → intersections + dead-ends
+  const nodeDegree = new Map<string, number>();
+  for (const way of streetWays) {
+    for (const nodeId of way.nodes) {
+      const k = nodeId.toString();
+      nodeDegree.set(k, (nodeDegree.get(k) || 0) + 1);
+    }
+  }
+
+  let intersections = 0;
+  let deadEnds = 0;
+  for (const [, deg] of nodeDegree) {
+    if (deg >= 3) intersections++;
+    else if (deg === 1) deadEnds++;
+  }
+
+  let totalLenM = 0;
+  for (const way of streetWays) {
+    for (let i = 0; i < way.nodes.length - 1; i++) {
+      const a = nodes.get(way.nodes[i].toString());
+      const b = nodes.get(way.nodes[i + 1].toString());
+      if (a && b) totalLenM += haversineM(a.lat, a.lon, b.lat, b.lon);
+    }
+  }
+
+  // Amenity count — Overpass `out count;` returns a single element with tags.total
+  const amenityCount =
+    parseInt(amenityData?.elements?.[0]?.tags?.total ?? '0', 10);
+
+  return {
+    isoDate,
+    intersectionCount: intersections,
+    deadEndCount: deadEnds,
+    totalStreetLengthKm: totalLenM / 1000,
+    amenityCount,
+  };
+}
+
 /** Haversine distance in meters between two lat/lon points */
 function haversineM(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371000;

@@ -35,7 +35,7 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
     summary = `This area is car-dependent. ${capitalize(worst[0] || 'Infrastructure')} and ${worst[1] || 'safety'} make walking inconvenient or uncomfortable.`;
     tone = 'warning';
   } else if (score >= 20) {
-    summary = `Walking is difficult and risky here. ${capitalize(worst[0] || 'Safety')}, ${worst[1] || 'infrastructure'}, and ${worst[2] || 'comfort'} put pedestrians at serious disadvantage.`;
+    summary = `Walking is difficult here. ${capitalize(worst[0] || 'Poor infrastructure')}, ${worst[1] || 'limited destinations'}, and ${worst[2] || 'weak street connectivity'} put pedestrians at a serious disadvantage.`;
     tone = 'danger';
   } else {
     summary = `This street is hostile to pedestrians. Basic safety infrastructure is missing — immediate intervention is needed.`;

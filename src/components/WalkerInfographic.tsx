@@ -29,7 +29,7 @@ export default function WalkerInfographic({ score, inline }: WalkerInfographicPr
     return (
       <div style={{ padding: '1.5rem 0', margin: '1.5rem 0', borderTop: '1px solid #e0dbd0', borderBottom: '1px solid #e0dbd0' }}>
         <p style={{ textAlign: 'center', fontSize: '0.9375rem', color: '#6b7a6b', marginBottom: '1rem' }}>
-          Out of 10 walkers, how many feel safe?
+          Out of 10 people, how many could walk here comfortably?
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
           {Array.from({ length: filled }).map((_, i) => (
@@ -45,7 +45,7 @@ export default function WalkerInfographic({ score, inline }: WalkerInfographicPr
           </span>
           {empty > 0 && (
             <span style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-              {empty} don't feel safe
+              {empty} would find it difficult
             </span>
           )}
         </div>
@@ -56,7 +56,7 @@ export default function WalkerInfographic({ score, inline }: WalkerInfographicPr
   return (
     <div className="py-6 my-6 border-t border-b" style={{ borderColor: '#e0dbd0' }}>
       <p className="text-center text-sm mb-4" style={{ color: '#6b7a6b' }}>
-        Out of 10 walkers, how many feel safe?
+        Out of 10 people, how many could walk here comfortably?
       </p>
       <div className="flex items-center justify-center gap-2 mb-3">
         {Array.from({ length: filled }).map((_, i) => (
@@ -72,7 +72,7 @@ export default function WalkerInfographic({ score, inline }: WalkerInfographicPr
         </span>
         {empty > 0 && (
           <span className="text-sm" style={{ color: '#9ca3af' }}>
-            {empty} don't feel safe
+            {empty} would find it difficult
           </span>
         )}
       </div>

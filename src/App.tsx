@@ -2,6 +2,9 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import AddressInput from './components/streetcheck/AddressInput';
 import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
+import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
+import PersonaCards from './components/streetcheck/PersonaCards';
+import HistoricalComparison from './components/streetcheck/HistoricalComparison';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
@@ -1310,27 +1313,6 @@ function App() {
               {location.displayName}
             </h2>
 
-            {/* Section Navigation */}
-            <nav className="sticky top-0 z-10 -mx-6 px-6 py-2 backdrop-blur-md bg-earth-cream/85">
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {[
-                  { id: 'score', label: 'Score' },
-                  { id: 'metrics', label: 'Metrics' },
-                  { id: 'neighborhood', label: 'Neighborhood' },
-                  { id: 'methodology', label: 'About' },
-                ].map(s => (
-                  <a
-                    key={s.id}
-                    href={`#${s.id}`}
-                    onClick={(e) => { e.preventDefault(); document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                    className="px-3 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors hover:opacity-80 bg-earth-border text-earth-text-dark"
-                  >
-                    {s.label}
-                  </a>
-                ))}
-              </div>
-            </nav>
-
             {/* Row 1: Map + Score side by side */}
             <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16">
               <Map location={location} osmData={osmData} />
@@ -1372,10 +1354,70 @@ function App() {
               </div>
             )}
 
+            {/* Persona quick-answers — decision-first framing */}
+            {compositeScore && (
+              <PersonaCards compositeScore={compositeScore} />
+            )}
+
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} />
             </div>
+
+            {/* Street Network Analysis — story beat 3: drill into the grid */}
+            {compositeScore?.components.networkDesign && (
+              <StreetNetworkPanel
+                networkDesign={compositeScore.components.networkDesign}
+                streetCharacter={streetCharacter}
+                streetCharacterLoading={streetCharacterLoading}
+              />
+            )}
+
+            {/* Has this area improved? — historical OSM comparison */}
+            {compositeScore && (
+              <HistoricalComparison
+                lat={location.lat}
+                lon={location.lon}
+                compositeScore={compositeScore}
+              />
+            )}
+
+            {/* Street Audit CTA — surface the buried tool */}
+            <div
+              className="rounded-2xl border p-5 flex items-center justify-between gap-4"
+              style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
+            >
+              <div>
+                <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>
+                  🔍 Something wrong with this street?
+                </div>
+                <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
+                  Run a structured audit and generate a report for your local council
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAuditTool(true)}
+                className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border transition hover:opacity-80"
+                style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+              >
+                Audit this street →
+              </button>
+            </div>
+
+            {/* Street Audit Tool modal */}
+            {showAuditTool && (
+              <ErrorBoundary sectionName="Street Audit Tool">
+                <Suspense fallback={null}>
+                  <StreetAuditTool
+                    address={location.displayName}
+                    metrics={metrics}
+                    compositeScore={compositeScore}
+                    isPremium={true}
+                    onClose={() => setShowAuditTool(false)}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            )}
 
             {/* Share + Export — right after metrics so users can act immediately */}
             <div id="report-actions">

@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence, StreetCharacterAnalysis } from '../../types';
+import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence } from '../../types';
 import EconomicContextSection from './EconomicContextSection';
 import EquityContextSection from './EquityContextSection';
 import NeighborhoodIntelSection from './NeighborhoodIntelSection';
-import StreetNetworkPanel from './StreetNetworkPanel';
 import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
 
 interface MetricGridProps {
@@ -17,8 +16,6 @@ interface MetricGridProps {
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
-  streetCharacter?: StreetCharacterAnalysis | null;
-  streetCharacterLoading?: boolean;
 }
 
 function getScoreColor(score: number): string {
@@ -313,12 +310,19 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, streetCharacter, streetCharacterLoading }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
     (!def.usOnly || isUS) && (!def.internationalOnly || !isUS)
   );
+
+  // Sort by score descending (best first) so story reads: strengths then weaknesses
+  const sortedMetrics = [...visibleMetrics].sort((a, b) => {
+    const sa = a.getScore(metrics, compositeScore);
+    const sb = b.getScore(metrics, compositeScore);
+    return sb - sa;
+  });
 
   const toggleMetric = (key: string) => {
     setExpandedMetric(prev => prev === key ? null : key);
@@ -327,11 +331,11 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-6" style={{ color: '#2a3a2a' }}>
-        What This Means For You
+        What's Driving Your Score
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {visibleMetrics.map(def => {
+        {sortedMetrics.map(def => {
           const score = def.getScore(metrics, compositeScore);
           const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
           return (
@@ -349,7 +353,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
 
       {/* Expanded detail panel — appears below the grid */}
       {expandedMetric && (() => {
-        const def = visibleMetrics.find(m => m.key === expandedMetric);
+        const def = sortedMetrics.find(m => m.key === expandedMetric);
         if (!def) return null;
         const score = def.getScore(metrics, compositeScore);
         return (
@@ -363,15 +367,6 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           </div>
         );
       })()}
-
-      {/* Street Network Deep-Dive */}
-      {compositeScore?.components.networkDesign && (
-        <StreetNetworkPanel
-          networkDesign={compositeScore.components.networkDesign}
-          streetCharacter={streetCharacter ?? null}
-          streetCharacterLoading={streetCharacterLoading ?? false}
-        />
-      )}
 
       {/* Neighborhood Intelligence */}
       <NeighborhoodIntelSection neighborhoodIntel={neighborhoodIntel ?? null} />
