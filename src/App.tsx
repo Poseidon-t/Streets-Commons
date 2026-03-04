@@ -775,8 +775,8 @@ function App() {
               {/* Left column - Text & Search */}
               <div className="flex flex-col items-center lg:items-start">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 tracking-tight text-earth-text-dark max-w-xl">
-                  Is Your Neighborhood{' '}
-                  <span className="text-terra">Built for Walking</span>?
+                  How Walkable Is Your Street,{' '}
+                  <span className="text-terra">Really</span>?
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-xl mb-6 text-earth-text-body">
