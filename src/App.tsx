@@ -1533,9 +1533,9 @@ function App() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                   {[
-                    { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'Search any address with autocomplete suggestions', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
-                    { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Walkability score with map and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and street design data calculated in seconds.' },
-                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: 'walkability metrics and neighborhood intelligence', title: 'Explore the Details', desc: 'Scored metrics, neighborhood intelligence, health data, and flood risk.' },
+                    { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'SafeStreets homepage with address search bar and live score preview card', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
+                    { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Interactive map of Downtown Portland with walkability score of 6.8 and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and street design data calculated in seconds.' },
+                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: 'Detailed metrics panel with quick answers, neighborhood intelligence, health data, and flood risk', title: 'Explore the Details', desc: 'Scored metrics, quick answers for your situation, health data, and flood risk.' },
                   ].map((step) => (
                     <div key={step.num} className="text-center">
                       <div className="relative mb-4">
