@@ -20,12 +20,18 @@ export default function EnterpriseHome() {
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
             Custom dashboards, decisioning workflows, and API access — built on satellite imagery, open data, and census sources.
           </p>
-          <div className="flex justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/enterprise/contact"
               className="px-8 py-4 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-dark transition text-base"
             >
               Request a Demo
+            </Link>
+            <Link
+              to="/"
+              className="px-8 py-4 border-2 border-gray-300 text-enterprise-slate font-semibold rounded-lg hover:border-enterprise-navy transition text-base"
+            >
+              Try the Free Tool
             </Link>
           </div>
         </div>
