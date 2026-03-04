@@ -4,7 +4,6 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
-import HistoricalComparison from './components/streetcheck/HistoricalComparison';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
@@ -111,25 +110,6 @@ function App() {
   const [proUpgradeContext, setProUpgradeContext] = useState<'agent' | 'feature'>('agent');
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
 
-  // Helper: renders a locked Pro feature teaser card
-  const proLock = (title: string, description: string) => (
-    <div
-      className="rounded-2xl border p-5 flex items-center justify-between gap-4"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
-    >
-      <div>
-        <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>🔒 {title}</div>
-        <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{description}</div>
-      </div>
-      <button
-        onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
-        className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-        style={{ backgroundColor: '#2a3a2a' }}
-      >
-        Pro · $99 →
-      </button>
-    </div>
-  );
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
@@ -1377,37 +1357,57 @@ function App() {
               </div>
             )}
 
-            {/* Persona quick-answers — shown to all, verdicts blurred for free users */}
+            {/* Persona quick-answers — fully free, no blur */}
             {compositeScore && (
-              <PersonaCards
-                compositeScore={compositeScore}
-                isPremium={effectivePremium}
-                onUpgradeClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
-              />
+              <PersonaCards compositeScore={compositeScore} isPremium={true} />
             )}
 
-            {/* Metrics Grid */}
+            {/* Metrics Grid — fully free including detail expansion */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={effectivePremium} onUpgradeClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={true} />
             </div>
 
-            {/* Street Network Analysis — Pro feature */}
-            {compositeScore?.components.networkDesign && (
-              effectivePremium
-                ? <StreetNetworkPanel
-                    networkDesign={compositeScore.components.networkDesign}
-                    streetCharacter={streetCharacter}
-                    streetCharacterLoading={streetCharacterLoading}
-                  />
-                : proLock('AI Street Character Analysis', 'Deep dive into street network design, connectivity, and pedestrian infrastructure')
+            {/* Pro upsell — one clear moment, not scattered gates */}
+            {!effectivePremium && (
+              <div className="rounded-2xl border p-6" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
+                <div className="text-center mb-4">
+                  <div className="text-xs font-semibold tracking-wide mb-1" style={{ color: '#8a9a8a' }}>SAFESTREETS PRO · $99 ONE-TIME</div>
+                  <h3 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Go deeper with your analysis</h3>
+                  <p className="text-sm mt-1" style={{ color: '#6a7a6a' }}>For agents, planners, and anyone making a serious decision about a neighborhood.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 mb-5">
+                  {[
+                    { icon: '🤖', label: 'AI Street Character', desc: 'Deep analysis of network design and pedestrian infrastructure' },
+                    { icon: '📊', label: 'Compare Neighborhoods', desc: 'Side-by-side analysis of 2–4 addresses' },
+                    { icon: '🏠', label: 'Branded Agent Reports', desc: 'Your logo and contact on every PDF page' },
+                    { icon: '🔗', label: 'Shareable Links', desc: 'Send reports to clients with lead capture' },
+                  ].map(f => (
+                    <div key={f.label} className="flex gap-2.5 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
+                      <span className="text-base flex-shrink-0 mt-0.5">{f.icon}</span>
+                      <div>
+                        <div className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>{f.label}</div>
+                        <div className="text-xs leading-snug mt-0.5" style={{ color: '#8a9a8a' }}>{f.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
+                  className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
+                  style={{ backgroundColor: '#2a3a2a' }}
+                >
+                  Unlock Pro — $99 one-time →
+                </button>
+                <p className="text-center text-xs mt-2" style={{ color: '#b0a8a0' }}>Lifetime access · No subscription · Works for any address</p>
+              </div>
             )}
 
-            {/* Has this area improved? — free for all, good differentiator */}
-            {compositeScore && (
-              <HistoricalComparison
-                lat={location.lat}
-                lon={location.lon}
-                compositeScore={compositeScore}
+            {/* Street Network Analysis — Pro only, no teaser */}
+            {effectivePremium && compositeScore?.components.networkDesign && (
+              <StreetNetworkPanel
+                networkDesign={compositeScore.components.networkDesign}
+                streetCharacter={streetCharacter}
+                streetCharacterLoading={streetCharacterLoading}
               />
             )}
 
