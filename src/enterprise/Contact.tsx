@@ -6,13 +6,12 @@ const PROJECT_TYPES = [
   'Real Estate Development',
   'Transit & Mobility Planning',
   'Academic Research',
-  'Community Advocacy',
   'Other',
 ];
 
 const BUDGET_RANGES = [
-  '$50K — Street Intelligence',
-  '$100K — Complete Street Intelligence',
+  'Intelligence Platform (custom scoped)',
+  'Custom Decisioning Build (custom scoped)',
   'Not sure yet',
 ];
 

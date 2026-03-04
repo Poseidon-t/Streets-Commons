@@ -17,7 +17,7 @@ export default function MetricCard({ icon, title, description, tier }: MetricCar
             ? 'bg-blue-50 text-enterprise-navy'
             : 'bg-emerald-50 text-enterprise-green'
         }`}>
-          {tier === 'core' ? '$50K+' : '$100K'}
+          {tier === 'core' ? 'Platform' : 'Custom Build'}
         </span>
       </div>
       <h3 className="text-base font-semibold text-enterprise-slate mb-1.5">{title}</h3>

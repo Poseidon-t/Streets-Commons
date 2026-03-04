@@ -170,7 +170,7 @@ export default function Metrics() {
           <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
           <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Every SafeStreets engagement is built on a rigorous framework of 12 metrics across 4 categories, each measured through field audit, displayed in your interactive dashboard, and enriched with citizen insights.
+            Every SafeStreets platform deployment is built on a rigorous framework of 12 metrics across 4 categories — measured through satellite imagery, open data, and census sources, and surfaced in your configurable dashboard.
           </p>
         </div>
       </section>
@@ -179,12 +179,12 @@ export default function Metrics() {
       <section className="border-b border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-wrap items-center justify-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-enterprise-navy">$50K+</span>
-            <span className="text-sm text-gray-600">Included in Street Intelligence</span>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-blue-50 text-enterprise-navy">Intelligence Platform</span>
+            <span className="text-sm text-gray-600">Core metrics included</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-enterprise-green">$100K</span>
-            <span className="text-sm text-gray-600">Complete Street Intelligence only</span>
+            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-50 text-enterprise-green">Custom Decisioning Build</span>
+            <span className="text-sm text-gray-600">All 12 metrics + full configuration</span>
           </div>
         </div>
       </section>
