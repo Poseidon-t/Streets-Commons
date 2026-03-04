@@ -18,7 +18,7 @@ export default function EnterpriseHome() {
             Street Intelligence for Organizations
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-            Custom dashboards, decisioning workflows, and API access — built on satellite imagery, open data, and census sources.
+            Custom dashboards, decisioning workflows, and API access — built on the data sources that matter to your project.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
@@ -43,7 +43,7 @@ export default function EnterpriseHome() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">A Platform, Not a Report</h2>
             <p className="text-gray-600 max-w-xl mx-auto">
-              The same scoring engine that powers the free SafeStreets tool — extended into a configurable platform for organizational workflows.
+              A configurable platform built around your workflows, data sources, and decisioning requirements.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
