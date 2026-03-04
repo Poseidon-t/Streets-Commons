@@ -686,10 +686,7 @@ function App() {
             className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           >
             <img src="/logo.svg" alt="SafeStreets logo" className="w-10 h-10" />
-            <div className="text-left">
-              <span className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</span>
-              <p className="text-xs tracking-wider uppercase font-mono text-earth-text-mid">Walkability Analysis</p>
-            </div>
+            <span className="text-xl font-bold tracking-tight font-sans text-earth-text-dark">SafeStreets</span>
           </button>
           <div className="flex items-center gap-4">
             {!isSignedIn && (
@@ -824,10 +821,6 @@ function App() {
                 {/* Trust badges */}
                 <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 max-w-xl">
                   <span className="text-xs sm:text-sm text-earth-text-light">
-                    <span className="text-earth-green font-semibold">11</span> data layers
-                  </span>
-                  <span className="text-earth-text-light hidden sm:inline">·</span>
-                  <span className="text-xs sm:text-sm text-earth-text-light">
                     <span className="text-earth-green font-semibold">190+</span> countries
                   </span>
                   <span className="text-earth-text-light hidden sm:inline">·</span>
@@ -906,7 +899,7 @@ function App() {
                 <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
               </svg>
               <span className="text-sm text-earth-green">
-                Built on <strong>NACTO</strong> & <strong>GSDG</strong> standards
+                Built on <strong>NACTO</strong> & <strong>Vision Zero</strong> standards
               </span>
             </div>
 
@@ -1582,7 +1575,7 @@ function App() {
                   What You'll Learn
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  11 data layers from satellite imagery and government sources -- completely free, no sign-up required.
+                  Satellite imagery and open government data — completely free, no sign-up required.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
