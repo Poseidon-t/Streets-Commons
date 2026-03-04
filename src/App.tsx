@@ -1655,13 +1655,13 @@ function App() {
                       {/* Content */}
                       <div className="flex-1 text-center lg:text-left">
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
-                          For Real Estate Agents
+                          Agent Reports
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-                          Compare Neighborhoods for Your Buyers
+                          Branded Walkability Reports for Any Address
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                          Help buyers choose the right neighborhood with side-by-side walkability comparisons. Your branding on every page, shareable links with lead capture, and data buyers can't find on Zillow.
+                          Generate branded walkability reports for any listing. Your logo, brand colors, and contact details on every page — with data your clients can't find anywhere else.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -1732,7 +1732,7 @@ function App() {
 
                     {/* Feature bar */}
                     <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      {['Compare 2-4 neighborhoods side-by-side', 'Shareable links with lead capture', 'Your logo & brand colors', 'Walkability value premium estimates'].map(f => (
+                      {['Compare 2-4 neighborhoods side-by-side', 'Shareable links', 'Your logo & brand colors', 'Walkability value premium estimates'].map(f => (
                         <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                           <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
