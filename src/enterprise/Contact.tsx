@@ -31,7 +31,7 @@ export default function Contact() {
   useEffect(() => {
     document.title = 'Contact Sales | Walkability & Street Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Get in touch with Walkability & Street Intelligence. Request a consultation for dashboards, field audits, and citizen advocacy for your project.');
+    if (desc) desc.setAttribute('content', 'Get in touch with SafeStreets Intelligence. Request a scoping call for custom street intelligence dashboards, decisioning workflows, and API integration.');
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -204,7 +204,7 @@ export default function Contact() {
                     name="message"
                     required
                     rows={4}
-                    placeholder="What are your pedestrian safety intelligence needs? Are you interested in dashboard analytics, field audits, citizen advocacy, or all three?"
+                    placeholder="Tell us about your use case — e.g. ADA compliance monitoring, Vision Zero prioritization, site selection, transit planning, or research. What decisions do you need to make?"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-enterprise-navy/20 focus:border-enterprise-navy resize-none"
                   />
                 </div>

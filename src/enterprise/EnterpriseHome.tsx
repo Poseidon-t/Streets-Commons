@@ -5,7 +5,7 @@ import EnterpriseCTA from './components/EnterpriseCTA';
 const VERTICALS = [
   {
     title: 'Governments',
-    description: 'ADA compliance audits, Vision Zero planning, and infrastructure investment prioritization.',
+    description: 'Custom dashboards for ADA compliance tracking, Vision Zero corridor prioritization, and capital improvement decisioning.',
     href: '/enterprise/governments',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -15,7 +15,7 @@ const VERTICALS = [
   },
   {
     title: 'Real Estate',
-    description: 'Site selection insights, pedestrian infrastructure analysis, and risk assessment for developments.',
+    description: 'Pedestrian intelligence workflows for site selection, due diligence, and investment thesis development.',
     href: '/enterprise/real-estate',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -25,7 +25,7 @@ const VERTICALS = [
   },
   {
     title: 'Mobility',
-    description: 'Transit integration analysis, micromobility planning, and last-mile connectivity mapping.',
+    description: 'Street-level intelligence for transit integration planning, micromobility deployment, and last-mile network analysis.',
     href: '/enterprise/mobility',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -35,7 +35,7 @@ const VERTICALS = [
   },
   {
     title: 'Research',
-    description: 'Peer-reviewed methodology, comprehensive datasets, and academic partnership opportunities.',
+    description: 'Structured datasets, configurable scoring methodology, and bulk analysis workflows for academic and policy research.',
     href: '/enterprise/research',
     icon: (
       <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -45,18 +45,49 @@ const VERTICALS = [
   },
 ];
 
+const PLATFORM_CAPABILITIES = [
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
+      </svg>
+    ),
+    title: 'Custom Intelligence Dashboards',
+    description: 'Configurable views of street-level data across any geography. Choose your metrics, set your own weighting, and surface what matters most to your team\'s decisions.',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+    title: 'Decisioning Engine',
+    description: 'Define rules that turn raw walkability data into actionable priorities. Set thresholds for risk alerts, scoring tiers, and workflow triggers — built around how your organization makes decisions.',
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+      </svg>
+    ),
+    title: 'Workflow & API Integration',
+    description: 'Embed the intelligence engine into your existing planning tools, GIS systems, or internal workflows. API access, bulk export, and white-label deployment options.',
+  },
+];
+
 const STATS = [
-  { value: '12', label: 'Safety & Infrastructure Metrics' },
-  { value: 'Live', label: 'Interactive Dashboard' },
-  { value: '5-Day', label: 'In-Depth Field Audits' },
-  { value: '3', label: 'Intelligence Pillars' },
+  { value: '50+', label: 'Integrated Data Sources' },
+  { value: '12', label: 'Walkability Metrics' },
+  { value: 'Any City', label: 'Global Coverage' },
+  { value: 'Custom', label: 'Per-Client Workflows' },
 ];
 
 export default function EnterpriseHome() {
   useEffect(() => {
-    document.title = 'Walkability & Street Intelligence — SafeStreets Enterprise';
+    document.title = 'Street Intelligence Platform — SafeStreets Enterprise';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Interactive dashboards, in-depth field audits, and citizen advocacy intelligence for governments, real estate developers, mobility companies, and research institutions. Starting at $50K.');
+    if (desc) desc.setAttribute('content', 'Custom dashboards and decisioning workflows for neighborhood and street intelligence. Built for governments, real estate, mobility operators, and research institutions.');
   }, []);
 
   return (
@@ -64,25 +95,25 @@ export default function EnterpriseHome() {
       {/* Hero */}
       <section className="bg-enterprise-gray py-24 md:py-32">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">Walkability & Street Intelligence</p>
+          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-4">SafeStreets Intelligence</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-enterprise-slate mb-6 leading-tight">
-            Data-Driven Street Intelligence for Better Decisions
+            Custom Dashboards and Workflows for Street Intelligence
           </h1>
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto mb-10">
-            An intelligence platform combining interactive dashboards, in-depth field audits, and citizen advocacy to transform pedestrian safety data into action for governments, developers, and urban planners.
+            A decisioning engine for neighborhood and street data. Configure custom dashboards, set decisioning rules, and integrate walkability intelligence into how your organization plans and acts.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/enterprise/contact"
               className="px-8 py-4 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition text-lg"
             >
-              Request a Consultation
+              Request a Demo
             </Link>
             <Link
               to="/enterprise/how-it-works"
               className="px-8 py-4 border-2 border-gray-300 text-enterprise-slate font-semibold rounded-lg hover:border-enterprise-navy transition text-lg"
             >
-              See How It Works
+              How It Works
             </Link>
           </div>
         </div>
@@ -102,12 +133,35 @@ export default function EnterpriseHome() {
         </div>
       </section>
 
-      {/* Solutions by Vertical */}
+      {/* Platform Capabilities */}
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Intelligence for Every Stakeholder</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Tailored pedestrian safety analysis for your specific use case and decision-making needs.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">A Platform, Not a Report</h2>
+            <p className="text-gray-600 max-w-xl mx-auto">
+              Built on the same scoring engine that powers the free SafeStreets tool — extended into a configurable platform for organizational workflows.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {PLATFORM_CAPABILITIES.map((cap) => (
+              <div key={cap.title} className="bg-white border border-gray-100 rounded-xl p-8 hover:shadow-lg hover:border-enterprise-navy/20 transition">
+                <div className="w-12 h-12 rounded-xl bg-blue-50 text-enterprise-navy flex items-center justify-center mb-5">
+                  {cap.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-enterprise-slate mb-3">{cap.title}</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">{cap.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Solutions by Vertical */}
+      <section className="py-20 bg-enterprise-gray">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Built for Your Use Case</h2>
+            <p className="text-gray-600 max-w-xl mx-auto">The same intelligence engine, configured for the decisions and workflows of each sector.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {VERTICALS.map((v) => (
@@ -128,85 +182,53 @@ export default function EnterpriseHome() {
         </div>
       </section>
 
-      {/* Methodology Preview */}
-      <section className="py-20 bg-enterprise-gray">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Rigorous Methodology</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Every engagement follows a structured 5-phase process combining field research, community engagement, and data analysis.</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
-            {[
-              { step: '01', title: 'Scope & Planning', desc: 'Define study area, objectives, and community engagement plan.' },
-              { step: '02', title: 'Field Audit', desc: '3-5 day on-ground assessment by trained analysts.' },
-              { step: '03', title: 'Citizen Engagement', desc: 'Community surveys, voice collection, and cultural context.' },
-              { step: '04', title: 'Analysis', desc: 'Multi-source data integration and metric scoring.' },
-              { step: '05', title: 'Dashboard & Delivery', desc: 'Interactive platform, downloadable reports, and advocacy insights.' },
-            ].map((phase) => (
-              <div key={phase.step} className="bg-white rounded-xl border border-gray-100 p-6">
-                <p className="text-sm font-bold text-enterprise-navy mb-2">{phase.step}</p>
-                <h3 className="text-base font-semibold text-enterprise-slate mb-2">{phase.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{phase.desc}</p>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-10">
-            <Link to="/enterprise/how-it-works" className="text-sm font-medium text-enterprise-navy hover:underline">
-              Learn more about our process &rarr;
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Two Tiers Preview */}
+      {/* What Makes It Different */}
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center mb-14">
-            <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-3">Two Tiers, One Standard</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">Choose the depth of analysis that matches your project scope.</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Street Intelligence */}
-            <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-2">Street Intelligence</p>
-              <p className="text-4xl font-bold text-enterprise-slate mb-1">$50K</p>
-              <p className="text-sm text-gray-500 mb-6">Starting price</p>
-              <ul className="space-y-3 mb-8">
-                {['Interactive dashboard with core metrics', '3-day in-depth field audit', 'Community survey & voice collection', '80+ page downloadable report', '6-week delivery'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-700">
-                    <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="grid md:grid-cols-2 gap-16 items-center">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold text-enterprise-slate mb-5">Intelligence that fits your workflow</h2>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Most walkability tools give you a score. SafeStreets Intelligence gives you a configurable engine — one you can shape around the specific decisions your team needs to make.
+              </p>
+              <ul className="space-y-4">
+                {[
+                  'Define your own metric weights and composite score logic',
+                  'Set threshold rules that flag streets, corridors, or zones needing attention',
+                  'Configure dashboards per team or stakeholder role',
+                  'Export to GIS, connect via API, or deploy white-label',
+                  'Bulk analysis across portfolios, districts, or city-wide geographies',
+                  'Built on OpenStreetMap, satellite imagery, and census data — no vendor lock-in',
+                ].map((point) => (
+                  <li key={point} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-enterprise-green mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
-                    {f}
+                    <span className="text-sm text-gray-700">{point}</span>
                   </li>
                 ))}
               </ul>
-              <Link to="/enterprise/pricing" className="block text-center py-3 border-2 border-enterprise-navy text-enterprise-navy font-semibold rounded-lg hover:bg-enterprise-navy hover:text-white transition">
-                View Pricing
-              </Link>
             </div>
-
-            {/* Complete Street Intelligence */}
-            <div className="bg-enterprise-slate rounded-2xl p-8 text-white relative overflow-hidden">
-              <div className="absolute top-4 right-4 px-3 py-1 bg-enterprise-green/20 text-enterprise-green-light text-xs font-semibold rounded-full">
-                Most Comprehensive
-              </div>
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-2">Complete Street Intelligence</p>
-              <p className="text-4xl font-bold mb-1">$100K</p>
-              <p className="text-sm text-gray-400 mb-6">Starting price</p>
-              <ul className="space-y-3 mb-8">
-                {['Full 12-metric interactive dashboard', '5-day comprehensive field audit', 'Full citizen advocacy module', '150+ page report & strategic action plan', '8-week delivery', 'Ongoing advisory support'].map((f) => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-gray-300">
-                    <svg className="w-4 h-4 text-enterprise-green flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                    {f}
-                  </li>
+            <div className="bg-enterprise-slate rounded-2xl p-8 text-white">
+              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-6">Data Sources</p>
+              <div className="space-y-4">
+                {[
+                  { name: 'OpenStreetMap', desc: 'Street network, intersections, pedestrian paths' },
+                  { name: 'Satellite Imagery', desc: 'Canopy cover, land use, urban heat, surface conditions' },
+                  { name: 'EPA Walkability Index', desc: 'Intersection density, transit proximity, land use mix' },
+                  { name: 'Census & Demographics', desc: 'Population density, commute patterns, equity indicators' },
+                  { name: 'Municipal GIS', desc: 'Zoning, infrastructure, public right-of-way data' },
+                  { name: 'Transit Feeds (GTFS)', desc: 'Service frequency, route coverage, stop accessibility' },
+                ].map((ds) => (
+                  <div key={ds.name} className="flex items-start gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-enterprise-green mt-1.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium">{ds.name}</p>
+                      <p className="text-xs text-gray-400">{ds.desc}</p>
+                    </div>
+                  </div>
                 ))}
-              </ul>
-              <Link to="/enterprise/contact" className="block text-center py-3 bg-enterprise-green text-white font-semibold rounded-lg hover:bg-enterprise-green-light transition">
-                Contact Sales
-              </Link>
+              </div>
             </div>
           </div>
         </div>

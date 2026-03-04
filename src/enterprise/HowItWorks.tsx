@@ -5,91 +5,91 @@ import EnterpriseCTA from './components/EnterpriseCTA';
 const PHASES = [
   {
     number: '01',
-    title: 'Scope & Planning',
-    duration: 'Week 1-2',
-    description: 'We define the study area, assessment objectives, and community engagement plan together. This phase ensures every deliverable addresses your specific decision-making needs.',
+    title: 'Discovery & Scoping',
+    duration: 'Week 1',
+    description: 'We work with your team to define the decisions you need to make, the geographies that matter, and how intelligence needs to flow into your existing workflows.',
     details: [
-      'Define study area boundaries via GIS mapping',
-      'Identify key stakeholders and target communities',
-      'Establish assessment objectives and priorities',
-      'Customize metric weighting for your use case',
-      'Design citizen advocacy survey parameters',
-      'Schedule field audit and community engagement logistics',
+      'Map out the decisions your team needs to make and the data gaps blocking them',
+      'Define priority geographies — corridors, districts, city-wide, or portfolio-level',
+      'Identify key stakeholders and how dashboards will be used across roles',
+      'Determine integration requirements (GIS systems, internal tools, reporting formats)',
+      'Agree on metric weights and composite score logic for your use case',
+      'Establish output formats: API, embed, white-label, or dashboard login',
     ],
   },
   {
     number: '02',
-    title: 'In-Depth Field Audit',
-    duration: '3-5 Days On-Site',
-    description: 'Trained analysts walk every street segment in the study area, documenting conditions across all assessed metrics using standardized protocols.',
+    title: 'Data Configuration',
+    duration: 'Week 1–2',
+    description: 'The intelligence engine is configured for your geography and use case. Your datasets are connected. Metric weights and scoring rules are tuned to your decision-making logic.',
     details: [
-      'GPS-tagged photography of every block',
-      'Sidewalk condition and width measurements',
-      'Intersection and crossing safety evaluation',
-      'ADA compliance assessment at every curb',
-      'Lighting, shade, and comfort documentation',
-      'Traffic observation and speed measurements',
+      'Configure the scoring engine for your geographic area',
+      'Connect your municipal GIS, zoning, and infrastructure datasets',
+      'Tune metric weights and composite score logic per your scoping inputs',
+      'Integrate transit feeds (GTFS), census layers, and EPA walkability data',
+      'Set up alert thresholds and priority scoring rules for your decisioning workflows',
+      'Validate scoring output against known corridors and test cases',
     ],
   },
   {
     number: '03',
-    title: 'Citizen Engagement',
-    duration: 'Concurrent / Week 2-4',
-    description: 'Community voices are captured through structured surveys, interviews, and digital input tools to understand the lived pedestrian experience beyond what physical infrastructure reveals.',
+    title: 'Dashboard Build',
+    duration: 'Week 2–4',
+    description: 'Custom dashboard views are built to your specification — organized around the questions your team needs to answer, not generic metrics.',
     details: [
-      'Deploy community survey tools (digital and in-person)',
-      'Collect citizen voices on safety concerns and barriers',
-      'Document cultural context and community-specific needs',
-      'Multilingual outreach for diverse communities (Complete tier)',
-      'Sentiment analysis and theme identification (Complete tier)',
+      'Build primary dashboard view with your priority metrics and map layers',
+      'Configure per-role views for planners, executives, and field teams',
+      'Set up heat maps, hotspot analysis, and corridor comparison tools',
+      'Build decisioning panels: priority lists, threshold alerts, scoring breakdowns',
+      'Test with your team and iterate on display logic and user experience',
+      'Document custom metric definitions and scoring methodology for your records',
     ],
   },
   {
     number: '04',
-    title: 'Analysis & Modeling',
-    duration: 'Week 3-5',
-    description: 'Field observations and citizen input are combined with municipal data, census demographics, transit schedules, and EPA walkability data into a multi-source pedestrian safety model.',
+    title: 'Integration & Deployment',
+    duration: 'Week 3–5',
+    description: 'The platform is connected to your existing systems. Whether you need API access, a GIS export pipeline, an embedded view, or a white-label deployment, we set it up and hand it over.',
     details: [
-      'Field data digitization and quality review',
-      'Integration of citizen advocacy data with field observations',
-      'GIS integration with municipal datasets',
-      'Statistical scoring of each metric (0-100)',
-      'Heat map and hotspot generation',
-      'Identification of priority improvement zones',
+      'Set up API keys and documentation for your developers',
+      'Configure bulk export pipelines to CSV, GeoJSON, or GIS-compatible formats',
+      'Deploy embed code for internal portals or public-facing dashboards',
+      'White-label deployment with your branding, domain, and access controls',
+      'Set up webhook triggers for threshold-based alerts and workflow automation',
+      'Security review and access control configuration',
     ],
   },
   {
     number: '05',
-    title: 'Dashboard & Deliverables',
-    duration: 'Week 6-8',
-    description: 'Your interactive dashboard goes live with all metrics, maps, and citizen insights. Comprehensive reports are available for download directly from the platform.',
+    title: 'Launch & Ongoing Intelligence',
+    duration: 'Week 5–6 and beyond',
+    description: 'Your team goes live. Ongoing support ensures the intelligence stays current and your decisioning workflows evolve with your needs.',
     details: [
-      'Interactive dashboard with live metrics and scoring',
-      'Heat maps, GIS visualizations, and trend analytics',
-      'Citizen advocacy module with community voice data',
-      '80-150+ page downloadable PDF report',
-      'Executive summary for leadership audiences',
-      'Prioritized improvement recommendations',
-      'Strategic action plan & presentation deck (Complete tier)',
+      'Team onboarding sessions and role-specific documentation',
+      'Data refresh cadence established — quarterly or continuous depending on tier',
+      'Alert and notification configuration finalized',
+      'Dedicated support contact for questions and workflow adjustments',
+      'Quarterly review of scoring rules and decisioning thresholds',
+      'Access to platform updates and new data source integrations',
     ],
   },
 ];
 
 const DATA_SOURCES = [
-  { name: 'Field Observations', desc: 'GPS-tagged photos, measurements, structured observation forms' },
-  { name: 'Municipal GIS', desc: 'Parcel data, zoning, infrastructure, public right-of-way' },
-  { name: 'Census & Demographics', desc: 'Population density, income, age distribution, commute patterns' },
-  { name: 'Transit Data', desc: 'GTFS feeds, service frequency, route coverage, ridership' },
-  { name: 'EPA Walkability Index', desc: 'Intersection density, transit proximity, land use mix, street connectivity' },
-  { name: 'Satellite & Aerial', desc: 'Land cover, canopy analysis, impervious surface mapping' },
-  { name: 'Community Input', desc: 'Citizen surveys, voice recordings, cultural context interviews, community feedback' },
+  { name: 'OpenStreetMap', desc: 'Street network topology, intersection density, pedestrian path coverage' },
+  { name: 'Satellite & Aerial Imagery', desc: 'Canopy cover, urban heat, land use classification, impervious surface' },
+  { name: 'EPA Walkability Index', desc: 'Block-level intersection density, transit access, land use mix scores' },
+  { name: 'Census & Demographics', desc: 'Population density, income, age distribution, commute patterns, equity layers' },
+  { name: 'Municipal GIS', desc: 'Parcel data, zoning, public right-of-way, infrastructure inventories' },
+  { name: 'Transit Feeds (GTFS)', desc: 'Service frequency, route coverage, stop locations, accessibility data' },
+  { name: 'Client Data', desc: 'Your organization\'s internal datasets, inspection records, complaint logs, or custom layers' },
 ];
 
 export default function HowItWorks() {
   useEffect(() => {
-    document.title = 'How It Works | Walkability & Street Intelligence';
+    document.title = 'How It Works | SafeStreets Intelligence';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute('content', 'Walkability & Street Intelligence follows a rigorous 5-phase process: Scope & Planning, In-Depth Field Audit, Citizen Engagement, Analysis & Modeling, and Dashboard & Deliverables.');
+    if (desc) desc.setAttribute('content', 'How SafeStreets Intelligence builds custom street intelligence dashboards and decisioning workflows: Discovery, Data Configuration, Dashboard Build, Integration, and Launch.');
   }, []);
 
   return (
@@ -97,10 +97,10 @@ export default function HowItWorks() {
       {/* Hero */}
       <section className="bg-enterprise-gray py-20 md:py-28">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Process</p>
-          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">How We Build Intelligence</h1>
+          <p className="text-enterprise-navy font-semibold text-sm uppercase tracking-wider mb-3">How It Works</p>
+          <h1 className="text-4xl md:text-5xl font-bold text-enterprise-slate mb-6">From Raw Data to Decisions</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Every SafeStreets engagement follows a structured 5-phase methodology combining field research, community engagement, and data analysis.
+            A structured 5-phase process that takes your organization from scattered street data to a live decisioning platform — configured around how your team actually works.
           </p>
         </div>
       </section>
@@ -162,7 +162,7 @@ export default function HowItWorks() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-enterprise-slate mb-3">Data Sources</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">We integrate multiple data sources for a comprehensive, validated picture of pedestrian conditions.</p>
+            <p className="text-gray-600 max-w-xl mx-auto">The intelligence engine integrates multiple authoritative sources — plus your own datasets — for a complete picture of pedestrian conditions.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {DATA_SOURCES.map((ds) => (
@@ -175,25 +175,25 @@ export default function HowItWorks() {
         </div>
       </section>
 
-      {/* Deliverables */}
+      {/* What You Get */}
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">What You Receive</h2>
+            <h2 className="text-3xl font-bold text-enterprise-slate mb-3">What You Get</h2>
+            <p className="text-gray-500 max-w-xl mx-auto">A live platform built around your decisions — not a one-time report that sits in a drawer.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">
-              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Street Intelligence — $50K</p>
+              <p className="text-sm font-semibold text-enterprise-navy uppercase tracking-wider mb-4">Intelligence Platform</p>
               <ul className="space-y-3">
                 {[
-                  'Interactive dashboard with core metrics',
-                  '3-day in-depth field audit data',
-                  'Community survey & voice collection',
-                  '80+ page downloadable report',
-                  'Executive summary',
-                  'Heat maps and GIS visualizations',
-                  'Data export (CSV, GIS formats)',
-                  'Post-delivery Q&A session',
+                  'Custom dashboard with your metric configuration',
+                  'Decisioning rules and priority scoring',
+                  'API access for your development team',
+                  'GIS-compatible data export (CSV, GeoJSON)',
+                  'Heat maps and corridor analysis tools',
+                  'Quarterly data refresh',
+                  'Team onboarding and documentation',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-700">
                     <svg className="w-4 h-4 text-enterprise-navy mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -205,19 +205,18 @@ export default function HowItWorks() {
               </ul>
             </div>
             <div className="bg-enterprise-slate rounded-2xl p-8 text-white">
-              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Complete Street Intelligence — $100K</p>
-              <p className="text-xs text-gray-400 mb-4">Everything in Street Intelligence, plus:</p>
+              <p className="text-sm font-semibold text-enterprise-green-light uppercase tracking-wider mb-4">Custom Decisioning Build</p>
+              <p className="text-xs text-gray-400 mb-4">Everything in Platform, plus:</p>
               <ul className="space-y-3">
                 {[
-                  'Full 12-metric interactive dashboard',
-                  'Advanced analytics & trend tracking',
-                  'Complete citizen advocacy module',
-                  'Cultural context mapping & sentiment analysis',
-                  'Multilingual community engagement',
-                  '150+ page comprehensive report',
-                  'Strategic action plan & presentation deck',
-                  '3 months of advisory support',
-                  'Annual update option',
+                  'Bespoke decisioning workflows and alert rules',
+                  'White-label or embedded deployment',
+                  'Custom metric weights and composite score logic',
+                  'Integration with your existing systems',
+                  'Webhook triggers for workflow automation',
+                  'Continuous data updates',
+                  'Dedicated support and platform advisory',
+                  'Multi-geography or portfolio-wide analysis',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-300">
                     <svg className="w-4 h-4 text-enterprise-green flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -231,7 +230,7 @@ export default function HowItWorks() {
           </div>
           <div className="text-center mt-10">
             <Link to="/enterprise/pricing" className="text-sm font-medium text-enterprise-navy hover:underline">
-              See full pricing comparison &rarr;
+              See pricing options &rarr;
             </Link>
           </div>
         </div>
@@ -239,8 +238,8 @@ export default function HowItWorks() {
 
       <EnterpriseCTA
         dark
-        title="Ready to start your pedestrian safety assessment?"
-        description="Tell us about your project and we'll scope a custom engagement for you."
+        title="Ready to build your street intelligence platform?"
+        description="Tell us about your organization and we'll scope a custom engagement."
       />
     </>
   );

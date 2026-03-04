@@ -15,6 +15,14 @@ function getScoreColor(score: number): string {
   return '#ef4444';
 }
 
+function getScoreTier(score: number): string {
+  if (score >= 80) return 'Walkable';
+  if (score >= 60) return 'Moderate';
+  if (score >= 40) return 'Car-dependent';
+  if (score >= 20) return 'Difficult';
+  return 'Hostile';
+}
+
 function CircularScore({ score }: { score: number }) {
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
@@ -38,9 +46,8 @@ function CircularScore({ score }: { score: number }) {
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <div className="text-4xl sm:text-5xl font-bold" style={{ color }}>{displayScore}</div>
-          <div className="text-sm mt-[-2px]" style={{ color: '#8a9a8a' }}>
-            out of 10
-          </div>
+          <div className="text-xs mt-[-2px]" style={{ color: '#8a9a8a' }}>out of 10</div>
+          <div className="text-xs font-semibold mt-1" style={{ color }}>{getScoreTier(score)}</div>
         </div>
       </div>
     </div>

@@ -4,4 +4,32 @@ Disallow: /api/
 Disallow: /report
 Disallow: /proposal
 
+# Allow AI crawlers to index content for AI-powered search and assistants
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://safestreets.streetsandcommons.com/sitemap.xml

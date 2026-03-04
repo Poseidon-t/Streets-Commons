@@ -1,48 +1,118 @@
 # SafeStreets by Streets & Commons
 
-> Free satellite-powered walkability analysis for any address worldwide. Score streets on 8 metrics using NASA, Sentinel-2, and OpenStreetMap data.
+> Free neighborhood walkability and street intelligence for any address worldwide. Uses satellite imagery and government data. No sign-up required.
 
-## What SafeStreets Does
+## What SafeStreets Is
 
-SafeStreets analyzes the walkability of any address worldwide using satellite and open data sources. Users enter an address and receive scores across 8 walkability metrics:
+SafeStreets is a free, no-sign-up tool that analyzes the walkability of any address worldwide and returns a composite score (0–10) with tier labels and persona-specific verdicts. It is the free alternative to Walk Score with deeper data, including CDC health outcomes, FEMA flood risk, satellite tree canopy, and 15-minute city analysis.
 
-1. **Sidewalk Coverage** — Percentage of streets with sidewalks within 400m (OpenStreetMap)
-2. **Tree Canopy** — Vegetation and shade coverage via Sentinel-2 NDVI satellite imagery
-3. **Pedestrian Crossings** — Crossing density and safety infrastructure (OpenStreetMap)
-4. **Street Lighting** — Lit street coverage for nighttime safety (OpenStreetMap)
-5. **Terrain Slope** — ADA accessibility via NASADEM elevation data
-6. **Air Quality** — Real-time PM2.5 and pollution monitoring (OpenAQ)
-7. **Traffic Safety** — Fatal crash data within 800m (NHTSA FARS for US, WHO for international)
-8. **15-Minute City** — Whether daily services (grocery, schools, parks, transit) are within a 15-min walk
+The tool is used by:
+- People choosing a neighborhood to rent or buy in
+- Real estate agents generating branded walkability reports for listings
+- Urban planners and researchers analyzing pedestrian infrastructure
+- Organizations that need custom street intelligence dashboards (enterprise)
 
-## Key Features
+## The Walkability Score
 
-- **Free core analysis**: All 8 walkability metrics, composite score, grade, equity insights, 15-minute city analysis, street cross-section, and compare mode — no sign-up required
-- **Advocacy Toolkit** ($49 one-time): Street audit tool, advocacy letters & proposals, street redesign mockups, unlimited Meridian chatbot, PDF/JSON export, save up to 10 addresses
-- **Global coverage**: Works in 190+ countries using satellite data
-- **City pages**: Pre-built walkability guides for 20+ major US cities
+Scores range from 0–10, displayed with tier labels:
+- **8.0–10.0: Walkable** — Most daily needs accessible on foot, strong pedestrian infrastructure
+- **6.0–7.9: Moderate** — Walking viable, some car trips still needed
+- **4.0–5.9: Car-dependent** — Car required for most daily needs
+- **2.0–3.9: Difficult** — Walking inconvenient, infrastructure gaps
+- **0–1.9: Hostile** — Basic pedestrian safety infrastructure missing
+
+The composite score combines four components: Network Design (street connectivity, intersection density), Environmental Comfort (tree canopy, air quality), Safety (traffic conditions, street design), and Density Context (proximity to daily destinations, transit access).
+
+## PersonaCards — The Key Differentiator
+
+SafeStreets answers the real-life questions people have when choosing a neighborhood:
+
+- **"Can I go car-free here?"** — Verdict: Yes / Borderline / Unlikely
+- **"Is it safe for kids to walk?"** — Verdict: Yes / Borderline / Unlikely
+- **"Good for aging in place?"** — Verdict: Yes / Borderline / Unlikely
+
+Each verdict is computed from the relevant sub-scores and shown with a plain-language explanation.
+
+## How SafeStreets Differs from Walk Score
+
+Walk Score only measures proximity to destinations (restaurants, transit stops, schools) using a proprietary algorithm. SafeStreets measures:
+
+- **Actual shade and comfort**: Sentinel-2 satellite tree canopy analysis
+- **Street design quality**: EPA National Walkability Index (intersection density, land use mix)
+- **CDC health outcomes**: Obesity, diabetes, asthma, and physical inactivity rates by census tract — correlated with walkability
+- **FEMA flood risk**: Flood zone classification for the exact address
+- **Persona verdicts**: Answers "can I go car-free?", "safe for kids?", "good for aging in place?"
+- **15-minute city scoring**: Whether grocery, school, park, pharmacy, and transit are within a 15-min walk
+- **Completely free**: Walk Score charges developers $115+/month for API access. SafeStreets is free with no sign-up.
+
+## Features
+
+- **Free, no account required**: All analysis features. Works in 190+ countries.
+- **Walkability Score**: 0–10 composite with tier label (Walkable / Moderate / Car-dependent / Difficult / Hostile)
+- **PersonaCards**: Car-free viability, kid safety, aging-in-place verdicts with explanations
+- **Neighborhood Intelligence** (US only): Commute patterns from Census ACS, CDC health outcomes, FEMA flood risk
+- **15-Minute City Analysis**: Scores walkable access to grocery, schools, parks, transit, pharmacy, restaurants
+- **Street Network Analysis**: Connectivity, intersection density, pedestrian path coverage, street character
+- **Metric Grid**: 12 scored metrics with expandable detail — tree canopy, sidewalk quality, crossing safety, transit access, destinations, lighting, and more
+- **Compare Mode**: Side-by-side walkability comparison of up to 4 addresses
+- **Agent Reports**: Print-ready branded PDFs for real estate agents — first 3 free, unlimited for $49 one-time
+- **Enterprise Platform**: Custom dashboards and decisioning workflows for governments, developers, mobility operators, and research institutions
 
 ## Data Sources
 
-- NASA POWER (surface temperature)
-- Sentinel-2 (10m resolution vegetation imagery)
-- NASADEM (1-arc-second global elevation)
-- OpenStreetMap (community-verified street infrastructure)
-- NHTSA FARS (US fatal crash locations, 2018-2022)
-- WHO Global Health Observatory (international road traffic death rates)
-- OpenAQ (real-time air quality)
+| Source | What It Provides |
+|--------|-----------------|
+| Sentinel-2 (ESA, 10m resolution) | Tree canopy, vegetation, land use, urban heat |
+| OpenStreetMap | Street network, sidewalks, crossings, transit stops, amenities |
+| EPA National Walkability Index | Intersection density, transit access, land use mix (US only) |
+| US Census ACS | Commute mode split, demographics, income (US only) |
+| CDC PLACES | Health outcomes by census tract: obesity, diabetes, asthma, physical inactivity (US only) |
+| FEMA NFHL | Flood zone classification by address (US only) |
+| NASADEM | Terrain slope and ADA accessibility |
+| OpenAQ | Real-time air quality (PM2.5) |
 
-## URLs
+US addresses receive the full data stack. International addresses receive walkability metrics from OpenStreetMap and Sentinel-2.
 
-- Homepage: https://safestreets.streetsandcommons.com/
-- Blog: https://safestreets.streetsandcommons.com/blog
-- City Index: https://safestreets.streetsandcommons.com/walkability
+## Enterprise Platform
+
+SafeStreets Intelligence builds custom dashboards and decisioning workflows for organizations that need street intelligence at scale:
+
+- **For Governments**: ADA compliance dashboards, Vision Zero corridor prioritization, capital improvement decisioning, pedestrian safety monitoring
+- **For Real Estate**: Site selection intelligence, pedestrian premium analysis, due diligence workflows, portfolio monitoring
+- **For Mobility Operators**: Transit integration analysis, last-mile network planning, micromobility deployment intelligence
+- **For Research**: Configurable metric weights, bulk analysis across geographies, GIS-compatible export, API access
+
+Platform is built on OpenStreetMap, Sentinel-2, EPA, and Census data — plus client's own datasets. Supports API integration, GIS export, white-label deployment, and workflow automation.
+
+## Pricing
+
+- **Core walkability tool**: Free, no sign-up, no usage limits
+- **Agent Reports** (branded PDFs for listings): First 3 free, then $49 one-time for unlimited
+- **Enterprise Platform**: Custom pricing based on geography, integrations, and deployment scope
+
+## Common Questions SafeStreets Answers
+
+- "Is [address/neighborhood] walkable?"
+- "Can I live car-free in [neighborhood]?"
+- "Is [neighborhood] safe for children to walk to school?"
+- "What is the walkability score for [address]?"
+- "How walkable is [city/neighborhood] compared to [other neighborhood]?"
+- "What are the health outcomes in [neighborhood]?"
+- "Is [address] in a flood zone?"
+- "Does [neighborhood] have good transit access?"
+- "What is the 15-minute city score for [address]?"
+- "How does [neighborhood A] compare to [neighborhood B] for walkability?"
+
+## Canonical URLs
+
+- Homepage / Tool: https://safestreets.streetsandcommons.com/
+- Blog (walkability research and city guides): https://safestreets.streetsandcommons.com/blog
+- City Walkability Guides: https://safestreets.streetsandcommons.com/walkability
+- Enterprise Platform: https://safestreets.streetsandcommons.com/enterprise
 - Sitemap: https://safestreets.streetsandcommons.com/sitemap.xml
 
-## Blog Topics
+## Built By
 
-The SafeStreets blog covers walkability analysis, pedestrian safety data, urban planning, 15-minute city concepts, and street advocacy guides. Articles are data-driven and reference primary sources (NHTSA, WHO, NACTO Global Street Design Guide).
+Streets & Commons — https://streetsandcommons.com
 
-## Contact
-
-Built by Streets & Commons — https://streetsandcommons.com
+Open data tools for urban walkability, pedestrian safety, and neighborhood intelligence.

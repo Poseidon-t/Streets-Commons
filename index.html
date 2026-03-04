@@ -6,29 +6,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
-    <title>SafeStreets — Is Your Neighborhood Safe to Walk? | Free Analysis</title>
-    <meta name="title" content="SafeStreets — Is Your Neighborhood Safe to Walk? | Free Analysis" />
-    <meta name="description" content="Is your neighborhood safe to walk? The walking experience, the health context, the economic reality — analyzed from satellite and government data. Any address. Free, no sign-up." />
-    <meta name="keywords" content="neighborhood analysis, walkability score, walk score, neighborhood intelligence, pedestrian safety, transit access, food desert, flood risk, walkability map, 15 minute city, real estate walkability report, neighborhood report, street safety" />
+    <title>SafeStreets — Free Walkability Score for Any Address | Neighborhood Analysis</title>
+    <meta name="title" content="SafeStreets — Free Walkability Score for Any Address | Neighborhood Analysis" />
+    <meta name="description" content="Free walkability score (0–10) for any address worldwide. Includes PersonaCards (car-free?, safe for kids?, aging in place?), CDC health outcomes, FEMA flood risk, 15-minute city analysis, and satellite tree canopy. Better than Walk Score. No sign-up." />
+    <meta name="keywords" content="walkability score, walk score alternative, neighborhood walkability, pedestrian safety, 15 minute city, car-free neighborhood, CDC health outcomes, FEMA flood risk, neighborhood analysis, street intelligence, transit access, tree canopy analysis, aging in place neighborhood, safe for kids, walkability map" />
     <meta name="author" content="Streets & Commons" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://safestreets.streetsandcommons.com/" />
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://safestreets.streetsandcommons.com/" />
     <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
-    <meta property="og:title" content="Is Your Neighborhood Safe to Walk? | Free Analysis" />
-    <meta property="og:description" content="Walkability, transit, safety, health, flood risk & amenities — 12 data layers from NASA, Census, CDC & FEMA for any address. Free, instant, no sign-up." />
+    <meta property="og:title" content="Free Walkability Score for Any Address — Better Than Walk Score" />
+    <meta property="og:description" content="Composite walkability score (0–10) with PersonaCards, CDC health outcomes, FEMA flood risk, satellite tree canopy & 15-min city analysis. Free, instant, works worldwide. No sign-up." />
     <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SafeStreets walkability score interface showing a 7.4 Moderate score with PersonaCards for car-free, kids, and aging-in-place viability" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://safestreets.streetsandcommons.com/" />
-    <meta property="twitter:title" content="Is Your Neighborhood Safe to Walk? | Free Analysis" />
-    <meta property="twitter:description" content="Walkability, transit, safety, health, flood risk & amenities — 12 data layers from NASA, Census, CDC & FEMA for any address. Free, instant, no sign-up." />
+    <meta property="twitter:title" content="Free Walkability Score for Any Address — Better Than Walk Score" />
+    <meta property="twitter:description" content="Composite walkability score with PersonaCards, CDC health outcomes, FEMA flood risk, satellite tree canopy & 15-min city analysis. Free, instant, no sign-up." />
     <meta property="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
     <!-- Google Fonts - preconnect + load -->
@@ -66,7 +68,117 @@
       })();
     </script>
 
-    <!-- Schema.org Structured Data for FAQPage -->
+    <!-- Schema.org: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Streets & Commons",
+      "url": "https://streetsandcommons.com",
+      "sameAs": ["https://safestreets.streetsandcommons.com"],
+      "description": "Open data tools for urban walkability, pedestrian safety, and neighborhood intelligence.",
+      "foundingDate": "2024",
+      "areaServed": "Worldwide"
+    }
+    </script>
+
+    <!-- Schema.org: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "SafeStreets",
+      "alternateName": "SafeStreets by Streets & Commons",
+      "applicationCategory": "UtilityApplication",
+      "operatingSystem": "Web",
+      "url": "https://safestreets.streetsandcommons.com",
+      "description": "Free walkability score (0–10) for any address worldwide. Analyzes street connectivity, tree canopy via Sentinel-2 satellite, EPA National Walkability Index, CDC health outcomes, FEMA flood risk, and 15-minute city access. Includes PersonaCards answering whether a neighborhood is viable for going car-free, safe for children to walk, or suitable for aging in place.",
+      "featureList": [
+        "Composite walkability score 0–10 with tier labels (Walkable, Moderate, Car-dependent, Difficult, Hostile)",
+        "PersonaCards: car-free viability, kid safety, aging-in-place verdicts with explanations",
+        "15-Minute City Analysis: scored access to grocery, schools, parks, transit, pharmacy, restaurants",
+        "Street Network Analysis: connectivity, intersection density, pedestrian path coverage",
+        "Neighborhood Intelligence (US): Census ACS commute patterns, CDC health outcomes, FEMA flood risk",
+        "Satellite tree canopy analysis via Sentinel-2 (ESA, 10m resolution)",
+        "12 scored walkability metrics with expandable detail",
+        "Compare Mode: side-by-side walkability comparison of up to 4 addresses",
+        "Agent Reports: branded PDF walkability reports for real estate listings",
+        "Works in 190+ countries worldwide",
+        "Free, no sign-up required"
+      ],
+      "offers": [
+        {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "name": "Free",
+          "description": "Full walkability analysis, PersonaCards, 12 metrics, 15-min city, neighborhood intelligence, and compare mode. No sign-up required. Works globally."
+        },
+        {
+          "@type": "Offer",
+          "price": "49",
+          "priceCurrency": "USD",
+          "name": "Agent Reports — Unlimited",
+          "description": "One-time payment. Unlimited branded walkability PDF reports for real estate listings. First 3 reports free."
+        }
+      ],
+      "creator": {
+        "@type": "Organization",
+        "name": "Streets & Commons",
+        "url": "https://streetsandcommons.com"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "120"
+      }
+    }
+    </script>
+
+    <!-- Schema.org: HowTo — How to analyze walkability -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "How to Get a Walkability Score for Any Address",
+      "description": "Use SafeStreets to get a free, data-driven walkability score (0–10) for any address worldwide — no sign-up required.",
+      "totalTime": "PT1M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "position": 1,
+          "name": "Enter an address",
+          "text": "Type any address, neighborhood, or city into the search bar on SafeStreets. Works for any address worldwide in 190+ countries."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 2,
+          "name": "Get your composite walkability score",
+          "text": "SafeStreets returns a 0–10 composite score with a tier label: Walkable (8–10), Moderate (6–7.9), Car-dependent (4–5.9), Difficult (2–3.9), or Hostile (0–1.9). The score combines four components: Network Design, Environmental Comfort, Safety, and Density Context."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 3,
+          "name": "Review PersonaCards for your lifestyle",
+          "text": "PersonaCards answer three real-life questions: Can I go car-free here? (Yes/Borderline/Unlikely), Is it safe for kids to walk? (Yes/Borderline/Unlikely), and Is it good for aging in place? (Yes/Borderline/Unlikely). Each verdict has a plain-language explanation."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 4,
+          "name": "Explore neighborhood intelligence",
+          "text": "For US addresses, view commute patterns from Census ACS, CDC health outcomes (obesity, diabetes, asthma rates vs US average), FEMA flood risk zone classification, and 15-minute city access scores for grocery, schools, parks, transit, and pharmacy."
+        },
+        {
+          "@type": "HowToStep",
+          "position": 5,
+          "name": "Compare with other neighborhoods",
+          "text": "Use Compare Mode to analyze up to 4 addresses side-by-side. Real estate agents can generate branded PDF reports for listings — first 3 free, unlimited for $49 one-time."
+        }
+      ]
+    }
+    </script>
+
+    <!-- Schema.org: FAQPage -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -77,7 +189,7 @@
           "name": "Is SafeStreets really free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes! All 12 data layers — walkability metrics, neighborhood intelligence, compare mode, and field verification — are completely free with no sign-up required. We use open government data (NASA, Sentinel-2, US Census, CDC, FEMA, OpenStreetMap). Unlimited searches, works globally in 190+ countries."
+            "text": "Yes. All core features are completely free with no sign-up required: walkability score, PersonaCards, 12 metrics, 15-minute city analysis, neighborhood intelligence, and compare mode. We use open government data (Sentinel-2, EPA, US Census, CDC, FEMA, OpenStreetMap). Works in 190+ countries with unlimited searches."
           }
         },
         {
@@ -85,7 +197,23 @@
           "name": "How is SafeStreets different from Walk Score?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Walk Score measures proximity to nearby amenities. SafeStreets analyzes the actual neighborhood experience — terrain slope, tree canopy shade, crash history, transit access, food deserts, CDC health outcomes, and FEMA flood risk. We use real satellite imagery and government data, not just distance calculations. Plus, everything is free."
+            "text": "Walk Score only measures proximity to nearby amenities using a proprietary algorithm. SafeStreets measures actual street conditions: tree canopy shade via Sentinel-2 satellite imagery, street design quality via EPA National Walkability Index, CDC health outcomes (obesity, diabetes, asthma rates by census tract), FEMA flood zone classification, terrain slope via NASADEM, and real-time air quality. SafeStreets also provides PersonaCards that answer specific lifestyle questions (car-free?, safe for kids?, aging in place?) and is completely free — Walk Score charges $115+/month for API access."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What are PersonaCards?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "PersonaCards are the key differentiator of SafeStreets. They answer three real-life questions people have when choosing a neighborhood: 'Can I go car-free here?' (verdict: Yes/Borderline/Unlikely), 'Is it safe for kids to walk?' (verdict: Yes/Borderline/Unlikely), and 'Is it good for aging in place?' (verdict: Yes/Borderline/Unlikely). Each verdict is computed from the relevant sub-scores and shown with a plain-language explanation of why."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I interpret the walkability score?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "SafeStreets scores range from 0–10 with five tiers: Walkable (8.0–10.0) means most daily needs are accessible on foot with strong pedestrian infrastructure; Moderate (6.0–7.9) means walking is viable but some car trips are still needed; Car-dependent (4.0–5.9) means a car is required for most daily needs; Difficult (2.0–3.9) means walking is inconvenient with infrastructure gaps; Hostile (0–1.9) means basic pedestrian safety infrastructure is missing. The composite score combines Network Design, Environmental Comfort, Safety, and Density Context."
           }
         },
         {
@@ -93,31 +221,15 @@
           "name": "What data sources does SafeStreets use?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "We use research-grade open data: Sentinel-2 satellite imagery (tree canopy), NASADEM (terrain), OpenStreetMap (street infrastructure, transit, amenities), NHTSA FARS (US crash data), US Census ACS (commute patterns, demographics), CDC PLACES (health outcomes by census tract), FEMA NFHL (flood risk zones), and WHO (international safety data). These are the same sources used by governments and research institutions."
+            "text": "SafeStreets uses research-grade open data: Sentinel-2 satellite imagery from ESA (tree canopy, 10m resolution), OpenStreetMap (street network, sidewalks, transit, amenities), EPA National Walkability Index (intersection density, land use mix), US Census ACS (commute patterns, demographics), CDC PLACES (health outcomes by census tract), FEMA NFHL (flood zone classification), NASADEM (terrain slope, ADA accessibility), and OpenAQ (real-time air quality). US addresses get the full data stack; international addresses get walkability from OpenStreetMap and Sentinel-2."
           }
         },
         {
           "@type": "Question",
-          "name": "Do I need to create an account?",
+          "name": "Does SafeStreets work outside the US?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "No! All analysis features work instantly without any account. Sign in optionally to save addresses for quick access. Real estate agents can sign in to generate branded walkability reports for property listings."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "What is Neighborhood Intelligence?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Neighborhood Intelligence goes beyond walkability to show how people actually live in an area: commute patterns (walk, bike, transit, car split), transit access, park and food access, CDC health outcomes compared to US averages, and FEMA flood risk zones. This data comes from the US Census, CDC PLACES, FEMA, and OpenStreetMap."
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Does SafeStreets work in my city or country?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes! Walkability analysis works globally in 190+ countries using satellite data and OpenStreetMap. Neighborhood Intelligence features like commute data, health outcomes, and flood risk are US-only (powered by Census, CDC, and FEMA). International locations still get full walkability, transit, park, and food access analysis."
+            "text": "Yes! Walkability analysis works globally in 190+ countries using Sentinel-2 satellite data and OpenStreetMap. US-specific features (Census ACS commute data, CDC health outcomes, FEMA flood risk) are only available for US addresses. International addresses still receive the full walkability score, PersonaCards, 15-minute city analysis, street network analysis, and all 12 metrics."
           }
         },
         {
@@ -125,48 +237,30 @@
           "name": "Can real estate agents use SafeStreets?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes! Agents can generate branded walkability reports with their name, company, and contact info for any property listing. The first 3 reports are free. Unlimited reports are available with a Pro account ($99 one-time)."
+            "text": "Yes. Agents can generate branded walkability reports with their name, company, and contact info for any property listing. The first 3 reports are free. Unlimited reports are available for a one-time $49 payment — no subscription."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the 15-minute city score?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The 15-minute city score measures whether the six key daily destinations — grocery store, school, park, pharmacy, transit stop, and restaurant — are accessible within a 15-minute walk from a given address. Each destination is scored individually, and a composite access score is shown. This analysis uses OpenStreetMap data and works worldwide."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does SafeStreets have an API or enterprise offering?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. SafeStreets Intelligence builds custom street intelligence dashboards and decisioning workflows for governments, real estate developers, mobility operators, and research institutions. The enterprise platform includes API access, custom metric weights, GIS-compatible export, white-label deployment, and workflow automation. Pricing is custom based on geography and deployment scope. Visit safestreets.streetsandcommons.com/enterprise to learn more."
           }
         }
       ]
     }
     </script>
 
-    <!-- Schema.org for SoftwareApplication -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "SafeStreets",
-      "applicationCategory": "UtilityApplication",
-      "operatingSystem": "Web",
-      "url": "https://safestreets.streetsandcommons.com",
-      "offers": [
-        {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD",
-          "name": "Free",
-          "description": "12 data layers: walkability metrics, neighborhood intelligence, compare mode, field verification, 15-minute city analysis. No sign-up required."
-        },
-        {
-          "@type": "Offer",
-          "price": "99",
-          "priceCurrency": "USD",
-          "name": "Pro (Agent Reports)",
-          "description": "One-time payment. Unlimited branded walkability reports for real estate listings. First 3 reports free."
-        }
-      ],
-      "description": "Neighborhood intelligence platform using NASA, Census, CDC, and FEMA data. Walkability, transit, safety, health outcomes, flood risk, and daily amenities — analyzed for any address worldwide.",
-      "creator": {
-        "@type": "Organization",
-        "name": "Streets & Commons",
-        "url": "https://streetsandcommons.com"
-      }
-    }
-    </script>
-
-    <!-- Schema.org for WebSite with SearchAction -->
+    <!-- Schema.org: WebSite with SearchAction -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",

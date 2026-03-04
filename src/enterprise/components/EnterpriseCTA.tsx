@@ -11,8 +11,8 @@ interface EnterpriseCTAProps {
 }
 
 export default function EnterpriseCTA({
-  title = 'Ready to see your pedestrian intelligence platform?',
-  description = 'Interactive dashboards, in-depth field audits, and citizen advocacy tools — tailored to your project.',
+  title = 'Ready to build your street intelligence platform?',
+  description = 'Custom dashboards, decisioning workflows, and API access — configured for how your organization makes decisions.',
   primaryLabel = 'Contact Sales',
   primaryHref = '/enterprise/contact',
   secondaryLabel = 'View Pricing',

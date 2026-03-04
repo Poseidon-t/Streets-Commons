@@ -1,6 +1,6 @@
 /**
  * Clerk-based Access Management
- * Free tier = default. Pro tier = $99 one-time.
+ * Free tier = default. Pro tier = $49 one-time (agent reports, first 3 free).
  * Dev mode (localhost) auto-enables pro tier for testing.
  */
 
@@ -92,7 +92,7 @@ export function isPremium(user: User | null | undefined): boolean {
 }
 
 /**
- * Pro = $99 one-time purchase tier.
+ * Pro = $49 one-time purchase tier (agent reports, first 3 free).
  */
 export function isPro(user: User | null | undefined): boolean {
   const { tier } = getAccessInfoFromUser(user);

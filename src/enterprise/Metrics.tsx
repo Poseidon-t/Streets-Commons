@@ -213,8 +213,7 @@ export default function Metrics() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-enterprise-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
-            The Street Intelligence package ($50K) covers 8 core metrics accessible through your interactive dashboard.
-            The Complete Street Intelligence package ($100K) unlocks all 12 metrics with advanced analytics, trend tracking, and full citizen advocacy integration.
+            All 12 metrics are available in the platform with configurable weights, custom scoring logic, and composite scores tuned to your organization's decisions. Pricing is custom — contact us to scope your engagement.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/enterprise/pricing" className="px-6 py-3 bg-enterprise-navy text-white font-semibold rounded-lg hover:bg-enterprise-navy-light transition">

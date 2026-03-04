@@ -53,6 +53,24 @@ interface AnalysisData {
   streetDesignScore?: number;
 }
 
+const URBANIST_QUOTES = [
+  { text: 'Cities have the capability of providing something for everybody, only because, and only when, they are created by everybody.', author: 'Jane Jacobs' },
+  { text: 'There must be eyes upon the street, eyes belonging to those we might call the natural proprietors of the street.', author: 'Jane Jacobs' },
+  { text: 'Under the seeming disorder of the old city, wherever the old city is working successfully, is a marvelous order.', author: 'Jane Jacobs' },
+  { text: 'First life, then spaces, then buildings — the other way around never works.', author: 'Jan Gehl' },
+  { text: 'A good city is like a good party — people stay longer than really necessary, because they are enjoying themselves.', author: 'Jan Gehl' },
+  { text: 'Walkable places are the foundations on which productive cities and healthy communities are built.', author: 'Jeff Speck' },
+  { text: 'A city built for speed is a city built for nobody.', author: 'Jeff Speck' },
+  { text: 'The street is the river of life of the city.', author: 'William H. Whyte' },
+  { text: 'What attracts people most, it would appear, is other people.', author: 'William H. Whyte' },
+  { text: 'The city is not a problem. The city is a solution.', author: 'Jaime Lerner' },
+  { text: 'An advanced city is not one where even the poor use cars, but rather one where even the rich use public transport.', author: 'Enrique Peñalosa' },
+  { text: 'God made us pedestrians.', author: 'Enrique Peñalosa' },
+  { text: 'Men come together in cities in order to live, but they remain together in order to live the good life.', author: 'Aristotle' },
+  { text: 'The automobile has not merely taken over the street, it has dissolved the living tissue of the city.', author: 'Lewis Mumford' },
+  { text: 'A city is a fact in nature, like a cave or an ant-heap. But it is also a conscious work of art.', author: 'Lewis Mumford' },
+];
+
 function App() {
   const [compareMode, setCompareMode] = useState(false);
   const [location, setLocation] = useState<Location | null>(null);
@@ -112,8 +130,7 @@ function App() {
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
-  const [meridianQuote, setMeridianQuote] = useState<{ text: string; author: string } | null>(null);
-
+  const [analysisQuote, setAnalysisQuote] = useState<{ text: string; author: string } | null>(null);
   // Capture UTM params on mount
   useEffect(() => { captureUTMParams(); }, []);
 
@@ -125,27 +142,6 @@ function App() {
       }
     };
   }, []);
-
-  // Meridian philosophy quote — show when analysis completes
-  const MERIDIAN_QUOTES = useRef([
-    // Score-agnostic (always relevant)
-    { text: 'Cities have the capability of providing something for everybody, only because, and only when, they are created by everybody.', author: 'Jane Jacobs' },
-    { text: 'First life, then spaces, then buildings — the other way around never works.', author: 'Jan Gehl' },
-    { text: 'The city is not a problem. The city is a solution.', author: 'Jaime Lerner' },
-    { text: 'A good city is like a good party — people stay longer than really necessary, because they are enjoying themselves.', author: 'Jan Gehl' },
-    { text: 'Walkable places are the foundations on which productive cities and healthy communities are built.', author: 'Jeff Speck' },
-    { text: 'The street is the river of life of the city.', author: 'William H. Whyte' },
-    { text: 'There is no logic that can be superimposed on the city; people make it, and it is to them, not buildings, that we must fit our plans.', author: 'Jane Jacobs' },
-    { text: 'A city built for speed is a city built for nobody.', author: 'Jeff Speck' },
-  ]).current;
-
-  useEffect(() => {
-    if (!metrics) { setMeridianQuote(null); return; }
-    const quote = MERIDIAN_QUOTES[Math.floor(Math.random() * MERIDIAN_QUOTES.length)];
-    setMeridianQuote(quote);
-    const timer = setTimeout(() => setMeridianQuote(null), 12000);
-    return () => clearTimeout(timer);
-  }, [metrics, MERIDIAN_QUOTES]);
 
   // Load from URL on mount
   useEffect(() => {
@@ -229,6 +225,7 @@ function App() {
     setLocation(selectedLocation);
     setIsAnalyzing(true);
     setAnalysisError(null);
+    setAnalysisQuote(URBANIST_QUOTES[Math.floor(Math.random() * URBANIST_QUOTES.length)]);
     setMetrics(null);
     setSatelliteLoaded(new Set());
     setStreetDesignScore(undefined);
@@ -1289,6 +1286,16 @@ function App() {
             <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
             <p className="text-lg text-gray-600" aria-live="polite">Analyzing walkability...</p>
             <p className="text-sm text-gray-500">Fetching OpenStreetMap data</p>
+            {analysisQuote && (
+              <div className="mt-10 max-w-sm text-center px-6">
+                <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a', fontStyle: 'italic' }}>
+                  "{analysisQuote.text}"
+                </p>
+                <p className="text-xs mt-2 font-semibold tracking-wide" style={{ color: '#8a9a8a' }}>
+                  — {analysisQuote.author}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -1319,6 +1326,11 @@ function App() {
               <ScoreCard metrics={metrics} compositeScore={compositeScore} />
             </div>
 
+            {/* Persona quick-answers — right below score for immediate "what does this mean for me?" */}
+            {compositeScore && (
+              <PersonaCards compositeScore={compositeScore} />
+            )}
+
             {/* Compact data quality badge */}
             {dataQuality && (
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-earth-text-light">
@@ -1333,10 +1345,9 @@ function App() {
                   </span>
                 </span>
                 <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings · {dataQuality.poiCount} POIs</span>
-                <span className="hidden sm:inline">OSM · Sentinel-2 · Census ACS · EPA</span>
+                <span className="hidden sm:inline">OSM · Sentinel-2 · {location.countryCode === 'US' ? 'Census ACS · EPA' : 'OpenStreetMap'}</span>
               </div>
             )}
-
 
             {/* First-time onboarding tip */}
             {showOnboarding && (
@@ -1354,11 +1365,6 @@ function App() {
               </div>
             )}
 
-            {/* Persona quick-answers — fully free, no blur */}
-            {compositeScore && (
-              <PersonaCards compositeScore={compositeScore} isPremium={true} />
-            )}
-
             {/* Metrics Grid — fully free including detail expansion */}
             <div id="metrics" className="scroll-mt-16">
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={true} />
@@ -1373,17 +1379,17 @@ function App() {
               />
             )}
 
-            {/* Street Audit CTA — surface the buried tool */}
+            {/* Street Audit CTA */}
             <div
               className="rounded-2xl border p-5 flex items-center justify-between gap-4"
               style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
             >
               <div>
                 <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>
-                  🔍 Something wrong with this street?
+                  📋 Want to take action on this analysis?
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
-                  Run a structured audit and generate a report for your local council
+                  Generate a structured report to share with landlords, property managers, or local authorities
                 </div>
               </div>
               <button
@@ -1391,7 +1397,7 @@ function App() {
                 className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border transition hover:opacity-80"
                 style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
               >
-                Audit this street →
+                Generate report →
               </button>
             </div>
 
@@ -1436,6 +1442,41 @@ function App() {
             </ErrorBoundary>
 
 
+
+            {/* Email capture — shown in results so engaged users see it */}
+            <Suspense fallback={null}>
+              <EmailCaptureBanner
+                userEmail={user?.primaryEmailAddress?.emailAddress}
+                headline="Get notified when we add new data"
+                subtext="New metrics, city reports, and walkability research — delivered occasionally. No spam."
+              />
+            </Suspense>
+
+            {/* What's next? — compare or share nudge at the bottom of results */}
+            <div className="rounded-2xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
+              <p className="text-sm font-semibold mb-3 text-center" style={{ color: '#2a3a2a' }}>What do you want to do next?</p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={handleCompareMode}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:shadow-lg bg-orange-500"
+                >
+                  Compare with another neighborhood
+                </button>
+                <button
+                  onClick={() => {
+                    setLocation(null);
+                    setMetrics(null);
+                    setDataQuality(null);
+                    setOsmData(null);
+                    window.history.pushState({}, '', window.location.pathname);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all hover:shadow-lg border-2 border-earth-border text-earth-text-dark bg-white"
+                >
+                  Search another address
+                </button>
+              </div>
+            </div>
 
             {/* --- Tier 4: Reference --- */}
             <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">
@@ -1640,7 +1681,7 @@ function App() {
                             className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10 cursor-pointer"
                             style={{ border: '1.5px solid rgba(224,120,80,0.4)', color: '#e8a070', background: 'transparent' }}
                           >
-                            $99 One-Time / Unlimited
+                            $49 One-Time / Unlimited
                           </button>
                         </div>
                       </div>
@@ -1965,7 +2006,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! Pro agents can compare 2-4 neighborhoods side-by-side with branded reports, shareable links with lead capture, and walkability value premium estimates. The first 3 reports are free. Unlimited reports and comparisons are available with a Pro account ($99 one-time). Research consistently shows walkable neighborhoods command a significant home value premium — give your buyers the data they need to decide.
+                    Yes! Use the agent link above to generate branded walkability reports for any listing. Enter the address, complete your agent profile once, and export a print-ready PDF with your name, title, and contact details. The first 3 reports are free — unlimited reports with Pro ($49 one-time). Research consistently shows walkable neighborhoods command a significant home value premium — give your buyers the data they need to decide.
                   </p>
                 </div>
               </div>

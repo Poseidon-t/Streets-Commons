@@ -10,19 +10,18 @@ const TIERS = [
     subtitle: 'No sign-up needed',
     color: '#5a8a5a',
     features: [
-      { name: 'Walkability Analysis', included: true },
-      { name: 'Composite Score + Grade', included: true },
-      { name: 'Equity Insights + Local Economy', included: true },
+      { name: 'Walkability Score (0–10) with tier label', included: true },
+      { name: 'PersonaCards: car-free, kids, aging verdicts', included: true },
       { name: '15-Minute City Analysis', included: true },
-      { name: 'Street Cross-Section (current)', included: true },
-      { name: 'Compare Mode', included: true },
-      { name: 'Field Verification & PDF Reports', included: true },
-      { name: 'Meridian Chatbot (12 messages)', included: true },
+      { name: 'Street Network & Neighborhood Intelligence', included: true },
+      { name: 'CDC Health Outcomes + FEMA Flood Risk (US)', included: true },
+      { name: 'Compare Mode (up to 4 addresses)', included: true },
+      { name: 'Field Audit Tool & PDF Export', included: true },
     ],
   },
   {
     name: 'Pro Agent Reports',
-    price: '$99',
+    price: '$49',
     subtitle: 'One-time payment',
     color: '#e07850',
     features: [
@@ -113,7 +112,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
                 className="w-full py-3 rounded-xl font-bold text-white text-sm transition-all hover:shadow-lg"
                 style={{ backgroundColor: '#e07850' }}
               >
-                Get Pro for $99
+                Get Pro for $49
               </button>
             )}
             {tier.name === 'Custom Analysis' && (

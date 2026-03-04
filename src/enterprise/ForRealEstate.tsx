@@ -26,14 +26,7 @@ export default function ForRealEstate() {
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-white text-sm transition-all hover:opacity-90"
                   style={{ backgroundColor: '#1e3a5f' }}
                 >
-                  Try It Free — 3 Reports
-                </Link>
-                <Link
-                  to="/?upgrade=pro"
-                  className="inline-flex items-center text-xs font-medium hover:underline"
-                  style={{ color: '#e07850' }}
-                >
-                  Or get unlimited — $99 one-time &rarr;
+                  Try SafeStreets Free
                 </Link>
               </div>
             </div>

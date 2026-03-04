@@ -3,12 +3,18 @@ import { getUTMParams } from '../utils/utm';
 
 interface EmailCaptureBannerProps {
   userEmail?: string | null;
+  headline?: string;
+  subtext?: string;
 }
 
 const DISMISSED_KEY = 'safestreets_newsletter_dismissed';
 const SUBSCRIBED_KEY = 'safestreets_newsletter_subscribed';
 
-export default function EmailCaptureBanner({ userEmail }: EmailCaptureBannerProps) {
+export default function EmailCaptureBanner({
+  userEmail,
+  headline = 'Stay in the loop',
+  subtext = 'New data layers, city insights, and walkability research. No spam.',
+}: EmailCaptureBannerProps) {
   const [email, setEmail] = useState(userEmail || '');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -82,10 +88,10 @@ export default function EmailCaptureBanner({ userEmail }: EmailCaptureBannerProp
       <div className="flex flex-col sm:flex-row items-center gap-4">
         <div className="flex-1 min-w-0 text-center sm:text-left">
           <p className="text-sm font-bold mb-1" style={{ color: '#2a3a2a' }}>
-            Stay in the loop
+            {headline}
           </p>
           <p className="text-xs" style={{ color: '#8a9a8a' }}>
-            New data layers, city insights, and walkability research. No spam.
+            {subtext}
           </p>
         </div>
 

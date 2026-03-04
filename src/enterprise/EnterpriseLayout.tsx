@@ -198,7 +198,7 @@ export default function EnterpriseLayout() {
                 <span className="text-lg font-semibold">Walkability & Street Intelligence</span>
               </div>
               <p className="text-sm text-gray-400 leading-relaxed">
-                Interactive dashboards, in-depth field audits, and citizen advocacy intelligence for governments, developers, and urban planners.
+                Custom dashboards and decisioning workflows for street intelligence — for governments, real estate, mobility operators, and researchers.
               </p>
             </div>
 
