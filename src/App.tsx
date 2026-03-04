@@ -776,7 +776,7 @@ function App() {
               <div className="flex flex-col items-center lg:items-start">
                 <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 tracking-tight text-earth-text-dark max-w-xl">
                   Is Your Neighborhood{' '}
-                  <span className="text-terra">Safe to Walk</span>?
+                  <span className="text-terra">Built for Walking</span>?
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-xl mb-6 text-earth-text-body">
@@ -1934,7 +1934,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 7 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes. We don't store your search history or link addresses to your identity. Searches are processed in real time and not logged. No account is required, so there's no profile tied to your queries. We don't sell data to third parties.
+                    Yes. We don't link addresses to your identity and no account is required, so there's no personal profile tied to your queries. We collect anonymous usage analytics (address searches, not personal data) to improve the tool. We don't sell data to third parties.
                   </p>
                 </div>
               </div>
@@ -1990,7 +1990,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! Pro agents can compare 2-4 neighborhoods side-by-side with branded reports, shareable links with lead capture, and walkability value premium estimates. The first 3 reports are free. Unlimited reports and comparisons are available with a Pro account ($99 one-time). Every Walk Score point adds approximately $3,500 to home value. Give your buyers the data they need.
+                    Yes! Pro agents can compare 2-4 neighborhoods side-by-side with branded reports, shareable links with lead capture, and walkability value premium estimates. The first 3 reports are free. Unlimited reports and comparisons are available with a Pro account ($99 one-time). Research consistently shows walkable neighborhoods command a significant home value premium — give your buyers the data they need to decide.
                   </p>
                 </div>
               </div>
@@ -2091,7 +2091,7 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  GSDG Standards compliant
+                  WHO walkability guidelines
                 </li>
               </ul>
             </div>
