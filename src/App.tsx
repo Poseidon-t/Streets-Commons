@@ -107,7 +107,6 @@ function App() {
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
-  const [proUpgradeContext, setProUpgradeContext] = useState<'agent' | 'feature'>('agent');
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
 
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
@@ -552,7 +551,6 @@ function App() {
   // Agent Report flow: check access → profile → generate
   const handleAgentReportClick = () => {
     if (!isSignedIn || !canGenerateAgentReport(user)) {
-      setProUpgradeContext('agent');
       setShowProUpgradeModal(true);
       return;
     }
@@ -638,7 +636,6 @@ function App() {
           isOpen={showProUpgradeModal}
           onClose={() => setShowProUpgradeModal(false)}
           onReady={handleProUpgradeReady}
-          context={proUpgradeContext}
         />
       </Suspense>
 
@@ -1367,54 +1364,8 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={true} />
             </div>
 
-            {/* Pro upsell — compare + report, one clear pitch */}
-            {!effectivePremium && (
-              <div className="rounded-2xl border overflow-hidden" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
-                <div className="px-6 pt-6 pb-4">
-                  <div className="text-xs font-semibold tracking-wide mb-2" style={{ color: '#8a9a8a' }}>SAFESTREETS PRO · $49 ONE-TIME</div>
-                  <h3 className="text-xl font-bold mb-1" style={{ color: '#2a3a2a' }}>Compare streets. Share your findings.</h3>
-                  <p className="text-sm" style={{ color: '#6a7a6a' }}>
-                    Deciding between two neighborhoods? Moving somewhere new? Pro lets you run a side-by-side comparison and share the results as a clean, shareable report.
-                  </p>
-                </div>
-                <div className="px-6 pb-5 space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
-                    <span className="text-xl mt-0.5">📊</span>
-                    <div>
-                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Compare up to 4 addresses</div>
-                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Score two neighborhoods side by side — great for choosing between flats, investment properties, or school catchment areas</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
-                    <span className="text-xl mt-0.5">📄</span>
-                    <div>
-                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Shareable walkability report</div>
-                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Export as a PDF or shareable link — send to a partner, landlord, planning council, or attach to a property listing</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-xl" style={{ backgroundColor: '#faf8f4' }}>
-                    <span className="text-xl mt-0.5">🏷️</span>
-                    <div>
-                      <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>Your branding on every report</div>
-                      <div className="text-xs mt-0.5" style={{ color: '#6a7a6a' }}>Add your logo and contact details — useful if you're an agent, planner, or journalist</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="px-6 pb-6">
-                  <button
-                    onClick={() => { setProUpgradeContext('feature'); setShowProUpgradeModal(true); }}
-                    className="w-full py-3 rounded-xl font-bold text-white transition hover:opacity-90"
-                    style={{ backgroundColor: '#2a3a2a' }}
-                  >
-                    Get Pro — $49 one-time →
-                  </button>
-                  <p className="text-center text-xs mt-2" style={{ color: '#b0a8a0' }}>Lifetime access · No subscription · Instant unlock</p>
-                </div>
-              </div>
-            )}
-
-            {/* Street Network Analysis — Pro only, no teaser */}
-            {effectivePremium && compositeScore?.components.networkDesign && (
+            {/* Street Network Analysis — free for all */}
+            {compositeScore?.components.networkDesign && (
               <StreetNetworkPanel
                 networkDesign={compositeScore.components.networkDesign}
                 streetCharacter={streetCharacter}
@@ -1452,7 +1403,7 @@ function App() {
                     address={location.displayName}
                     metrics={metrics}
                     compositeScore={compositeScore}
-                    isPremium={effectivePremium}
+                    isPremium={true}
                     onClose={() => setShowAuditTool(false)}
                   />
                 </Suspense>
@@ -1468,28 +1419,12 @@ function App() {
                   metrics={metrics}
                   compositeScore={compositeScore}
                   dataQuality={dataQuality || undefined}
-                  isPremium={effectivePremium}
+                  isPremium={true}
                   onShareReport={() => setShowReportCard(true)}
                 />
               </Suspense>
             </ErrorBoundary>
 
-            {/* Agent Report CTA */}
-            <div className="mt-3 rounded-xl border p-4 sm:p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(30,58,95,0.04)' }}>
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <h4 className="text-sm font-bold" style={{ color: '#1e3a5f' }}>Real Estate Agent?</h4>
-                  <p className="text-xs" style={{ color: '#8a9a8a' }}>Generate a branded walkability report for this listing</p>
-                </div>
-                <button
-                  onClick={handleAgentReportClick}
-                  className="px-4 py-2 text-sm font-semibold rounded-lg text-white transition hover:opacity-90"
-                  style={{ backgroundColor: '#1e3a5f' }}
-                >
-                  Generate Agent Report
-                </button>
-              </div>
-            </div>
             </div>
 
             {/* 15-Minute City Score (free for all users) */}
