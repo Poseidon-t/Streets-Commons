@@ -16,6 +16,8 @@ interface MetricGridProps {
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
+  isPremium?: boolean;
+  onUpgradeClick?: () => void;
 }
 
 function getScoreColor(score: number): string {
@@ -187,12 +189,13 @@ const METRICS: MetricDef[] = [
   },
 ];
 
-function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
+function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, isPremium }: {
   def: MetricDef;
   score: number;
   isLoading: boolean;
   isExpanded: boolean;
   onClick: () => void;
+  isPremium?: boolean;
 }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
@@ -227,13 +230,16 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-lg font-bold" style={{ color }}>{displayScore}</span>
-              <svg
-                className="w-3.5 h-3.5 transition-transform duration-200"
-                style={{ color: '#b0a8a0', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              {!isPremium && <span className="text-xs" style={{ color: '#b0a8a0' }}>🔒</span>}
+              {isPremium && (
+                <svg
+                  className="w-3.5 h-3.5 transition-transform duration-200"
+                  style={{ color: '#b0a8a0', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              )}
             </div>
           </div>
           <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: '#f0ebe0' }}>
@@ -310,7 +316,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, isPremium, onUpgradeClick }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
@@ -325,6 +331,10 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   });
 
   const toggleMetric = (key: string) => {
+    if (!isPremium) {
+      onUpgradeClick?.();
+      return;
+    }
     setExpandedMetric(prev => prev === key ? null : key);
   };
 
@@ -346,6 +356,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
               isLoading={isLoading}
               isExpanded={expandedMetric === def.key}
               onClick={() => toggleMetric(def.key)}
+              isPremium={isPremium}
             />
           );
         })}

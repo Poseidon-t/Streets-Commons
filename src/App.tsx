@@ -109,6 +109,26 @@ function App() {
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
+
+  // Helper: renders a locked Pro feature teaser card
+  const proLock = (title: string, description: string) => (
+    <div
+      className="rounded-2xl border p-5 flex items-center justify-between gap-4"
+      style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
+    >
+      <div>
+        <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>🔒 {title}</div>
+        <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{description} · Pro feature</div>
+      </div>
+      <button
+        onClick={() => setShowProUpgradeModal(true)}
+        className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+        style={{ backgroundColor: '#2a3a2a' }}
+      >
+        Unlock Pro →
+      </button>
+    </div>
+  );
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
@@ -1354,32 +1374,38 @@ function App() {
               </div>
             )}
 
-            {/* Persona quick-answers — decision-first framing */}
+            {/* Persona quick-answers — Pro feature */}
             {compositeScore && (
-              <PersonaCards compositeScore={compositeScore} />
+              effectivePremium
+                ? <PersonaCards compositeScore={compositeScore} />
+                : proLock('Quick Answers For Your Situation', 'Car-free viability, kid safety, and aging-in-place suitability')
             )}
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} isPremium={effectivePremium} onUpgradeClick={() => setShowProUpgradeModal(true)} />
             </div>
 
-            {/* Street Network Analysis — story beat 3: drill into the grid */}
+            {/* Street Network Analysis — Pro feature */}
             {compositeScore?.components.networkDesign && (
-              <StreetNetworkPanel
-                networkDesign={compositeScore.components.networkDesign}
-                streetCharacter={streetCharacter}
-                streetCharacterLoading={streetCharacterLoading}
-              />
+              effectivePremium
+                ? <StreetNetworkPanel
+                    networkDesign={compositeScore.components.networkDesign}
+                    streetCharacter={streetCharacter}
+                    streetCharacterLoading={streetCharacterLoading}
+                  />
+                : proLock('AI Street Character Analysis', 'Deep dive into street network design, connectivity, and pedestrian infrastructure')
             )}
 
-            {/* Has this area improved? — historical OSM comparison */}
+            {/* Has this area improved? — Pro feature */}
             {compositeScore && (
-              <HistoricalComparison
-                lat={location.lat}
-                lon={location.lon}
-                compositeScore={compositeScore}
-              />
+              effectivePremium
+                ? <HistoricalComparison
+                    lat={location.lat}
+                    lon={location.lon}
+                    compositeScore={compositeScore}
+                  />
+                : proLock('Historical Improvement Tracker', 'See how this area\'s walkability has changed over the past 3 years')
             )}
 
             {/* Street Audit CTA — surface the buried tool */}
@@ -1412,7 +1438,7 @@ function App() {
                     address={location.displayName}
                     metrics={metrics}
                     compositeScore={compositeScore}
-                    isPremium={true}
+                    isPremium={effectivePremium}
                     onClose={() => setShowAuditTool(false)}
                   />
                 </Suspense>
@@ -1428,7 +1454,7 @@ function App() {
                   metrics={metrics}
                   compositeScore={compositeScore}
                   dataQuality={dataQuality || undefined}
-                  isPremium={true}
+                  isPremium={effectivePremium}
                   onShareReport={() => setShowReportCard(true)}
                 />
               </Suspense>
