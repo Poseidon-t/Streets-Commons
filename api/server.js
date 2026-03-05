@@ -5138,6 +5138,97 @@ app.get('/api/flood-risk', async (req, res) => {
 });
 
 // =====================
+// TERRAIN / ELEVATION
+// =====================
+// Uses OpenTopoData (free, no API key, global SRTM 90m)
+// Samples 9-point 3x3 grid ~300m apart, scores by elevation std dev
+// Flat = high walkability score, steep = low score
+
+const terrainCache = new Map();
+const TERRAIN_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days (elevation doesn't change)
+
+function scoreTerrainFromStdDev(sd) {
+  if (sd < 3)  return 10; // Ultra-flat: Amsterdam, Houston
+  if (sd < 8)  return 9;  // Very flat
+  if (sd < 15) return 8;  // Gently rolling
+  if (sd < 25) return 6;  // Some variation
+  if (sd < 40) return 5;  // Moderate hills
+  if (sd < 60) return 3;  // Hilly: Pittsburgh, Nashville
+  if (sd < 90) return 2;  // Very hilly: Seattle, Denver foothills
+  return 1;               // Steep: San Francisco, Lisbon, Medellín
+}
+
+app.get('/api/terrain', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'Missing lat, lon' });
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `terrain:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = terrainCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < TERRAIN_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+
+    // Build 3x3 grid — ~0.003° ≈ 300m spacing
+    const step = 0.003;
+    const points = [];
+    for (const dlat of [-step, 0, step]) {
+      for (const dlon of [-step, 0, step]) {
+        points.push(`${(latNum + dlat).toFixed(6)},${(lonNum + dlon).toFixed(6)}`);
+      }
+    }
+
+    const url = `https://api.opentopodata.org/v1/srtm90m?locations=${points.join('|')}`;
+    console.log(`⛰️  Fetching terrain elevation for: ${latNum}, ${lonNum}`);
+
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(10000),
+      headers: { 'User-Agent': 'SafeStreets/2.0' },
+    });
+
+    if (!response.ok) throw new Error(`OpenTopoData returned ${response.status}`);
+    const data = await response.json();
+
+    if (data.status !== 'OK' || !data.results?.length) {
+      return res.json({ success: true, data: null });
+    }
+
+    const elevations = data.results
+      .map(r => r.elevation)
+      .filter(e => e !== null && e !== undefined);
+
+    if (elevations.length < 4) return res.json({ success: true, data: null });
+
+    const mean = elevations.reduce((a, b) => a + b, 0) / elevations.length;
+    const variance = elevations.reduce((sum, e) => sum + Math.pow(e - mean, 2), 0) / elevations.length;
+    const stdDev = Math.sqrt(variance);
+    const score = scoreTerrainFromStdDev(stdDev);
+
+    const result = {
+      score,
+      stdDev: Math.round(stdDev * 10) / 10,
+      minElevation: Math.round(Math.min(...elevations)),
+      maxElevation: Math.round(Math.max(...elevations)),
+      meanElevation: Math.round(mean),
+      elevationRange: Math.round(Math.max(...elevations) - Math.min(...elevations)),
+      dataSource: 'OpenTopoData SRTM',
+    };
+
+    console.log(`✅ Terrain: stdDev=${result.stdDev}m range=${result.elevationRange}m score=${score}`);
+    terrainCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.error('❌ Error fetching terrain:', error.message);
+    res.json({ success: true, data: null }); // fail gracefully
+  }
+});
+
+// =====================
 // GEMINI AI BUDGET ANALYSIS
 // =====================
 

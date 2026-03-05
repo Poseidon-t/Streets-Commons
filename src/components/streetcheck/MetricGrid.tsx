@@ -54,6 +54,17 @@ function getInsight(key: string, score: number): string {
         : score >= 6 ? 'Good share of car-free commuters'
         : score >= 4 ? 'Some alternative commuters'
         : 'Mostly car-dependent area';
+    case 'transitAccess':
+      return score >= 8 ? 'Excellent transit — multiple modes nearby'
+        : score >= 6 ? 'Good transit coverage within walking distance'
+        : score >= 4 ? 'Limited transit — infrequent or few routes'
+        : 'Very little transit access';
+    case 'terrain':
+      return score >= 9 ? 'Flat — easy walking in any direction'
+        : score >= 7 ? 'Gently rolling — minor hills only'
+        : score >= 5 ? 'Moderate hills — some inclines'
+        : score >= 3 ? 'Hilly — significant elevation changes'
+        : 'Steep terrain — elevation limits walkable routes';
     default:
       return '';
   }
@@ -119,6 +130,27 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : s >= 4 ? 'Some residents use alternatives to driving, but the car remains dominant for most trips.'
       : 'Mostly car-dependent. Very few residents walk, bike, or take transit to work.',
   },
+  transitAccess: {
+    what: 'Number and variety of transit stops — buses, trains, trams, subways — within walking distance.',
+    how: 'Counts transit nodes from OpenStreetMap within 800m. Rail stations score higher than bus stops. Score blends total stop count (70%) and rail availability (30%).',
+    source: 'OpenStreetMap transit nodes',
+    getMeans: (s) =>
+      s >= 8 ? 'Excellent transit access — multiple modes within easy walking distance. A car is completely optional for most trips.'
+      : s >= 6 ? 'Good transit coverage. Regular bus or rail service is nearby and usable for most errands.'
+      : s >= 4 ? 'Some transit exists but service may be infrequent or routes limited. A car still helps for many trips.'
+      : 'Very limited transit. Few or no stops within walking distance — car ownership is almost necessary.',
+  },
+  terrain: {
+    what: 'How flat or hilly the surrounding area is — steeper terrain makes walking harder and less likely.',
+    how: 'Samples a 3×3 grid of elevation points (~300m spacing) using OpenTopoData SRTM global data. Calculates elevation standard deviation across the sample area — higher variance means more hills.',
+    source: 'OpenTopoData SRTM 90m',
+    getMeans: (s) =>
+      s >= 9 ? 'Extremely flat — almost no elevation change. Walking in any direction is equally easy.'
+      : s >= 7 ? 'Gently rolling terrain. Minor hills exist but won\'t discourage most walkers.'
+      : s >= 5 ? 'Moderate variation in elevation. Some routes will involve noticeable inclines.'
+      : s >= 3 ? 'Hilly area — significant elevation changes that can make walking tiring, especially in heat or with mobility limitations.'
+      : 'Very steep terrain. Elevation change is a real barrier to walking and likely limits walkable routes to downhill segments.',
+  },
 };
 
 // --- Components ---
@@ -180,10 +212,25 @@ const METRICS: MetricDef[] = [
     getScore: (_m, cs) => {
       const popMetric = cs?.components.densityContext.metrics.find(m => m.name === 'Commute Mode');
       if (popMetric) return popMetric.score / 10;
-      // Fallback: check for legacy name
       const legacy = cs?.components.densityContext.metrics.find(m => m.name === 'Population Density');
       return legacy ? legacy.score / 10 : 0;
     },
+  },
+  {
+    key: 'transitAccess',
+    name: 'Transit Access',
+    icon: '🚌',
+    source: 'OpenStreetMap',
+    satKey: 'transit',
+    getScore: (m) => m.transitAccess ?? 0,
+  },
+  {
+    key: 'terrain',
+    name: 'Terrain',
+    icon: '⛰️',
+    source: 'OpenTopoData SRTM',
+    satKey: 'terrain',
+    getScore: (m) => m.terrain ?? 0,
   },
 ];
 

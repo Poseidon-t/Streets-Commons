@@ -41,6 +41,7 @@ import { COLORS } from './constants';
 import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
+import { fetchTerrain } from './services/terrain';
 import { computeTransitAccess, computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
 
@@ -397,6 +398,8 @@ function App() {
       .catch(() => null),
     floodRisk: fetchFloodRisk(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    terrain: fetchTerrain(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
   });
 
   // Progressively update metrics as each satellite result arrives
@@ -415,6 +418,8 @@ function App() {
     const extra: {
       populationDensity?: number;
       streetDesign?: number;
+      transitAccess?: number;
+      terrain?: number;
     } = {};
     const raw: RawMetricData = {
       crossingCount: currentOsmData.crossings?.length,
@@ -439,6 +444,8 @@ function App() {
         networkGraph: currentOsmData.networkGraph,
         populationDensityScore: extra.populationDensity,
         streetDesignScore: extra.streetDesign,
+        transitAccessScore: extra.transitAccess,
+        terrainScore: extra.terrain,
       });
       setCompositeScore(composite);
     };
@@ -537,6 +544,21 @@ function App() {
       health: prev?.health ?? null,
       flood: prev?.flood ?? null,
     }));
+
+    // Feed OSM transit score into composite immediately
+    extra.transitAccess = transit.score * 10; // 0-10 → 0-100
+    markLoaded('transit');
+    recalc();
+
+    // Terrain (async, from OpenTopoData)
+    promises.terrain.then(result => {
+      if (abortController.signal.aborted) return;
+      if (result) {
+        extra.terrain = result.score * 10; // 0-10 → 0-100
+        markLoaded('terrain');
+      }
+      recalc();
+    });
 
     // Flood risk (parallel fetch)
     promises.floodRisk.then(flood => {

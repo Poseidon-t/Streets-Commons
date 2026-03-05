@@ -13,6 +13,8 @@ export interface WalkabilityMetrics {
   streetGrid?: number; // OSM network topology (intersections, block length, dead-ends)
   streetDesign?: number; // EPA National Walkability Index (street connectivity, transit, land use)
   commuteMode?: number; // Census ACS walk/bike/transit commute share
+  transitAccess?: number; // Transit stops within 800m (Transitland / OSM)
+  terrain?: number; // Terrain flatness from elevation variance (OpenTopoData SRTM)
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }

@@ -63,12 +63,14 @@ export interface CompositeScoreInput {
   networkGraph?: NetworkGraph;
   populationDensityScore?: number;   // 0-100 from Census ACS
   streetDesignScore?: number;        // 0-100 from EPA Walkability Index
+  transitAccessScore?: number;       // 0-100 from Transitland/OSM (0-10 × 10)
+  terrainScore?: number;             // 0-100 from OpenTopoData (0-10 × 10)
 }
 
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, populationDensityScore, streetDesignScore } = input;
+  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];
@@ -103,14 +105,21 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (25%) — Tree Canopy =====
+  // ===== 2. Environment (25%) — Tree Canopy + Terrain =====
   const treeScore = scale10to100(legacy.treeCanopy);
+  const terrainS = terrainScore ?? 0;
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy', score: treeScore, weight: 1.0 },
+    { name: 'Tree Canopy', score: treeScore, weight: 0.70 },
+    { name: 'Terrain', score: terrainS, weight: 0.30 },
   ];
 
-  const envScore = legacy.treeCanopy > 0 ? treeScore : 50;
+  const envItems = [
+    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.70 },
+    { score: terrainS > 0 ? terrainS : null, weight: 0.30 },
+  ];
+
+  const envScore = weightedAvg(envItems) || (legacy.treeCanopy > 0 ? treeScore : 50);
 
   const environmentalComfort: ComponentScore = {
     label: 'Environment',
@@ -133,18 +142,21 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: safetyMetrics,
   };
 
-  // ===== 4. Accessibility (25%) — Commute Mode + Destinations =====
+  // ===== 4. Accessibility (25%) — Commute Mode + Destinations + Transit =====
   const popScore = populationDensityScore ?? 0;
   const destScore = scale10to100(legacy.destinationAccess);
+  const transitS = transitAccessScore ?? 0;
 
   const densityMetrics: SubMetric[] = [
-    { name: 'Commute Mode', score: popScore, weight: 0.50 },
-    { name: 'Nearby Destinations', score: destScore, weight: 0.50 },
+    { name: 'Commute Mode', score: popScore, weight: 0.37 },
+    { name: 'Nearby Destinations', score: destScore, weight: 0.37 },
+    { name: 'Transit Access', score: transitS, weight: 0.26 },
   ];
 
   const densityItems = [
-    { score: popScore > 0 ? popScore : null, weight: 0.50 },
-    { score: legacy.destinationAccess > 0 ? destScore : null, weight: 0.50 },
+    { score: popScore > 0 ? popScore : null, weight: 0.37 },
+    { score: legacy.destinationAccess > 0 ? destScore : null, weight: 0.37 },
+    { score: transitS > 0 ? transitS : null, weight: 0.26 },
   ];
 
   const densityContext: ComponentScore = {
