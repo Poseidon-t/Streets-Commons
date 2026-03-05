@@ -1,7 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" width="320" height="320">
   <!-- SafeStreets — The March — Sage Palette — Final -->
-  <!-- bg -->
-  <rect width="320" height="320" fill="#faf8f4"/>
   <!-- road -->
   <rect x="0" y="230" width="320" height="90" fill="#2a2a2a"/>
   <!-- crosswalk -->
