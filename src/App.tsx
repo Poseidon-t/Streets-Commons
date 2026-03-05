@@ -818,16 +818,6 @@ function App() {
                   </div>
                 </div>
 
-                {/* Trust badges */}
-                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 max-w-xl">
-                  <span className="text-xs sm:text-sm text-earth-text-light">
-                    <span className="text-earth-green font-semibold">190+</span> countries
-                  </span>
-                  <span className="text-earth-text-light hidden sm:inline">·</span>
-                  <span className="text-xs sm:text-sm text-earth-text-light">
-                    Powered by <span className="text-earth-green font-semibold">Sentinel-2</span>, <span className="text-earth-green font-semibold">Census</span>, <span className="text-earth-green font-semibold">CDC</span> & <span className="text-earth-green font-semibold">EPA</span>
-                  </span>
-                </div>
               </div>
 
               {/* Right column - Preview Card */}
@@ -894,13 +884,18 @@ function App() {
           {/* Credibility & Data Sources - centered */}
           <div className="relative z-10 flex flex-col items-center px-6 pb-8">
             {/* Credibility Marker */}
-            <div className="flex items-center justify-center gap-2 mb-4 px-4 py-2 rounded-full bg-earth-green/[0.08]">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
-              </svg>
-              <span className="text-sm text-earth-green">
-                Built on <strong>NACTO</strong> & <strong>Vision Zero</strong> standards
-              </span>
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-earth-green/[0.08]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
+                </svg>
+                <span className="text-sm text-earth-green">
+                  Built on <strong>NACTO</strong> & <strong>Vision Zero</strong> standards
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-earth-green/[0.08]">
+                <span className="text-sm text-earth-green"><strong>190+</strong> countries</span>
+              </div>
             </div>
 
             {/* Data Sources */}
