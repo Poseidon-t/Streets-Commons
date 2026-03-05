@@ -6370,47 +6370,64 @@ app.get('/api/debug/epa-raw', async (req, res) => {
 
 const REDDIT_MONITOR_FILE = process.env.REDDIT_MONITOR_FILE || path.join(__dirname, '..', 'data', 'reddit-monitor.json');
 const REDDIT_SUBREDDITS = [
-  // Core walkability & street safety communities
+  // Highest value — people actively asking where/whether to live
+  'FirstTimeHomeBuyer',     // "is X walkable?" questions daily
+  'realestate',             // walkability as buying factor
+  'moving',                 // relocating, asking about specific neighborhoods
+  'homebuying',             // similar to FirstTimeHomeBuyer
+  // Core walkability communities — engaged, informed audience
   'walkable_cities',        // purpose-built for this topic
-  'fuckcars',               // anti-car-dependence, strong overlap
+  'fuckcars',               // anti-car-dependence, high engagement
   'notjustbikes',           // largest pro-walkable-city community
-  'urbanplanning',          // planning discussions, zoning, street design
-  'urbandesign',            // urban design and street aesthetics
-  'VisionZero',             // road safety movement
+  'urbanplanning',          // planners and policy people
+  'VisionZero',             // road safety — pedestrian deaths/injuries
   'strongtowns',            // Strong Towns urbanism
-  'streetdesign',           // street-level design discussions
-  'ActiveTravel',           // walking/cycling as transport
-  'NewUrbanism',            // mixed-use, walkable neighbourhood design
-  // Transit — deeply linked to walkability (last mile, station access)
-  'transit',
-  'PublicTransit',
-  // Cycling infrastructure — shares pedestrian safety wins
-  'bicycling',
-  'bikecommuting',
-  // Real estate where walkability score is a stated factor
-  'realestate',
-  'FirstTimeHomeBuyer',
+  'streetdesign',           // street-level design
+  'urbandesign',            // broader design context
 ];
-const REDDIT_KEYWORDS = [
-  // Walkability core
-  'walkab', 'walkable', 'walkability', 'walk score', 'walkscore',
-  // Pedestrian safety
-  'pedestrian', 'sidewalk', 'crosswalk', 'crossing', 'pedestrian safety',
-  'pedestrian death', 'pedestrian killed', 'hit by car', 'struck by vehicle',
-  // Street design
-  'stroad', 'road diet', 'traffic calming', 'complete streets', 'street design',
-  'protected intersection', 'curb extension', 'bulb-out', 'raised crosswalk',
-  'bike lane', 'protected lane', 'cycle track', 'separated path',
-  // Car dependence
-  'car dependent', 'car-dependent', 'car-free', 'car free', 'auto-oriented',
-  'auto-centric', 'sprawl', 'suburban sprawl',
-  // Movements & standards
-  '15-minute', '15 minute city', 'vision zero', 'strong towns',
-  'new urbanism', 'transit oriented', 'mixed use', 'mixed-use',
-  // SafeStreets direct
+
+// TIER 1 — someone is ASKING about walkability or safety of a specific place
+// These are direct engagement opportunities where SafeStreets is the answer
+const REDDIT_KEYWORDS_TIER1 = [
+  'how walkable', 'is it walkable', 'is this walkable', 'is the area walkable',
+  'walkability score', 'walk score', 'walkscore',
+  'do i need a car', 'need a car to', 'without a car', 'car-free living', 'live without a car',
+  'can i walk to', 'walking distance', 'walkable neighborhood', 'walkable area',
+  'safe to walk', 'safe for walking', 'dangerous to walk', 'pedestrian friendly',
+  'dangerous intersection', 'dangerous crosswalk', 'dangerous street',
+  'pedestrian death', 'pedestrian killed', 'pedestrian hit', 'hit by car',
+  '15-minute city', '15 minute city', '15-minute neighborhood',
   'safestreets', 'safe streets',
 ];
-const REDDIT_SEARCH_QUERY = 'walkable OR walkability OR "walk score" OR pedestrian OR stroad OR "15-minute city" OR "car dependent" OR "car-free" OR sidewalk OR "vision zero" OR "bike lane" OR "complete streets" OR "traffic calming" OR "road diet" OR "street design"';
+
+// TIER 2 — strong topical signal, good context for engagement but less direct
+const REDDIT_KEYWORDS_TIER2 = [
+  'walkable', 'walkability',
+  'sidewalk', 'crosswalk', 'pedestrian safety',
+  'traffic calming', 'road diet', 'complete streets',
+  'vision zero', 'street design',
+  'bike lane', 'protected lane',
+  'car dependent', 'car-dependent',
+];
+
+// Combined for matching (tier tracked separately for scoring)
+const REDDIT_KEYWORDS = [...REDDIT_KEYWORDS_TIER1, ...REDDIT_KEYWORDS_TIER2];
+
+// High-value subreddits where questions directly match SafeStreets use case
+const HIGH_VALUE_SUBREDDITS = new Set(['r/FirstTimeHomeBuyer', 'r/realestate', 'r/moving', 'r/homebuying']);
+
+function scoreRedditPost(title, snippet, subreddit) {
+  const text = `${title} ${snippet}`.toLowerCase();
+  const isQuestion = title.includes('?');
+  const tier1Matches = REDDIT_KEYWORDS_TIER1.filter(kw => text.includes(kw));
+  const tier2Matches = REDDIT_KEYWORDS_TIER2.filter(kw => text.includes(kw));
+  let score = 0;
+  score += tier1Matches.length * 3;
+  score += tier2Matches.length * 1;
+  if (isQuestion) score += 2;
+  if (HIGH_VALUE_SUBREDDITS.has(subreddit)) score += 2;
+  return { score, tier1Matches, tier2Matches, isQuestion };
+}
 
 let redditCache = { lastUpdated: null, posts: [] };
 
@@ -6478,9 +6495,8 @@ async function pollReddit() {
         if (seenIds.has(p.id)) continue;
         if (p.created < thirtyDaysAgo) continue;
 
-        const text = `${p.title} ${p.snippet}`.toLowerCase();
-        const matched = REDDIT_KEYWORDS.filter(kw => text.includes(kw));
-        if (matched.length === 0) continue;
+        const { score: relevance, tier1Matches, tier2Matches, isQuestion } = scoreRedditPost(p.title, p.snippet, `r/${sub}`);
+        if (relevance === 0) continue; // no keyword match at all
 
         matched_count++;
         newPosts.push({
@@ -6489,11 +6505,14 @@ async function pollReddit() {
           title: p.title,
           url: p.url,
           snippet: p.snippet,
-          score: 0, // RSS doesn't include score
+          score: 0,
           numComments: 0,
           author: p.author,
           created: p.created,
-          matchedKeywords: matched,
+          matchedKeywords: [...tier1Matches, ...tier2Matches],
+          tier: tier1Matches.length > 0 ? 1 : 2,
+          relevance,
+          isQuestion,
           status: 'new',
         });
         seenIds.add(p.id);
@@ -6506,8 +6525,10 @@ async function pollReddit() {
   }
 
   if (newPosts.length > 0) {
+    // Sort new posts by relevance score descending before prepending
+    newPosts.sort((a, b) => b.relevance - a.relevance);
     redditCache.posts = [...newPosts, ...redditCache.posts].slice(0, 200);
-    console.log(`  Found ${newPosts.length} new Reddit posts`);
+    console.log(`  Found ${newPosts.length} new Reddit posts (${newPosts.filter(p => p.tier === 1).length} tier-1)`);
   }
   redditCache.lastUpdated = new Date().toISOString();
   saveRedditMonitor();

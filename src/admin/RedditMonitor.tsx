@@ -12,6 +12,9 @@ interface RedditPost {
   author: string;
   created: number;
   matchedKeywords: string[];
+  tier: 1 | 2;
+  relevance: number;
+  isQuestion: boolean;
   status: 'new' | 'dismissed' | 'engaged';
 }
 
@@ -48,6 +51,7 @@ export default function RedditMonitor() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'new' | 'engaged' | 'dismissed'>('all');
   const [subFilter, setSubFilter] = useState<string>('all');
+  const [tierFilter, setTierFilter] = useState<'all' | '1' | 'questions'>('all');
 
   // Use a ref so load() is stable and doesn't trigger re-render loops
   const fetchRef = useRef(fetchRedditFeed);
@@ -89,6 +93,8 @@ export default function RedditMonitor() {
   const filtered = (feed?.posts ?? []).filter(p => {
     if (filter !== 'all' && p.status !== filter) return false;
     if (subFilter !== 'all' && p.subreddit !== subFilter) return false;
+    if (tierFilter === '1' && p.tier !== 1) return false;
+    if (tierFilter === 'questions' && !p.isQuestion) return false;
     return true;
   });
 
@@ -199,6 +205,19 @@ export default function RedditMonitor() {
             </button>
           ))}
         </div>
+        <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+          {([['all', 'All relevance'], ['1', '🎯 Direct hits'], ['questions', '❓ Questions only']] as const).map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setTierFilter(val as 'all' | '1' | 'questions')}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+                tierFilter === val ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <select
           value={subFilter}
           onChange={e => setSubFilter(e.target.value)}
@@ -246,10 +265,17 @@ export default function RedditMonitor() {
                       >
                         {post.subreddit}
                       </span>
+                      {post.tier === 1 && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">🎯 Direct hit</span>
+                      )}
+                      {post.isQuestion && (
+                        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">❓ Question</span>
+                      )}
+                      {post.relevance >= 5 && (
+                        <span className="text-xs font-mono text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">rel:{post.relevance}</span>
+                      )}
                       <span className="text-xs text-gray-400 font-mono">u/{post.author}</span>
                       <span className="text-xs text-gray-400">{timeAgo(post.created)}</span>
-                      <span className="text-xs text-gray-400">↑ {post.score}</span>
-                      <span className="text-xs text-gray-400">💬 {post.numComments}</span>
                       {post.status === 'engaged' && (
                         <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Engaged</span>
                       )}
