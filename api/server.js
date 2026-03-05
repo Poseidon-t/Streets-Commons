@@ -6426,33 +6426,59 @@ function saveRedditMonitor() {
   try { fs.writeFileSync(REDDIT_MONITOR_FILE, JSON.stringify(redditCache, null, 2)); } catch {}
 }
 
+// Parse Reddit RSS feed XML — no auth needed, works from datacenter IPs
+function parseRedditRSS(xml) {
+  const items = [];
+  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+  let match;
+  while ((match = entryRegex.exec(xml)) !== null) {
+    const entry = match[1];
+    const get = (tag) => { const m = entry.match(new RegExp(`<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`)); return m ? (m[1] || m[2] || '').trim() : ''; };
+    const getAttr = (tag, attr) => { const m = entry.match(new RegExp(`<${tag}[^>]*${attr}="([^"]+)"`)); return m ? m[1] : ''; };
+    const title = get('title');
+    const link = getAttr('link', 'href');
+    const content = get('content');
+    const updated = get('updated');
+    const authorName = entry.match(/<author>[\s\S]*?<name>([^<]+)<\/name>/)?.[1]?.trim() || '';
+    // Extract Reddit post ID from link: /r/sub/comments/ID/title/
+    const idMatch = link.match(/\/comments\/([a-z0-9]+)\//);
+    const id = idMatch ? idMatch[1] : link;
+    const created = updated ? Math.floor(new Date(updated).getTime() / 1000) : Math.floor(Date.now() / 1000);
+    // Strip HTML tags from content for snippet
+    const snippet = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+    if (title && link) items.push({ id, title, url: link, snippet, author: authorName, created });
+  }
+  return items;
+}
+
 async function pollReddit() {
-  console.log('🔴 Polling Reddit for walkability mentions...');
+  console.log('🔴 Polling Reddit for walkability mentions (RSS)...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
   const thirtyDaysAgo = Date.now() / 1000 - 30 * 24 * 3600;
 
   for (const sub of REDDIT_SUBREDDITS) {
     try {
-      // Use /new.json directly — far more reliable than the search endpoint
-      // which frequently returns 0 results for smaller subreddits
-      const url = `https://www.reddit.com/r/${sub}/new.json?limit=50`;
+      // RSS feed — no auth required, different rate limit bucket from JSON API
+      const url = `https://www.reddit.com/r/${sub}/new/.rss?limit=50`;
       const resp = await fetch(url, {
-        headers: { 'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: admin@streetsandcommons.com)' },
-        signal: AbortSignal.timeout(10000),
+        headers: {
+          'User-Agent': 'SafeStreets/2.0 walkability-monitor (contact: hello@streetsandcommons.com)',
+          'Accept': 'application/rss+xml, application/xml, text/xml',
+        },
+        signal: AbortSignal.timeout(12000),
       });
       if (!resp.ok) { console.log(`  Reddit r/${sub}: HTTP ${resp.status}`); continue; }
-      const data = await resp.json();
-      const children = data?.data?.children || [];
-      console.log(`  Reddit r/${sub}: ${children.length} posts fetched`);
+      const xml = await resp.text();
+      const items = parseRedditRSS(xml);
+      console.log(`  Reddit r/${sub}: ${items.length} posts fetched (RSS)`);
 
       let matched_count = 0;
-      for (const child of children) {
-        const p = child.data;
+      for (const p of items) {
         if (seenIds.has(p.id)) continue;
-        if (!p.permalink || p.created_utc < thirtyDaysAgo) continue;
+        if (p.created < thirtyDaysAgo) continue;
 
-        const text = `${p.title} ${p.selftext || ''}`.toLowerCase();
+        const text = `${p.title} ${p.snippet}`.toLowerCase();
         const matched = REDDIT_KEYWORDS.filter(kw => text.includes(kw));
         if (matched.length === 0) continue;
 
@@ -6461,19 +6487,19 @@ async function pollReddit() {
           id: p.id,
           subreddit: `r/${sub}`,
           title: p.title,
-          url: `https://www.reddit.com${p.permalink}`,
-          snippet: (p.selftext || '').slice(0, 200).trim(),
-          score: p.score,
-          numComments: p.num_comments,
+          url: p.url,
+          snippet: p.snippet,
+          score: 0, // RSS doesn't include score
+          numComments: 0,
           author: p.author,
-          created: p.created_utc,
+          created: p.created,
           matchedKeywords: matched,
           status: 'new',
         });
         seenIds.add(p.id);
       }
       console.log(`  Reddit r/${sub}: ${matched_count} matched keywords`);
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 800)); // slightly longer delay for RSS
     } catch (err) {
       console.log(`  Reddit r/${sub} error: ${err.message}`);
     }
