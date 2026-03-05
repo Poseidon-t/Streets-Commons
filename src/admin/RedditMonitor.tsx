@@ -108,6 +108,7 @@ export default function RedditMonitor() {
   const [config, setConfig] = useState<RedditConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
   const [configSaving, setConfigSaving] = useState(false);
+  const [configSaved, setConfigSaved] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
   const [configDirty, setConfigDirty] = useState(false);
 
@@ -146,7 +147,16 @@ export default function RedditMonitor() {
     if (!showConfig || config) return;
     setConfigLoading(true);
     fetchConfigRef.current()
-      .then((res: { data: RedditConfig }) => { setConfig(res.data); setConfigDirty(false); })
+      .then((res: { data: RedditConfig }) => {
+        setConfig({
+          subreddits: res.data.subreddits ?? [],
+          keywordsTier1: res.data.keywordsTier1 ?? [],
+          keywordsTier2: res.data.keywordsTier2 ?? [],
+          walkabilitySubreddits: res.data.walkabilitySubreddits ?? [],
+          highValueSubreddits: res.data.highValueSubreddits ?? [],
+        });
+        setConfigDirty(false);
+      })
       .catch((e: Error) => setConfigError(e.message))
       .finally(() => setConfigLoading(false));
   }, [showConfig, config]);
@@ -194,6 +204,8 @@ export default function RedditMonitor() {
       const result = await saveRedditConfig(config, repoll);
       setFeed(result.data);
       setConfigDirty(false);
+      setConfigSaved(true);
+      setTimeout(() => setConfigSaved(false), 2000);
     } catch (e) {
       setConfigError((e as Error).message);
     } finally {
@@ -243,7 +255,10 @@ export default function RedditMonitor() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowConfig(v => !v)}
+            onClick={() => {
+              if (showConfig) { setConfig(null); setConfigError(null); }
+              setShowConfig(v => !v);
+            }}
             className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-colors ${
               showConfig ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
             }`}
@@ -297,7 +312,17 @@ export default function RedditMonitor() {
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Monitor Configuration</h2>
-            {configError && <p className="text-xs text-red-500">{configError}</p>}
+            {configError && (
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-red-500">{configError}</p>
+                <button
+                  onClick={() => { setConfigError(null); setConfig(null); }}
+                  className="text-xs text-gray-500 underline hover:text-gray-700"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
           </div>
 
           {configLoading ? (
@@ -383,7 +408,10 @@ export default function RedditMonitor() {
                   "Save" re-scores cached posts instantly.
                   "Save &amp; Re-poll" also fetches fresh posts from all subreddits.
                 </p>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-3">
+                  {configSaved && (
+                    <span className="text-xs text-green-600 font-semibold">✓ Saved</span>
+                  )}
                   <button
                     onClick={() => handleSaveConfig(false)}
                     disabled={configSaving || !configDirty}
@@ -393,7 +421,7 @@ export default function RedditMonitor() {
                   </button>
                   <button
                     onClick={() => handleSaveConfig(true)}
-                    disabled={configSaving}
+                    disabled={configSaving || !configDirty}
                     className="text-xs px-4 py-2 bg-orange-500 text-white font-semibold rounded-lg hover:bg-orange-600 disabled:opacity-50 transition-colors"
                   >
                     {configSaving ? 'Saving...' : 'Save & Re-poll'}

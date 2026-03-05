@@ -6488,7 +6488,7 @@ function getRedditConfig() {
 
 function persistRedditConfig(config) {
   _redditConfigCache = config;
-  try { fs.writeFileSync(REDDIT_CONFIG_FILE, JSON.stringify(config, null, 2)); } catch {}
+  fs.writeFileSync(REDDIT_CONFIG_FILE, JSON.stringify(config, null, 2)); // throws on failure — caller handles
 }
 
 // Parse Reddit RSS feed XML — no auth needed, works from datacenter IPs
@@ -6624,7 +6624,11 @@ app.post('/api/admin/reddit-config', async (req, res) => {
   if (!config || !Array.isArray(config.subreddits) || !Array.isArray(config.keywordsTier1) || !Array.isArray(config.keywordsTier2)) {
     return res.status(400).json({ error: 'Invalid config — subreddits, keywordsTier1, keywordsTier2 required' });
   }
-  persistRedditConfig(config);
+  try {
+    persistRedditConfig(config);
+  } catch (e) {
+    return res.status(500).json({ error: 'Config updated in memory but failed to write to disk: ' + e.message });
+  }
 
   // Re-score all cached posts with the new keywords/subreddit rules
   redditCache.posts = redditCache.posts.map(post => {
@@ -6638,7 +6642,7 @@ app.post('/api/admin/reddit-config', async (req, res) => {
       isQuestion,
       matchedKeywords: [...tier1Matches, ...tier2Matches],
     };
-  }).filter(p => p.relevance > 0);
+  }).filter(p => p.relevance > 0 || p.status !== 'new'); // preserve engaged/dismissed even if no longer keyword-matched
   saveRedditMonitor();
 
   // Optionally trigger a fresh poll for newly added subreddits
