@@ -16,8 +16,6 @@ interface MetricGridProps {
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
-  isPremium?: boolean;
-  onUpgradeClick?: () => void;
 }
 
 function getScoreColor(score: number): string {
@@ -189,30 +187,26 @@ const METRICS: MetricDef[] = [
   },
 ];
 
-function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, isPremium }: {
+function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
   def: MetricDef;
   score: number;
   isLoading: boolean;
   isExpanded: boolean;
   onClick: () => void;
-  isPremium?: boolean;
 }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
-  const insight = getInsight(def.key, score);
+  const detail = METRIC_DETAILS[def.key];
+  const contextText = detail && score > 0 ? detail.getMeans(score) : getInsight(def.key, score);
 
   return (
     <div
-      className="rounded-xl border p-4 transition-all cursor-pointer hover:shadow-md"
+      className="rounded-xl border p-4 transition-all"
       style={{
         borderColor: isExpanded ? color : '#e0dbd0',
         backgroundColor: 'white',
         borderWidth: isExpanded ? '2px' : '1px',
       }}
-      onClick={onClick}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
     >
       {isLoading ? (
         <div className="flex items-center justify-center h-24">
@@ -223,36 +217,44 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, isPremiu
         </div>
       ) : (
         <>
+          {/* Header row: icon + name + score */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-lg">{def.icon}</span>
               <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{def.name}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-lg font-bold" style={{ color }}>{displayScore}</span>
-              {!isPremium && <span className="text-xs" style={{ color: '#b0a8a0' }}>🔒</span>}
-              {isPremium && (
-                <svg
-                  className="w-3.5 h-3.5 transition-transform duration-200"
-                  style={{ color: '#b0a8a0', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              )}
+              <span className="text-xl font-bold tabular-nums" style={{ color }}>{displayScore}</span>
+              <span className="text-xs font-normal" style={{ color: '#b0a8a0' }}>/10</span>
             </div>
           </div>
-          <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: '#f0ebe0' }}>
+
+          {/* Progress bar */}
+          <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#f0ebe0' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.max(score * 10, 2)}%`, backgroundColor: color }}
             />
           </div>
-          {insight && (
-            <div className="text-xs leading-snug" style={{ color: '#6a7a6a' }}>
-              {insight}
-            </div>
+
+          {/* Inline context — always visible, no click required */}
+          {contextText && (
+            <p className="text-xs leading-relaxed mb-3" style={{ color: '#4a5a4a' }}>
+              {contextText}
+            </p>
           )}
+
+          {/* Data source + expand toggle for methodology */}
+          <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: '#f0ebe0' }}>
+            <span className="text-xs" style={{ color: '#b0a8a0' }}>{detail?.source ?? def.source}</span>
+            <button
+              className="text-xs underline cursor-pointer"
+              style={{ color: '#8a9a8a' }}
+              onClick={onClick}
+            >
+              {isExpanded ? 'Less' : 'How it\'s scored'}
+            </button>
+          </div>
         </>
       )}
     </div>
@@ -316,7 +318,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, isPremium, onUpgradeClick }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
@@ -331,10 +333,6 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   });
 
   const toggleMetric = (key: string) => {
-    if (!isPremium) {
-      onUpgradeClick?.();
-      return;
-    }
     setExpandedMetric(prev => prev === key ? null : key);
   };
 
@@ -344,7 +342,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
         What's Driving Your Score
       </h2>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {sortedMetrics.map(def => {
           const score = def.getScore(metrics, compositeScore);
           const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
@@ -356,7 +354,6 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
               isLoading={isLoading}
               isExpanded={expandedMetric === def.key}
               onClick={() => toggleMetric(def.key)}
-              isPremium={isPremium}
             />
           );
         })}
