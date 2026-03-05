@@ -52,7 +52,7 @@ export function generateNeighborhoodNarrative({ ni, locationName, overallScore, 
     if (ni.transit && ni.transit.totalStops > 0) {
       const stops: string[] = [];
       if (ni.transit.busStops > 0) stops.push(`${ni.transit.busStops} bus stop${ni.transit.busStops !== 1 ? 's' : ''}`);
-      if (ni.transit.railStations > 0) stops.push(`${ni.transit.railStations} rail station${ni.transit.railStations !== 1 ? 's' : ''}`);
+      if (ni.transit.railStops > 0) stops.push(`${ni.transit.railStops} rail station${ni.transit.railStops !== 1 ? 's' : ''}`);
       parts.push(`Public transit is ${ni.transit.totalStops >= 10 ? 'readily' : 'reasonably'} accessible with ${stops.join(' and ')} within walking distance`);
     }
 

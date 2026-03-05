@@ -263,6 +263,48 @@ const STREET_HIGHWAY_TYPES = [
   'living_street', 'pedestrian', 'unclassified', 'service',
 ];
 
+// Default speeds by highway type (km/h) when maxspeed tag is absent
+const HIGHWAY_DEFAULT_SPEED: Record<string, number> = {
+  living_street: 10,
+  pedestrian: 5,
+  footway: 5,
+  service: 20,
+  residential: 30,
+  unclassified: 40,
+  tertiary: 50,
+  secondary: 50,
+  primary: 60,
+};
+
+function parseMaxspeedKmh(raw: string | undefined): number | undefined {
+  if (!raw) return undefined;
+  const lower = raw.toLowerCase();
+  if (lower === 'walk' || lower.includes('living_street')) return 10;
+  if (lower === 'none' || lower === 'signals') return undefined;
+  if (lower.includes('urban')) return 50;
+  if (lower.includes('rural')) return 90;
+  const match = raw.match(/^(\d+)/);
+  if (!match) return undefined;
+  const val = parseInt(match[1], 10);
+  return lower.includes('mph') ? Math.round(val * 1.609) : val;
+}
+
+function scoreSpeedEnvironment(avgKmh: number, lowSpeedPct: number): number {
+  let base: number;
+  if (avgKmh <= 15)      base = 10;
+  else if (avgKmh <= 25) base = 9;
+  else if (avgKmh <= 30) base = 8;
+  else if (avgKmh <= 35) base = 7;
+  else if (avgKmh <= 40) base = 6;
+  else if (avgKmh <= 45) base = 5;
+  else if (avgKmh <= 50) base = 4;
+  else if (avgKmh <= 60) base = 2;
+  else                   base = 1;
+  // Bonus when most of the network is genuinely calm
+  if (lowSpeedPct >= 80) return Math.min(10, base + 1);
+  return base;
+}
+
 function processOSMData(data: any): OSMData {
   // Build node lookup map (all nodes with coordinates)
   const nodes = new Map<string, { lat: number; lon: number }>();
@@ -329,12 +371,36 @@ function processOSMData(data: any): OSMData {
       ? totalStreetLengthM / intersections.length
       : totalStreetLengthM;
 
+  // Speed environment: length-weighted average vehicle speed from maxspeed tags + highway type inference
+  let speedLengthTotal = 0;
+  let speedWeightedSum = 0;
+  let lowSpeedLength = 0; // ≤30 km/h
+  for (const way of streetWays) {
+    let wayLen = 0;
+    for (let i = 0; i < way.nodes.length - 1; i++) {
+      const a = nodes.get(way.nodes[i].toString());
+      const b = nodes.get(way.nodes[i + 1].toString());
+      if (a && b) wayLen += haversineM(a.lat, a.lon, b.lat, b.lon);
+    }
+    const speed = parseMaxspeedKmh(way.tags?.maxspeed) ?? HIGHWAY_DEFAULT_SPEED[way.tags?.highway] ?? 50;
+    speedLengthTotal += wayLen;
+    speedWeightedSum += speed * wayLen;
+    if (speed <= 30) lowSpeedLength += wayLen;
+  }
+  const avgSpeedKmh = speedLengthTotal > 0 ? Math.round(speedWeightedSum / speedLengthTotal) : 50;
+  const lowSpeedPct = speedLengthTotal > 0 ? Math.round((lowSpeedLength / speedLengthTotal) * 100) : 0;
+
   const networkGraph: NetworkGraph = {
     intersections,
     deadEnds,
     totalStreetLengthKm,
     areaKm2,
     averageBlockLengthM,
+    speedEnvironment: {
+      score: scoreSpeedEnvironment(avgSpeedKmh, lowSpeedPct),
+      avgSpeedKmh,
+      lowSpeedPct,
+    },
   };
 
   return {

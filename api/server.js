@@ -5229,6 +5229,218 @@ app.get('/api/terrain', async (req, res) => {
 });
 
 // =====================
+// TRANSIT ACCESS (Transitland GTFS)
+// =====================
+// Uses Transitland v2 REST API — real GTFS data from transit agencies worldwide
+// Scores by stop count + rail bonus within 800m walking radius
+// Cache: 24h (GTFS feeds update infrequently)
+
+const transitlandCache = new Map();
+const TRANSITLAND_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function scoreTransitStops(busStops, railStops, ferryStops) {
+  const total = busStops + railStops + ferryStops;
+  let base;
+  if (total === 0)       base = 1;
+  else if (total <= 2)   base = 2;
+  else if (total <= 5)   base = 4;
+  else if (total <= 10)  base = 6;
+  else if (total <= 20)  base = 8;
+  else                   base = 9;
+
+  // Rail/subway/ferry elevates score — premium transit infrastructure
+  const railBonus = railStops >= 2 ? 1 : railStops >= 1 ? 0.5 : 0;
+  const ferryBonus = ferryStops >= 1 ? 0.5 : 0;
+  return Math.min(10, Math.round((base + railBonus + ferryBonus) * 2) / 2);
+}
+
+app.get('/api/transit-access', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'Missing lat, lon' });
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `transit:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = transitlandCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < TRANSITLAND_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+
+    const apiKey = process.env.TRANSITLAND_API_KEY || 'zWgOiszHYUbex5ARrowl1V8PwgccIuYK';
+    const url = `https://transit.land/api/v2/rest/stops?lat=${latNum}&lon=${lonNum}&radius=800&per_page=100&include_routes=true&apikey=${apiKey}`;
+    console.log(`🚌 Fetching Transitland stops for: ${latNum}, ${lonNum}`);
+
+    const response = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(12000),
+    });
+
+    if (!response.ok) throw new Error(`Transitland API error: ${response.status}`);
+
+    const json = await response.json();
+    const stops = json.stops || [];
+
+    let busStops = 0, railStops = 0, ferryStops = 0;
+
+    for (const stop of stops) {
+      const routes = stop.routes || [];
+      // GTFS route types: 0=Tram, 1=Subway, 2=Rail, 4=Ferry, 3=Bus, 5=CableCar, 11=Trolleybus, 12=Monorail
+      const hasRail = routes.some(r => [0, 1, 2, 5, 12].includes(r.route_type));
+      const hasFerry = routes.some(r => r.route_type === 4);
+      if (hasRail) railStops++;
+      else if (hasFerry) ferryStops++;
+      else busStops++;
+    }
+
+    // If no route type info available, count all as bus
+    if (busStops + railStops + ferryStops === 0 && stops.length > 0) {
+      busStops = stops.length;
+    }
+
+    const score = scoreTransitStops(busStops, railStops, ferryStops);
+    const result = {
+      score,
+      totalStops: stops.length,
+      busStops,
+      railStops,
+      ferryStops,
+      dataSource: 'Transitland (GTFS)',
+    };
+
+    console.log(`✅ Transit: ${stops.length} stops (bus=${busStops} rail=${railStops} ferry=${ferryStops}) → score=${score}`);
+    transitlandCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.warn('⚠️  Transitland failed, falling back to null:', error.message);
+    return res.json({ success: true, data: null }); // fail gracefully
+  }
+});
+
+// =====================
+// MAPILLARY STREET FEATURES
+// =====================
+// Computer vision over street-level imagery — the "satellite-up" complement.
+// Detects: street lights, crosswalk markings, benches, bollards, speed signs.
+// Primary metric produced: Street Lighting (density-based, 0-10 score).
+// Coverage check first — areas with < 5 images return coverageInsufficient: true.
+// Cache: 24h (imagery rarely re-processed).
+
+const mapillaryCache = new Map();
+const MAPILLARY_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+function scoreStreetLighting(lightCount, areaKm2) {
+  const density = lightCount / areaKm2; // lights per km²
+  if (density >= 50) return 10; // Paris, Amsterdam dense core
+  if (density >= 30) return 9;  // Dense urban
+  if (density >= 15) return 7;  // Good urban
+  if (density >= 7)  return 5;  // Suburban
+  if (density >= 2)  return 3;  // Sparse
+  if (lightCount > 0) return 2; // Some lights, few photos → undercount
+  return 1;                     // Coverage confirmed but no lights found
+}
+
+app.get('/api/street-features', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'Missing lat, lon' });
+
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `mapillary:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = mapillaryCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < MAPILLARY_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+
+    const token = process.env.MAPILLARY_ACCESS_TOKEN || 'MLY|25607627822191844|737dd8db4693e310e140e6d895c6b06d';
+    const radius = 800; // metres — same as OSM analysis radius
+    const R = 111111;
+    const dLat = radius / R;
+    const dLon = radius / (R * Math.cos(latNum * Math.PI / 180));
+    const bbox = `${lonNum - dLon},${latNum - dLat},${lonNum + dLon},${latNum + dLat}`;
+    const areaKm2 = Math.PI * (radius / 1000) ** 2; // ≈ 2.01 km²
+
+    // ── Step 1: Coverage check ──────────────────────────────────────────────
+    console.log(`🗺️  Checking Mapillary coverage for: ${latNum.toFixed(4)}, ${lonNum.toFixed(4)}`);
+    const coverageUrl = `https://graph.mapillary.com/images?bbox=${bbox}&fields=id,captured_at&limit=50&access_token=${token}`;
+    const coverageRes = await fetch(coverageUrl, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!coverageRes.ok) throw new Error(`Mapillary images API ${coverageRes.status}`);
+
+    const images = (await coverageRes.json()).data || [];
+    const imageCount = images.length;
+
+    if (imageCount < 5) {
+      console.log(`⚠️  Mapillary: no coverage (${imageCount} images)`);
+      const result = { coverageInsufficient: true, imageCount, dataSource: 'Mapillary' };
+      mapillaryCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return res.json({ success: true, data: result });
+    }
+
+    // Recency: any image captured in last 4 years?
+    const cutoff = Date.now() - 4 * 365 * 24 * 60 * 60 * 1000;
+    const hasRecentData = images.some(img => new Date(img.captured_at).getTime() > cutoff);
+
+    // ── Step 2: Fetch map features ──────────────────────────────────────────
+    const featuresUrl = `https://graph.mapillary.com/map_features?bbox=${bbox}&fields=id,object_type,object_value&limit=2000&access_token=${token}`;
+    const featuresRes = await fetch(featuresUrl, {
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!featuresRes.ok) throw new Error(`Mapillary map_features API ${featuresRes.status}`);
+
+    const features = (await featuresRes.json()).data || [];
+
+    // ── Step 3: Classify ────────────────────────────────────────────────────
+    let streetLights = 0, crosswalkMarkings = 0, benches = 0, bollards = 0;
+    const speedSignValues = [];
+
+    for (const f of features) {
+      const t = f.object_type || '';
+      if (t === 'object--street-light')                                   streetLights++;
+      else if (t === 'marking--crosswalk-zebra' || t === 'marking--crosswalk') crosswalkMarkings++;
+      else if (t === 'object--bench')                                     benches++;
+      else if (t === 'object--bollard')                                   bollards++;
+      else if (t.includes('maximum-speed') || t.includes('speed-limit')) {
+        const v = parseInt(f.object_value, 10);
+        if (!isNaN(v) && v > 0 && v <= 150) speedSignValues.push(v);
+      }
+    }
+
+    const lightingScore = scoreStreetLighting(streetLights, areaKm2);
+    const lightsPerKm2 = Math.round((streetLights / areaKm2) * 10) / 10;
+
+    const result = {
+      coverageInsufficient: false,
+      imageCount,
+      hasRecentData,
+      streetLighting: { score: lightingScore, count: streetLights, perKm2: lightsPerKm2 },
+      crosswalkMarkings,
+      pedestrianAmenities: { benches, bollards },
+      speedSignValues,
+      totalFeatures: features.length,
+      dataSource: 'Mapillary (computer vision)',
+    };
+
+    console.log(`✅ Mapillary: ${streetLights} lights (${lightsPerKm2}/km²), ${crosswalkMarkings} crosswalk marks, ${benches} benches — ${imageCount} images, ${features.length} features`);
+    mapillaryCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+
+  } catch (error) {
+    console.warn('⚠️  Mapillary street-features failed:', error.message);
+    return res.json({ success: true, data: null }); // fail gracefully
+  }
+});
+
+// =====================
 // GEMINI AI BUDGET ANALYSIS
 // =====================
 

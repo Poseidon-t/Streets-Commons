@@ -16,6 +16,7 @@ interface MetricGridProps {
   streetDesignScore?: number;
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
+  mapillaryCoverageGap?: boolean;
 }
 
 function getScoreColor(score: number): string {
@@ -24,6 +25,19 @@ function getScoreColor(score: number): string {
   if (score >= 4) return '#eab308';
   if (score >= 2) return '#f97316';
   return '#ef4444';
+}
+
+function getCardBackground(score: number): string {
+  if (score >= 7.5) return 'rgba(34,197,94,0.05)';
+  if (score <= 3.0 && score > 0) return 'rgba(239,68,68,0.05)';
+  return 'white';
+}
+
+function getCardBorderColor(score: number, isExpanded: boolean, expandedColor: string): string {
+  if (isExpanded) return expandedColor;
+  if (score >= 7.5) return 'rgba(34,197,94,0.25)';
+  if (score <= 3.0 && score > 0) return 'rgba(239,68,68,0.25)';
+  return '#e0dbd0';
 }
 
 function getInsight(key: string, score: number): string {
@@ -65,6 +79,18 @@ function getInsight(key: string, score: number): string {
         : score >= 5 ? 'Moderate hills — some inclines'
         : score >= 3 ? 'Hilly — significant elevation changes'
         : 'Steep terrain — elevation limits walkable routes';
+    case 'speedEnvironment':
+      return score >= 9 ? 'Very low-speed streets — safe walking pace'
+        : score >= 7 ? 'Calm 30 km/h network — low pedestrian risk'
+        : score >= 5 ? 'Mixed speeds — some faster arterials'
+        : score >= 3 ? 'Faster roads — 50–60 km/h arterials dominant'
+        : 'High-speed network — hostile walking conditions';
+    case 'streetLighting':
+      return score >= 9 ? 'Well-lit network — safe after dark'
+        : score >= 7 ? 'Good lighting on most routes'
+        : score >= 5 ? 'Moderate lighting — some gaps at night'
+        : score >= 3 ? 'Sparse lighting — limited after-dark safety'
+        : 'Very low lighting density detected';
     default:
       return '';
   }
@@ -132,8 +158,8 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
   },
   transitAccess: {
     what: 'Number and variety of transit stops — buses, trains, trams, subways — within walking distance.',
-    how: 'Counts transit nodes from OpenStreetMap within 800m. Rail stations score higher than bus stops. Score blends total stop count (70%) and rail availability (30%).',
-    source: 'OpenStreetMap transit nodes',
+    how: 'Counts GTFS-verified stops from Transitland within 800m. Rail/subway stations score higher than bus stops. Falls back to OpenStreetMap if Transitland is unavailable.',
+    source: 'Transitland (GTFS)',
     getMeans: (s) =>
       s >= 8 ? 'Excellent transit access — multiple modes within easy walking distance. A car is completely optional for most trips.'
       : s >= 6 ? 'Good transit coverage. Regular bus or rail service is nearby and usable for most errands.'
@@ -151,6 +177,28 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : s >= 3 ? 'Hilly area — significant elevation changes that can make walking tiring, especially in heat or with mobility limitations.'
       : 'Very steep terrain. Elevation change is a real barrier to walking and likely limits walkable routes to downhill segments.',
   },
+  streetLighting: {
+    what: 'Density of street lights detected within walking distance — more lights mean safer, more accessible streets after dark.',
+    how: 'Counts street light objects detected by Mapillary\'s computer vision models across street-level photos in the 800m radius. Normalized by area (lights per km²). Requires Mapillary image coverage — areas without street-level photos show no data.',
+    source: 'Mapillary (computer vision)',
+    getMeans: (s) =>
+      s >= 9 ? 'Excellent lighting — dense street light network. Walking after dark is well-supported across the area.'
+      : s >= 7 ? 'Good street lighting. Most routes have adequate light coverage for safe evening walking.'
+      : s >= 5 ? 'Moderate lighting. Main streets are lit but some residential routes may feel dark at night.'
+      : s >= 3 ? 'Sparse street lights. After-dark walking requires more care — many streets lack consistent lighting.'
+      : 'Very few or no street lights detected. This is a significant barrier for evening and night-time walking, particularly for women and older adults.',
+  },
+  speedEnvironment: {
+    what: 'How fast vehicles typically move through the street network — lower speeds mean safer, more comfortable walking conditions.',
+    how: 'Reads posted speed limits (OSM maxspeed tags) for every street in the 800m radius. Where tags are missing, speeds are inferred from road type (residential = 30 km/h, primary = 60 km/h, living street = 10 km/h, etc.). Calculates a length-weighted average across the whole network.',
+    source: 'OpenStreetMap (maxspeed tags)',
+    getMeans: (s) =>
+      s >= 9 ? 'Very low-speed network — mostly living streets and pedestrian zones. Vehicles and people share space safely at walking pace.'
+      : s >= 7 ? 'Calm streets. Most roads are 30 km/h or below — the threshold proven to dramatically reduce pedestrian fatality risk.'
+      : s >= 5 ? 'Mixed speed environment. Residential streets exist alongside faster arterials. Walking is manageable but requires care on some routes.'
+      : s >= 3 ? 'Faster street network. Arterials at 50–60 km/h dominate. Crossing roads feels more dangerous and crossings may be far apart.'
+      : 'High-speed network. Roads moving at 60+ km/h create a hostile walking environment and significantly increase injury risk when crossings occur.',
+  },
 };
 
 // --- Components ---
@@ -163,8 +211,16 @@ interface MetricDef {
   satKey?: string;
   usOnly?: boolean;
   internationalOnly?: boolean;
+  group: 'network' | 'environment' | 'safety' | 'density';
   getScore: (metrics: WalkabilityMetrics, compositeScore?: WalkabilityScoreV2 | null) => number;
 }
+
+const GROUP_LABELS: Record<string, { label: string; icon: string }> = {
+  network:     { label: 'Street Network',      icon: '🔀' },
+  environment: { label: 'Environment',          icon: '🌿' },
+  safety:      { label: 'Safety & Design',      icon: '🛡️' },
+  density:     { label: 'Access & Density',     icon: '🏙️' },
+};
 
 const METRICS: MetricDef[] = [
   {
@@ -173,7 +229,19 @@ const METRICS: MetricDef[] = [
     icon: '🔀',
     source: 'OpenStreetMap',
     internationalOnly: true,
+    group: 'network',
     getScore: (_m, cs) => cs ? cs.components.networkDesign.score / 10 : 0,
+  },
+  {
+    key: 'speedEnvironment',
+    name: 'Speed Environment',
+    icon: '🚗',
+    source: 'OpenStreetMap',
+    group: 'network',
+    getScore: (_m, cs) => {
+      const m = cs?.components.networkDesign.metrics.find(m => m.name === 'Speed Environment');
+      return m ? m.score / 10 : 0;
+    },
   },
   {
     key: 'treeCanopy',
@@ -181,7 +249,32 @@ const METRICS: MetricDef[] = [
     icon: '🌳',
     source: 'Sentinel-2',
     satKey: 'treeCanopy',
+    group: 'environment',
     getScore: (m) => m.treeCanopy,
+  },
+  {
+    key: 'terrain',
+    name: 'Terrain',
+    icon: '⛰️',
+    source: 'OpenTopoData SRTM',
+    satKey: 'terrain',
+    group: 'environment',
+    getScore: (_m, cs) => {
+      const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Terrain');
+      return m ? m.score / 10 : 0;
+    },
+  },
+  {
+    key: 'streetLighting',
+    name: 'Street Lighting',
+    icon: '💡',
+    source: 'Mapillary (computer vision)',
+    satKey: 'streetLighting',
+    group: 'environment',
+    getScore: (_m, cs) => {
+      const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Street Lighting');
+      return m ? m.score / 10 : 0;
+    },
   },
   {
     key: 'streetDesign',
@@ -190,6 +283,7 @@ const METRICS: MetricDef[] = [
     source: 'EPA',
     satKey: 'streetDesign',
     usOnly: true,
+    group: 'safety',
     getScore: (_m, cs) => {
       const sdMetric = cs?.components.safety.metrics[0];
       return sdMetric ? sdMetric.score / 10 : 0;
@@ -200,6 +294,7 @@ const METRICS: MetricDef[] = [
     name: 'Destinations',
     icon: '🏪',
     source: 'OpenStreetMap',
+    group: 'density',
     getScore: (m) => m.destinationAccess,
   },
   {
@@ -209,6 +304,7 @@ const METRICS: MetricDef[] = [
     source: 'Census ACS',
     satKey: 'populationDensity',
     usOnly: true,
+    group: 'density',
     getScore: (_m, cs) => {
       const popMetric = cs?.components.densityContext.metrics.find(m => m.name === 'Commute Mode');
       if (popMetric) return popMetric.score / 10;
@@ -220,38 +316,37 @@ const METRICS: MetricDef[] = [
     key: 'transitAccess',
     name: 'Transit Access',
     icon: '🚌',
-    source: 'OpenStreetMap',
+    source: 'Transitland (GTFS)',
     satKey: 'transit',
-    getScore: (m) => m.transitAccess ?? 0,
-  },
-  {
-    key: 'terrain',
-    name: 'Terrain',
-    icon: '⛰️',
-    source: 'OpenTopoData SRTM',
-    satKey: 'terrain',
-    getScore: (m) => m.terrain ?? 0,
+    group: 'density',
+    getScore: (_m, cs) => {
+      const m = cs?.components.densityContext.metrics.find(m => m.name === 'Transit Access');
+      return m ? m.score / 10 : 0;
+    },
   },
 ];
 
-function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
+function MetricCardSimple({ def, score, isLoading, isExpanded, noCoverage, onClick }: {
   def: MetricDef;
   score: number;
   isLoading: boolean;
   isExpanded: boolean;
+  noCoverage?: boolean;
   onClick: () => void;
 }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
   const detail = METRIC_DETAILS[def.key];
   const contextText = detail && score > 0 ? detail.getMeans(score) : getInsight(def.key, score);
+  const bg = noCoverage ? 'white' : getCardBackground(score);
+  const borderColor = getCardBorderColor(score, isExpanded, color);
 
   return (
     <div
       className="rounded-xl border p-4 transition-all"
       style={{
-        borderColor: isExpanded ? color : '#e0dbd0',
-        backgroundColor: 'white',
+        borderColor,
+        backgroundColor: bg,
         borderWidth: isExpanded ? '2px' : '1px',
       }}
     >
@@ -261,6 +356,15 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
             <span className="text-xl">{def.icon}</span>
             <span className="text-sm" style={{ color: '#8a9a8a' }}>Loading {def.name}...</span>
           </div>
+        </div>
+      ) : noCoverage ? (
+        <div className="flex flex-col gap-1.5 py-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">{def.icon}</span>
+            <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{def.name}</span>
+          </div>
+          <p className="text-xs" style={{ color: '#8a9a8a' }}>No street-level imagery available for this area. Mapillary coverage is needed to detect street lights.</p>
+          <span className="text-xs" style={{ color: '#b0a8a0' }}>{def.source}</span>
         </div>
       ) : (
         <>
@@ -277,7 +381,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
           </div>
 
           {/* Progress bar */}
-          <div className="h-1.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#f0ebe0' }}>
+          <div className="h-2.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#ede8dd' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.max(score * 10, 2)}%`, backgroundColor: color }}
@@ -365,63 +469,86 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, mapillaryCoverageGap }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
     (!def.usOnly || isUS) && (!def.internationalOnly || !isUS)
   );
 
-  // Sort by score descending (best first) so story reads: strengths then weaknesses
-  const sortedMetrics = [...visibleMetrics].sort((a, b) => {
-    const sa = a.getScore(metrics, compositeScore);
-    const sb = b.getScore(metrics, compositeScore);
-    return sb - sa;
-  });
-
   const toggleMetric = (key: string) => {
     setExpandedMetric(prev => prev === key ? null : key);
   };
 
+  // Group metrics by component, preserving definition order within each group
+  const groups = (['network', 'environment', 'safety', 'density'] as const).map(groupKey => ({
+    groupKey,
+    defs: visibleMetrics.filter(d => d.group === groupKey),
+  })).filter(g => g.defs.length > 0);
+
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold mb-6" style={{ color: '#2a3a2a' }}>
-        What's Driving Your Score
-      </h2>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+          Score Breakdown
+        </h2>
+        <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
+          Each metric contributes to your walkability score. Green = strength, red = needs attention.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {sortedMetrics.map(def => {
-          const score = def.getScore(metrics, compositeScore);
-          const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
+      <div className="space-y-6">
+        {groups.map(({ groupKey, defs }) => {
+          const groupMeta = GROUP_LABELS[groupKey];
           return (
-            <MetricCardSimple
-              key={def.key}
-              def={def}
-              score={score}
-              isLoading={isLoading}
-              isExpanded={expandedMetric === def.key}
-              onClick={() => toggleMetric(def.key)}
-            />
+            <div key={groupKey}>
+              {/* Group header */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-sm">{groupMeta.icon}</span>
+                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#8a9a8a', letterSpacing: '0.1em' }}>
+                  {groupMeta.label}
+                </span>
+                <div className="flex-1 h-px" style={{ backgroundColor: '#e8e3d8' }} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {defs.map(def => {
+                  const score = def.getScore(metrics, compositeScore);
+                  const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
+                  return (
+                    <MetricCardSimple
+                      key={def.key}
+                      def={def}
+                      score={score}
+                      isLoading={isLoading}
+                      isExpanded={expandedMetric === def.key}
+                      noCoverage={def.key === 'streetLighting' && mapillaryCoverageGap && satelliteLoaded?.has('streetLighting')}
+                      onClick={() => toggleMetric(def.key)}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Expanded detail panel — appears directly below the expanded metric's group */}
+              {expandedMetric && defs.some(d => d.key === expandedMetric) && (() => {
+                const def = defs.find(m => m.key === expandedMetric);
+                if (!def) return null;
+                const score = def.getScore(metrics, compositeScore);
+                return (
+                  <div className="mt-3">
+                    <MetricDetailPanel
+                      metricKey={def.key}
+                      score={score}
+                      icon={def.icon}
+                      name={def.name}
+                    />
+                  </div>
+                );
+              })()}
+            </div>
           );
         })}
       </div>
-
-      {/* Expanded detail panel — appears below the grid */}
-      {expandedMetric && (() => {
-        const def = sortedMetrics.find(m => m.key === expandedMetric);
-        if (!def) return null;
-        const score = def.getScore(metrics, compositeScore);
-        return (
-          <div className="mt-4">
-            <MetricDetailPanel
-              metricKey={def.key}
-              score={score}
-              icon={def.icon}
-              name={def.name}
-            />
-          </div>
-        );
-      })()}
 
       {/* Neighborhood Intelligence */}
       <NeighborhoodIntelSection neighborhoodIntel={neighborhoodIntel ?? null} />

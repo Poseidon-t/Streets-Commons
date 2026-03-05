@@ -27,7 +27,7 @@ interface ReportData {
   treeCanopySource?: string;
   neighborhoodIntel?: {
     commute?: { walkPct: number; bikePct: number; transitPct: number; wfhPct: number; carpoolPct: number; zeroCar: number } | null;
-    transit?: { railStations: number; busStops: number; totalStops: number } | null;
+    transit?: { railStops: number; busStops: number; totalStops: number } | null;
     parks?: { parks: number; playgrounds: number; gardens: number; totalGreenSpaces: number } | null;
     food?: { supermarkets: number; groceryStores: number; isFoodDesert: boolean } | null;
     health?: { obesity: number | null; diabetes: number | null; physicalInactivity: number | null; asthma: number | null } | null;
@@ -293,9 +293,9 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
           {/* What's Nearby -- compact */}
           {(ni?.parks || ni?.food) && (
             <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-              {ni?.transit && ni.transit.railStations > 0 && (
+              {ni?.transit && ni.transit.railStops > 0 && (
                 <span style={{ fontSize: '9px', padding: '3px 8px', borderRadius: '6px', background: 'rgba(139,92,246,0.1)', color: '#7c3aed', fontWeight: 600 }}>
-                  🚇 {ni.transit.railStations} rail
+                  🚇 {ni.transit.railStops} rail
                 </span>
               )}
               {ni?.transit && ni.transit.busStops > 0 && (

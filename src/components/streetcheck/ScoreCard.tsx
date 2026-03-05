@@ -54,7 +54,7 @@ function CircularScore({ score }: { score: number }) {
   );
 }
 
-function BestWorstCallout({ compositeScore }: { compositeScore: WalkabilityScoreV2 }) {
+function ComponentBreakdown({ compositeScore }: { compositeScore: WalkabilityScoreV2 }) {
   const components = [
     compositeScore.components.networkDesign,
     compositeScore.components.environmentalComfort,
@@ -62,22 +62,33 @@ function BestWorstCallout({ compositeScore }: { compositeScore: WalkabilityScore
     compositeScore.components.densityContext,
   ].filter(c => c.score > 0);
 
-  if (components.length < 2) return null;
+  if (components.length === 0) return null;
 
   const sorted = [...components].sort((a, b) => b.score - a.score);
-  const best = sorted[0];
-  const worst = sorted[sorted.length - 1];
 
   return (
-    <div className="flex gap-2 mt-4">
-      <div className="flex-1 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(34,197,94,0.08)' }}>
-        <span className="font-semibold" style={{ color: '#16a34a' }}>✓ Strength</span>
-        <div style={{ color: '#2a3a2a' }} className="mt-0.5">{best.label}</div>
+    <div className="mt-5 space-y-2.5">
+      <div className="text-xs font-semibold uppercase tracking-wide text-center" style={{ color: '#8a9a8a', letterSpacing: '0.08em' }}>
+        Component Scores
       </div>
-      <div className="flex-1 rounded-lg px-3 py-2 text-xs" style={{ backgroundColor: 'rgba(239,68,68,0.08)' }}>
-        <span className="font-semibold" style={{ color: '#dc2626' }}>↑ Needs work</span>
-        <div style={{ color: '#2a3a2a' }} className="mt-0.5">{worst.label}</div>
-      </div>
+      {sorted.map(c => {
+        const pct = Math.round(c.score);
+        const color = getScoreColor(pct);
+        return (
+          <div key={c.label}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium" style={{ color: '#4a5a4a' }}>{c.label}</span>
+              <span className="text-xs font-bold tabular-nums" style={{ color }}>{(c.score / 10).toFixed(1)}</span>
+            </div>
+            <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#e8e3d8' }}>
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: color }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -94,11 +105,11 @@ export default function ScoreCard({ metrics, compositeScore }: ScoreCardProps) {
         <CircularScore score={score} />
       </div>
 
+      {/* Component breakdown bars */}
+      {compositeScore && <ComponentBreakdown compositeScore={compositeScore} />}
+
       {/* Verdict — prominent */}
       <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
-
-      {/* Best / Worst callout */}
-      {compositeScore && <BestWorstCallout compositeScore={compositeScore} />}
 
       {/* Walker Infographic */}
       <WalkerInfographic score={score / 10} />

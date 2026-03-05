@@ -21,7 +21,7 @@ export function computeTransitAccess(osmData: OSMData, lat: number, lon: number)
   const elements = osmData.rawElements || [];
 
   let busStops = 0;
-  let railStations = 0;
+  let railStops = 0;
 
   for (const el of elements) {
     const tags = el.tags || {};
@@ -36,17 +36,17 @@ export function computeTransitAccess(osmData: OSMData, lat: number, lon: number)
       (tags.public_transport === 'stop_position' && !isRail) ||
       (tags.public_transport === 'platform' && tags.bus === 'yes');
 
-    if (isRail) railStations++;
+    if (isRail) railStops++;
     else if (isBus) busStops++;
   }
 
-  const totalStops = busStops + railStations;
+  const totalStops = busStops + railStops;
   // Score: rail stations worth more; 10 if ≥15 stops or ≥2 rail stations
-  const railBonus = Math.min(railStations * 3, 6);
+  const railBonus = Math.min(railStops * 3, 6);
   const busScore = Math.min(busStops / 15 * 7, 7);
   const score = Math.min(Math.round((busScore + railBonus) * 10) / 10, 10);
 
-  return { busStops, railStations, totalStops, score };
+  return { busStops, railStops, ferryStops: 0, totalStops, score };
 }
 
 export function computeParkAccess(osmData: OSMData, lat: number, lon: number): ParkAccessData {

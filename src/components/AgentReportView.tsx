@@ -725,9 +725,9 @@ export default function AgentReportView() {
                       })()}
                       {ni.transit && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.75rem' }}>
-                          {ni.transit.railStations > 0 && (
+                          {ni.transit.railStops > 0 && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.75rem', borderRadius: '9999px', fontSize: '0.75rem', background: 'rgba(139,92,246,0.1)', color: '#7c3aed', fontWeight: 600 }}>
-                              🚇 {ni.transit.railStations} rail
+                              🚇 {ni.transit.railStops} rail
                             </span>
                           )}
                           {ni.transit.busStops > 0 && (

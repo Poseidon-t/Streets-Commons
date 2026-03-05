@@ -134,6 +134,7 @@ export function calculateMetrics(
   return {
     destinationAccess,
     treeCanopy,
+    speedEnvironment: data.networkGraph?.speedEnvironment?.score,
     overallScore,
     label: getScoreLabel(overallScore),
   };

@@ -65,12 +65,13 @@ export interface CompositeScoreInput {
   streetDesignScore?: number;        // 0-100 from EPA Walkability Index
   transitAccessScore?: number;       // 0-100 from Transitland/OSM (0-10 × 10)
   terrainScore?: number;             // 0-100 from OpenTopoData (0-10 × 10)
+  streetLightingScore?: number;      // 0-100 from Mapillary CV (0-10 × 10)
 }
 
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore } = input;
+  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore, streetLightingScore } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];
@@ -80,19 +81,22 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     const blockLen = scoreBlockLength(networkGraph);
     const netDensity = scoreNetworkDensity(networkGraph);
     const deadEnd = scoreDeadEndRatio(networkGraph);
+    const speedEnv = networkGraph.speedEnvironment;
 
     networkMetrics = [
-      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.30 },
-      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.30 },
-      { name: 'Network Density', score: netDensity.score, rawValue: `${netDensity.raw} km/km²`, weight: 0.20 },
-      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.20 },
+      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.25 },
+      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.25 },
+      { name: 'Network Density', score: netDensity.score, rawValue: `${netDensity.raw} km/km²`, weight: 0.15 },
+      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.15 },
+      { name: 'Speed Environment', score: speedEnv ? speedEnv.score * 10 : 0, rawValue: speedEnv ? `${speedEnv.avgSpeedKmh} km/h avg` : undefined, weight: 0.20 },
     ];
   } else {
     networkMetrics = [
-      { name: 'Intersection Density', score: 0, weight: 0.30 },
-      { name: 'Block Length', score: 0, weight: 0.30 },
-      { name: 'Network Density', score: 0, weight: 0.20 },
-      { name: 'Dead-End Ratio', score: 0, weight: 0.20 },
+      { name: 'Intersection Density', score: 0, weight: 0.25 },
+      { name: 'Block Length', score: 0, weight: 0.25 },
+      { name: 'Network Density', score: 0, weight: 0.15 },
+      { name: 'Dead-End Ratio', score: 0, weight: 0.15 },
+      { name: 'Speed Environment', score: 0, weight: 0.20 },
     ];
   }
 
@@ -105,18 +109,21 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (25%) — Tree Canopy + Terrain =====
+  // ===== 2. Environment (25%) — Tree Canopy + Terrain + Street Lighting =====
   const treeScore = scale10to100(legacy.treeCanopy);
   const terrainS = terrainScore ?? 0;
+  const lightingS = streetLightingScore ?? 0;
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy', score: treeScore, weight: 0.70 },
-    { name: 'Terrain', score: terrainS, weight: 0.30 },
+    { name: 'Tree Canopy',     score: treeScore, weight: 0.55 },
+    { name: 'Terrain',         score: terrainS,  weight: 0.20 },
+    { name: 'Street Lighting', score: lightingS, weight: 0.25 },
   ];
 
   const envItems = [
-    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.70 },
-    { score: terrainS > 0 ? terrainS : null, weight: 0.30 },
+    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.55 },
+    { score: terrainS > 0 ? terrainS : null,           weight: 0.20 },
+    { score: lightingS > 0 ? lightingS : null,          weight: 0.25 },
   ];
 
   const envScore = weightedAvg(envItems) || (legacy.treeCanopy > 0 ? treeScore : 50);

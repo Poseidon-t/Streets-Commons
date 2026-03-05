@@ -22,8 +22,8 @@ function getCommuteContext(c: CommuteData): string {
 }
 
 function getTransitContext(t: TransitAccessData): string {
-  if (t.railStations > 0 && t.busStops >= 5) return `Strong transit access — rail plus ${t.busStops} bus stops within walking distance.`;
-  if (t.railStations > 0) return `Rail access available, plus ${t.busStops} bus stop${t.busStops !== 1 ? 's' : ''}.`;
+  if (t.railStops > 0 && t.busStops >= 5) return `Strong transit access — rail plus ${t.busStops} bus stops within walking distance.`;
+  if (t.railStops > 0) return `Rail access available, plus ${t.busStops} bus stop${t.busStops !== 1 ? 's' : ''}.`;
   if (t.busStops >= 5) return `${t.busStops} bus stops nearby — decent bus service.`;
   if (t.busStops >= 2) return `Limited transit — only ${t.busStops} bus stops nearby.`;
   return 'No transit stops within walking distance — car-dependent for commuting.';
@@ -149,10 +149,10 @@ function CommuteBar({ commute }: { commute: CommuteData }) {
 function TransitBadges({ transit }: { transit: TransitAccessData }) {
   return (
     <div className="flex items-center gap-3 mt-3">
-      {transit.railStations > 0 && (
+      {transit.railStops > 0 && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ backgroundColor: 'rgba(139,92,246,0.1)' }}>
           <span className="text-base">🚇</span>
-          <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>{transit.railStations}</span>
+          <span className="text-sm font-semibold" style={{ color: '#7c3aed' }}>{transit.railStops}</span>
           <span className="text-xs" style={{ color: '#6d28d9' }}>rail</span>
         </div>
       )}

@@ -383,7 +383,7 @@ export default function ComparisonReportView() {
                 const t = r.neighborhoodIntel?.transit;
                 return (
                   <div key={i} style={{ padding: '0.75rem 1rem', textAlign: 'center', borderLeft: `1px solid ${C.border}`, fontSize: '0.8125rem', color: C.textMuted }}>
-                    {t ? `${t.busStops} bus, ${t.railStations} rail` : 'No data'}
+                    {t ? `${t.busStops} bus, ${t.railStops} rail` : 'No data'}
                   </div>
                 );
               })}

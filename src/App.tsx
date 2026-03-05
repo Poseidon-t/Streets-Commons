@@ -42,7 +42,9 @@ import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
 import { fetchTerrain } from './services/terrain';
-import { computeTransitAccess, computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
+import { fetchTransitAccess } from './services/transitAccess';
+import { fetchStreetFeatures } from './services/streetFeatures';
+import { computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
 import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
 
 interface AnalysisData {
@@ -89,6 +91,7 @@ function App() {
   const [neighborhoodIntel, setNeighborhoodIntel] = useState<NeighborhoodIntelligence | null>(null);
   const [streetCharacter, setStreetCharacter] = useState<StreetCharacterAnalysis | null>(null);
   const [streetCharacterLoading, setStreetCharacterLoading] = useState(false);
+  const [mapillaryCoverageGap, setMapillaryCoverageGap] = useState(false);
 
   // Premium access - Clerk integration
   const { user, isSignedIn } = useUser();
@@ -234,6 +237,7 @@ function App() {
     setStreetCharacter(null);
     setStreetCharacterLoading(false);
     setDemographicData(null);
+    setMapillaryCoverageGap(false);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
 
@@ -400,6 +404,10 @@ function App() {
       .catch(() => null),
     terrain: fetchTerrain(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    transitAccess: fetchTransitAccess(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
+    streetFeatures: fetchStreetFeatures(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
   });
 
   // Progressively update metrics as each satellite result arrives
@@ -420,6 +428,7 @@ function App() {
       streetDesign?: number;
       transitAccess?: number;
       terrain?: number;
+      streetLighting?: number;
     } = {};
     const raw: RawMetricData = {
       crossingCount: currentOsmData.crossings?.length,
@@ -446,6 +455,7 @@ function App() {
         streetDesignScore: extra.streetDesign,
         transitAccessScore: extra.transitAccess,
         terrainScore: extra.terrain,
+        streetLightingScore: extra.streetLighting,
       });
       setCompositeScore(composite);
     };
@@ -532,23 +542,28 @@ function App() {
       }
     });
 
-    // Compute transit, park, food access from existing OSM data (immediate, no API call)
-    const transit = computeTransitAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
+    // Compute park, food access from existing OSM data (immediate, no API call)
     const parks = computeParkAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
     const food = computeFoodAccess(currentOsmData, selectedLocation.lat, selectedLocation.lon);
     setNeighborhoodIntel(prev => ({
       commute: prev?.commute ?? null,
-      transit,
+      transit: null,
       parks,
       food,
       health: prev?.health ?? null,
       flood: prev?.flood ?? null,
     }));
 
-    // Feed OSM transit score into composite immediately
-    extra.transitAccess = transit.score * 10; // 0-10 → 0-100
-    markLoaded('transit');
-    recalc();
+    // Transit Access metric: Transitland GTFS only
+    promises.transitAccess.then(result => {
+      if (abortController.signal.aborted) return;
+      if (result) {
+        extra.transitAccess = result.score * 10; // 0-10 → 0-100
+        setNeighborhoodIntel(prev => prev ? { ...prev, transit: { busStops: result.busStops, railStops: result.railStops, ferryStops: result.ferryStops, totalStops: result.totalStops, score: result.score } } : prev);
+      }
+      markLoaded('transit');
+      recalc();
+    });
 
     // Terrain (async, from OpenTopoData)
     promises.terrain.then(result => {
@@ -557,6 +572,19 @@ function App() {
         extra.terrain = result.score * 10; // 0-10 → 0-100
         markLoaded('terrain');
       }
+      recalc();
+    });
+
+    // Street features (Mapillary CV) — street lights, crosswalk markings, speed signs
+    promises.streetFeatures.then(result => {
+      if (abortController.signal.aborted) return;
+      if (!result || result.coverageInsufficient) {
+        setMapillaryCoverageGap(true);
+      } else if (result.streetLighting) {
+        extra.streetLighting = result.streetLighting.score * 10; // 0-10 → 0-100
+        setMapillaryCoverageGap(false);
+      }
+      markLoaded('streetLighting');
       recalc();
     });
 
@@ -1372,7 +1400,7 @@ function App() {
 
             {/* Metrics Grid — fully free including detail expansion */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
             </div>
 
             {/* Street Network Analysis — free for all */}

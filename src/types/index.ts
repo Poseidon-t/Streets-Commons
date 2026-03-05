@@ -14,7 +14,8 @@ export interface WalkabilityMetrics {
   streetDesign?: number; // EPA National Walkability Index (street connectivity, transit, land use)
   commuteMode?: number; // Census ACS walk/bike/transit commute share
   transitAccess?: number; // Transit stops within 800m (Transitland / OSM)
-  terrain?: number; // Terrain flatness from elevation variance (OpenTopoData SRTM)
+  terrain?: number;       // Terrain flatness from elevation variance (OpenTopoData SRTM)
+  speedEnvironment?: number; // Vehicle speed environment (OSM maxspeed + highway type inference)
   overallScore: number;
   label: 'Excellent' | 'Good' | 'Fair' | 'Poor' | 'Critical';
 }
@@ -52,6 +53,11 @@ export interface NetworkGraph {
   totalStreetLengthKm: number;
   areaKm2: number;
   averageBlockLengthM: number;
+  speedEnvironment?: {
+    score: number;       // 0-10
+    avgSpeedKmh: number; // length-weighted average speed
+    lowSpeedPct: number; // % of network ≤30 km/h
+  };
 }
 
 // --- 4-Component Scoring System (0-100 + A-F) ---
@@ -229,10 +235,11 @@ export interface FloodRiskData {
   dataSource: 'FEMA NFHL';
 }
 
-/** Transit access computed from OSM data */
+/** Transit access from Transitland GTFS */
 export interface TransitAccessData {
   busStops: number;
-  railStations: number;
+  railStops: number;
+  ferryStops: number;
   totalStops: number;
   score: number;
 }
