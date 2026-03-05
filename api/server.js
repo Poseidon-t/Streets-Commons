@@ -6369,6 +6369,8 @@ app.get('/api/debug/epa-raw', async (req, res) => {
 // =============================================
 
 const REDDIT_MONITOR_FILE = process.env.REDDIT_MONITOR_FILE || path.join(__dirname, '..', 'data', 'reddit-monitor.json');
+const REDDIT_CONFIG_FILE = process.env.REDDIT_CONFIG_FILE || path.join(__dirname, '..', 'data', 'reddit-config.json');
+
 const REDDIT_SUBREDDITS = [
   // Highest value — people actively asking where/whether to live
   'FirstTimeHomeBuyer',     // "is X walkable?" questions daily
@@ -6403,11 +6405,13 @@ const REDDIT_KEYWORDS_TIER1 = [
 // TIER 2 — strong topical signal, good context for engagement but less direct
 const REDDIT_KEYWORDS_TIER2 = [
   'walkable', 'walkability',
+  'walking', 'walk to', 'on foot',
   'sidewalk', 'crosswalk', 'pedestrian safety',
   'traffic calming', 'road diet', 'complete streets',
-  'vision zero', 'street design',
+  'vision zero', 'street design', 'street safety',
   'bike lane', 'protected lane',
   'car dependent', 'car-dependent',
+  'stroad', 'mixed-use',
 ];
 
 // Combined for matching (tier tracked separately for scoring)
@@ -6416,16 +6420,32 @@ const REDDIT_KEYWORDS = [...REDDIT_KEYWORDS_TIER1, ...REDDIT_KEYWORDS_TIER2];
 // High-value subreddits where questions directly match SafeStreets use case
 const HIGH_VALUE_SUBREDDITS = new Set(['r/FirstTimeHomeBuyer', 'r/realestate', 'r/moving', 'r/homebuying']);
 
-function scoreRedditPost(title, snippet, subreddit) {
+// Dedicated walkability/urbanism communities — ALL posts are topically relevant by definition.
+// Skip keyword filter for these; their subreddit membership IS the relevance signal.
+const WALKABILITY_SUBREDDITS = new Set([
+  'r/walkable_cities', 'r/fuckcars', 'r/notjustbikes',
+  'r/VisionZero', 'r/strongtowns', 'r/streetdesign', 'r/urbandesign',
+  'r/urbanplanning',
+]);
+
+function scoreRedditPost(title, snippet, subreddit, cfg) {
+  const config = cfg || getRedditConfig();
+  const tier1 = config.keywordsTier1 || REDDIT_KEYWORDS_TIER1;
+  const tier2 = config.keywordsTier2 || REDDIT_KEYWORDS_TIER2;
+  const walkSubs = new Set((config.walkabilitySubreddits || []).map(s => `r/${s}`));
+  const highSubs = new Set((config.highValueSubreddits || []).map(s => `r/${s}`));
+
   const text = `${title} ${snippet}`.toLowerCase();
   const isQuestion = title.includes('?');
-  const tier1Matches = REDDIT_KEYWORDS_TIER1.filter(kw => text.includes(kw));
-  const tier2Matches = REDDIT_KEYWORDS_TIER2.filter(kw => text.includes(kw));
+  const tier1Matches = tier1.filter(kw => text.includes(kw));
+  const tier2Matches = tier2.filter(kw => text.includes(kw));
   let score = 0;
   score += tier1Matches.length * 3;
   score += tier2Matches.length * 1;
   if (isQuestion) score += 2;
-  if (HIGH_VALUE_SUBREDDITS.has(subreddit)) score += 2;
+  if (highSubs.has(subreddit)) score += 2;
+  // Dedicated walkability communities: all posts are relevant — give baseline score if nothing matched
+  if (walkSubs.has(subreddit) && score === 0) score = 2;
   return { score, tier1Matches, tier2Matches, isQuestion };
 }
 
@@ -6441,6 +6461,33 @@ function loadRedditMonitor() {
 
 function saveRedditMonitor() {
   try { fs.writeFileSync(REDDIT_MONITOR_FILE, JSON.stringify(redditCache, null, 2)); } catch {}
+}
+
+// ── Reddit Config (editable via admin UI) ─────────────────────────────────────
+let _redditConfigCache = null;
+
+function getRedditConfig() {
+  if (_redditConfigCache) return _redditConfigCache;
+  try {
+    if (fs.existsSync(REDDIT_CONFIG_FILE)) {
+      _redditConfigCache = JSON.parse(fs.readFileSync(REDDIT_CONFIG_FILE, 'utf8'));
+      return _redditConfigCache;
+    }
+  } catch {}
+  // Return hardcoded defaults
+  _redditConfigCache = {
+    subreddits: REDDIT_SUBREDDITS,
+    keywordsTier1: REDDIT_KEYWORDS_TIER1,
+    keywordsTier2: REDDIT_KEYWORDS_TIER2,
+    walkabilitySubreddits: [...WALKABILITY_SUBREDDITS].map(s => s.replace('r/', '')),
+    highValueSubreddits: [...HIGH_VALUE_SUBREDDITS].map(s => s.replace('r/', '')),
+  };
+  return _redditConfigCache;
+}
+
+function persistRedditConfig(config) {
+  _redditConfigCache = config;
+  try { fs.writeFileSync(REDDIT_CONFIG_FILE, JSON.stringify(config, null, 2)); } catch {}
 }
 
 // Parse Reddit RSS feed XML — no auth needed, works from datacenter IPs
@@ -6469,12 +6516,14 @@ function parseRedditRSS(xml) {
 }
 
 async function pollReddit() {
+  const config = getRedditConfig();
+  const subreddits = config.subreddits || REDDIT_SUBREDDITS;
   console.log('🔴 Polling Reddit for walkability mentions (RSS)...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
   const thirtyDaysAgo = Date.now() / 1000 - 30 * 24 * 3600;
 
-  for (const sub of REDDIT_SUBREDDITS) {
+  for (const sub of subreddits) {
     try {
       // RSS feed — no auth required, different rate limit bucket from JSON API
       const url = `https://www.reddit.com/r/${sub}/new/.rss?limit=50`;
@@ -6495,7 +6544,7 @@ async function pollReddit() {
         if (seenIds.has(p.id)) continue;
         if (p.created < thirtyDaysAgo) continue;
 
-        const { score: relevance, tier1Matches, tier2Matches, isQuestion } = scoreRedditPost(p.title, p.snippet, `r/${sub}`);
+        const { score: relevance, tier1Matches, tier2Matches, isQuestion } = scoreRedditPost(p.title, p.snippet, `r/${sub}`, config);
         if (relevance === 0) continue; // no keyword match at all
 
         matched_count++;
@@ -6559,6 +6608,44 @@ app.post('/api/admin/reddit-feed/status', async (req, res) => {
   const post = redditCache.posts.find(p => p.id === id);
   if (post) { post.status = status; saveRedditMonitor(); }
   res.json({ success: true });
+});
+
+// GET /api/admin/reddit-config — return current keyword/subreddit config
+app.get('/api/admin/reddit-config', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  res.json({ success: true, data: getRedditConfig() });
+});
+
+// POST /api/admin/reddit-config — save config, re-score cached posts, optionally re-poll
+app.post('/api/admin/reddit-config', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const config = req.body;
+  if (!config || !Array.isArray(config.subreddits) || !Array.isArray(config.keywordsTier1) || !Array.isArray(config.keywordsTier2)) {
+    return res.status(400).json({ error: 'Invalid config — subreddits, keywordsTier1, keywordsTier2 required' });
+  }
+  persistRedditConfig(config);
+
+  // Re-score all cached posts with the new keywords/subreddit rules
+  redditCache.posts = redditCache.posts.map(post => {
+    const { score, tier1Matches, tier2Matches, isQuestion } = scoreRedditPost(post.title, post.snippet, post.subreddit, config);
+    // Keep engaged/dismissed posts even if they no longer match (status already set)
+    const effectiveScore = (post.status !== 'new') ? Math.max(score, 1) : score;
+    return {
+      ...post,
+      tier: tier1Matches.length > 0 ? 1 : 2,
+      relevance: effectiveScore,
+      isQuestion,
+      matchedKeywords: [...tier1Matches, ...tier2Matches],
+    };
+  }).filter(p => p.relevance > 0);
+  saveRedditMonitor();
+
+  // Optionally trigger a fresh poll for newly added subreddits
+  if (req.query.repoll === 'true') {
+    await pollReddit();
+  }
+
+  res.json({ success: true, data: redditCache });
 });
 
 // Initial load + schedule polling every 30 min

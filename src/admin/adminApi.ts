@@ -90,5 +90,19 @@ export function useAdminApi() {
       adminFetch(`/api/admin/reddit-feed${reset ? '?reset=true' : refresh ? '?refresh=true' : ''}`),
     updateRedditPostStatus: (id: string, status: 'new' | 'dismissed' | 'engaged') =>
       adminFetch('/api/admin/reddit-feed/status', { method: 'POST', body: JSON.stringify({ id, status }) }),
+
+    // Reddit Config
+    fetchRedditConfig: () => adminFetch('/api/admin/reddit-config'),
+    saveRedditConfig: (config: {
+      subreddits: string[];
+      keywordsTier1: string[];
+      keywordsTier2: string[];
+      walkabilitySubreddits: string[];
+      highValueSubreddits: string[];
+    }, repoll = false) =>
+      adminFetch(`/api/admin/reddit-config${repoll ? '?repoll=true' : ''}`, {
+        method: 'POST',
+        body: JSON.stringify(config),
+      }),
   };
 }
