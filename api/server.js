@@ -6377,15 +6377,18 @@ const REDDIT_SUBREDDITS = [
   'realestate',             // walkability as buying factor
   'moving',                 // relocating, asking about specific neighborhoods
   'homebuying',             // similar to FirstTimeHomeBuyer
+  'renting',                // renters asking about neighborhoods
+  'ApartmentHunting',       // apartment seekers — walkability is a top filter
   // Core walkability communities — engaged, informed audience
   'walkable_cities',        // purpose-built for this topic
-  'fuckcars',               // anti-car-dependence, high engagement
+  'carfree',                // car-free lifestyle — directly SafeStreets audience
   'notjustbikes',           // largest pro-walkable-city community
-  'urbanplanning',          // planners and policy people
+  'urbanplanning',          // planners and policy people — keyword match required
   'VisionZero',             // road safety — pedestrian deaths/injuries
   'strongtowns',            // Strong Towns urbanism
   'streetdesign',           // street-level design
   'urbandesign',            // broader design context
+  'transit',                // transit riders care about walkable last-mile access
 ];
 
 // TIER 1 — someone is ASKING about walkability or safety of a specific place
@@ -6418,14 +6421,13 @@ const REDDIT_KEYWORDS_TIER2 = [
 const REDDIT_KEYWORDS = [...REDDIT_KEYWORDS_TIER1, ...REDDIT_KEYWORDS_TIER2];
 
 // High-value subreddits where questions directly match SafeStreets use case
-const HIGH_VALUE_SUBREDDITS = new Set(['r/FirstTimeHomeBuyer', 'r/realestate', 'r/moving', 'r/homebuying']);
+const HIGH_VALUE_SUBREDDITS = new Set(['r/FirstTimeHomeBuyer', 'r/realestate', 'r/moving', 'r/homebuying', 'r/renting', 'r/ApartmentHunting']);
 
 // Dedicated walkability/urbanism communities — ALL posts are topically relevant by definition.
 // Skip keyword filter for these; their subreddit membership IS the relevance signal.
 const WALKABILITY_SUBREDDITS = new Set([
-  'r/walkable_cities', 'r/fuckcars', 'r/notjustbikes',
+  'r/walkable_cities', 'r/carfree', 'r/notjustbikes',
   'r/VisionZero', 'r/strongtowns', 'r/streetdesign', 'r/urbandesign',
-  'r/urbanplanning',
 ]);
 
 function scoreRedditPost(title, snippet, subreddit, cfg) {
@@ -6504,13 +6506,20 @@ function parseRedditRSS(xml) {
     const link = getAttr('link', 'href');
     const content = get('content');
     const updated = get('updated');
-    const authorName = entry.match(/<author>[\s\S]*?<name>([^<]+)<\/name>/)?.[1]?.trim() || '';
+    // Strip leading /u/ or u/ prefix — display will add its own u/ label
+    const rawAuthor = entry.match(/<author>[\s\S]*?<name>([^<]+)<\/name>/)?.[1]?.trim() || '';
+    const authorName = rawAuthor.replace(/^\/?(u\/)/i, '');
     // Extract Reddit post ID from link: /r/sub/comments/ID/title/
     const idMatch = link.match(/\/comments\/([a-z0-9]+)\//);
     const id = idMatch ? idMatch[1] : link;
     const created = updated ? Math.floor(new Date(updated).getTime() / 1000) : Math.floor(Date.now() / 1000);
-    // Strip HTML tags from content for snippet
-    const snippet = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+    // Decode HTML entities, strip HTML comments and tags, then clean whitespace
+    const decoded = content
+      .replace(/<!--[\s\S]*?-->/g, ' ')          // strip HTML comments
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'")
+      .replace(/<[^>]+>/g, ' ')                   // strip actual HTML tags
+      .replace(/&[a-z]+;/g, ' ');                 // strip any remaining entities
+    const snippet = decoded.replace(/\s+/g, ' ').trim().slice(0, 200);
     if (title && link) items.push({ id, title, url: link, snippet, author: authorName, created });
   }
   return items;
