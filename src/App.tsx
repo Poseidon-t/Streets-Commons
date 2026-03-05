@@ -4,6 +4,7 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
+import WalkingAtmosphere from './components/streetcheck/WalkingAtmosphere';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
@@ -1367,6 +1368,11 @@ function App() {
               <Map location={location} osmData={osmData} />
               <ScoreCard metrics={metrics} compositeScore={compositeScore} />
             </div>
+
+            {/* Walking atmosphere — cinematic feel for this location */}
+            {compositeScore && (
+              <WalkingAtmosphere compositeScore={compositeScore} />
+            )}
 
             {/* Persona quick-answers — right below score for immediate "what does this mean for me?" */}
             {compositeScore && (
