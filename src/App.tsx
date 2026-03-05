@@ -1752,6 +1752,101 @@ function App() {
               </div>
             </section>
 
+            {/* Pricing / Pro Section */}
+            <section className="py-16 bg-white/50">
+              <div className="max-w-4xl mx-auto px-6">
+                <div className="text-center mb-10">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>Simple, Honest Pricing</h2>
+                  <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: '#6b7a6b' }}>
+                    The core analysis is free forever. Pro unlocks comparison, reports, and branding — one payment, no subscription.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                  {/* Free tier */}
+                  <div className="rounded-2xl border p-6 flex flex-col" style={{ backgroundColor: '#faf8f4', borderColor: '#e0dbd0' }}>
+                    <div className="mb-4">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(74,138,74,0.1)', color: '#4a8a4a' }}>Free</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-bold" style={{ color: '#2a3a2a' }}>$0</span>
+                        <span className="text-sm" style={{ color: '#8a9a8a' }}>forever</span>
+                      </div>
+                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>No sign-up required</p>
+                    </div>
+                    <ul className="space-y-2.5 flex-1">
+                      {[
+                        'Walkability score for any address worldwide',
+                        'Street metrics — canopy, design, destinations',
+                        'Interactive map with OSM data',
+                        'Neighborhood intelligence (health, flood, transit)',
+                        'Persona analysis for 5 buyer types',
+                        'Walking atmosphere visualization',
+                      ].map(f => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
+                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#4a8a4a" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()}
+                      className="mt-6 w-full py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-[#f0ebe0]"
+                      style={{ borderColor: '#c8c0b0', color: '#4a5a4a' }}
+                    >
+                      Get started free
+                    </button>
+                  </div>
+
+                  {/* Pro tier */}
+                  <div className="rounded-2xl border-2 p-6 flex flex-col relative" style={{ backgroundColor: '#ffffff', borderColor: '#e07850' }}>
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>Most Popular</span>
+                    </div>
+                    <div className="mb-4">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Pro</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-4xl font-bold" style={{ color: '#2a3a2a' }}>$49</span>
+                        <span className="text-sm" style={{ color: '#8a9a8a' }}>one-time</span>
+                      </div>
+                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>Lifetime access, no renewal</p>
+                    </div>
+                    <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#8a9a8a' }}>Everything in Free, plus:</p>
+                    <ul className="space-y-2.5 flex-1">
+                      {[
+                        { text: 'Compare up to 4 addresses side-by-side', bold: true },
+                        { text: 'Shareable walkability reports (PDF + link)', bold: true },
+                        { text: 'Your logo & branding on every report', bold: true },
+                        { text: '3 free branded reports to try before you pay', bold: false },
+                        { text: 'Perfect for real estate agents & urban planners', bold: false },
+                      ].map(f => (
+                        <li key={f.text} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
+                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#e07850" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span style={{ fontWeight: f.bold ? 600 : 400 }}>{f.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      onClick={() => isSignedIn ? setShowProUpgradeModal(true) : setShowSignInModal(true)}
+                      className="mt-6 w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
+                      style={{ backgroundColor: '#e07850' }}
+                    >
+                      Get Pro — $49 One-Time
+                    </button>
+                    <div className="mt-3 flex items-center justify-center gap-1 text-xs" style={{ color: '#8a9a8a' }}>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Secure checkout via Stripe
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             {/* Branded Reports CTA */}
             <section className="py-12 bg-white/30">
               <div className="max-w-5xl mx-auto px-6">
