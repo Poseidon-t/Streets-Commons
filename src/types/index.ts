@@ -58,6 +58,11 @@ export interface NetworkGraph {
     avgSpeedKmh: number; // length-weighted average speed
     lowSpeedPct: number; // % of network ≤30 km/h
   };
+  noiseEnvironment?: {
+    score: number;       // 0-10 (10 = quietest)
+    avgNoiseDb: number;  // length-weighted avg estimated dB
+  };
+  osmLitScore?: number | null;  // 0-10 from OSM lit tags; null = insufficient tagging coverage
 }
 
 // --- 4-Component Scoring System (0-100 + A-F) ---

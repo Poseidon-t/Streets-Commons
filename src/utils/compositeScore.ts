@@ -65,13 +65,14 @@ export interface CompositeScoreInput {
   streetDesignScore?: number;        // 0-100 from EPA Walkability Index
   transitAccessScore?: number;       // 0-100 from Transitland/OSM (0-10 × 10)
   terrainScore?: number;             // 0-100 from OpenTopoData (0-10 × 10)
-  streetLightingScore?: number;      // 0-100 from Mapillary CV (0-10 × 10)
+  streetLightingScore?: number;      // 0-100 from Mapillary CV or OSM lit tags (0-10 × 10)
+  airQualityScore?: number;          // 0-100 from OpenAQ (0-10 × 10)
 }
 
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore, streetLightingScore } = input;
+  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore, streetLightingScore, airQualityScore } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];
@@ -109,21 +110,28 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (25%) — Tree Canopy + Terrain + Street Lighting =====
+  // ===== 2. Environment (25%) — Tree Canopy + Terrain + Street Lighting + Noise + Air Quality =====
   const treeScore = scale10to100(legacy.treeCanopy);
   const terrainS = terrainScore ?? 0;
   const lightingS = streetLightingScore ?? 0;
+  const airQualS = airQualityScore ?? 0;
+  const noiseEnv = networkGraph?.noiseEnvironment;
+  const noiseS = noiseEnv ? noiseEnv.score * 10 : 0;
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy',     score: treeScore, weight: 0.55 },
-    { name: 'Terrain',         score: terrainS,  weight: 0.20 },
-    { name: 'Street Lighting', score: lightingS, weight: 0.25 },
+    { name: 'Tree Canopy',     score: treeScore, weight: 0.25 },
+    { name: 'Terrain',         score: terrainS,  weight: 0.10 },
+    { name: 'Street Lighting', score: lightingS, weight: 0.15 },
+    { name: 'Air Quality',     score: airQualS,  weight: 0.30 },
+    { name: 'Noise',           score: noiseS,    weight: 0.20 },
   ];
 
   const envItems = [
-    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.55 },
-    { score: terrainS > 0 ? terrainS : null,           weight: 0.20 },
-    { score: lightingS > 0 ? lightingS : null,          weight: 0.25 },
+    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.25 },
+    { score: terrainS > 0 ? terrainS : null,            weight: 0.10 },
+    { score: lightingS > 0 ? lightingS : null,          weight: 0.15 },
+    { score: airQualS > 0 ? airQualS : null,            weight: 0.30 },
+    { score: noiseS > 0 ? noiseS : null,                weight: 0.20 },
   ];
 
   const envScore = weightedAvg(envItems) || (legacy.treeCanopy > 0 ? treeScore : 50);

@@ -420,7 +420,6 @@ function App() {
     const scores: {
       ndvi?: number;
       surfaceTemp?: number;
-      airQuality?: number;
       heatIsland?: number;
     } = {};
     const extra: {
@@ -429,6 +428,7 @@ function App() {
       transitAccess?: number;
       terrain?: number;
       streetLighting?: number;
+      airQuality?: number;
     } = {};
     const raw: RawMetricData = {
       crossingCount: currentOsmData.crossings?.length,
@@ -456,6 +456,7 @@ function App() {
         transitAccessScore: extra.transitAccess,
         terrainScore: extra.terrain,
         streetLightingScore: extra.streetLighting,
+        airQualityScore: extra.airQuality,
       });
       setCompositeScore(composite);
     };
@@ -494,8 +495,9 @@ function App() {
     });
     promises.airQuality.then(result => {
       if (result) {
-        scores.airQuality = result.score;
+        extra.airQuality = result.score * 10; // 0-10 → 0-100
       }
+      markLoaded('airQuality');
       recalc();
     });
     promises.heatIsland.then(result => {
@@ -579,7 +581,14 @@ function App() {
     promises.streetFeatures.then(result => {
       if (abortController.signal.aborted) return;
       if (!result || result.coverageInsufficient) {
-        setMapillaryCoverageGap(true);
+        // Mapillary has no coverage — fall back to OSM lit tags if available
+        const osmLit = currentOsmData.networkGraph?.osmLitScore;
+        if (osmLit != null) {
+          extra.streetLighting = osmLit * 10; // 0-10 → 0-100
+          setMapillaryCoverageGap(false); // have fallback data, no gap
+        } else {
+          setMapillaryCoverageGap(true);
+        }
       } else if (result.streetLighting) {
         extra.streetLighting = result.streetLighting.score * 10; // 0-10 → 0-100
         setMapillaryCoverageGap(false);

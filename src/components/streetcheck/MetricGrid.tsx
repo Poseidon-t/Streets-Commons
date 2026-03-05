@@ -91,6 +91,18 @@ function getInsight(key: string, score: number): string {
         : score >= 5 ? 'Moderate lighting — some gaps at night'
         : score >= 3 ? 'Sparse lighting — limited after-dark safety'
         : 'Very low lighting density detected';
+    case 'airQuality':
+      return score >= 9 ? 'Clean air — meets WHO 2021 guidelines'
+        : score >= 7 ? 'Good air quality — minor pollution'
+        : score >= 5 ? 'Moderate pollution — sensitive groups should take care'
+        : score >= 3 ? 'Elevated pollution — regular walkers at risk'
+        : 'High pollution — air quality is a significant health concern';
+    case 'noise':
+      return score >= 9 ? 'Very quiet streets — pedestrian or residential only'
+        : score >= 7 ? 'Calm neighbourhood — mostly residential roads'
+        : score >= 5 ? 'Moderate noise — some busier roads mixed in'
+        : score >= 3 ? 'Noisy arterials — significant traffic noise'
+        : 'High noise environment — major roads dominate';
     default:
       return '';
   }
@@ -199,6 +211,28 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : s >= 3 ? 'Faster street network. Arterials at 50–60 km/h dominate. Crossing roads feels more dangerous and crossings may be far apart.'
       : 'High-speed network. Roads moving at 60+ km/h create a hostile walking environment and significantly increase injury risk when crossings occur.',
   },
+  airQuality: {
+    what: 'Concentration of fine particulate matter (PM2.5) in the air — the primary outdoor air pollutant affecting health during walks.',
+    how: 'Queries the nearest monitoring station within 25km via OpenAQ, which aggregates data from 15,000+ government stations worldwide. PM2.5 is scored against WHO 2021 air quality guidelines (annual mean target: 5 µg/m³).',
+    source: 'OpenAQ (live monitoring stations)',
+    getMeans: (s) =>
+      s >= 9 ? 'Excellent air quality — PM2.5 meets or beats the strictest WHO 2021 annual guideline (5 µg/m³). Breathing during walks presents no elevated risk.'
+      : s >= 7 ? 'Good air quality — PM2.5 is low. Occasional brief exceedances may occur, but long-term walking risk is minimal.'
+      : s >= 5 ? 'Moderate air quality — PM2.5 is above WHO guidelines. Sensitive individuals (asthma, heart conditions) should consider shorter or early-morning walks.'
+      : s >= 3 ? 'Elevated pollution — regular outdoor activity carries a meaningful health risk. Walkers should check daily AQI before going out.'
+      : 'High pollution — PM2.5 levels create real health risk for regular walkers. This is a significant walkability barrier, particularly for children and older adults.',
+  },
+  noise: {
+    what: 'Estimated road traffic noise exposure based on the types and speeds of roads in the area — noise is the second-largest urban health risk after air pollution.',
+    how: 'Uses WHO road noise models calibrated to road type (motorway ≈76 dB, primary ≈69 dB, residential ≈54 dB, living street ≈44 dB). Computes a length-weighted average dB level across all streets in the 800m radius. No external API — derived from existing OpenStreetMap road data.',
+    source: 'OpenStreetMap (road type × WHO noise model)',
+    getMeans: (s) =>
+      s >= 9 ? 'Very quiet streets — mostly pedestrian zones and living streets below 45 dB. Well within WHO guidelines for noise-sensitive areas.'
+      : s >= 7 ? 'Calm neighbourhood — predominantly residential roads around 50–54 dB. Most people find this comfortable for walking and relaxing outdoors.'
+      : s >= 5 ? 'Moderate noise — tertiary roads and some busier streets bring levels to 57–61 dB. Above WHO\'s recommended 53 dB daytime target, but typical for urban neighbourhoods.'
+      : s >= 3 ? 'Noisy arterials — secondary and primary roads dominate, creating 62–65 dB exposure. Research links this level to cardiovascular effects from chronic exposure.'
+      : 'High noise environment — major roads or expressways create 65+ dB exposure. At this level, outdoor walking near busy roads carries real long-term health implications.',
+  },
 };
 
 // --- Components ---
@@ -273,6 +307,29 @@ const METRICS: MetricDef[] = [
     group: 'environment',
     getScore: (_m, cs) => {
       const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Street Lighting');
+      return m ? m.score / 10 : 0;
+    },
+  },
+  {
+    key: 'airQuality',
+    name: 'Air Quality',
+    icon: '🌬️',
+    source: 'OpenAQ',
+    satKey: 'airQuality',
+    group: 'environment',
+    getScore: (_m, cs) => {
+      const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Air Quality');
+      return m ? m.score / 10 : 0;
+    },
+  },
+  {
+    key: 'noise',
+    name: 'Noise',
+    icon: '🔊',
+    source: 'OSM road model',
+    group: 'environment',
+    getScore: (_m, cs) => {
+      const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Noise');
       return m ? m.score / 10 : 0;
     },
   },

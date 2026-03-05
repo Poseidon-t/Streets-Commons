@@ -289,6 +289,34 @@ function parseMaxspeedKmh(raw: string | undefined): number | undefined {
   return lower.includes('mph') ? Math.round(val * 1.609) : val;
 }
 
+// Road noise model (dB Leq) by highway type — WHO road traffic noise estimates
+const ROAD_NOISE_DB: Record<string, number> = {
+  motorway:     76,
+  trunk:        73,
+  primary:      69,
+  secondary:    65,
+  tertiary:     61,
+  unclassified: 57,
+  residential:  54,
+  service:      49,
+  living_street: 44,
+  pedestrian:   37,
+  footway:      32,
+  cycleway:     30,
+};
+
+function scoreNoiseEnvironment(avgDb: number): number {
+  // WHO guideline: <53 dB daytime recommended for residential areas
+  if (avgDb <= 44) return 10;  // living streets / pedestrian zones
+  if (avgDb <= 49) return 9;   // very quiet service/residential mix
+  if (avgDb <= 54) return 8;   // quiet residential
+  if (avgDb <= 57) return 6;   // mixed residential/unclassified
+  if (avgDb <= 61) return 5;   // tertiary roads mixed in
+  if (avgDb <= 65) return 3;   // secondary roads dominant
+  if (avgDb <= 70) return 2;   // primary/trunk arteries
+  return 1;                    // motorway/expressway
+}
+
 function scoreSpeedEnvironment(avgKmh: number, lowSpeedPct: number): number {
   let base: number;
   if (avgKmh <= 15)      base = 10;
@@ -371,10 +399,14 @@ function processOSMData(data: any): OSMData {
       ? totalStreetLengthM / intersections.length
       : totalStreetLengthM;
 
-  // Speed environment: length-weighted average vehicle speed from maxspeed tags + highway type inference
+  // Speed + noise environment: single loop over all street ways
   let speedLengthTotal = 0;
   let speedWeightedSum = 0;
   let lowSpeedLength = 0; // ≤30 km/h
+  let noiseWeightedSum = 0;
+  // OSM lit tag tracking
+  let litYes = 0, litNo = 0, litTagged = 0;
+
   for (const way of streetWays) {
     let wayLen = 0;
     for (let i = 0; i < way.nodes.length - 1; i++) {
@@ -382,13 +414,39 @@ function processOSMData(data: any): OSMData {
       const b = nodes.get(way.nodes[i + 1].toString());
       if (a && b) wayLen += haversineM(a.lat, a.lon, b.lat, b.lon);
     }
-    const speed = parseMaxspeedKmh(way.tags?.maxspeed) ?? HIGHWAY_DEFAULT_SPEED[way.tags?.highway] ?? 50;
+    const hwType = way.tags?.highway ?? 'unclassified';
+    const speed = parseMaxspeedKmh(way.tags?.maxspeed) ?? HIGHWAY_DEFAULT_SPEED[hwType] ?? 50;
+    const noiseDb = ROAD_NOISE_DB[hwType] ?? 57;
+
     speedLengthTotal += wayLen;
     speedWeightedSum += speed * wayLen;
+    noiseWeightedSum += noiseDb * wayLen;
     if (speed <= 30) lowSpeedLength += wayLen;
+
+    // OSM lit tag (count ways, not length — proxy for street coverage)
+    const lit = way.tags?.lit;
+    if (lit) {
+      litTagged++;
+      if (lit === 'yes') litYes++;
+      else if (lit === 'no') litNo++;
+    }
   }
+
   const avgSpeedKmh = speedLengthTotal > 0 ? Math.round(speedWeightedSum / speedLengthTotal) : 50;
   const lowSpeedPct = speedLengthTotal > 0 ? Math.round((lowSpeedLength / speedLengthTotal) * 100) : 0;
+  const avgNoiseDb = speedLengthTotal > 0 ? Math.round(noiseWeightedSum / speedLengthTotal) : 60;
+
+  // OSM lit fallback: use only if ≥30% of ways have lit tags
+  let osmLitScore: number | null = null;
+  if (streetWays.length > 0 && litTagged / streetWays.length >= 0.3) {
+    const litPct = litTagged > 0 ? litYes / litTagged : 0;
+    if (litPct >= 0.9) osmLitScore = 9;
+    else if (litPct >= 0.75) osmLitScore = 8;
+    else if (litPct >= 0.6) osmLitScore = 6;
+    else if (litPct >= 0.4) osmLitScore = 4;
+    else if (litPct >= 0.2) osmLitScore = 3;
+    else osmLitScore = 2;
+  }
 
   const networkGraph: NetworkGraph = {
     intersections,
@@ -401,6 +459,11 @@ function processOSMData(data: any): OSMData {
       avgSpeedKmh,
       lowSpeedPct,
     },
+    noiseEnvironment: {
+      score: scoreNoiseEnvironment(avgNoiseDb),
+      avgNoiseDb,
+    },
+    osmLitScore,
   };
 
   return {
