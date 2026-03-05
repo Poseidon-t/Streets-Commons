@@ -6442,8 +6442,9 @@ function scoreRedditPost(title, snippet, subreddit, cfg) {
   let score = 0;
   score += tier1Matches.length * 3;
   score += tier2Matches.length * 1;
-  if (isQuestion) score += 2;
-  if (highSubs.has(subreddit)) score += 2;
+  const hasKeywordHit = tier1Matches.length > 0 || tier2Matches.length > 0;
+  if (isQuestion && hasKeywordHit) score += 2;   // question bonus only if keyword also matched
+  if (highSubs.has(subreddit) && hasKeywordHit) score += 2; // high-value bonus only with keyword
   // Dedicated walkability communities: all posts are relevant — give baseline score if nothing matched
   if (walkSubs.has(subreddit) && score === 0) score = 2;
   return { score, tier1Matches, tier2Matches, isQuestion };
