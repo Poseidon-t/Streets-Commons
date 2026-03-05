@@ -6,7 +6,6 @@ import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
 import WalkingAtmosphere from './components/streetcheck/WalkingAtmosphere';
 import Map from './components/Map';
-import WalkerInfographic from './components/WalkerInfographic';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -840,15 +839,15 @@ function App() {
 
       {/* Hero Section - Side-by-side with topographic texture */}
       {!compareMode && !location && !isAnalyzing && (
-        <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 50%, #e8f0eb 100%)' }}>
+        <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(160deg, #fdf6f0 0%, #f8f0e8 25%, #f0ece4 55%, #eaf0e8 100%)' }}>
           {/* Topographic contour background */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.03 }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.06 }}>
             <defs>
               <pattern id="topoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-                <path d="M 100 10 Q 140 30, 180 25 Q 195 60, 170 90 Q 150 120, 100 110 Q 50 100, 30 70 Q 15 40, 50 20 Q 70 10, 100 10 Z" fill="none" stroke="#4a8a4a" strokeWidth="1"/>
-                <path d="M 100 30 Q 130 45, 160 40 Q 175 65, 155 85 Q 140 100, 100 95 Q 65 88, 50 65 Q 38 48, 60 35 Q 75 28, 100 30 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.8"/>
-                <path d="M 100 50 Q 120 58, 140 55 Q 150 70, 135 80 Q 125 88, 100 85 Q 78 80, 70 65 Q 64 55, 78 50 Q 88 46, 100 50 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.6"/>
-                <path d="M 100 65 Q 112 68, 120 66 Q 125 73, 118 78 Q 112 82, 100 80 Q 90 78, 85 72 Q 82 67, 90 65 Q 95 63, 100 65 Z" fill="none" stroke="#4a8a4a" strokeWidth="0.5"/>
+                <path d="M 100 10 Q 140 30, 180 25 Q 195 60, 170 90 Q 150 120, 100 110 Q 50 100, 30 70 Q 15 40, 50 20 Q 70 10, 100 10 Z" fill="none" stroke="#c06030" strokeWidth="1"/>
+                <path d="M 100 30 Q 130 45, 160 40 Q 175 65, 155 85 Q 140 100, 100 95 Q 65 88, 50 65 Q 38 48, 60 35 Q 75 28, 100 30 Z" fill="none" stroke="#c06030" strokeWidth="0.8"/>
+                <path d="M 100 50 Q 120 58, 140 55 Q 150 70, 135 80 Q 125 88, 100 85 Q 78 80, 70 65 Q 64 55, 78 50 Q 88 46, 100 50 Z" fill="none" stroke="#c06030" strokeWidth="0.6"/>
+                <path d="M 100 65 Q 112 68, 120 66 Q 125 73, 118 78 Q 112 82, 100 80 Q 90 78, 85 72 Q 82 67, 90 65 Q 95 63, 100 65 Z" fill="none" stroke="#c06030" strokeWidth="0.5"/>
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#topoPattern)"/>
@@ -922,54 +921,70 @@ function App() {
 
               </div>
 
-              {/* Right column — Product preview */}
+              {/* Right column — Live example card */}
               <div className="flex justify-center">
                 <div className="w-full max-w-md">
-                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5">
+                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 relative overflow-hidden">
+
+                    {/* Warm top accent strip */}
+                    <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: 'linear-gradient(90deg, #e07850 0%, #f59e0b 100%)' }} />
 
                     {/* Header */}
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-3 mt-1">
                       <div className="flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4a8a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Your address</span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Brooklyn, NY</span>
                       </div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-lg font-bold" style={{ color: '#b0bab0' }}>—</span>
-                        <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: '#fef3ec', color: '#c05c30' }}>Example</span>
+                        <div className="flex items-baseline gap-0.5">
+                          <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.4</span>
+                          <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Score bar — empty, waiting */}
-                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }} />
+                    {/* Score bar */}
+                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
+                      <div className="h-full rounded-full" style={{ width: '74%', background: 'linear-gradient(90deg, #84cc16, #22c55e)' }} />
+                    </div>
 
-                    {/* 4 real component names — no fake scores */}
-                    <div className="grid grid-cols-2 gap-2 mb-4">
+                    {/* Component bars */}
+                    <div className="space-y-2 mb-4">
                       {[
-                        { label: 'Network Design',   sub: 'Street connectivity' },
-                        { label: 'Environment',       sub: 'Trees, air & noise' },
-                        { label: 'Street Design',     sub: 'EPA walkability data' },
-                        { label: 'Accessibility',     sub: 'Destinations & transit' },
-                      ].map(m => (
-                        <div key={m.label} className="px-2.5 py-2 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-                          <div className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>{m.label}</div>
-                          <div className="text-[10px] mt-0.5" style={{ color: '#8a9a8a' }}>{m.sub}</div>
-                          <div className="h-1 rounded-full mt-1.5" style={{ backgroundColor: '#e0dbd0' }} />
+                        { label: 'Network Design',         score: 82, color: '#22c55e' },
+                        { label: 'Density & Destinations', score: 78, color: '#22c55e' },
+                        { label: 'Environmental Comfort',  score: 61, color: '#84cc16' },
+                        { label: 'Safety',                 score: 55, color: '#eab308' },
+                      ].map(c => (
+                        <div key={c.label}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs" style={{ color: '#4a5a4a' }}>{c.label}</span>
+                            <span className="text-xs font-bold tabular-nums" style={{ color: c.color }}>{(c.score / 10).toFixed(1)}</span>
+                          </div>
+                          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+                            <div className="h-full rounded-full" style={{ width: `${c.score}%`, backgroundColor: c.color }} />
+                          </div>
                         </div>
                       ))}
                     </div>
 
-                    {/* What you get */}
-                    <div className="border-t pt-3 space-y-2" style={{ borderColor: '#e0dbd0' }}>
-                      {[
-                        'Animated street scene from your score',
-                        'Persona fit: families, commuters, car-free',
-                        '15-minute city neighborhood map',
-                      ].map(line => (
-                        <div key={line} className="flex items-center gap-2">
-                          <svg className="flex-shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4a8a4a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
-                          <span className="text-xs" style={{ color: '#6a7a6a' }}>{line}</span>
-                        </div>
-                      ))}
+                    {/* Persona quick row */}
+                    <div className="border-t pt-3" style={{ borderColor: '#f0ebe0' }}>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#b0a898' }}>Who it works for</div>
+                      <div className="flex gap-2 flex-wrap">
+                        {[
+                          { name: 'Daily Commuter', color: '#22c55e', score: 79 },
+                          { name: 'Car-Free Living', color: '#84cc16', score: 71 },
+                          { name: 'Remote Workers', color: '#eab308', score: 58 },
+                        ].map(p => (
+                          <div key={p.name} className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium" style={{ backgroundColor: '#f8f6f1', color: '#4a5a4a' }}>
+                            <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
+                            {p.name}
+                            <span style={{ color: p.color, fontWeight: 700 }}>{p.score}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                   </div>
@@ -1401,13 +1416,10 @@ function App() {
             </h2>
 
             {/* Row 1: Map + Score side by side */}
-            <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16">
+            <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16 lg:items-start">
               <Map location={location} osmData={osmData} />
               <ScoreCard metrics={metrics} compositeScore={compositeScore} />
             </div>
-
-            {/* Row 1b: Walker Infographic — full-width, human translation of the score */}
-            <WalkerInfographic score={(compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10)) / 10} />
 
             {/* Walking atmosphere — always rendered, skeleton until compositeScore loads */}
             <WalkingAtmosphere compositeScore={compositeScore} />

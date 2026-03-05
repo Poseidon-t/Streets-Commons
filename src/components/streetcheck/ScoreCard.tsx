@@ -1,5 +1,6 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
+import WalkerInfographic from '../WalkerInfographic';
 import { scoreColor100 as getScoreColor } from '../../utils/colors';
 
 interface ScoreCardProps {
@@ -102,6 +103,9 @@ export default function ScoreCard({ metrics, compositeScore }: ScoreCardProps) {
 
       {/* Verdict — prominent */}
       <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
+
+      {/* Walker Infographic — human translation of the score */}
+      <WalkerInfographic score={score / 10} />
 
       {/* Confidence note while still loading */}
       {compositeScore && compositeScore.confidence < 80 && (
