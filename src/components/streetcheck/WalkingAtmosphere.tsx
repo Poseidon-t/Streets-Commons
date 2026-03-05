@@ -318,6 +318,8 @@ function renderFrame(
 // ── Component ──────────────────────────────────────────────────────────────
 interface WalkingAtmosphereProps {
   compositeScore: WalkabilityScoreV2 | null;
+  /** When true: no rounded corners or border — renders flush inside a parent container */
+  seamless?: boolean;
 }
 
 function WalkingAtmosphereSkeleton() {
@@ -361,7 +363,7 @@ function WalkingAtmosphereSkeleton() {
   );
 }
 
-export default function WalkingAtmosphere({ compositeScore }: WalkingAtmosphereProps) {
+export default function WalkingAtmosphere({ compositeScore, seamless }: WalkingAtmosphereProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   if (!compositeScore) return <WalkingAtmosphereSkeleton />;
@@ -412,8 +414,8 @@ export default function WalkingAtmosphere({ compositeScore }: WalkingAtmosphereP
 
   return (
     <div
-      className="rounded-2xl border overflow-hidden relative"
-      style={{ borderColor: '#e0dbd0' }}
+      className={seamless ? 'overflow-hidden relative' : 'rounded-2xl border overflow-hidden relative'}
+      style={seamless ? {} : { borderColor: '#e0dbd0' }}
     >
       <canvas
         ref={canvasRef}

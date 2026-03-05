@@ -1415,14 +1415,22 @@ function App() {
               {location.displayName}
             </h2>
 
-            {/* Row 1: Map + Score side by side */}
-            <div id="score" className="grid grid-cols-1 lg:grid-cols-2 gap-6 scroll-mt-16 lg:items-start">
-              <Map location={location} osmData={osmData} />
-              <ScoreCard metrics={metrics} compositeScore={compositeScore} />
+            {/* Unified panel: Map | Score + Walking atmosphere below */}
+            <div id="score" className="rounded-2xl overflow-hidden border scroll-mt-16" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}>
+              {/* Top row: Map left, ScoreCard right */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 lg:divide-x" style={{ borderColor: '#e0dbd0' }}>
+                <div className="overflow-hidden" style={{ minHeight: 280 }}>
+                  <Map location={location} osmData={osmData} />
+                </div>
+                <div className="p-5 sm:p-6 lg:p-7">
+                  <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded />
+                </div>
+              </div>
+              {/* Walking atmosphere flush below, no own border */}
+              <div style={{ borderTop: '1px solid #e0dbd0' }}>
+                <WalkingAtmosphere compositeScore={compositeScore} seamless />
+              </div>
             </div>
-
-            {/* Walking atmosphere — always rendered, skeleton until compositeScore loads */}
-            <WalkingAtmosphere compositeScore={compositeScore} />
 
             {/* Persona quick-answers — always rendered, skeleton until compositeScore loads */}
             <PersonaCards compositeScore={compositeScore} />
