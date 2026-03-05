@@ -1,15 +1,8 @@
 import type { NeighborhoodIntelligence, CommuteData, TransitAccessData, ParkAccessData, FoodAccessData, CDCHealthData, FloodRiskData } from '../../types';
+import { scoreColor10 as getScoreColor } from '../../utils/colors';
 
 interface NeighborhoodIntelSectionProps {
   neighborhoodIntel: NeighborhoodIntelligence | null;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 8) return '#22c55e';
-  if (score >= 6) return '#84cc16';
-  if (score >= 4) return '#eab308';
-  if (score >= 2) return '#f97316';
-  return '#ef4444';
 }
 
 // --- Context generators (one-line summaries) ---

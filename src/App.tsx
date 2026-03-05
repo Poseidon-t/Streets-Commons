@@ -6,6 +6,7 @@ import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
 import WalkingAtmosphere from './components/streetcheck/WalkingAtmosphere';
 import Map from './components/Map';
+import WalkerInfographic from './components/WalkerInfographic';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -55,6 +56,41 @@ interface AnalysisData {
   osmData: OSMData;
   compositeScore?: WalkabilityScoreV2 | null;
   streetDesignScore?: number;
+}
+
+const ANALYSIS_STEPS = [
+  { label: 'Fetching street network', delay: 0 },
+  { label: 'Mapping walkways & crossings', delay: 1400 },
+  { label: 'Computing walkability score', delay: 3000 },
+];
+
+function AnalysisProgress() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const timers = ANALYSIS_STEPS.slice(1).map((s, i) =>
+      setTimeout(() => setStep(i + 1), s.delay)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, []);
+  return (
+    <div className="flex flex-col gap-2 mt-5">
+      {ANALYSIS_STEPS.map((s, i) => (
+        <div key={s.label} className="flex items-center gap-2.5 text-sm">
+          {i < step ? (
+            <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="7" fill="#22c55e" />
+              <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          ) : i === step ? (
+            <div className="w-4 h-4 border-2 flex-shrink-0 rounded-full border-orange-500 border-t-transparent animate-spin" />
+          ) : (
+            <div className="w-4 h-4 flex-shrink-0 rounded-full border-2" style={{ borderColor: '#d1cfc8' }} />
+          )}
+          <span style={{ color: i <= step ? '#3a4a3a' : '#a0a8a0' }}>{s.label}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 const URBANIST_QUOTES = [
@@ -866,75 +902,76 @@ function App() {
                       className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
                       aria-label="Use my current location"
                     >
-                      📍 Use my location
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Use my location
+                      </span>
                     </button>
                     <span className="text-earth-text-light text-sm">·</span>
                     <button
                       onClick={activateDemoMode}
                       className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
                     >
-                      ▶ Watch Demo
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Watch Demo
+                      </span>
                     </button>
                   </div>
                 </div>
 
               </div>
 
-              {/* Right column - Preview Card */}
+              {/* Right column — Product preview */}
               <div className="flex justify-center">
                 <div className="w-full max-w-md">
                   <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5">
+
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">📍</span>
-                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Portland, OR</span>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4a8a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Your address</span>
                       </div>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.2</span>
+                        <span className="text-lg font-bold" style={{ color: '#b0bab0' }}>—</span>
                         <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
                       </div>
                     </div>
-                    {/* Score bar */}
-                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
-                      <div className="h-full rounded-full transition-all duration-1000 ease-out" style={{ width: '72%', backgroundColor: '#84cc16' }} />
-                    </div>
-                    {/* 4 US metrics grid */}
+
+                    {/* Score bar — empty, waiting */}
+                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }} />
+
+                    {/* 4 real component names — no fake scores */}
                     <div className="grid grid-cols-2 gap-2 mb-4">
                       {[
-                        { icon: '🌳', name: 'Tree Canopy', score: '6.5' },
-                        { icon: '🛣️', name: 'Street Design', score: '7.4' },
-                        { icon: '🏪', name: 'Destinations', score: '7.1' },
-                        { icon: '🚶', name: 'Commute Mode', score: '6.8' },
+                        { label: 'Network Design',   sub: 'Street connectivity' },
+                        { label: 'Environment',       sub: 'Trees, air & noise' },
+                        { label: 'Street Design',     sub: 'EPA walkability data' },
+                        { label: 'Accessibility',     sub: 'Destinations & transit' },
                       ].map(m => (
-                        <div key={m.name} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-                          <span className="text-xs" style={{ color: '#6a7a6a' }}>{m.icon} {m.name}</span>
-                          <span className="text-xs font-bold" style={{ color: '#2a3a2a' }}>{m.score}</span>
+                        <div key={m.label} className="px-2.5 py-2 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
+                          <div className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>{m.label}</div>
+                          <div className="text-[10px] mt-0.5" style={{ color: '#8a9a8a' }}>{m.sub}</div>
+                          <div className="h-1 rounded-full mt-1.5" style={{ backgroundColor: '#e0dbd0' }} />
                         </div>
                       ))}
                     </div>
-                    {/* Neighborhood Intelligence preview */}
-                    <div className="border-t pt-3 space-y-2.5" style={{ borderColor: '#e0dbd0' }}>
-                      <div>
-                        <p className="text-xs font-semibold mb-1.5" style={{ color: '#2a3a2a' }}>Getting Around</p>
-                        <div className="flex h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
-                          <div className="h-full" style={{ width: '28%', backgroundColor: '#22c55e' }} title="Walk 28%" />
-                          <div className="h-full" style={{ width: '8%', backgroundColor: '#3b82f6' }} title="Bike 8%" />
-                          <div className="h-full" style={{ width: '12%', backgroundColor: '#8b5cf6' }} title="Transit 12%" />
-                          <div className="h-full" style={{ width: '15%', backgroundColor: '#06b6d4' }} title="WFH 15%" />
+
+                    {/* What you get */}
+                    <div className="border-t pt-3 space-y-2" style={{ borderColor: '#e0dbd0' }}>
+                      {[
+                        'Animated street scene from your score',
+                        'Persona fit: families, commuters, car-free',
+                        '15-minute city neighborhood map',
+                      ].map(line => (
+                        <div key={line} className="flex items-center gap-2">
+                          <svg className="flex-shrink-0" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4a8a4a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 13l4 4L19 7"/></svg>
+                          <span className="text-xs" style={{ color: '#6a7a6a' }}>{line}</span>
                         </div>
-                        <div className="flex gap-3 mt-1">
-                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟢 28% walk</span>
-                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🔵 8% bike</span>
-                          <span className="text-[10px]" style={{ color: '#8a9a8a' }}>🟣 12% transit</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🛒 3 supermarkets</span>
-                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#f0fdf4', color: '#16a34a' }}>🌳 5 parks</span>
-                        <span className="text-xs px-2 py-1 rounded-md" style={{ backgroundColor: '#eff6ff', color: '#2563eb' }}>🌊 Low risk</span>
-                      </div>
+                      ))}
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -1326,9 +1363,9 @@ function App() {
         {/* Single Location Loading */}
         {!compareMode && isAnalyzing && (
           <div className="flex flex-col items-center py-16">
-            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-lg text-gray-600" aria-live="polite">Analyzing walkability...</p>
-            <p className="text-sm text-gray-500">Fetching OpenStreetMap data</p>
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-5" />
+            <p className="text-lg font-semibold" style={{ color: '#2a3a2a' }} aria-live="polite">Analyzing walkability...</p>
+            <AnalysisProgress />
             {analysisQuote && (
               <div className="mt-10 max-w-sm text-center px-6">
                 <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a', fontStyle: 'italic' }}>
@@ -1369,15 +1406,14 @@ function App() {
               <ScoreCard metrics={metrics} compositeScore={compositeScore} />
             </div>
 
-            {/* Walking atmosphere — cinematic feel for this location */}
-            {compositeScore && (
-              <WalkingAtmosphere compositeScore={compositeScore} />
-            )}
+            {/* Row 1b: Walker Infographic — full-width, human translation of the score */}
+            <WalkerInfographic score={(compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10)) / 10} />
 
-            {/* Persona quick-answers — right below score for immediate "what does this mean for me?" */}
-            {compositeScore && (
-              <PersonaCards compositeScore={compositeScore} />
-            )}
+            {/* Walking atmosphere — always rendered, skeleton until compositeScore loads */}
+            <WalkingAtmosphere compositeScore={compositeScore} />
+
+            {/* Persona quick-answers — always rendered, skeleton until compositeScore loads */}
+            <PersonaCards compositeScore={compositeScore} />
 
             {/* Compact data quality badge */}
             {dataQuality && (
@@ -1427,14 +1463,28 @@ function App() {
               />
             )}
 
-            {/* Street Audit CTA */}
+            {/* 15-Minute City Score — surfaced before share actions */}
+            <div id="neighborhood" className="scroll-mt-16">
+              <ErrorBoundary sectionName="15-Minute City">
+                <Suspense fallback={null}>
+                  <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+
+            {/* Street Audit CTA — direct action after seeing all the data */}
             <div
               className="rounded-2xl border p-5 flex items-center justify-between gap-4"
               style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
             >
               <div>
-                <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>
-                  📋 Want to take action on this analysis?
+                <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#2a3a2a' }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                    <path d="M9 12h6M9 16h4"/>
+                  </svg>
+                  Want to take action on this analysis?
                 </div>
                 <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
                   Generate a structured report to share with landlords, property managers, or local authorities
@@ -1464,30 +1514,21 @@ function App() {
               </ErrorBoundary>
             )}
 
-            {/* Share + Export — right after metrics so users can act immediately */}
+            {/* Share + Export */}
             <div id="report-actions">
-            <ErrorBoundary sectionName="Share Buttons">
-              <Suspense fallback={null}>
-                <ShareButtons
-                  location={location}
-                  metrics={metrics}
-                  compositeScore={compositeScore}
-                  dataQuality={dataQuality || undefined}
-                  isPremium={true}
-                  onShareReport={() => setShowReportCard(true)}
-                />
-              </Suspense>
-            </ErrorBoundary>
-
+              <ErrorBoundary sectionName="Share Buttons">
+                <Suspense fallback={null}>
+                  <ShareButtons
+                    location={location}
+                    metrics={metrics}
+                    compositeScore={compositeScore}
+                    dataQuality={dataQuality || undefined}
+                    isPremium={true}
+                    onShareReport={() => setShowReportCard(true)}
+                  />
+                </Suspense>
+              </ErrorBoundary>
             </div>
-
-            {/* 15-Minute City Score (free for all users) */}
-            <div id="neighborhood" className="scroll-mt-16"></div>
-            <ErrorBoundary sectionName="15-Minute City">
-              <Suspense fallback={null}>
-                <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
-              </Suspense>
-            </ErrorBoundary>
 
 
 

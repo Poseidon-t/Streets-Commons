@@ -1,18 +1,10 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
-import WalkerInfographic from '../WalkerInfographic';
+import { scoreColor100 as getScoreColor } from '../../utils/colors';
 
 interface ScoreCardProps {
   metrics: WalkabilityMetrics;
   compositeScore?: WalkabilityScoreV2 | null;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 80) return '#22c55e';
-  if (score >= 60) return '#84cc16';
-  if (score >= 40) return '#eab308';
-  if (score >= 20) return '#f97316';
-  return '#ef4444';
 }
 
 function getScoreTier(score: number): string {
@@ -110,9 +102,6 @@ export default function ScoreCard({ metrics, compositeScore }: ScoreCardProps) {
 
       {/* Verdict — prominent */}
       <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
-
-      {/* Walker Infographic */}
-      <WalkerInfographic score={score / 10} />
 
       {/* Confidence note while still loading */}
       {compositeScore && compositeScore.confidence < 80 && (

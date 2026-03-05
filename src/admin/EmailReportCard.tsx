@@ -6,6 +6,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import html2canvas from 'html2canvas';
+import { scoreColor10 as getScoreColor } from '../utils/colors';
 
 interface ReportData {
   location: { displayName: string; lat: number; lon: number };
@@ -35,14 +36,6 @@ interface ReportData {
   } | null;
   agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string };
   percentile?: { overall: number; context: string } | null;
-}
-
-function getScoreColor(s: number): string {
-  if (s >= 8) return '#22c55e';
-  if (s >= 6) return '#84cc16';
-  if (s >= 4) return '#eab308';
-  if (s >= 2) return '#f97316';
-  return '#ef4444';
 }
 
 function getGradeLabel(s: number): string {

@@ -58,11 +58,13 @@ function SubMetricBar({ name, score, rawValue }: { name: string; score: number; 
   );
 }
 
+const SKELETON_WIDTHS: Record<string, string> = { 'full': '100%', '4/5': '80%', '3/5': '60%', '1/2': '50%', '2/5': '40%', '1/3': '33%' };
+
 function SkeletonLine({ w = 'full' }: { w?: string }) {
   return (
     <div
-      className={`h-3 rounded animate-pulse w-${w}`}
-      style={{ backgroundColor: '#e8e3d8' }}
+      className="h-3 rounded animate-pulse"
+      style={{ backgroundColor: '#e8e3d8', width: SKELETON_WIDTHS[w] ?? '100%' }}
     />
   );
 }

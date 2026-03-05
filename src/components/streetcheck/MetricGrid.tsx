@@ -4,6 +4,7 @@ import EconomicContextSection from './EconomicContextSection';
 import EquityContextSection from './EquityContextSection';
 import NeighborhoodIntelSection from './NeighborhoodIntelSection';
 import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
+import { scoreColor10 as getScoreColor } from '../../utils/colors';
 
 interface MetricGridProps {
   metrics: WalkabilityMetrics;
@@ -17,14 +18,6 @@ interface MetricGridProps {
   neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
   mapillaryCoverageGap?: boolean;
-}
-
-function getScoreColor(score: number): string {
-  if (score >= 8) return '#22c55e';
-  if (score >= 6) return '#84cc16';
-  if (score >= 4) return '#eab308';
-  if (score >= 2) return '#f97316';
-  return '#ef4444';
 }
 
 function getCardBackground(score: number): string {

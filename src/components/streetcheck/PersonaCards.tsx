@@ -1,7 +1,43 @@
 import type { WalkabilityScoreV2 } from '../../types';
 
 interface PersonaCardsProps {
-  compositeScore: WalkabilityScoreV2;
+  compositeScore: WalkabilityScoreV2 | null;
+}
+
+const PERSONA_NAMES = ['Daily Commuter', 'Families', 'Older Adults', 'Car-Free Living', 'Remote Workers'];
+const SKELETON_NAME_WIDTHS = [88, 56, 76, 84, 96];
+const SKELETON_SUB_WIDTHS  = [160, 128, 148, 136, 120];
+
+function PersonaCardsSkeleton() {
+  return (
+    <div
+      className="rounded-2xl border overflow-hidden"
+      style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
+    >
+      <div className="px-4 sm:px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: '#e0dbd0' }}>
+        <div className="h-2.5 w-36 rounded" style={{ backgroundColor: '#e8e3d8' }} />
+        <div className="h-2.5 w-14 rounded" style={{ backgroundColor: '#e8e3d8' }} />
+      </div>
+      <div className="divide-y" style={{ borderColor: '#f0ebe2' }}>
+        {PERSONA_NAMES.map((_, i) => (
+          <div key={i} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-5 py-3">
+            <div className="w-[3px] self-stretch rounded-full flex-shrink-0 animate-pulse" style={{ backgroundColor: '#e8e3d8', minHeight: 36 }} />
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="h-3 rounded animate-pulse" style={{ width: SKELETON_NAME_WIDTHS[i], backgroundColor: '#e8e3d8' }} />
+              <div className="h-2.5 rounded animate-pulse" style={{ width: SKELETON_SUB_WIDTHS[i], backgroundColor: '#f0ede5' }} />
+            </div>
+            <div className="w-20 sm:w-28 flex-shrink-0">
+              <div className="h-1.5 rounded-full animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
+            </div>
+            <div className="text-right flex-shrink-0 w-[88px] space-y-1.5">
+              <div className="h-3 w-8 rounded animate-pulse ml-auto" style={{ backgroundColor: '#e8e3d8' }} />
+              <div className="h-2 w-16 rounded animate-pulse ml-auto" style={{ backgroundColor: '#f0ede5' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 interface PersonaResult {
@@ -132,6 +168,8 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
 }
 
 export default function PersonaCards({ compositeScore }: PersonaCardsProps) {
+  if (!compositeScore) return <PersonaCardsSkeleton />;
+
   const personas = computePersonas(compositeScore);
 
   return (

@@ -317,11 +317,54 @@ function renderFrame(
 
 // ── Component ──────────────────────────────────────────────────────────────
 interface WalkingAtmosphereProps {
-  compositeScore: WalkabilityScoreV2;
+  compositeScore: WalkabilityScoreV2 | null;
+}
+
+function WalkingAtmosphereSkeleton() {
+  return (
+    <div
+      className="rounded-2xl border overflow-hidden relative"
+      style={{ borderColor: '#e0dbd0', height: 220, backgroundColor: '#e8e4da' }}
+    >
+      {/* Shimmer */}
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ borderRadius: 'inherit' }}
+      >
+        <div
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.22) 50%, transparent 100%)',
+            animation: 'skeleton-shimmer 1.8s ease-in-out infinite',
+          }}
+        />
+      </div>
+      {/* Fake sky gradient */}
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(180deg, #c8d8e8 0%, #d8e8d0 60%, #b8c8a8 75%, #c0bba0 100%)', opacity: 0.45 }}
+      />
+      {/* Bottom text placeholder */}
+      <div
+        className="absolute bottom-0 left-0 right-0 p-4"
+        style={{ background: 'linear-gradient(to top, rgba(5,8,15,0.45) 0%, transparent 100%)' }}
+      >
+        <div className="h-4 w-36 rounded mb-2" style={{ backgroundColor: 'rgba(255,255,255,0.18)' }} />
+        <div className="h-2.5 w-56 rounded mb-3" style={{ backgroundColor: 'rgba(255,255,255,0.10)' }} />
+        <div className="flex gap-2">
+          {[52, 68, 60, 44].map(w => (
+            <div key={w} className="h-5 rounded-full" style={{ width: w, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function WalkingAtmosphere({ compositeScore }: WalkingAtmosphereProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  if (!compositeScore) return <WalkingAtmosphereSkeleton />;
 
   // Derive display data (runs during render, not in effect)
   const sig       = extractSignals(compositeScore);
@@ -372,7 +415,14 @@ export default function WalkingAtmosphere({ compositeScore }: WalkingAtmosphereP
       className="rounded-2xl border overflow-hidden relative"
       style={{ borderColor: '#e0dbd0' }}
     >
-      <canvas ref={canvasRef} width={CW} height={CH} className="w-full block" />
+      <canvas
+        ref={canvasRef}
+        width={CW}
+        height={CH}
+        className="w-full block"
+        role="img"
+        aria-label={`Animated street scene — ${archetype.name}: ${archetype.tagline}`}
+      />
 
       {/* Gradient overlay */}
       <div
