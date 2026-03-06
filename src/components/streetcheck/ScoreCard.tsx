@@ -6,6 +6,8 @@ import { scoreColor100 as getScoreColor } from '../../utils/colors';
 interface ScoreCardProps {
   metrics: WalkabilityMetrics;
   compositeScore?: WalkabilityScoreV2 | null;
+  /** When true: no card border/bg/shadow — renders as embedded content on a parent background */
+  embedded?: boolean;
 }
 
 function getScoreTier(score: number): string {
@@ -25,7 +27,7 @@ function CircularScore({ score }: { score: number }) {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-[120px] h-[120px] sm:w-[160px] sm:h-[160px]">
+      <div className="relative w-[140px] h-[140px] sm:w-[160px] sm:h-[160px]">
         <svg viewBox="0 0 160 160" className="w-full h-full transform -rotate-90">
           <circle cx="80" cy="80" r={radius} stroke="#e0dbd0" strokeWidth="12" fill="none" />
           <circle
@@ -38,7 +40,7 @@ function CircularScore({ score }: { score: number }) {
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <div className="text-4xl sm:text-5xl font-bold" style={{ color }}>{displayScore}</div>
+          <div className="text-5xl font-bold" style={{ color }}>{displayScore}</div>
           <div className="text-xs mt-[-2px]" style={{ color: '#8a9a8a' }}>out of 10</div>
           <div className="text-xs font-semibold mt-1" style={{ color }}>{getScoreTier(score)}</div>
         </div>
@@ -60,8 +62,8 @@ function ComponentBreakdown({ compositeScore }: { compositeScore: WalkabilitySco
   const sorted = [...components].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="mt-5 space-y-2.5">
-      <div className="text-xs font-semibold uppercase tracking-wide text-center" style={{ color: '#8a9a8a', letterSpacing: '0.08em' }}>
+    <div className="space-y-3">
+      <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#8a9a8a', letterSpacing: '0.08em' }}>
         Component Scores
       </div>
       {sorted.map(c => {
@@ -86,33 +88,45 @@ function ComponentBreakdown({ compositeScore }: { compositeScore: WalkabilitySco
   );
 }
 
-export default function ScoreCard({ metrics, compositeScore }: ScoreCardProps) {
+export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCardProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
 
-  return (
-    <div className="rounded-2xl shadow-sm p-4 sm:p-6 md:p-8 border flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center" style={{ color: '#2a3a2a' }}>
-        Walkability Score
-      </h2>
-      <div className="flex-1 flex flex-col items-center justify-center">
-        <CircularScore score={score} />
+  const content = (
+    <>
+      {/* Desktop: ring left, breakdown right. Mobile: stacked */}
+      <div className="flex flex-col lg:flex-row lg:gap-8 lg:items-start">
+
+        {/* Left — circular score */}
+        <div className="flex flex-col items-center lg:items-start lg:w-[180px] flex-shrink-0">
+          <CircularScore score={score} />
+          {/* Confidence note — compact, below ring */}
+          {compositeScore && compositeScore.confidence < 80 && (
+            <div className="mt-2 text-xs text-center lg:text-left" style={{ color: '#8a9a8a' }}>
+              {compositeScore.confidence}% confidence — loading more data
+            </div>
+          )}
+        </div>
+
+        {/* Right — breakdown + verdict */}
+        <div className="flex-1 mt-5 lg:mt-0 space-y-4">
+          {compositeScore && <ComponentBreakdown compositeScore={compositeScore} />}
+          <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
+        </div>
       </div>
 
-      {/* Component breakdown bars */}
-      {compositeScore && <ComponentBreakdown compositeScore={compositeScore} />}
+      {/* Walker Infographic — full width, below both columns */}
+      <WalkerInfographic score={score / 10} compact={embedded} />
+    </>
+  );
 
-      {/* Verdict — prominent */}
-      <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
+  if (embedded) {
+    return <div className="h-full flex flex-col justify-center">{content}</div>;
+  }
 
-      {/* Walker Infographic — human translation of the score */}
-      <WalkerInfographic score={score / 10} />
-
-      {/* Confidence note while still loading */}
-      {compositeScore && compositeScore.confidence < 80 && (
-        <div className="mt-4 text-xs text-center" style={{ color: '#8a9a8a' }}>
-          Loading more data... ({compositeScore.confidence}% confidence)
-        </div>
-      )}
+  return (
+    <div className="rounded-2xl shadow-sm p-5 sm:p-6 border flex flex-col" style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}>
+      <h2 className="text-lg font-bold mb-4 text-center" style={{ color: '#2a3a2a' }}>Walkability Score</h2>
+      {content}
     </div>
   );
 }

@@ -11,6 +11,8 @@ interface WalkerInfographicProps {
   score: number;
   /** Use inline styles instead of Tailwind (for print/PDF contexts) */
   inline?: boolean;
+  /** When true: no top/bottom border or vertical margin — for use inside a card */
+  compact?: boolean;
 }
 
 function getColor(score: number): string {
@@ -20,7 +22,7 @@ function getColor(score: number): string {
   return '#ef4444';                   // red
 }
 
-export default function WalkerInfographic({ score, inline }: WalkerInfographicProps) {
+export default function WalkerInfographic({ score, inline, compact }: WalkerInfographicProps) {
   const filled = Math.max(0, Math.min(10, Math.round(score)));
   const empty = 10 - filled;
   const color = getColor(score);
@@ -54,7 +56,7 @@ export default function WalkerInfographic({ score, inline }: WalkerInfographicPr
   }
 
   return (
-    <div className="py-6 my-6 border-t border-b" style={{ borderColor: '#e0dbd0' }}>
+    <div className={compact ? 'pt-4 mt-4 border-t' : 'py-6 my-6 border-t border-b'} style={{ borderColor: '#e0dbd0' }}>
       <p className="text-center text-sm mb-4" style={{ color: '#6b7a6b' }}>
         Out of 10 people, how many could walk here comfortably?
       </p>

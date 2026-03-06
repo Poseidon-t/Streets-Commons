@@ -8,6 +8,8 @@ import { ANALYSIS_RADIUS, COLORS } from '../constants';
 interface MapProps {
   location: Location | null;
   osmData?: OSMData | null;
+  /** When true: no own border/rounded/shadow — renders flush inside a parent container */
+  seamless?: boolean;
 }
 
 // OpenFreeMap — free, no API key, OpenStreetMap-based vector tiles
@@ -59,7 +61,7 @@ function getPOILabel(poi: any): string {
   return 'POI';
 }
 
-export default function Map({ location, osmData }: MapProps) {
+export default function Map({ location, osmData, seamless }: MapProps) {
   const [popupInfo, setPopupInfo] = useState<{ lon: number; lat: number; title: string; subtitle: string } | null>(null);
 
   const initialViewState = useMemo(() => ({
@@ -163,7 +165,7 @@ export default function Map({ location, osmData }: MapProps) {
   };
 
   return (
-    <div className="w-full rounded-2xl overflow-hidden shadow-lg border-2" style={{ borderColor: '#e0dbd0' }}>
+    <div className={`w-full overflow-hidden${seamless ? '' : ' rounded-2xl shadow-lg border-2'}`} style={seamless ? {} : { borderColor: '#e0dbd0' }}>
       {/* Legend */}
       {osmData && (
         <div className="px-4 py-3 border-b" style={{ backgroundColor: 'rgba(255,255,255,0.92)', borderColor: '#e0dbd0' }}>

@@ -1049,7 +1049,8 @@ function App() {
             </button>
             <button
               onClick={handleCompareMode}
-              className="px-4 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg text-sm sm:text-base bg-orange-500"
+              className="px-4 sm:px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg text-sm sm:text-base"
+              style={{ backgroundColor: '#e07850' }}
             >
               Compare with Another Location
             </button>
@@ -1410,17 +1411,17 @@ function App() {
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
           <div className={`space-y-6 ${demoMode ? 'pt-12' : ''}`}>
-            {/* Location name */}
+            {/* Location name — show first 2 comma-separated segments to avoid wrapping */}
             <h2 className="text-2xl font-bold text-center text-earth-text-dark">
-              {location.displayName}
+              {location.displayName.split(',').slice(0, 2).join(',')}
             </h2>
 
             {/* Unified panel: Map | Score + Walking atmosphere below */}
             <div id="score" className="rounded-2xl overflow-hidden border scroll-mt-16" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}>
               {/* Top row: Map left, ScoreCard right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:divide-x" style={{ borderColor: '#e0dbd0' }}>
-                <div className="overflow-hidden" style={{ minHeight: 280 }}>
-                  <Map location={location} osmData={osmData} />
+              <div className="grid grid-cols-1 lg:grid-cols-2">
+                <div className="overflow-hidden lg:border-r" style={{ minHeight: 280, borderColor: '#e0dbd0' }}>
+                  <Map location={location} osmData={osmData} seamless />
                 </div>
                 <div className="p-5 sm:p-6 lg:p-7">
                   <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded />
@@ -1560,32 +1561,6 @@ function App() {
                 subtext="New metrics, city reports, and walkability research — delivered occasionally. No spam."
               />
             </Suspense>
-
-            {/* What's next? — compare or share nudge at the bottom of results */}
-            <div className="rounded-2xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-              <p className="text-sm font-semibold mb-3 text-center" style={{ color: '#2a3a2a' }}>What do you want to do next?</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button
-                  onClick={handleCompareMode}
-                  className="px-5 py-2.5 rounded-xl font-semibold text-white text-sm transition-all hover:shadow-lg bg-orange-500"
-                >
-                  Compare with another neighborhood
-                </button>
-                <button
-                  onClick={() => {
-                    setLocation(null);
-                    setMetrics(null);
-                    setDataQuality(null);
-                    setOsmData(null);
-                    window.history.pushState({}, '', window.location.pathname);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="px-5 py-2.5 rounded-xl font-semibold text-sm transition-all hover:shadow-lg border-2 border-earth-border text-earth-text-dark bg-white"
-                >
-                  Search another address
-                </button>
-              </div>
-            </div>
 
             {/* --- Tier 4: Reference --- */}
             <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">

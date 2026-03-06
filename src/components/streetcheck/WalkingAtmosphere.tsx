@@ -322,11 +322,11 @@ interface WalkingAtmosphereProps {
   seamless?: boolean;
 }
 
-function WalkingAtmosphereSkeleton() {
+function WalkingAtmosphereSkeleton({ seamless }: { seamless?: boolean }) {
   return (
     <div
-      className="rounded-2xl border overflow-hidden relative"
-      style={{ borderColor: '#e0dbd0', height: 220, backgroundColor: '#e8e4da' }}
+      className={seamless ? 'overflow-hidden relative' : 'rounded-2xl border overflow-hidden relative'}
+      style={{ ...(seamless ? {} : { borderColor: '#e0dbd0' }), height: 220, backgroundColor: '#e8e4da' }}
     >
       {/* Shimmer */}
       <div
@@ -366,7 +366,7 @@ function WalkingAtmosphereSkeleton() {
 export default function WalkingAtmosphere({ compositeScore, seamless }: WalkingAtmosphereProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  if (!compositeScore) return <WalkingAtmosphereSkeleton />;
+  if (!compositeScore) return <WalkingAtmosphereSkeleton seamless={seamless} />;
 
   // Derive display data (runs during render, not in effect)
   const sig       = extractSignals(compositeScore);
