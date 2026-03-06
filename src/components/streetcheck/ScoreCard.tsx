@@ -1,6 +1,5 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
-import WalkerInfographic from '../WalkerInfographic';
 import { scoreColor100 as getScoreColor } from '../../utils/colors';
 
 interface ScoreCardProps {
@@ -114,8 +113,6 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
         </div>
       </div>
 
-      {/* Walker Infographic — full width, below both columns */}
-      <WalkerInfographic score={score / 10} compact={embedded} />
     </>
   );
 

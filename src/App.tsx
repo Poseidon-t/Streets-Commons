@@ -4,7 +4,7 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
-import WalkingAtmosphere from './components/streetcheck/WalkingAtmosphere';
+import StreetVibe from './components/streetcheck/StreetVibe';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
@@ -1410,9 +1410,9 @@ function App() {
                   <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded />
                 </div>
               </div>
-              {/* Walking atmosphere flush below, no own border */}
+              {/* Street vibe — archetype + sense chips */}
               <div style={{ borderTop: '1px solid #e0dbd0' }}>
-                <WalkingAtmosphere compositeScore={compositeScore} seamless />
+                <StreetVibe compositeScore={compositeScore} />
               </div>
             </div>
 
