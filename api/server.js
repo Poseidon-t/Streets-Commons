@@ -292,26 +292,30 @@ function trackEvent(eventType, req, extra = {}) {
       today.analyses++;
       analyticsStore.allTime.analyses++;
       if (extra.location) {
-        analyticsStore.searches.push({
+        const search = {
           ts: new Date().toISOString(),
           name: extra.location.displayName || '',
           lat: extra.location.lat,
           lon: extra.location.lon,
-        });
+        };
+        analyticsStore.searches.push(search);
         saveAnalytics();
+        pushSearchToAirtable(search); // persist to Airtable — survives Railway redeployments
       }
       break;
     case 'analysis_complete':
       today.analyses++;
       analyticsStore.allTime.analyses++;
       if (extra.location) {
-        analyticsStore.searches.push({
+        const search = {
           ts: new Date().toISOString(),
           name: extra.location.displayName || '',
           lat: extra.location.lat,
           lon: extra.location.lon,
-        });
+        };
+        analyticsStore.searches.push(search);
         saveAnalytics();
+        pushSearchToAirtable(search); // persist to Airtable — survives Railway redeployments
       }
       break;
     case 'share_click':
@@ -339,6 +343,7 @@ function trackEvent(eventType, req, extra = {}) {
 // Flush to disk every 60 seconds
 loadAnalytics();
 setInterval(saveAnalytics, 60 * 1000);
+restoreSearchesFromAirtable(); // restore from Airtable on startup (handles Railway redeployments)
 
 // Push daily analytics summary to Airtable (survives redeployment)
 async function pushAnalyticsToAirtable() {
@@ -467,6 +472,57 @@ async function pushToAirtable(fields) {
     }
   } catch (err) {
     console.warn('Airtable push error:', err.message);
+  }
+}
+
+async function pushSearchToAirtable(search) {
+  await pushToAirtable({
+    Email: `search-${Date.now()}@searches`,
+    Source: 'Search',
+    Type: 'Address Search',
+    Location: search.name,
+    Notes: `${search.lat},${search.lon}`,
+    'Captured At': search.ts,
+  });
+}
+
+async function restoreSearchesFromAirtable() {
+  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) return;
+  if (analyticsStore.searches.length > 0) return; // already loaded from disk
+  try {
+    let offset = '';
+    const records = [];
+    do {
+      const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`);
+      url.searchParams.set('filterByFormula', "{Source}='Search'");
+      url.searchParams.set('pageSize', '100');
+      if (offset) url.searchParams.set('offset', offset);
+      const res = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` },
+      });
+      if (!res.ok) {
+        console.warn('Airtable search restore failed:', res.status);
+        return;
+      }
+      const data = await res.json();
+      records.push(...(data.records || []));
+      offset = data.offset || '';
+    } while (offset);
+
+    if (records.length > 0) {
+      analyticsStore.searches = records.map(r => {
+        const coords = (r.fields['Notes'] || '').split(',');
+        return {
+          ts: r.fields['Captured At'] || new Date().toISOString(),
+          name: r.fields['Location'] || '',
+          lat: parseFloat(coords[0]) || 0,
+          lon: parseFloat(coords[1]) || 0,
+        };
+      }).sort((a, b) => new Date(a.ts) - new Date(b.ts));
+      console.log(`📊 Restored ${records.length} searches from Airtable`);
+    }
+  } catch (err) {
+    console.warn('Airtable search restore error:', err.message);
   }
 }
 
