@@ -5865,7 +5865,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     // Define pricing
     const pricing = {
       pro: {
-        amount: 9900, // $99 one-time
+        amount: 4900, // $49 one-time
         name: 'SafeStreets Pro — Agent Reports',
         description: 'Branded walkability reports for real estate listings',
         mode: 'payment',

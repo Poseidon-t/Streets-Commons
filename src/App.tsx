@@ -168,6 +168,36 @@ function App() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [analysisQuote, setAnalysisQuote] = useState<{ text: string; author: string } | null>(null);
+  const [paymentBanner, setPaymentBanner] = useState<'success' | 'cancelled' | null>(null);
+
+  // Handle post-payment redirect — detect ?payment=success or ?payment=cancelled
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const paymentStatus = params.get('payment');
+    if (paymentStatus === 'success' || paymentStatus === 'cancelled') {
+      setPaymentBanner(paymentStatus);
+      // Clean up URL so banner doesn't re-show on refresh
+      params.delete('payment');
+      const newUrl = params.toString()
+        ? `${window.location.pathname}?${params.toString()}`
+        : window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      // On success, poll verify-payment to sync Clerk tier
+      if (paymentStatus === 'success' && user?.id) {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`)
+          .then(r => r.json())
+          .then(data => {
+            if (data.activated) user.reload?.();
+          })
+          .catch(() => {/* non-critical */});
+      }
+      // Auto-dismiss banner after 8 seconds
+      const t = setTimeout(() => setPaymentBanner(null), 8000);
+      return () => clearTimeout(t);
+    }
+  }, [user]);
+
   // Capture UTM params on mount
   useEffect(() => { captureUTMParams(); }, []);
 
@@ -685,6 +715,19 @@ function App() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #f2f0eb 30%, #eef5f0 60%, #f0ede8 100%)' }}>
+      {/* Payment status banner */}
+      {paymentBanner && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-semibold transition-all
+          ${paymentBanner === 'success' ? 'bg-green-600 text-white' : 'bg-gray-700 text-white'}`}>
+          {paymentBanner === 'success' ? (
+            <>✓ Payment successful — Pro access activated!</>
+          ) : (
+            <>Payment cancelled — no charge was made.</>
+          )}
+          <button onClick={() => setPaymentBanner(null)} className="ml-2 opacity-70 hover:opacity-100 text-lg leading-none">×</button>
+        </div>
+      )}
+
       {/* Sign-In Modal */}
       <PaymentModalWithAuth
         isOpen={showSignInModal}
