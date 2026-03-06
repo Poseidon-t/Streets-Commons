@@ -84,19 +84,26 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
         <div
           role="listbox"
           data-testid="address-suggestions"
-          className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl max-h-60 sm:max-h-72 md:max-h-80 overflow-y-auto"
+          className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
+          style={{ top: '100%' }}
         >
-          {results.map((location, index) => (
-            <button
-              key={index}
-              role="option"
-              aria-selected={false}
-              onClick={() => handleSelect(location)}
-              className="w-full px-4 py-3 text-left hover:bg-orange-50 transition-colors border-b last:border-b-0"
-            >
-              <div className="text-sm text-gray-800">{location.displayName}</div>
-            </button>
-          ))}
+          {results.map((location, index) => {
+            const parts = location.displayName.split(', ');
+            const primary = parts.slice(0, 2).join(', ');
+            const secondary = parts.slice(2, 5).join(', ');
+            return (
+              <button
+                key={index}
+                role="option"
+                aria-selected={false}
+                onClick={() => handleSelect(location)}
+                className="w-full px-4 py-2.5 text-left hover:bg-orange-50 transition-colors border-b last:border-b-0"
+              >
+                <div className="text-sm font-medium text-gray-800 truncate">{primary}</div>
+                {secondary && <div className="text-xs text-gray-400 truncate mt-0.5">{secondary}</div>}
+              </button>
+            );
+          })}
         </div>
       )}
 

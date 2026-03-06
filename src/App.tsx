@@ -822,7 +822,7 @@ function App() {
 
       {/* Hero Section - Side-by-side with topographic texture */}
       {!compareMode && !location && !isAnalyzing && (
-        <section className="relative overflow-hidden flex flex-col font-sans" style={{ background: 'linear-gradient(160deg, #fdf6f0 0%, #f8f0e8 25%, #f0ece4 55%, #eaf0e8 100%)' }}>
+        <section className="relative flex flex-col font-sans" style={{ background: 'linear-gradient(160deg, #fdf6f0 0%, #f8f0e8 25%, #f0ece4 55%, #eaf0e8 100%)' }}>
           {/* Topographic contour background */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.06 }}>
             <defs>
