@@ -16,6 +16,17 @@ const VITALITY_CONFIG = {
   limited: { color: '#dc2626', label: 'Limited', bg: 'rgba(220,38,38,0.08)' },
 } as const;
 
+const CATEGORY_COLORS: Record<keyof LocalEconomicProfile['categories'], string> = {
+  retail:     '#3b82f6',
+  dining:     '#f97316',
+  healthcare: '#ef4444',
+  education:  '#8b5cf6',
+  financial:  '#10b981',
+  transit:    '#06b6d4',
+  recreation: '#22c55e',
+  services:   '#64748b',
+};
+
 const CATEGORY_LABELS: Record<keyof LocalEconomicProfile['categories'], { icon: string; label: string }> = {
   retail: { icon: '🛒', label: 'Retail & Shops' },
   dining: { icon: '🍽️', label: 'Dining & Cafes' },
@@ -40,7 +51,7 @@ function CategoryBar({ category, count, maxCount }: { category: keyof LocalEcono
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: `${width}%`,
-            backgroundColor: count > 0 ? '#8a9a8a' : 'transparent',
+            backgroundColor: count > 0 ? CATEGORY_COLORS[category] : 'transparent',
           }}
         />
       </div>

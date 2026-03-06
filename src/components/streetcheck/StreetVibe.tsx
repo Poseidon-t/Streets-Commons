@@ -22,10 +22,17 @@ function extractSignals(cs: WalkabilityScoreV2): Signals {
 
 function getArchetype(cs: WalkabilityScoreV2, sig: Signals) {
   const o = cs.overallScore, net = cs.components.networkDesign.score,
-        den = cs.components.densityContext.score, env = cs.components.environmentalComfort.score;
-  if (o >= 72 && den >= 65 && net >= 65) return { name: 'Vibrant Urban',         tagline: 'Dense, connected, and alive with possibility' };
-  if (o >= 62 && env >= 58 && net >= 55) return { name: 'Walkable Neighborhood', tagline: 'A place where you might actually choose to walk' };
-  if (o >= 48 && net >= 45)              return { name: 'Mixed Character',        tagline: 'Good bones, some rough edges' };
+        den = cs.components.densityContext.score, env = cs.components.environmentalComfort.score,
+        safety = cs.components.safety.score;
+  // Primary: dense, connected, high-scoring
+  if (o >= 70 && den >= 65 && net >= 65) return { name: 'Vibrant Urban',         tagline: 'Dense, connected, and alive with possibility' };
+  // Alternative: high accessibility + great street design — covers gaps in network data
+  if (o >= 66 && den >= 78 && safety >= 78) return { name: 'Vibrant Urban',      tagline: 'Dense, connected, and alive with possibility' };
+  // Primary walkable neighbourhood
+  if (o >= 60 && env >= 55 && net >= 50) return { name: 'Walkable Neighborhood', tagline: 'A place where you might actually choose to walk' };
+  // Alternative: good destinations + solid infrastructure
+  if (o >= 57 && den >= 68 && safety >= 68) return { name: 'Walkable Neighborhood', tagline: 'A place where you might actually choose to walk' };
+  if (o >= 45 && net >= 40)              return { name: 'Mixed Character',        tagline: 'Good bones, some rough edges' };
   if (sig.speedEnv < 38)                 return { name: 'Busy Arterial',          tagline: 'Built for cars, endured by people on foot' };
   if (o < 35)                            return { name: 'Difficult Environment',  tagline: 'Significant barriers to comfortable walking' };
   return                                        { name: 'Suburban',              tagline: 'Serviceable for some trips, difficult for others' };

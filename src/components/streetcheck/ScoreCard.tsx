@@ -99,9 +99,9 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
         <div className="flex flex-col items-center lg:items-start lg:w-[180px] flex-shrink-0">
           <CircularScore score={score} />
           {/* Confidence note — compact, below ring */}
-          {compositeScore && compositeScore.confidence < 80 && (
+          {compositeScore && compositeScore.confidence < 55 && (
             <div className="mt-2 text-xs text-center lg:text-left" style={{ color: '#8a9a8a' }}>
-              {compositeScore.confidence}% confidence — loading more data
+              Building a complete picture...
             </div>
           )}
         </div>

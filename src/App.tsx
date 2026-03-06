@@ -1419,6 +1419,15 @@ function App() {
             {/* Persona quick-answers — always rendered, skeleton until compositeScore loads */}
             <PersonaCards compositeScore={compositeScore} />
 
+            {/* 15-Minute City Score — surfaced early for immediate impact */}
+            <div id="neighborhood" className="scroll-mt-16">
+              <ErrorBoundary sectionName="15-Minute City">
+                <Suspense fallback={null}>
+                  <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+
             {/* Compact data quality badge */}
             {dataQuality && (
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-earth-text-light">
@@ -1466,15 +1475,6 @@ function App() {
                 streetCharacterLoading={streetCharacterLoading}
               />
             )}
-
-            {/* 15-Minute City Score — surfaced before share actions */}
-            <div id="neighborhood" className="scroll-mt-16">
-              <ErrorBoundary sectionName="15-Minute City">
-                <Suspense fallback={null}>
-                  <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
 
             {/* Street Audit CTA — direct action after seeing all the data */}
             <div
@@ -1609,28 +1609,16 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                  {[
-                    { num: 1, color: '#e07850', src: '/screenshots/step-1-search.png', alt: 'SafeStreets homepage with address search bar and live score preview card', title: 'Search Any Location', desc: 'Enter any address, city, or place worldwide. Works in 190+ countries.' },
-                    { num: 2, color: '#4a8a4a', src: '/screenshots/step-2-analysis.png', alt: 'Interactive map of Downtown Portland with walkability score of 6.8 and metric breakdown', title: 'Get Instant Analysis', desc: 'Walkability score, interactive map, and street design data calculated in seconds.' },
-                    { num: 3, color: '#2a3a2a', src: '/screenshots/step-3-metrics.png', alt: 'Detailed metrics panel with quick answers, neighborhood intelligence, health data, and flood risk', title: 'Explore the Details', desc: 'Scored metrics, quick answers for your situation, health data, and flood risk.' },
-                  ].map((step) => (
-                    <div key={step.num} className="text-center">
-                      <div className="relative mb-4">
-                        <span className="absolute -top-3 -left-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white z-10 shadow-md" style={{ backgroundColor: step.color }}>{step.num}</span>
-                        <div className="overflow-hidden rounded-xl shadow-md border" style={{ borderColor: '#e0dbd0', aspectRatio: '4/3' }}>
-                          <img
-                            src={step.src}
-                            alt={step.alt}
-                            className="w-full h-full object-cover object-top"
-                            loading="lazy"
-                          />
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-bold text-earth-text-dark mb-1">{step.title}</h3>
-                      <p className="text-earth-text-body text-sm leading-relaxed">{step.desc}</p>
-                    </div>
-                  ))}
+                <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl shadow-2xl border" style={{ borderColor: '#e0dbd0' }}>
+                  <video
+                    src="/demo.mp4"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="w-full block"
+                    style={{ aspectRatio: '1280/772', backgroundColor: '#f5f2ec' }}
+                  />
                 </div>
 
                 {/* CTA */}

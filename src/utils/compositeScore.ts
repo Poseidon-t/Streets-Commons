@@ -82,22 +82,19 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     const blockLen = scoreBlockLength(networkGraph);
     const netDensity = scoreNetworkDensity(networkGraph);
     const deadEnd = scoreDeadEndRatio(networkGraph);
-    const speedEnv = networkGraph.speedEnvironment;
 
     networkMetrics = [
-      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.25 },
-      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.25 },
-      { name: 'Network Density', score: netDensity.score, rawValue: `${netDensity.raw} km/km²`, weight: 0.15 },
-      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.15 },
-      { name: 'Speed Environment', score: speedEnv ? speedEnv.score * 10 : 0, rawValue: speedEnv ? `${speedEnv.avgSpeedKmh} km/h avg` : undefined, weight: 0.20 },
+      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.30 },
+      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.30 },
+      { name: 'Network Density', score: netDensity.score, rawValue: `${netDensity.raw} km/km²`, weight: 0.20 },
+      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.20 },
     ];
   } else {
     networkMetrics = [
-      { name: 'Intersection Density', score: 0, weight: 0.25 },
-      { name: 'Block Length', score: 0, weight: 0.25 },
-      { name: 'Network Density', score: 0, weight: 0.15 },
-      { name: 'Dead-End Ratio', score: 0, weight: 0.15 },
-      { name: 'Speed Environment', score: 0, weight: 0.20 },
+      { name: 'Intersection Density', score: 0, weight: 0.30 },
+      { name: 'Block Length', score: 0, weight: 0.30 },
+      { name: 'Network Density', score: 0, weight: 0.20 },
+      { name: 'Dead-End Ratio', score: 0, weight: 0.20 },
     ];
   }
 
@@ -106,32 +103,36 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
   const networkDesign: ComponentScore = {
     label: 'Network Design',
     score: Math.round(networkScore),
-    weight: 0.35,
+    weight: 0.20,
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (25%) — Tree Canopy + Terrain + Street Lighting + Noise + Air Quality =====
+  // ===== 2. Environment (20%) — Tree Canopy + Terrain + Street Lighting + Noise + Air Quality + Speed Environment =====
   const treeScore = scale10to100(legacy.treeCanopy);
   const terrainS = terrainScore ?? 0;
   const lightingS = streetLightingScore ?? 0;
   const airQualS = airQualityScore ?? 0;
   const noiseEnv = networkGraph?.noiseEnvironment;
   const noiseS = noiseEnv ? noiseEnv.score * 10 : 0;
+  const speedEnv = networkGraph?.speedEnvironment;
+  const speedEnvS = speedEnv ? speedEnv.score * 10 : 0;
 
   const envMetrics: SubMetric[] = [
-    { name: 'Tree Canopy',     score: treeScore, weight: 0.25 },
-    { name: 'Terrain',         score: terrainS,  weight: 0.10 },
-    { name: 'Street Lighting', score: lightingS, weight: 0.15 },
-    { name: 'Air Quality',     score: airQualS,  weight: 0.30 },
-    { name: 'Noise',           score: noiseS,    weight: 0.20 },
+    { name: 'Tree Canopy',        score: treeScore,  weight: 0.20 },
+    { name: 'Terrain',            score: terrainS,   weight: 0.10 },
+    { name: 'Street Lighting',    score: lightingS,  weight: 0.15 },
+    { name: 'Air Quality',        score: airQualS,   weight: 0.25 },
+    { name: 'Noise',              score: noiseS,     weight: 0.15 },
+    { name: 'Speed Environment',  score: speedEnvS,  rawValue: speedEnv ? `${speedEnv.avgSpeedKmh} km/h avg` : undefined, weight: 0.15 },
   ];
 
   const envItems = [
-    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.25 },
+    { score: legacy.treeCanopy > 0 ? treeScore : null, weight: 0.20 },
     { score: terrainS > 0 ? terrainS : null,            weight: 0.10 },
     { score: lightingS > 0 ? lightingS : null,          weight: 0.15 },
-    { score: airQualS > 0 ? airQualS : null,            weight: 0.30 },
-    { score: noiseS > 0 ? noiseS : null,                weight: 0.20 },
+    { score: airQualS > 0 ? airQualS : null,            weight: 0.25 },
+    { score: noiseS > 0 ? noiseS : null,                weight: 0.15 },
+    { score: speedEnvS > 0 ? speedEnvS : null,          weight: 0.15 },
   ];
 
   const envScore = weightedAvg(envItems) || (legacy.treeCanopy > 0 ? treeScore : 50);
@@ -139,7 +140,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
   const environmentalComfort: ComponentScore = {
     label: 'Environment',
     score: Math.round(envScore),
-    weight: 0.25,
+    weight: 0.20,
     metrics: envMetrics,
   };
 
@@ -153,7 +154,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
   const safety: ComponentScore = {
     label: 'Street Design',
     score: Math.round(sdScore),
-    weight: 0.15,
+    weight: 0.25,
     metrics: safetyMetrics,
   };
 
@@ -177,7 +178,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
   const densityContext: ComponentScore = {
     label: 'Accessibility',
     score: Math.round(weightedAvg(densityItems)),
-    weight: 0.25,
+    weight: 0.35,
     metrics: densityMetrics,
   };
 

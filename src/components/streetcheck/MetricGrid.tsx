@@ -266,9 +266,9 @@ const METRICS: MetricDef[] = [
     icon: '🚗',
     source: 'OpenStreetMap',
     estimated: true,
-    group: 'network',
+    group: 'environment',
     getScore: (_m, cs) => {
-      const m = cs?.components.networkDesign.metrics.find(m => m.name === 'Speed Environment');
+      const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Speed Environment');
       return m ? m.score / 10 : 0;
     },
   },
@@ -478,7 +478,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   return (
     <div
       className="rounded-xl border p-5 animate-in fade-in duration-200"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
+      style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}
     >
       <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#f0ebe0' }}>
         <span className="text-xl">{icon}</span>
