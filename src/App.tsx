@@ -16,13 +16,11 @@ const ShareButtons = lazy(() => import('./components/ShareButtons'));
 const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
-const EmailCaptureBanner = lazy(() => import('./components/EmailCaptureBanner'));
 const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
 const ProUpgradeModal = lazy(() => import('./components/ProUpgradeModal'));
 const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 
-import { captureUTMParams } from './utils/utm';
 import { trackEvent, identifyUser } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
@@ -199,8 +197,6 @@ function App() {
     }
   }, [user]);
 
-  // Capture UTM params on mount
-  useEffect(() => { captureUTMParams(); }, []);
 
   // Identify signed-in user in PostHog
   useEffect(() => {
@@ -1589,14 +1585,6 @@ function App() {
 
 
 
-            {/* Email capture — shown in results so engaged users see it */}
-            <Suspense fallback={null}>
-              <EmailCaptureBanner
-                userEmail={user?.primaryEmailAddress?.emailAddress}
-                headline="Get notified when we add new data"
-                subtext="New metrics, city reports, and walkability research — delivered occasionally. No spam."
-              />
-            </Suspense>
 
             {/* --- Tier 4: Reference --- */}
             <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">
@@ -2228,18 +2216,6 @@ function App() {
         </section>
       )}
 
-      {/* Newsletter subscribe - before footer */}
-      {!compareMode && !location && !isAnalyzing && !demoMode && (
-        <section className="py-10 bg-earth-sage/30">
-          <div className="max-w-4xl mx-auto px-6">
-            <Suspense fallback={null}>
-              <EmailCaptureBanner
-                userEmail={user?.primaryEmailAddress?.emailAddress}
-              />
-            </Suspense>
-          </div>
-        </section>
-      )}
 
       {/* Footer - Earthy light aesthetic */}
       <footer className="mt-0 relative overflow-hidden bg-earth-forest text-earth-text-light">

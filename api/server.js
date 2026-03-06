@@ -228,32 +228,6 @@ async function pushToAirtable(fields) {
 }
 
 
-// ─── Email Capture ──────────────────────────────────────────────────────────
-
-const EMAILS_FILE = process.env.EMAILS_FILE || path.join(__dirname, '..', 'data', 'emails.json');
-
-function loadEmails() {
-  try {
-    if (fs.existsSync(EMAILS_FILE)) {
-      return JSON.parse(fs.readFileSync(EMAILS_FILE, 'utf-8'));
-    }
-  } catch (err) {
-    console.warn('Could not load emails:', err.message);
-  }
-  return { emails: [], count: 0 };
-}
-
-function saveEmails(data) {
-  try {
-    const dir = path.dirname(EMAILS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(EMAILS_FILE, JSON.stringify(data, null, 2));
-  } catch (err) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Could not save emails:', err.message);
-    }
-  }
-}
 
 // ─── Contact Inquiries Storage ──────────────────────────────────────────────
 const INQUIRIES_FILE = process.env.INQUIRIES_FILE || path.join(__dirname, '..', 'data', 'contact-inquiries.json');
@@ -391,57 +365,6 @@ function generateSlug(title) {
     .slice(0, 80);
 }
 
-const emailCaptureLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  message: { error: 'Too many requests. Please try again later.' },
-});
-
-app.post('/api/capture-email', emailCaptureLimiter, (req, res) => {
-  const { email, source, utm } = req.body || {};
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ error: 'Invalid email address.' });
-  }
-
-  const ipHash = hashIP(req.ip || req.headers['x-forwarded-for']);
-  const country = guessCountry(req);
-
-  const entry = {
-    email: email.toLowerCase().trim(),
-    source: source || 'newsletter',
-    utm: utm && Object.keys(utm).length > 0 ? utm : null,
-    country,
-    ipHash,
-    capturedAt: new Date().toISOString(),
-  };
-
-  const emailDB = loadEmails();
-  const existing = emailDB.emails.find(e => e.email === entry.email);
-
-  if (existing) {
-    existing.lastSeen = entry.capturedAt;
-  } else {
-    emailDB.emails.push(entry);
-    emailDB.count = emailDB.emails.length;
-  }
-
-  saveEmails(emailDB);
-  trackEvent('newsletter_subscribe', req, { source: entry.source });
-
-  // Push to Airtable (non-blocking)
-  pushToAirtable({
-    Email: entry.email,
-    Source: entry.source,
-    Country: entry.country || '',
-    Type: 'Newsletter',
-    'Captured At': entry.capturedAt,
-  });
-
-  console.log(`📧 Newsletter subscriber: ${entry.email} (${entry.source})`);
-
-  res.json({ success: true });
-});
 
 // ─── GDPR: Delete My Data ────────────────────────────────────────────────────
 
@@ -554,15 +477,6 @@ app.get('/api/blog/posts/:slug', (req, res) => {
 
 // ─── Admin API ──────────────────────────────────────────────────────────────
 
-app.get('/api/admin/emails', async (req, res) => {
-  if (!(await requireAdminKey(req, res))) return;
-  try {
-    const emailData = loadEmails();
-    res.json(emailData);
-  } catch {
-    res.json({ emails: [], count: 0 });
-  }
-});
 
 app.get('/api/admin/inquiries', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
@@ -2780,9 +2694,6 @@ Return ONLY a JSON array (no markdown code fences):
 
 // Overpass API proxy with caching
 app.post('/api/overpass', async (req, res) => {
-  // Track analysis (every analysis calls overpass)
-  trackEvent('analysis', req);
-
   try {
     const { query } = req.body;
 
@@ -5217,9 +5128,6 @@ app.get('/api/street-features', async (req, res) => {
 
 // Budget analysis endpoint with file upload support (PDF, CSV, text)
 app.post('/api/analyze-budget', upload.single('file'), async (req, res) => {
-  // Track PDF upload
-  trackEvent('pdf', req);
-
   try {
     const geminiKey = process.env.GEMINI_API_KEY;
     if (!geminiKey) {
@@ -5617,9 +5525,6 @@ Be specific to ${locationName} where possible, but be honest that this is guidan
 
 // Stripe checkout session endpoint
 app.post('/api/create-checkout-session', async (req, res) => {
-  // Track payment attempt
-  trackEvent('payment', req);
-
   try {
     if (!stripe) {
       return res.status(500).json({
@@ -5979,9 +5884,6 @@ const chatLimiter = rateLimit({
 });
 
 app.post('/api/chat', chatLimiter, async (req, res) => {
-  // Track chat message
-  trackEvent('chat', req);
-
   try {
     const anthropicKey = process.env.ANTHROPIC_API_KEY;
     if (!anthropicKey) {

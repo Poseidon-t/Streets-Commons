@@ -28,9 +28,6 @@ export function useAdminApi() {
   }
 
   return {
-    // Analytics
-    fetchStats: () => adminFetch('/api/admin/stats'),
-
     // Blog
     fetchAdminPosts: () => adminFetch('/api/admin/blog/posts'),
     fetchAdminPost: (slug: string) => adminFetch(`/api/admin/blog/posts/${slug}`),
@@ -66,9 +63,6 @@ export function useAdminApi() {
       tone?: Tone;
       postType?: PostType;
     }) => adminFetch('/api/admin/content-queue/add', { method: 'POST', body: JSON.stringify(data) }),
-
-    // Emails
-    fetchEmails: () => adminFetch('/api/admin/emails'),
 
     // Sales Pipeline
     fetchLeads: () => adminFetch('/api/admin/sales/leads'),

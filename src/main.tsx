@@ -47,7 +47,6 @@ const AdminDashboard = lazy(() => import('./admin/AdminDashboard'))
 const BlogManager = lazy(() => import('./admin/BlogManager'))
 const BlogEditor = lazy(() => import('./admin/BlogEditor'))
 const ContentQueue = lazy(() => import('./admin/ContentQueue'))
-const EmailCaptures = lazy(() => import('./admin/EmailCaptures'))
 const SalesPipeline = lazy(() => import('./admin/SalesPipeline'))
 const RedditMonitor = lazy(() => import('./admin/RedditMonitor'))
 const InfographicGenerator = lazy(() => import('./admin/InfographicGenerator'))
@@ -117,7 +116,6 @@ createRoot(document.getElementById('root')!).render(
             <Route path="blog/new" element={<BlogEditor />} />
             <Route path="blog/edit/:slug" element={<BlogEditor />} />
             <Route path="infographics" element={<InfographicGenerator />} />
-            <Route path="emails" element={<EmailCaptures />} />
             <Route path="sales-pipeline" element={<SalesPipeline />} />
           </Route>
           <Route path="*" element={
