@@ -48,7 +48,7 @@ const BlogManager = lazy(() => import('./admin/BlogManager'))
 const BlogEditor = lazy(() => import('./admin/BlogEditor'))
 const ContentQueue = lazy(() => import('./admin/ContentQueue'))
 const SalesPipeline = lazy(() => import('./admin/SalesPipeline'))
-const RedditMonitor = lazy(() => import('./admin/RedditMonitor'))
+const RedditAlerts = lazy(() => import('./admin/RedditAlerts'))
 const InfographicGenerator = lazy(() => import('./admin/InfographicGenerator'))
 
 // Import Clerk publishable key
@@ -110,7 +110,7 @@ createRoot(document.getElementById('root')!).render(
             </Suspense>
           }>
             <Route index element={<AdminDashboard />} />
-            <Route path="reddit" element={<RedditMonitor />} />
+            <Route path="reddit" element={<RedditAlerts />} />
             <Route path="content-queue" element={<ContentQueue />} />
             <Route path="blog" element={<BlogManager />} />
             <Route path="blog/new" element={<BlogEditor />} />

@@ -79,41 +79,5 @@ export function useAdminApi() {
     generateComparison: (params: { neighborhoods: Array<{ neighborhood: string; city: string; state: string }>; agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string } }) =>
       adminFetch('/api/admin/sales/generate-comparison', { method: 'POST', body: JSON.stringify(params) }),
 
-    // Reddit Monitor
-    fetchRedditFeed: (opts: {
-      refresh?: boolean;
-      reset?: boolean;
-      maxAgeHours?: number;
-      minRelevance?: number;
-      postType?: 'all' | 'questions' | 'non-questions';
-      sortBy?: 'relevance' | 'newest' | 'subreddit';
-    } = {}) => {
-      const p = new URLSearchParams();
-      if (opts.reset)  p.set('reset', 'true');
-      if (opts.refresh) p.set('refresh', 'true');
-      if (opts.maxAgeHours !== undefined) p.set('maxAgeHours', String(opts.maxAgeHours));
-      if (opts.minRelevance !== undefined && opts.minRelevance > 1) p.set('minRelevance', String(opts.minRelevance));
-      if (opts.postType === 'questions') p.set('questionsOnly', 'true');
-      if (opts.postType === 'non-questions') p.set('nonQuestions', 'true');
-      if (opts.sortBy && opts.sortBy !== 'relevance') p.set('sortBy', opts.sortBy);
-      const qs = p.toString();
-      return adminFetch(`/api/admin/reddit-feed${qs ? '?' + qs : ''}`);
-    },
-    updateRedditPostStatus: (id: string, status: 'new' | 'dismissed' | 'engaged') =>
-      adminFetch('/api/admin/reddit-feed/status', { method: 'POST', body: JSON.stringify({ id, status }) }),
-
-    // Reddit Config
-    fetchRedditConfig: () => adminFetch('/api/admin/reddit-config'),
-    saveRedditConfig: (config: {
-      subreddits: string[];
-      keywordsTier1: string[];
-      keywordsTier2: string[];
-      walkabilitySubreddits: string[];
-      highValueSubreddits: string[];
-    }, repoll = false) =>
-      adminFetch(`/api/admin/reddit-config${repoll ? '?repoll=true' : ''}`, {
-        method: 'POST',
-        body: JSON.stringify(config),
-      }),
   };
 }
