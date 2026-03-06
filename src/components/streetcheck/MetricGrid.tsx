@@ -238,6 +238,8 @@ interface MetricDef {
   satKey?: string;
   usOnly?: boolean;
   internationalOnly?: boolean;
+  /** True when score is derived/modelled rather than measured — shows "Estimated" badge */
+  estimated?: boolean;
   group: 'network' | 'environment' | 'safety' | 'density';
   getScore: (metrics: WalkabilityMetrics, compositeScore?: WalkabilityScoreV2 | null) => number;
 }
@@ -264,6 +266,7 @@ const METRICS: MetricDef[] = [
     name: 'Speed Environment',
     icon: '🚗',
     source: 'OpenStreetMap',
+    estimated: true,
     group: 'network',
     getScore: (_m, cs) => {
       const m = cs?.components.networkDesign.metrics.find(m => m.name === 'Speed Environment');
@@ -320,6 +323,7 @@ const METRICS: MetricDef[] = [
     name: 'Noise',
     icon: '🔊',
     source: 'OSM road model',
+    estimated: true,
     group: 'environment',
     getScore: (_m, cs) => {
       const m = cs?.components.environmentalComfort.metrics.find(m => m.name === 'Noise');
@@ -376,19 +380,18 @@ const METRICS: MetricDef[] = [
   },
 ];
 
-function MetricCardSimple({ def, score, isLoading, isExpanded, noCoverage, onClick }: {
+function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
   def: MetricDef;
   score: number;
   isLoading: boolean;
   isExpanded: boolean;
-  noCoverage?: boolean;
   onClick: () => void;
 }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
   const detail = METRIC_DETAILS[def.key];
   const contextText = detail && score > 0 ? detail.getMeans(score) : getInsight(def.key, score);
-  const bg = noCoverage ? 'white' : getCardBackground(score);
+  const bg = getCardBackground(score);
   const borderColor = getCardBorderColor(score, isExpanded, color);
 
   return (
@@ -406,15 +409,6 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, noCoverage, onCli
             <span className="text-xl">{def.icon}</span>
             <span className="text-sm" style={{ color: '#8a9a8a' }}>Loading {def.name}...</span>
           </div>
-        </div>
-      ) : noCoverage ? (
-        <div className="flex flex-col gap-1.5 py-2">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{def.icon}</span>
-            <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{def.name}</span>
-          </div>
-          <p className="text-xs" style={{ color: '#8a9a8a' }}>No street-level imagery available for this area. Mapillary coverage is needed to detect street lights.</p>
-          <span className="text-xs" style={{ color: '#b0a8a0' }}>{def.source}</span>
         </div>
       ) : (
         <>
@@ -445,9 +439,19 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, noCoverage, onCli
             </p>
           )}
 
-          {/* Data source + expand toggle for methodology */}
+          {/* Data source + estimated badge + expand toggle */}
           <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: '#f0ebe0' }}>
-            <span className="text-xs" style={{ color: '#b0a8a0' }}>{detail?.source ?? def.source}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs" style={{ color: '#b0a8a0' }}>{detail?.source ?? def.source}</span>
+              {def.estimated && (
+                <span
+                  className="text-xs px-1.5 py-0.5 rounded font-medium"
+                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}
+                >
+                  Estimated
+                </span>
+              )}
+            </div>
             <button
               className="text-xs underline cursor-pointer"
               style={{ color: '#8a9a8a' }}
@@ -550,6 +554,22 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
       <div className="space-y-6">
         {groups.map(({ groupKey, defs }) => {
           const groupMeta = GROUP_LABELS[groupKey];
+
+          // Resolve visibility for each metric in this group
+          const cards = defs.map(def => {
+            const score = def.getScore(metrics, compositeScore);
+            const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
+            // Hide when: still loading OR (finished loading with no data AND metric is optional/external)
+            const isCoverageGap = def.key === 'streetLighting' && !!mapillaryCoverageGap && !!satelliteLoaded?.has('streetLighting');
+            const hidden = !isLoading && (isCoverageGap || (score === 0 && !!def.satKey));
+            return { def, score, isLoading, hidden };
+          });
+
+          const visibleCards = cards.filter(c => !c.hidden);
+          // Skip entire group if nothing to show (and nothing is still loading)
+          const hasLoadingCards = cards.some(c => c.isLoading && !c.hidden);
+          if (visibleCards.length === 0 && !hasLoadingCards) return null;
+
           return (
             <div key={groupKey}>
               {/* Group header */}
@@ -562,35 +582,29 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {defs.map(def => {
-                  const score = def.getScore(metrics, compositeScore);
-                  const isLoading = def.satKey && satelliteLoaded ? !satelliteLoaded.has(def.satKey) : false;
-                  return (
-                    <MetricCardSimple
-                      key={def.key}
-                      def={def}
-                      score={score}
-                      isLoading={isLoading}
-                      isExpanded={expandedMetric === def.key}
-                      noCoverage={def.key === 'streetLighting' && mapillaryCoverageGap && satelliteLoaded?.has('streetLighting')}
-                      onClick={() => toggleMetric(def.key)}
-                    />
-                  );
-                })}
+                {cards.filter(c => !c.hidden || c.isLoading).map(({ def, score, isLoading }) => (
+                  <MetricCardSimple
+                    key={def.key}
+                    def={def}
+                    score={score}
+                    isLoading={isLoading}
+                    isExpanded={expandedMetric === def.key}
+                    onClick={() => toggleMetric(def.key)}
+                  />
+                ))}
               </div>
 
               {/* Expanded detail panel — appears directly below the expanded metric's group */}
-              {expandedMetric && defs.some(d => d.key === expandedMetric) && (() => {
-                const def = defs.find(m => m.key === expandedMetric);
-                if (!def) return null;
-                const score = def.getScore(metrics, compositeScore);
+              {expandedMetric && visibleCards.some(c => c.def.key === expandedMetric) && (() => {
+                const card = visibleCards.find(c => c.def.key === expandedMetric);
+                if (!card) return null;
                 return (
                   <div className="mt-3">
                     <MetricDetailPanel
-                      metricKey={def.key}
-                      score={score}
-                      icon={def.icon}
-                      name={def.name}
+                      metricKey={card.def.key}
+                      score={card.score}
+                      icon={card.def.icon}
+                      name={card.def.name}
                     />
                   </div>
                 );
