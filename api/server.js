@@ -6856,13 +6856,16 @@ function parseRedditRSS(xml) {
     const idMatch = link.match(/\/comments\/([a-z0-9]+)\//);
     const id = idMatch ? idMatch[1] : link;
     const created = updated ? Math.floor(new Date(updated).getTime() / 1000) : Math.floor(Date.now() / 1000);
-    // Decode HTML entities, strip HTML comments and tags, then clean whitespace
-    const decoded = content
-      .replace(/<!--[\s\S]*?-->/g, ' ')          // strip HTML comments
-      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#39;/g, "'")
-      .replace(/<[^>]+>/g, ' ')                   // strip actual HTML tags
-      .replace(/&[a-z]+;/g, ' ');                 // strip any remaining entities
-    const snippet = decoded.replace(/\s+/g, ' ').trim().slice(0, 200);
+    // Decode entities first (content is double-encoded in Reddit RSS),
+    // then strip comments and tags, then clean up leftover entities and whitespace
+    const snippet = content
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+      .replace(/&#x200B;/g, '')                   // zero-width space
+      .replace(/<!--[\s\S]*?-->/g, '')             // strip HTML comments (SC_OFF etc) — now readable after decode
+      .replace(/<[^>]+>/g, ' ')                    // strip all HTML tags
+      .replace(/&[a-z0-9#]+;/gi, ' ')              // strip any remaining entities
+      .replace(/\s+/g, ' ').trim().slice(0, 250);  // normalise whitespace, slightly longer for context
     if (title && link) items.push({ id, title, url: link, snippet, author: authorName, created });
   }
   return items;
