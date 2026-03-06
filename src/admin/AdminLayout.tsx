@@ -4,7 +4,6 @@ import AdminGuard from './AdminGuard';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', end: true },
-  { to: '/admin/reddit', label: 'Reddit Alerts', end: false },
   { to: '/admin/content-queue', label: 'Content Queue', end: false },
   { to: '/admin/blog', label: 'Blog Posts', end: false },
   { to: '/admin/infographics', label: 'Infographics', end: false },
