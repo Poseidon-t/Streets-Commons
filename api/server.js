@@ -6949,7 +6949,15 @@ async function pollReddit() {
 // GET /api/admin/reddit-feed
 app.get('/api/admin/reddit-feed', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
-  const { refresh, reset } = req.query;
+  const {
+    refresh, reset,
+    maxAgeHours = '24',
+    minRelevance = '1',
+    questionsOnly,
+    nonQuestions,
+    sortBy = 'relevance',
+  } = req.query;
+
   if (reset === 'true') {
     redditCache = { lastUpdated: null, posts: [] };
     saveRedditMonitor();
@@ -6958,7 +6966,29 @@ app.get('/api/admin/reddit-feed', async (req, res) => {
   if (reset === 'true' || refresh === 'true' || !redditCache.lastUpdated) {
     await pollReddit();
   }
-  res.json({ success: true, data: redditCache });
+
+  // Apply server-side filters — only filter 'new' posts; always preserve engaged/dismissed
+  const cutoff = Date.now() / 1000 - parseInt(maxAgeHours, 10) * 3600;
+  const minRel = parseInt(minRelevance, 10);
+
+  let posts = redditCache.posts.filter(p => {
+    if (p.status !== 'new') return true; // always keep engaged/dismissed
+    if (p.created < cutoff) return false;
+    if (p.relevance < minRel) return false;
+    if (questionsOnly === 'true' && !p.isQuestion) return false;
+    if (nonQuestions === 'true' && p.isQuestion) return false;
+    return true;
+  });
+
+  if (sortBy === 'newest') {
+    posts = posts.slice().sort((a, b) => b.created - a.created);
+  } else if (sortBy === 'subreddit') {
+    posts = posts.slice().sort((a, b) => a.subreddit.localeCompare(b.subreddit));
+  } else {
+    posts = posts.slice().sort((a, b) => b.relevance - a.relevance);
+  }
+
+  res.json({ success: true, data: { ...redditCache, posts } });
 });
 
 // POST /api/admin/reddit-feed/status — update post status (dismissed | engaged | new)
