@@ -6678,8 +6678,6 @@ const REDDIT_CONFIG_FILE = process.env.REDDIT_CONFIG_FILE || path.join(__dirname
 const WALKABILITY_SUBREDDITS_LIST = [
   'walkable_cities',   // purpose-built for this topic
   'carfree',           // car-free lifestyle — core SafeStreets audience
-  'notjustbikes',      // largest pro-walkable-city community
-  'fuckcars',          // high-volume, anti-car-dominance, very engaged
   'streetdesign',      // street-level design discussions
   'bikecommuting',     // bike commuters care deeply about street safety
   'VisionZero',        // road safety, pedestrian deaths & injuries
