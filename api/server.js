@@ -116,7 +116,6 @@ if (fs.existsSync(SEED_DIR)) {
   }
 }
 
-const ANALYTICS_FILE = process.env.ANALYTICS_FILE || path.join(__dirname, '..', 'data', 'analytics.json');
 const ADMIN_USER_ID = process.env.ADMIN_USER_ID;
 
 const clerkClient = process.env.CLERK_SECRET_KEY
@@ -146,235 +145,6 @@ async function requireAdminKey(req, res) {
   }
 }
 
-// In-memory analytics store
-const analyticsStore = {
-  daily: {},  // { "2026-02-05": { pageViews: 0, ... } }
-  allTime: { pageViews: 0, analyses: 0, firstSeen: null },
-  searches: [], // permanent log of every address searched: { ts, name, lat, lon }
-};
-
-// Track which IPs we've seen today (hashed, for unique visitor count)
-const todayVisitors = new Set();
-let lastVisitorReset = new Date().toDateString();
-
-// Load analytics from disk on startup
-function loadAnalytics() {
-  try {
-    if (fs.existsSync(ANALYTICS_FILE)) {
-      const data = JSON.parse(fs.readFileSync(ANALYTICS_FILE, 'utf-8'));
-      Object.assign(analyticsStore, data);
-      console.log('📊 Analytics loaded from disk');
-    }
-  } catch (err) {
-    console.warn('⚠️ Could not load analytics:', err.message);
-  }
-}
-
-// Save analytics to disk
-function saveAnalytics() {
-  try {
-    const dir = path.dirname(ANALYTICS_FILE);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    fs.writeFileSync(ANALYTICS_FILE, JSON.stringify(analyticsStore, null, 2));
-  } catch (err) {
-    // Silently fail if no volume mounted — analytics still works in-memory
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('⚠️ Could not save analytics:', err.message);
-    }
-  }
-}
-
-// Get today's date key
-function getToday() {
-  return new Date().toISOString().split('T')[0];
-}
-
-// Ensure today's entry exists
-function ensureTodayExists() {
-  const today = getToday();
-  if (!analyticsStore.daily[today]) {
-    analyticsStore.daily[today] = {
-      pageViews: 0,
-      uniqueVisitors: 0,
-      analyses: 0,
-      chatMessages: 0,
-      pdfUploads: 0,
-      payments: 0,
-      topCountries: {},
-      topReferrers: {},
-      utmSources: {},
-      utmMediums: {},
-      utmCampaigns: {},
-      shareClicks: 0,
-      sharePlatforms: {},
-      emailsCaptured: 0,
-    };
-  }
-  // Reset visitor tracking at midnight
-  const todayStr = new Date().toDateString();
-  if (todayStr !== lastVisitorReset) {
-    todayVisitors.clear();
-    lastVisitorReset = todayStr;
-  }
-  if (!analyticsStore.allTime.firstSeen) {
-    analyticsStore.allTime.firstSeen = today;
-  }
-  return analyticsStore.daily[today];
-}
-
-// Hash IP for privacy (never store raw IP)
-function hashIP(ip) {
-  return createHash('sha256').update(ip || 'unknown').digest('hex').slice(0, 16);
-}
-
-// Extract country from Accept-Language header (rough approximation)
-function guessCountry(req) {
-  const lang = req.get('accept-language') || '';
-  const match = lang.match(/[a-z]{2}-([A-Z]{2})/);
-  return match ? match[1] : 'XX';
-}
-
-// Extract domain from referrer
-function getReferrerDomain(referrer) {
-  if (!referrer) return 'direct';
-  try {
-    return new URL(referrer).hostname.replace('www.', '');
-  } catch {
-    return 'direct';
-  }
-}
-
-// Track an event
-function trackEvent(eventType, req, extra = {}) {
-  const today = ensureTodayExists();
-
-  // Track UTM attribution if present (applies to any event type)
-  if (extra.utm) {
-    if (extra.utm.utm_source) {
-      today.utmSources = today.utmSources || {};
-      today.utmSources[extra.utm.utm_source] = (today.utmSources[extra.utm.utm_source] || 0) + 1;
-    }
-    if (extra.utm.utm_medium) {
-      today.utmMediums = today.utmMediums || {};
-      today.utmMediums[extra.utm.utm_medium] = (today.utmMediums[extra.utm.utm_medium] || 0) + 1;
-    }
-    if (extra.utm.utm_campaign) {
-      today.utmCampaigns = today.utmCampaigns || {};
-      today.utmCampaigns[extra.utm.utm_campaign] = (today.utmCampaigns[extra.utm.utm_campaign] || 0) + 1;
-    }
-  }
-
-  switch (eventType) {
-    case 'pageview': {
-      today.pageViews++;
-      analyticsStore.allTime.pageViews++;
-
-      // Track unique visitors
-      const ipHash = hashIP(req.ip || req.headers['x-forwarded-for']);
-      if (!todayVisitors.has(ipHash)) {
-        todayVisitors.add(ipHash);
-        today.uniqueVisitors++;
-        analyticsStore.allTime.uniqueVisitors = (analyticsStore.allTime.uniqueVisitors || 0) + 1;
-      }
-
-      // Track country
-      const country = guessCountry(req);
-      today.topCountries[country] = (today.topCountries[country] || 0) + 1;
-
-      // Track referrer
-      const referrer = getReferrerDomain(extra.referrer);
-      today.topReferrers[referrer] = (today.topReferrers[referrer] || 0) + 1;
-      break;
-    }
-    case 'analysis':
-      today.analyses++;
-      analyticsStore.allTime.analyses++;
-      if (extra.location) {
-        const search = {
-          ts: new Date().toISOString(),
-          name: extra.location.displayName || '',
-          lat: extra.location.lat,
-          lon: extra.location.lon,
-        };
-        analyticsStore.searches.push(search);
-        saveAnalytics();
-        pushSearchToAirtable(search); // persist to Airtable — survives Railway redeployments
-      }
-      break;
-    case 'analysis_complete':
-      today.analyses++;
-      analyticsStore.allTime.analyses++;
-      if (extra.location) {
-        const search = {
-          ts: new Date().toISOString(),
-          name: extra.location.displayName || '',
-          lat: extra.location.lat,
-          lon: extra.location.lon,
-        };
-        analyticsStore.searches.push(search);
-        saveAnalytics();
-        pushSearchToAirtable(search); // persist to Airtable — survives Railway redeployments
-      }
-      break;
-    case 'share_click':
-      today.shareClicks = (today.shareClicks || 0) + 1;
-      if (extra.platform) {
-        today.sharePlatforms = today.sharePlatforms || {};
-        today.sharePlatforms[extra.platform] = (today.sharePlatforms[extra.platform] || 0) + 1;
-      }
-      break;
-    case 'email_captured':
-      today.emailsCaptured = (today.emailsCaptured || 0) + 1;
-      break;
-    case 'chat':
-      today.chatMessages++;
-      break;
-    case 'pdf':
-      today.pdfUploads++;
-      break;
-    case 'payment':
-      today.payments++;
-      break;
-  }
-}
-
-// Flush to disk every 60 seconds
-loadAnalytics();
-setInterval(saveAnalytics, 60 * 1000);
-restoreSearchesFromAirtable(); // restore from Airtable on startup (handles Railway redeployments)
-
-// Push daily analytics summary to Airtable (survives redeployment)
-async function pushAnalyticsToAirtable() {
-  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) return;
-  const today = getToday();
-  const data = analyticsStore.daily[today];
-  if (!data || data.pageViews === 0) return;
-  try {
-    await pushToAirtable({
-      Email: `analytics-${today}@system`,
-      Source: 'Daily Analytics',
-      Type: 'Analytics Snapshot',
-      Notes: `PV:${data.pageViews} UV:${data.uniqueVisitors} Analyses:${data.analyses} Chat:${data.chatMessages} Shares:${data.shareClicks || 0} Emails:${data.emailsCaptured || 0} Payments:${data.payments} Errors:${data.clientErrors || 0}`,
-      'Captured At': new Date().toISOString(),
-    });
-    console.log('📊 Analytics snapshot pushed to Airtable');
-  } catch (err) {
-    console.warn('Analytics Airtable push failed:', err.message);
-  }
-}
-
-// Push analytics to Airtable every 6 hours
-setInterval(pushAnalyticsToAirtable, 6 * 60 * 60 * 1000);
-
-// Also save on shutdown
-process.on('SIGTERM', async () => {
-  console.log('📊 Saving analytics before shutdown...');
-  saveAnalytics();
-  await pushAnalyticsToAirtable();
-  process.exit(0);
-});
 
 // Middleware
 
@@ -428,24 +198,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ─── Analytics Endpoints ─────────────────────────────────────────────────────
-
-// Frontend beacon — track events with UTM attribution
-app.post('/api/track', (req, res) => {
-  const { event, referrer, utm, platform } = req.body || {};
-  switch (event) {
-    case 'pageview':
-      trackEvent('pageview', req, { referrer, utm });
-      break;
-    case 'analysis_complete':
-      trackEvent('analysis_complete', req, { utm, location: req.body.location });
-      break;
-    case 'share_click':
-      trackEvent('share_click', req, { platform, utm });
-      break;
-  }
-  res.status(204).end();
-});
 
 // ─── Airtable Integration ───────────────────────────────────────────────────
 
@@ -475,56 +227,6 @@ async function pushToAirtable(fields) {
   }
 }
 
-async function pushSearchToAirtable(search) {
-  await pushToAirtable({
-    Email: `search-${Date.now()}@searches`,
-    Source: 'Search',
-    Type: 'Address Search',
-    Location: search.name,
-    Notes: `${search.lat},${search.lon}`,
-    'Captured At': search.ts,
-  });
-}
-
-async function restoreSearchesFromAirtable() {
-  if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) return;
-  if (analyticsStore.searches.length > 0) return; // already loaded from disk
-  try {
-    let offset = '';
-    const records = [];
-    do {
-      const url = new URL(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`);
-      url.searchParams.set('filterByFormula', "{Source}='Search'");
-      url.searchParams.set('pageSize', '100');
-      if (offset) url.searchParams.set('offset', offset);
-      const res = await fetch(url.toString(), {
-        headers: { 'Authorization': `Bearer ${AIRTABLE_API_KEY}` },
-      });
-      if (!res.ok) {
-        console.warn('Airtable search restore failed:', res.status);
-        return;
-      }
-      const data = await res.json();
-      records.push(...(data.records || []));
-      offset = data.offset || '';
-    } while (offset);
-
-    if (records.length > 0) {
-      analyticsStore.searches = records.map(r => {
-        const coords = (r.fields['Notes'] || '').split(',');
-        return {
-          ts: r.fields['Captured At'] || new Date().toISOString(),
-          name: r.fields['Location'] || '',
-          lat: parseFloat(coords[0]) || 0,
-          lon: parseFloat(coords[1]) || 0,
-        };
-      }).sort((a, b) => new Date(a.ts) - new Date(b.ts));
-      console.log(`📊 Restored ${records.length} searches from Airtable`);
-    }
-  } catch (err) {
-    console.warn('Airtable search restore error:', err.message);
-  }
-}
 
 // ─── Email Capture ──────────────────────────────────────────────────────────
 
@@ -851,12 +553,6 @@ app.get('/api/blog/posts/:slug', (req, res) => {
 });
 
 // ─── Admin API ──────────────────────────────────────────────────────────────
-
-app.get('/api/admin/stats', async (req, res) => {
-  if (!(await requireAdminKey(req, res))) return;
-  ensureTodayExists();
-  res.json(analyticsStore);
-});
 
 app.get('/api/admin/emails', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
