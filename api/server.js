@@ -6676,34 +6676,38 @@ const REDDIT_CONFIG_FILE = process.env.REDDIT_CONFIG_FILE || path.join(__dirname
 
 // Dedicated walkability communities — every post is on-topic, fetch /new/ feed
 const WALKABILITY_SUBREDDITS_LIST = [
-  'walkable_cities',   // purpose-built for this topic
-  'carfree',           // car-free lifestyle — core SafeStreets audience
-  'streetdesign',      // street-level design discussions
-  'bikecommuting',     // bike commuters care deeply about street safety
-  'VisionZero',        // road safety, pedestrian deaths & injuries
-  'urbandesign',       // built environment design
+  'walkable_cities',   // purpose-built for walkability
+  'walkablecities',    // second dedicated walkability community (21k)
+  'WalkableStreets',   // neighbourhood design & pedestrian spaces (113k)
+  'carfree',           // living without a car — directly asks "can I walk everywhere?"
+  'VisionZero',        // pedestrian deaths, dangerous crossings, street safety
+  'streetdesign',      // street-level design, sidewalks, crossings
 ];
 
 // Broad urban/planning subs — fetch /new/ but require keyword hit to include
 const TOPIC_SUBREDDITS_LIST = [
-  'urbanplanning',     // planners & policy people — covers many topics
-  'strongtowns',       // Strong Towns urbanism
-  'transit',           // transit riders care about walkable last-mile
-  'cycling',           // cyclists discuss street safety constantly
-  'UrbanHell',         // photos of hostile pedestrian environments
+  'urbanplanning',     // planners & policy — walkability is a core topic
+  'urbandesign',       // built environment design
+  'strongtowns',       // Strong Towns urbanism — anti-sprawl, pro-walkable
+  'Urbanism',          // general urbanism discussions (83k)
+  'SuburbanHell',      // people fed up with car-dependent, unwalkable suburbs (115k)
+  'UrbanHell',         // hostile pedestrian environments — photos + discussion (1.6M)
+  'yimby',             // density & mixed-use — walkability is a constant theme
+  'transit',           // transit riders — walkable last-mile is critical to them
 ];
 
 // High-value subs — people actively deciding where to live
 // Use Reddit SEARCH RSS with walkability terms so we only get relevant posts
 const HIGH_VALUE_SUBREDDITS_LIST = [
-  'FirstTimeHomeBuyer',  // "is X walkable?" questions daily
-  'realestate',          // walkability as a buying factor
-  'moving',              // relocating, asking about specific neighborhoods
-  'homebuying',          // similar to FirstTimeHomeBuyer
-  'renting',             // renters asking about neighborhoods
-  'ApartmentHunting',    // apartment seekers — walkability is a top filter
-  'SameGrassIsGreener',  // people comparing cities on livability
-  'CityComparisons',     // "which city is more walkable?"
+  'FirstTimeHomeBuyer',   // "is X walkable?" questions daily
+  'realestate',           // walkability as a buying factor
+  'moving',               // relocating, asking about specific neighborhoods
+  'homebuying',           // similar to FirstTimeHomeBuyer
+  'renting',              // renters asking about neighborhoods
+  'ApartmentHunting',     // apartment seekers — walkability is a top filter
+  'SameGrassButGreener',  // people comparing cities on livability (137k — correct name)
+  'CityComparisons',      // "which city is more walkable?"
+  'digitalnomad',         // nomads choosing cities — walkability is a top criterion (2.4M)
 ];
 
 const REDDIT_SUBREDDITS = [
