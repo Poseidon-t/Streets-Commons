@@ -2,9 +2,18 @@ import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ClerkProvider } from '@clerk/clerk-react'
+import posthog from 'posthog-js'
 import './index.css'
 import { installErrorReporter } from './utils/analytics'
 import App from './App.tsx'
+
+// Initialize PostHog
+posthog.init('phc_kpNgAAjZ0kHxBeGcPfWdmk3nekTPBC9Ex4pxkVLNHJA', {
+  api_host: 'https://us.i.posthog.com',
+  person_profiles: 'identified_only',
+  capture_pageview: true,
+  capture_pageleave: true,
+});
 
 // Install global error tracking
 installErrorReporter();

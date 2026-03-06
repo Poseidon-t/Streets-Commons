@@ -23,7 +23,7 @@ const ProUpgradeModal = lazy(() => import('./components/ProUpgradeModal'));
 const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 
 import { captureUTMParams } from './utils/utm';
-import { trackEvent } from './utils/analytics';
+import { trackEvent, identifyUser } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
@@ -184,6 +184,7 @@ function App() {
       window.history.replaceState({}, '', newUrl);
       // On success, poll verify-payment to sync Clerk tier
       if (paymentStatus === 'success' && user?.id) {
+        trackEvent('payment_success', { userId: user.id });
         const apiUrl = import.meta.env.VITE_API_URL || '';
         fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`)
           .then(r => r.json())
@@ -200,6 +201,16 @@ function App() {
 
   // Capture UTM params on mount
   useEffect(() => { captureUTMParams(); }, []);
+
+  // Identify signed-in user in PostHog
+  useEffect(() => {
+    if (isSignedIn && user?.id) {
+      identifyUser(user.id, {
+        email: user.primaryEmailAddress?.emailAddress,
+        tier: user.publicMetadata?.tier || 'free',
+      });
+    }
+  }, [isSignedIn, user?.id]);
 
   // Cleanup: abort satellite fetches on unmount
   useEffect(() => {

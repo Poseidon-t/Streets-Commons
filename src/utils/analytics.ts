@@ -1,13 +1,15 @@
 import { getUTMParams } from './utm';
+import posthog from 'posthog-js';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 /**
- * Send a tracking event to the backend.
+ * Send a tracking event to the backend and PostHog.
  * Automatically includes UTM params from the current session.
  */
 export function trackEvent(event: string, data: Record<string, unknown> = {}) {
   const utm = getUTMParams();
+  // Backend tracking (unique visitors, IP geolocation, Airtable persistence)
   fetch(`${API_URL}/api/track`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -18,6 +20,15 @@ export function trackEvent(event: string, data: Record<string, unknown> = {}) {
     }),
     keepalive: true,
   }).catch(() => {});
+  // PostHog tracking (funnels, retention, session recordings)
+  posthog.capture(event, { ...data, ...(Object.keys(utm).length > 0 ? { utm } : {}) });
+}
+
+/**
+ * Identify a signed-in user in PostHog.
+ */
+export function identifyUser(userId: string, traits: Record<string, unknown> = {}) {
+  posthog.identify(userId, traits);
 }
 
 /**
