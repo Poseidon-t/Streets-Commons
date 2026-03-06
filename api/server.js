@@ -6771,7 +6771,7 @@ const HIGH_VALUE_SUBREDDITS = new Set(HIGH_VALUE_SUBREDDITS_LIST.map(s => `r/${s
 const WALKABILITY_SUBREDDITS = new Set(WALKABILITY_SUBREDDITS_LIST.map(s => `r/${s}`));
 
 // Search query for high-value subreddits — only fetch posts that mention walkability
-const HIGH_VALUE_SEARCH_QUERY = 'walkable+walkability+pedestrian+sidewalk+car+free+transit+walking+distance';
+const HIGH_VALUE_SEARCH_QUERY = 'walkable+walkability+pedestrian+sidewalk+car+free+transit+walking+distance+pedestrian+friendly+safe+to+walk+without+a+car+no+car+needed+walkable+neighborhood';
 
 function scoreRedditPost(title, snippet, subreddit, cfg) {
   const config = cfg || getRedditConfig();
@@ -6890,7 +6890,7 @@ async function pollReddit() {
   console.log('🔴 Polling Reddit for walkability mentions (RSS)...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
-  const thirtyDaysAgo = Date.now() / 1000 - 1 * 24 * 3600; // 1 day max age
+  const sevenDaysAgo = Date.now() / 1000 - 7 * 24 * 3600; // 7 day max age
 
   for (const sub of allSubs) {
     try {
@@ -6907,7 +6907,7 @@ async function pollReddit() {
       let matched_count = 0;
       for (const p of items) {
         if (seenIds.has(p.id)) continue;
-        if (p.created < thirtyDaysAgo) continue;
+        if (p.created < sevenDaysAgo) continue;
 
         const { score: relevance, tier1Matches, tier2Matches, isQuestion } = scoreRedditPost(p.title, p.snippet, subKey, config);
         if (relevance === 0) continue;
