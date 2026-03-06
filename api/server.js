@@ -6883,7 +6883,7 @@ async function pollReddit() {
   console.log('🔴 Polling Reddit for walkability mentions (RSS)...');
   const newPosts = [];
   const seenIds = new Set(redditCache.posts.map(p => p.id));
-  const thirtyDaysAgo = Date.now() / 1000 - 30 * 24 * 3600;
+  const thirtyDaysAgo = Date.now() / 1000 - 1 * 24 * 3600; // 1 day max age
 
   for (const sub of allSubs) {
     try {
