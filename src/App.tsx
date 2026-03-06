@@ -2217,6 +2217,25 @@ function App() {
       )}
 
 
+      {/* Platform CTA — for teams and organizations */}
+      {!compareMode && !isAnalyzing && (
+        <section className="py-8 border-t border-earth-border/30" style={{ backgroundColor: '#f0ede8' }}>
+          <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-earth-text-dark">Using SafeStreets for your organization?</p>
+              <p className="text-xs text-earth-text-body mt-0.5">We work with planners, real estate teams, and researchers who need bulk analysis, branded reports, or API access.</p>
+            </div>
+            <a
+              href="/platform/contact"
+              className="flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 whitespace-nowrap"
+              style={{ backgroundColor: '#1e3a5f' }}
+            >
+              Get in touch →
+            </a>
+          </div>
+        </section>
+      )}
+
       {/* Footer - Earthy light aesthetic */}
       <footer className="mt-0 relative overflow-hidden bg-earth-forest text-earth-text-light">
         <div className="relative max-w-7xl mx-auto px-6 py-12">
