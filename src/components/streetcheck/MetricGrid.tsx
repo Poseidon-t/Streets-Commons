@@ -257,7 +257,6 @@ const METRICS: MetricDef[] = [
     name: 'Street Grid',
     icon: '🔀',
     source: 'OpenStreetMap',
-    internationalOnly: true,
     group: 'network',
     getScore: (_m, cs) => cs ? cs.components.networkDesign.score / 10 : 0,
   },
