@@ -18,9 +18,17 @@ interface DayStats {
   sharePlatforms?: Record<string, number>;
 }
 
+interface SearchEntry {
+  ts: string;
+  name: string;
+  lat: number;
+  lon: number;
+}
+
 interface AnalyticsData {
   daily: Record<string, DayStats>;
   allTime: { pageViews: number; analyses: number; firstSeen: string | null };
+  searches: SearchEntry[];
 }
 
 function getToday() {
@@ -194,6 +202,31 @@ export default function AdminDashboard() {
         <StatCard title="Campaigns (Today)">
           <ListTable data={sortedEntries(today.utmCampaigns)} emptyText="No campaign data yet" />
         </StatCard>
+      </div>
+
+      {/* Search log */}
+      <div className="bg-white rounded-xl shadow-sm mt-6 overflow-hidden">
+        <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">All Searches</h2>
+          <span className="text-xs text-gray-400">{(data.searches ?? []).length} total</span>
+        </div>
+        {(data.searches ?? []).length === 0 ? (
+          <div className="px-5 py-8 text-sm text-gray-400 text-center">No searches recorded yet — they'll appear here as users search.</div>
+        ) : (
+          <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+            {[...(data.searches ?? [])].reverse().map((s, i) => (
+              <div key={i} className="px-5 py-2.5 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <span className="text-sm font-medium text-gray-800 truncate block">{s.name || 'Unknown location'}</span>
+                  <span className="text-xs text-gray-400 font-mono">{s.lat?.toFixed(4)}, {s.lon?.toFixed(4)}</span>
+                </div>
+                <span className="text-xs text-gray-400 flex-shrink-0 font-mono">
+                  {new Date(s.ts).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mt-6 text-center text-xs text-gray-400">

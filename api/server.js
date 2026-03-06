@@ -150,6 +150,7 @@ async function requireAdminKey(req, res) {
 const analyticsStore = {
   daily: {},  // { "2026-02-05": { pageViews: 0, ... } }
   allTime: { pageViews: 0, analyses: 0, firstSeen: null },
+  searches: [], // permanent log of every address searched: { ts, name, lat, lon }
 };
 
 // Track which IPs we've seen today (hashed, for unique visitor count)
@@ -290,10 +291,28 @@ function trackEvent(eventType, req, extra = {}) {
     case 'analysis':
       today.analyses++;
       analyticsStore.allTime.analyses++;
+      if (extra.location) {
+        analyticsStore.searches.push({
+          ts: new Date().toISOString(),
+          name: extra.location.displayName || '',
+          lat: extra.location.lat,
+          lon: extra.location.lon,
+        });
+        saveAnalytics();
+      }
       break;
     case 'analysis_complete':
       today.analyses++;
       analyticsStore.allTime.analyses++;
+      if (extra.location) {
+        analyticsStore.searches.push({
+          ts: new Date().toISOString(),
+          name: extra.location.displayName || '',
+          lat: extra.location.lat,
+          lon: extra.location.lon,
+        });
+        saveAnalytics();
+      }
       break;
     case 'share_click':
       today.shareClicks = (today.shareClicks || 0) + 1;
@@ -414,7 +433,7 @@ app.post('/api/track', (req, res) => {
       trackEvent('pageview', req, { referrer, utm });
       break;
     case 'analysis_complete':
-      trackEvent('analysis_complete', req, { utm });
+      trackEvent('analysis_complete', req, { utm, location: req.body.location });
       break;
     case 'share_click':
       trackEvent('share_click', req, { platform, utm });
