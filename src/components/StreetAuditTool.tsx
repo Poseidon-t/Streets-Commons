@@ -173,7 +173,6 @@ interface Props {
   address: string;
   metrics: WalkabilityMetrics | null;
   compositeScore: WalkabilityScoreV2 | null;
-  isPremium: boolean;
   onClose: () => void;
 }
 

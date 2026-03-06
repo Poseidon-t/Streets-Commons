@@ -39,14 +39,13 @@ import { isPremium, isPro, canGenerateAgentReport, getAgentProfile, getProTrialR
 import type { AgentProfile } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
-import { analyzeLocalEconomy } from './utils/localEconomicAnalysis';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
 import { fetchTerrain } from './services/terrain';
 import { fetchTransitAccess } from './services/transitAccess';
 import { fetchStreetFeatures } from './services/streetFeatures';
 import { computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, RawMetricData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -118,10 +117,8 @@ function App() {
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
-  const [rawMetricData, setRawMetricData] = useState<RawMetricData>({});
   const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
-  const [populationDensityScore, setPopulationDensityScore] = useState<number | undefined>();
   const [demographicData, setDemographicData] = useState<DemographicData | null>(null);
   const [demographicLoading, setDemographicLoading] = useState(false);
   const [neighborhoodIntel, setNeighborhoodIntel] = useState<NeighborhoodIntelligence | null>(null);
@@ -378,8 +375,7 @@ function App() {
 
     const {
       DEMO_LOCATION, DEMO_METRICS, DEMO_COMPOSITE_SCORE, DEMO_DATA_QUALITY,
-      DEMO_DEMOGRAPHIC_DATA, DEMO_RAW_METRIC_DATA,
-      DEMO_OSM_DATA, DEMO_SATELLITE_SOURCES,
+      DEMO_DEMOGRAPHIC_DATA, DEMO_OSM_DATA, DEMO_SATELLITE_SOURCES,
     } = await import('./data/demoData');
 
     setLocation(DEMO_LOCATION);
@@ -388,7 +384,6 @@ function App() {
     setDataQuality(DEMO_DATA_QUALITY);
     setStreetDesignScore(65);
     setDemographicData(DEMO_DEMOGRAPHIC_DATA);
-    setRawMetricData(DEMO_RAW_METRIC_DATA);
     setOsmData(DEMO_OSM_DATA as any);
     setSatelliteLoaded(new Set(DEMO_SATELLITE_SOURCES));
     setIsAnalyzing(false);
@@ -408,7 +403,6 @@ function App() {
     setDemographicData(null);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
-    setRawMetricData({});
     setOsmData(null);
     setSatelliteLoaded(new Set());
 
@@ -466,12 +460,6 @@ function App() {
       streetLighting?: number;
       airQuality?: number;
     } = {};
-    const raw: RawMetricData = {
-      crossingCount: currentOsmData.crossings?.length,
-      poiCount: currentOsmData.pois?.length,
-      streetLength: currentOsmData.streets?.reduce((sum, s) => sum + (s.length || 0), 0),
-    };
-
     const recalc = () => {
       if (abortController.signal.aborted) return;
       const updatedMetrics = calculateMetrics(
@@ -481,7 +469,6 @@ function App() {
         scores.ndvi,
       );
       setMetrics(updatedMetrics);
-      setRawMetricData({ ...raw });
 
       // Recompute composite score with latest data
       const composite = calculateCompositeScore({
@@ -510,7 +497,6 @@ function App() {
 
     promises.ndvi.then(ndvi => {
       if (ndvi !== null) {
-        raw.ndvi = ndvi;
         scores.ndvi = scoreTreeCanopy(ndvi);
       }
       // Claude primary, NDVI as fallback for low-confidence areas
@@ -524,7 +510,6 @@ function App() {
     });
     promises.surfaceTemp.then(result => {
       if (result) {
-        raw.temperature = result.tempCelsius;
         scores.surfaceTemp = result.score;
       }
       recalc();
@@ -538,7 +523,6 @@ function App() {
     });
     promises.heatIsland.then(result => {
       if (result) {
-        raw.heatDifference = result.effect ?? undefined;
         scores.heatIsland = result.score;
       }
       recalc();
@@ -546,7 +530,6 @@ function App() {
     promises.populationDensity.then(result => {
       if (result) {
         extra.populationDensity = result.score;
-        setPopulationDensityScore(result.score);
         markLoaded('populationDensity');
       }
       recalc();
@@ -1528,7 +1511,6 @@ function App() {
                     address={location.displayName}
                     metrics={metrics}
                     compositeScore={compositeScore}
-                    isPremium={true}
                     onClose={() => setShowAuditTool(false)}
                   />
                 </Suspense>
@@ -1544,7 +1526,7 @@ function App() {
                     metrics={metrics}
                     compositeScore={compositeScore}
                     dataQuality={dataQuality || undefined}
-                    isPremium={true}
+                    isPremium={effectivePremium}
                     onShareReport={() => setShowReportCard(true)}
                   />
                 </Suspense>
