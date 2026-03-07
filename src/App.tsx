@@ -1452,11 +1452,11 @@ function App() {
             {/* Unified panel: Map | Score + Walking atmosphere below */}
             <div id="score" className="rounded-2xl overflow-hidden border scroll-mt-16" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}>
               {/* Top row: Map left, ScoreCard right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2">
-                <div className="overflow-hidden lg:border-r" style={{ minHeight: 280, borderColor: '#e0dbd0' }}>
+              <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-stretch">
+                <div className="lg:border-r" style={{ minHeight: 280, borderColor: '#e0dbd0' }}>
                   <Map location={location} osmData={osmData} seamless />
                 </div>
-                <div className="p-5 sm:p-6 lg:p-7">
+                <div className="p-5 sm:p-6 lg:p-7 h-full">
                   <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded />
                 </div>
               </div>
