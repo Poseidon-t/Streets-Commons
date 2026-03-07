@@ -8,6 +8,8 @@ interface ScoreCardProps {
   compositeScore?: WalkabilityScoreV2 | null;
   /** When true: no card border/bg/shadow — renders as embedded content on a parent background */
   embedded?: boolean;
+  /** When true: hides ComponentBreakdown bars (they appear separately in Act 2) */
+  compact?: boolean;
 }
 
 function getScoreTier(score: number): string {
@@ -88,7 +90,7 @@ function ComponentBreakdown({ compositeScore }: { compositeScore: WalkabilitySco
   );
 }
 
-export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCardProps) {
+export default function ScoreCard({ metrics, compositeScore, embedded, compact }: ScoreCardProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
 
   const content = (
@@ -108,7 +110,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
 
         {/* Right — breakdown + verdict */}
         <div className="flex-1 mt-5 lg:mt-0 space-y-4">
-          {compositeScore && <ComponentBreakdown compositeScore={compositeScore} />}
+          {!compact && compositeScore && <ComponentBreakdown compositeScore={compositeScore} />}
           <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
         </div>
       </div>

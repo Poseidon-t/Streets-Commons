@@ -4,6 +4,8 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
+import PersonaChips from './components/streetcheck/PersonaChips';
+import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
 import Map from './components/Map';
@@ -1508,27 +1510,25 @@ function App() {
               {location.displayName.split(',').slice(0, 2).join(',')}
             </h2>
 
-            {/* Unified panel: Map | Score + Walking atmosphere below */}
+            {/* ACT 1 — Hero: wider map + archetype + score */}
             <div id="score" className="rounded-2xl overflow-hidden border scroll-mt-16" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}>
-              {/* Top row: Map left, ScoreCard right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-stretch">
-                <div className="lg:border-r" style={{ minHeight: 280, borderColor: '#e0dbd0' }}>
+              <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
+                <div className="lg:border-r" style={{ minHeight: 300, borderColor: '#e0dbd0' }}>
                   <Map location={location} osmData={osmData} seamless />
                 </div>
-                <div className="p-5 sm:p-6 lg:p-7 h-full">
-                  <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded />
+                <div className="p-5 sm:p-6 lg:p-7 h-full flex flex-col">
+                  <StreetVibe compositeScore={compositeScore} />
+                  <div className="flex-1 mt-3">
+                    <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded compact />
+                  </div>
                 </div>
-              </div>
-              {/* Street vibe — archetype + sense chips */}
-              <div style={{ borderTop: '1px solid #e0dbd0' }}>
-                <StreetVibe compositeScore={compositeScore} />
               </div>
             </div>
 
-            {/* Persona quick-answers — always rendered, skeleton until compositeScore loads */}
-            <PersonaCards compositeScore={compositeScore} />
+            {/* ACT 1 — Persona chips: quick verdict for 3 key groups */}
+            <PersonaChips compositeScore={compositeScore} />
 
-            {/* Ground Reality — AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
+            {/* ACT 2 — Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
             <GroundRealityCard
               narrative={groundReality}
               narrativeLoading={groundRealityLoading}
@@ -1537,7 +1537,22 @@ function App() {
               satelliteVision={satelliteVision}
             />
 
-            {/* 15-Minute City Score — surfaced early for immediate impact */}
+            {/* ACT 2 — Component scores: what drives this result */}
+            <ComponentHighlight compositeScore={compositeScore} />
+
+            {/* ACT 3 divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px" style={{ backgroundColor: '#e0dbd0' }} />
+              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#b0a8a0', letterSpacing: '0.1em' }}>
+                Detailed Analysis
+              </span>
+              <div className="flex-1 h-px" style={{ backgroundColor: '#e0dbd0' }} />
+            </div>
+
+            {/* ACT 3 — Full persona table */}
+            <PersonaCards compositeScore={compositeScore} />
+
+            {/* 15-Minute City Score */}
             <div id="neighborhood" className="scroll-mt-16">
               <ErrorBoundary sectionName="15-Minute City">
                 <Suspense fallback={null}>
