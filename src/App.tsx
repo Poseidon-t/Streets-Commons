@@ -157,7 +157,6 @@ function App() {
   // Sign-in modal state (was payment modal — now all features are free)
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showMethodology, setShowMethodology] = useState(false);
-  const [showDetailedMetrics, setShowDetailedMetrics] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
@@ -1563,21 +1562,9 @@ function App() {
             {/* ACT 3 starts after divider — no duplicate persona table */}
 
 
-            {/* Metrics Grid — collapsed by default */}
+            {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <button
-                onClick={() => setShowDetailedMetrics(!showDetailedMetrics)}
-                className="w-full retro-card"
-                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px' }}
-              >
-                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
-                  {showDetailedMetrics ? 'Hide' : 'Show'} detailed metrics
-                </span>
-                <span style={{ fontSize: 18, color: '#3d3020' }}>{showDetailedMetrics ? '−' : '+'}</span>
-              </button>
-              {showDetailedMetrics && (
-                <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
-              )}
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
             </div>
 
             {/* Street Network Analysis — free for all */}
