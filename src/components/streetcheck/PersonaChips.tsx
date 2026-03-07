@@ -47,10 +47,10 @@ function FigureRow({ personaKey, score, color }: { personaKey: string; score: nu
           <FigureComponent key={`f-${i}`} color={color} width={fw} height={fh} />
         ))}
         {Array.from({ length: empty }).map((_, i) => (
-          <FigureComponent key={`e-${i}`} color="#c4b59a" opacity={0.4} width={fw} height={fh} />
+          <FigureComponent key={`e-${i}`} color="#c4b59a" opacity={0.55} width={fw} height={fh} />
         ))}
       </div>
-      <div style={{ fontSize: 8, color: '#8a7a60', marginTop: 3, letterSpacing: '0.06em' }}>
+      <div style={{ fontSize: 10, fontWeight: 600, color: '#5c4a2c', marginTop: 4, letterSpacing: '0.04em' }}>
         {CAPTIONS[personaKey]?.(filled)}
       </div>
     </div>

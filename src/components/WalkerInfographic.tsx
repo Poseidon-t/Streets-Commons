@@ -39,11 +39,11 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
       {/* Label */}
       <p style={{
         textAlign: 'center',
-        fontSize: 9,
+        fontSize: 10,
         fontWeight: 700,
         letterSpacing: '0.14em',
         textTransform: 'uppercase',
-        color: '#8a7a60',
+        color: '#3d2f18',
         marginBottom: 10,
       }}>
         Out of 10 people, how many walk here comfortably?
@@ -55,17 +55,17 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
           <PedestrianFigure key={`f-${i}`} color={color} width={13} height={22} />
         ))}
         {Array.from({ length: empty }).map((_, i) => (
-          <PedestrianFigure key={`e-${i}`} color="#c4b59a" opacity={0.45} width={13} height={22} />
+          <PedestrianFigure key={`e-${i}`} color="#c4b59a" opacity={0.6} width={13} height={22} />
         ))}
       </div>
 
       {/* Verdict line */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', color }}>
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color }}>
           {filled} feel comfortable
         </span>
         {empty > 0 && (
-          <span style={{ fontSize: 10, letterSpacing: '0.06em', color: '#8a7a60' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#5c4a2c' }}>
             {empty} find it difficult
           </span>
         )}
