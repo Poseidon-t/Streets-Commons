@@ -123,14 +123,14 @@ function CommuteBar({ commute }: { commute: CommuteData }) {
         {segments.filter(s => s.pct >= 1).map((seg, i) => (
           <div key={i} className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
-            <span className="text-xs" style={{ color: '#2a3a2a' }}>
-              <strong style={{ color: '#2a3a2a' }}>{Math.round(seg.pct)}%</strong> {seg.label}
+            <span className="text-xs" style={{ color: '#1a1208' }}>
+              <strong style={{ color: '#1a1208' }}>{Math.round(seg.pct)}%</strong> {seg.label}
             </span>
           </div>
         ))}
       </div>
       {commute.zeroCar > 0 && (
-        <div className="text-xs mt-2" style={{ color: '#3a4a3a' }}>
+        <div className="text-xs mt-2" style={{ color: '#2a2010' }}>
           {commute.zeroCar}% of households have zero cars
         </div>
       )}
@@ -178,8 +178,8 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
       }}
     >
       <span className="text-2xl mb-1">{icon}</span>
-      <span className="text-lg font-bold" style={{ color: hasItems ? '#2a3a2a' : '#c0b0a0' }}>{count}</span>
-      <span className="text-[0.65rem] leading-tight" style={{ color: '#3a4a3a' }}>{label}</span>
+      <span className="text-lg font-bold" style={{ color: hasItems ? '#1a1208' : '#c0b0a0' }}>{count}</span>
+      <span className="text-[0.65rem] leading-tight" style={{ color: '#2a2010' }}>{label}</span>
       {distance && <span className="text-[0.6rem] mt-0.5" style={{ color: '#a0b0a0' }}>{distance}</span>}
     </div>
   );
@@ -195,7 +195,7 @@ function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: numb
   return (
     <div className="mb-3">
       <div className="flex items-baseline justify-between mb-1">
-        <span className="text-xs font-medium" style={{ color: '#2a3a2a' }}>{label}</span>
+        <span className="text-xs font-medium" style={{ color: '#1a1208' }}>{label}</span>
         <span className="text-xs font-bold" style={{ color: barColor }}>{value}%</span>
       </div>
       <div className="relative h-3 rounded-full overflow-visible" style={{ backgroundColor: '#f0ebe0' }}>
@@ -240,7 +240,7 @@ function FloodBadge({ flood }: { flood: FloodRiskData }) {
         <div className="text-sm font-semibold" style={{ color }}>
           {label}
         </div>
-        <div className="text-xs" style={{ color: '#3a4a3a' }}>
+        <div className="text-xs" style={{ color: '#2a2010' }}>
           FEMA Zone {flood.floodZone} · {flood.description}
         </div>
       </div>
@@ -266,10 +266,10 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
   return (
     <div className="w-full mt-8">
-      <h2 className="text-2xl font-bold mb-1" style={{ color: '#2a3a2a' }}>
+      <h2 className="text-2xl font-bold mb-1" style={{ color: '#1a1208' }}>
         Neighborhood Intelligence
       </h2>
-      <p className="text-sm mb-5" style={{ color: '#3a4a3a' }}>
+      <p className="text-sm mb-5" style={{ color: '#2a2010' }}>
         Beyond the walkability score — what daily life looks like here.
       </p>
 
@@ -280,17 +280,17 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">🚶</span>
-              <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>How People Get Around</span>
+              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>How People Get Around</span>
               <SectionScoreBadge score={transitSectionScore} />
             </div>
             {/* Context line */}
-            <p className="text-xs mb-4" style={{ color: '#3a4a3a' }}>
+            <p className="text-xs mb-4" style={{ color: '#2a2010' }}>
               {commute ? getCommuteContext(commute) : transit ? getTransitContext(transit) : ''}
             </p>
 
             {commute && <CommuteBar commute={commute} />}
             {transit && <TransitBadges transit={transit} />}
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#5c6a5c', borderColor: '#f0ebe0' }}>
+            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               {commute ? 'Census ACS' : ''}{commute && transit ? ' · ' : ''}{transit ? 'OpenStreetMap' : ''}
             </div>
           </div>
@@ -301,10 +301,10 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">📍</span>
-              <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>What's Nearby</span>
+              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>What's Nearby</span>
               <SectionScoreBadge score={nearbySectionScore} />
             </div>
-            <p className="text-xs mb-4" style={{ color: '#3a4a3a' }}>
+            <p className="text-xs mb-4" style={{ color: '#2a2010' }}>
               {getNearbyContext(parks, food)}
             </p>
 
@@ -341,7 +341,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
                 </span>
               </div>
             )}
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#5c6a5c', borderColor: '#f0ebe0' }}>
+            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               OpenStreetMap · 1.2 km radius
             </div>
           </div>
@@ -352,18 +352,18 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">❤️</span>
-              <span className="text-base font-semibold" style={{ color: '#2a3a2a' }}>Health & Environment</span>
+              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>Health & Environment</span>
               <SectionScoreBadge score={healthSectionScore} />
             </div>
             {health && (
-              <p className="text-xs mb-4" style={{ color: '#3a4a3a' }}>
+              <p className="text-xs mb-4" style={{ color: '#2a2010' }}>
                 {getHealthContext(health)}
               </p>
             )}
 
             {health && (
               <div className="mb-4">
-                <div className="text-xs font-medium mb-3" style={{ color: '#3a4a3a' }}>
+                <div className="text-xs font-medium mb-3" style={{ color: '#2a2010' }}>
                   Community health vs US average
                   <span className="inline-block ml-2 h-3 w-0.5 rounded-full align-middle" style={{ backgroundColor: '#8a9a8a' }} />
                   <span className="text-[0.6rem] ml-1" style={{ color: '#a0b0a0' }}>gray line = US avg</span>
@@ -385,7 +385,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
             {flood && <FloodBadge flood={flood} />}
 
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#5c6a5c', borderColor: '#f0ebe0' }}>
+            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               {health ? 'CDC PLACES' : ''}{health && flood ? ' · ' : ''}{flood ? 'FEMA NFHL' : ''}
             </div>
           </div>

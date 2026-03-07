@@ -409,7 +409,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
         <div className="flex items-center justify-center h-24">
           <div className="animate-pulse flex items-center gap-2">
             <span className="text-xl">{def.icon}</span>
-            <span className="text-sm" style={{ color: '#5c6a5c' }}>Loading {def.name}...</span>
+            <span style={{ color: '#3d3020', fontSize: '14px', fontWeight: 500 }}>Loading {def.name}...</span>
           </div>
         </div>
       ) : (
@@ -422,7 +422,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
             </div>
             <div className="flex items-center" style={{ gap: '4px' }}>
               <span style={{ color, fontSize: '24px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
-              <span style={{ color: '#6b5d45', fontSize: '14px', fontWeight: 600 }}>/10</span>
+              <span style={{ color: '#3d3020', fontSize: '14px', fontWeight: 700 }}>/10</span>
             </div>
           </div>
 
@@ -443,7 +443,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
           {/* Data source + estimated badge + expand toggle */}
           <div className="flex items-center justify-between" style={{ paddingTop: '8px', borderTop: '1px solid #f0ebe0' }}>
             <div className="flex items-center" style={{ gap: '6px' }}>
-              <span style={{ color: '#6b5d45', fontSize: '13px', fontWeight: 500 }}>{detail?.source ?? def.source}</span>
+              <span style={{ color: '#3d3020', fontSize: '13px', fontWeight: 600 }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
                 <span
                   style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '12px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px' }}
@@ -453,7 +453,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
               )}
             </div>
             <button
-              style={{ color: '#2a6a2a', fontSize: '13px', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none' }}
+              style={{ color: '#1a7a28', fontSize: '13px', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none' }}
               onClick={onClick}
             >
               {isExpanded ? 'Less' : 'How it\'s scored'}
@@ -482,25 +482,25 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
     >
       <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#f0ebe0' }}>
         <span className="text-xl">{icon}</span>
-        <span className="text-base font-bold" style={{ color: '#2a3a2a' }}>{name}</span>
+        <span className="text-base font-bold" style={{ color: '#1a1208' }}>{name}</span>
         <span className="text-base font-bold ml-auto" style={{ color }}>{score.toFixed(1)}/10</span>
       </div>
 
       <div className="space-y-4">
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#2a3a2a', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#1a1208', fontSize: '12px', letterSpacing: '0.08em' }}>
             What this measures
           </div>
-          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
             {detail.what}
           </div>
         </div>
 
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#2a3a2a', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#1a1208', fontSize: '12px', letterSpacing: '0.08em' }}>
             How it's scored
           </div>
-          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
             {detail.how}
           </div>
         </div>
@@ -509,12 +509,12 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
           <div className="font-bold uppercase mb-1" style={{ color, fontSize: '12px', letterSpacing: '0.08em' }}>
             What your {score.toFixed(1)} means
           </div>
-          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
             {detail.getMeans(score)}
           </div>
         </div>
 
-        <div className="pt-2 border-t font-medium" style={{ color: '#5c4a2c', borderColor: '#f0ebe0', fontSize: '13px' }}>
+        <div className="pt-2 border-t font-semibold" style={{ color: '#3d3020', borderColor: '#f0ebe0', fontSize: '13px' }}>
           Source: {detail.source}
         </div>
       </div>
@@ -545,7 +545,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
         <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1208' }}>
           Score Breakdown
         </h2>
-        <p style={{ color: '#3d3020', fontSize: '15px', marginTop: '4px' }}>
+        <p style={{ color: '#2a2010', fontSize: '15px', fontWeight: 500, marginTop: '4px' }}>
           Each metric contributes to your walkability score. Green = strength, red = needs attention.
         </p>
       </div>

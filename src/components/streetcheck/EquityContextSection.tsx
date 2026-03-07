@@ -229,7 +229,7 @@ export default function EquityContextSection({
   return (
     <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>Equity Context</h3>
+        <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Equity Context</h3>
         {analysis && (
           <span
             className="px-3 py-1 rounded-full text-xs font-bold"
@@ -245,10 +245,10 @@ export default function EquityContextSection({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {stats.map((stat) => (
             <div key={stat.label} className="p-2.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#3a4a3a' }}>
+              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#2a2010' }}>
                 {stat.label}
               </div>
-              <div className="text-sm font-bold" style={{ color: '#2a3a2a' }}>
+              <div className="text-sm font-bold" style={{ color: '#1a1208' }}>
                 {stat.value}
               </div>
               {stat.context && (
@@ -268,8 +268,8 @@ export default function EquityContextSection({
             <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: config.bg }}>
               <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
               <div>
-                <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{insight.label}</div>
-                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#2a3a2a' }}>{insight.detail}</div>
+                <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{insight.label}</div>
+                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#1a1208' }}>{insight.detail}</div>
               </div>
             </div>
           ))}
@@ -279,12 +279,12 @@ export default function EquityContextSection({
       {/* Context + Sources */}
       <div className="pt-3 border-t" style={{ borderColor: '#f0ebe0' }}>
         {analysis && (
-          <p className="text-xs leading-relaxed mb-2" style={{ color: '#3a4a3a' }}>
-            <span className="font-semibold" style={{ color: '#2a3a2a' }}>Why this matters:</span>{' '}
+          <p className="text-xs leading-relaxed mb-2" style={{ color: '#2a2010' }}>
+            <span className="font-semibold" style={{ color: '#1a1208' }}>Why this matters:</span>{' '}
             {analysis.context}
           </p>
         )}
-        <p className="text-xs" style={{ color: '#5c4a2c' }}>
+        <p className="text-xs font-semibold" style={{ color: '#3d3020' }}>
           {sourceLabel} · Smart Growth America
         </p>
       </div>

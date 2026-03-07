@@ -45,7 +45,7 @@ function CategoryBar({ category, count, maxCount }: { category: keyof LocalEcono
   return (
     <div className="flex items-center gap-2 py-1">
       <span className="text-sm w-5 text-center flex-shrink-0">{icon}</span>
-      <span className="text-xs w-20 flex-shrink-0" style={{ color: count > 0 ? '#2a3a2a' : '#b0a8a0' }}>{label}</span>
+      <span className="text-xs w-20 flex-shrink-0" style={{ color: count > 0 ? '#1a1208' : '#b0a8a0' }}>{label}</span>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
         <div
           className="h-full rounded-full transition-all duration-500"
@@ -55,7 +55,7 @@ function CategoryBar({ category, count, maxCount }: { category: keyof LocalEcono
           }}
         />
       </div>
-      <span className="text-xs font-semibold w-6 text-right" style={{ color: count > 0 ? '#2a3a2a' : '#c5c0b5' }}>
+      <span className="text-xs font-semibold w-6 text-right" style={{ color: count > 0 ? '#1a1208' : '#c5c0b5' }}>
         {count}
       </span>
     </div>
@@ -77,7 +77,7 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
         >
           {v.label}
         </span>
-        <span className="text-xs" style={{ color: '#3a4a3a' }}>
+        <span className="text-xs" style={{ color: '#2a2010' }}>
           {profile.totalBusinesses} businesses within {radiusM}m
         </span>
       </div>
@@ -100,13 +100,13 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
           {profile.highlights.map((h, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-xs mt-0.5" style={{ color: '#16a34a' }}>+</span>
-              <span className="text-xs" style={{ color: '#2a3a2a' }}>{h}</span>
+              <span className="text-xs" style={{ color: '#1a1208' }}>{h}</span>
             </div>
           ))}
           {profile.gaps.map((g, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-xs mt-0.5" style={{ color: '#dc2626' }}>-</span>
-              <span className="text-xs" style={{ color: '#3a4a3a' }}>{g}</span>
+              <span className="text-xs" style={{ color: '#2a2010' }}>{g}</span>
             </div>
           ))}
         </div>
@@ -130,24 +130,24 @@ function CensusContext({ data }: { data: DemographicData }) {
 
   return (
     <div className="pt-4 border-t" style={{ borderColor: '#f0ebe0' }}>
-      <p className="text-xs font-medium mb-2" style={{ color: '#3a4a3a' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: '#2a2010' }}>
         Census Tract Data
       </p>
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
-          <div className="text-xs" style={{ color: '#3a4a3a' }}>Median Income</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
+          <div className="text-xs" style={{ color: '#2a2010' }}>Median Income</div>
         </div>
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHomeValue)}</div>
-          <div className="text-xs" style={{ color: '#3a4a3a' }}>Home Value</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatCurrency(data.medianHomeValue)}</div>
+          <div className="text-xs" style={{ color: '#2a2010' }}>Home Value</div>
         </div>
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatPercent(data.unemploymentRate)}</div>
-          <div className="text-xs" style={{ color: '#3a4a3a' }}>Unemployment</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatPercent(data.unemploymentRate)}</div>
+          <div className="text-xs" style={{ color: '#2a2010' }}>Unemployment</div>
         </div>
       </div>
-      <div className="text-xs mt-2" style={{ color: '#5c4a2c' }}>
+      <div className="text-xs font-semibold mt-2" style={{ color: '#3d3020' }}>
         {data.dataSource} ({data.year})
       </div>
     </div>
@@ -166,7 +166,7 @@ export default function EconomicContextSection({ osmData, demographicData, demog
 
   return (
     <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <h3 className="text-base font-bold" style={{ color: '#2a3a2a' }}>Local Economy</h3>
+      <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Local Economy</h3>
 
       <LocalEconomyView profile={profile} />
 

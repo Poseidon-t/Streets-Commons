@@ -40,7 +40,7 @@ function SubMetricBar({ name, score, rawValue }: { name: string; score: number; 
     return (
       <div className="flex items-center gap-3">
         <div className="w-36 flex-shrink-0">
-          <div className="text-xs font-medium" style={{ color: '#3a4a3a' }}>{label}</div>
+          <div className="text-xs font-medium" style={{ color: '#2a2010' }}>{label}</div>
           {rawValue && <div className="text-xs" style={{ color: '#8a9a8a' }}>{rawValue}</div>}
         </div>
         <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: '#f0ebe0' }} />
@@ -53,7 +53,7 @@ function SubMetricBar({ name, score, rawValue }: { name: string; score: number; 
   return (
     <div className="flex items-center gap-3">
       <div className="w-36 flex-shrink-0">
-        <div className="text-xs font-medium" style={{ color: '#3a4a3a' }}>{label}</div>
+        <div className="text-xs font-medium" style={{ color: '#2a2010' }}>{label}</div>
         {rawValue && (
           <div className="text-xs" style={{ color: '#8a9a8a' }}>{rawValue}</div>
         )}
@@ -106,7 +106,7 @@ export default function StreetNetworkPanel({
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">🔀</span>
-          <span className="text-base font-bold" style={{ color: '#2a3a2a' }}>
+          <span className="text-base font-bold" style={{ color: '#1a1208' }}>
             Street Network Analysis
           </span>
         </div>
@@ -142,7 +142,7 @@ export default function StreetNetworkPanel({
             <SkeletonLine w="3/5" />
           </div>
         ) : streetCharacter ? (
-          <p className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>
+          <p className="text-sm leading-relaxed" style={{ color: '#2a2010' }}>
             {streetCharacter.assessment}
           </p>
         ) : null}
@@ -168,7 +168,7 @@ export default function StreetNetworkPanel({
             >
               Strength
             </div>
-            <div className="text-sm" style={{ color: '#2a3a2a' }}>
+            <div className="text-sm" style={{ color: '#1a1208' }}>
               {streetCharacter.strength}
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function StreetNetworkPanel({
             >
               Challenge
             </div>
-            <div className="text-sm" style={{ color: '#2a3a2a' }}>
+            <div className="text-sm" style={{ color: '#1a1208' }}>
               {streetCharacter.concern}
             </div>
           </div>

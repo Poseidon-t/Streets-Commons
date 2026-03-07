@@ -1512,7 +1512,7 @@ function App() {
                 <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#e8e0d0', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
-                <span style={{ fontSize: 11, letterSpacing: '0.1em', color: '#c4b89a' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', color: '#e8e0d0' }}>
                   PEDESTRIAN SURVEY
                 </span>
               </div>
@@ -1520,7 +1520,7 @@ function App() {
                 <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1a1208', letterSpacing: '-0.01em', lineHeight: 1 }}>
                   {location.displayName.split(',').slice(0, 2).join(',')}
                 </h2>
-                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#6b5d45' }}>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
                   {location.countryCode} · Urban Analysis
                 </span>
               </div>
@@ -1579,7 +1579,7 @@ function App() {
 
             {/* Compact data quality badge */}
             {dataQuality && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 11, letterSpacing: '0.06em', color: '#6b5d45', fontWeight: 500 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 11, letterSpacing: '0.06em', color: '#2a2010', fontWeight: 600 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   DATA QUALITY:
                   <span style={{

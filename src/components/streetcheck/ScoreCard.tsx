@@ -50,14 +50,14 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
         }}>
           {displayScore}
         </span>
-        <span style={{ fontSize: 13, color: '#6b5d45', fontWeight: 600, paddingBottom: 6 }}>/10</span>
+        <span style={{ fontSize: 13, color: '#3d3020', fontWeight: 700, paddingBottom: 6 }}>/10</span>
       </div>
 
       {/* Gauge with tick labels */}
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
           {['0', '2.5', '5.0', '7.5', '10'].map(t => (
-            <span key={t} style={{ fontSize: 10, color: '#5c4a2c' }}>{t}</span>
+            <span key={t} style={{ fontSize: 10, fontWeight: 600, color: '#3d3020' }}>{t}</span>
           ))}
         </div>
         <div className="retro-gauge-track">
@@ -82,7 +82,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
       <WalkerInfographic score={score / 10} compact />
 
       {compositeScore && compositeScore.confidence < 55 && (
-        <div style={{ marginTop: 8, fontSize: 11, color: '#5c4a2c' }}>
+        <div style={{ marginTop: 8, fontSize: 11, fontWeight: 600, color: '#3d3020' }}>
           Building a complete picture...
         </div>
       )}

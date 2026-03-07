@@ -42,7 +42,8 @@
 .retro-card-header-meta {
   font-size: 11px;
   letter-spacing: 0.08em;
-  color: #c4b89a;
+  color: #e0d8c8;
+  font-weight: 600;
 }
 
 /* Verdict stamps */

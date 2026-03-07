@@ -50,7 +50,7 @@ function FigureRow({ personaKey, score, color }: { personaKey: string; score: nu
           <FigureComponent key={`e-${i}`} color="#c4b59a" opacity={0.7} width={fw} height={fh} />
         ))}
       </div>
-      <div style={{ fontSize: 12, fontWeight: 600, color: '#5a4a30', marginTop: 3, letterSpacing: '0.04em' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#2a2010', marginTop: 3, letterSpacing: '0.04em' }}>
         {CAPTIONS[personaKey]?.(filled)}
       </div>
     </div>
@@ -128,7 +128,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
                 <span style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                   {score}
                 </span>
-                <span style={{ fontSize: 11, color: '#6b5d45', fontWeight: 600, marginLeft: 2 }}>/100</span>
+                <span style={{ fontSize: 11, color: '#3d3020', fontWeight: 700, marginLeft: 2 }}>/100</span>
               </div>
               <span className={stampClass(score)}>{verdict}</span>
             </div>
