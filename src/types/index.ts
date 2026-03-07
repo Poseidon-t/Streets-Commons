@@ -296,3 +296,43 @@ export interface EconomicImpact {
   healthcareSavingsPerPerson: number;
   walkScore: number;
 }
+
+// ── Ground Intelligence ───────────────────────────────────────────────────────
+
+export interface MapillaryPhoto {
+  url: string;
+  lat: number;
+  lon: number;
+  capturedAt: string;
+}
+
+export interface MapillaryIntelligence {
+  coverage: boolean;
+  imageCount: number;
+  features: {
+    crossings: number;
+    lighting: number;
+    pedestrianSignals: number;
+    bikeInfra: number;
+    streetFurniture: number;
+  };
+  infrastructureScore: number; // 0-10
+  photos: MapillaryPhoto[];
+}
+
+export interface SatelliteVisionAnalysis {
+  parkingCoverage: 'low' | 'medium' | 'high';
+  streetWidth: 'narrow' | 'medium' | 'wide';
+  buildingDensity: 'low' | 'medium' | 'high';
+  greenCoverage: 'low' | 'medium' | 'high';
+  urbanPattern: 'grid' | 'organic' | 'sprawl' | 'mixed';
+  activeStreetFrontage: 'low' | 'medium' | 'high';
+  satelliteAssessment: string;
+}
+
+export interface GroundRealityNarrative {
+  narrative: string;
+  keyInsights: [string, string, string];
+  dataSources: string[];
+  confidence: 'high' | 'medium' | 'low';
+}

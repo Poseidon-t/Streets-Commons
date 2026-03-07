@@ -4,6 +4,7 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
+import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
@@ -43,7 +44,7 @@ import { fetchTerrain } from './services/terrain';
 import { fetchTransitAccess } from './services/transitAccess';
 import { fetchStreetFeatures } from './services/streetFeatures';
 import { computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis, MapillaryIntelligence, SatelliteVisionAnalysis, GroundRealityNarrative } from './types';
 
 interface AnalysisData {
   location: Location;
@@ -123,6 +124,12 @@ function App() {
   const [streetCharacter, setStreetCharacter] = useState<StreetCharacterAnalysis | null>(null);
   const [streetCharacterLoading, setStreetCharacterLoading] = useState(false);
   const [mapillaryCoverageGap, setMapillaryCoverageGap] = useState(false);
+  const [mapillaryIntel, setMapillaryIntel] = useState<MapillaryIntelligence | null>(null);
+  const [mapillaryIntelLoading, setMapillaryIntelLoading] = useState(false);
+  const [satelliteVision, setSatelliteVision] = useState<SatelliteVisionAnalysis | null>(null);
+  const [satelliteVisionLoading, setSatelliteVisionLoading] = useState(false);
+  const [groundReality, setGroundReality] = useState<GroundRealityNarrative | null>(null);
+  const [groundRealityLoading, setGroundRealityLoading] = useState(false);
 
   // Premium access - Clerk integration
   const { user, isSignedIn } = useUser();
@@ -308,6 +315,12 @@ function App() {
     setStreetCharacterLoading(false);
     setDemographicData(null);
     setMapillaryCoverageGap(false);
+    setMapillaryIntel(null);
+    setMapillaryIntelLoading(false);
+    setSatelliteVision(null);
+    setSatelliteVisionLoading(false);
+    setGroundReality(null);
+    setGroundRealityLoading(false);
     setDemographicLoading(false);
     setNeighborhoodIntel(null);
 
@@ -367,6 +380,52 @@ function App() {
           .then(data => { if (data?.success) setStreetCharacter(data.data); })
           .catch(() => {})
           .finally(() => setStreetCharacterLoading(false));
+      }
+
+      // Ground Intelligence: Mapillary CV + Satellite Vision + Ground Reality Narrative
+      {
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+
+        setMapillaryIntelLoading(true);
+        const mapillaryPromise = fetch(
+          `${apiUrl}/api/mapillary?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}`,
+          { signal: abortController.signal }
+        ).then(r => r.ok ? r.json() : null)
+         .then(d => d?.success ? (d.data as MapillaryIntelligence | null) : null)
+         .catch(() => null)
+         .finally(() => setMapillaryIntelLoading(false));
+        mapillaryPromise.then(data => { if (!abortController.signal.aborted) setMapillaryIntel(data); });
+
+        setSatelliteVisionLoading(true);
+        const satelliteVisionPromise = fetch(
+          `${apiUrl}/api/satellite-vision?lat=${selectedLocation.lat}&lon=${selectedLocation.lon}&name=${encodeURIComponent(selectedLocation.displayName)}`,
+          { signal: abortController.signal }
+        ).then(r => r.ok ? r.json() : null)
+         .then(d => d?.success ? (d.data as SatelliteVisionAnalysis | null) : null)
+         .catch(() => null)
+         .finally(() => setSatelliteVisionLoading(false));
+        satelliteVisionPromise.then(data => { if (!abortController.signal.aborted) setSatelliteVision(data); });
+
+        setGroundRealityLoading(true);
+        Promise.all([mapillaryPromise, satelliteVisionPromise]).then(([mapillaryData, satData]) => {
+          if (abortController.signal.aborted) return;
+          return fetch(`${apiUrl}/api/ground-reality`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              lat: selectedLocation.lat,
+              lon: selectedLocation.lon,
+              name: selectedLocation.displayName,
+              compositeScore: initialComposite,
+              mapillary: mapillaryData,
+              satelliteVision: satData,
+            }),
+            signal: abortController.signal,
+          }).then(r => r.ok ? r.json() : null)
+            .then(d => { if (!abortController.signal.aborted && d?.success) setGroundReality(d.data as GroundRealityNarrative); })
+            .catch(() => {})
+            .finally(() => { if (!abortController.signal.aborted) setGroundRealityLoading(false); });
+        }).catch(() => setGroundRealityLoading(false));
       }
 
       // Update URL with current location (shareable link)
@@ -1468,6 +1527,15 @@ function App() {
 
             {/* Persona quick-answers — always rendered, skeleton until compositeScore loads */}
             <PersonaCards compositeScore={compositeScore} />
+
+            {/* Ground Reality — AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
+            <GroundRealityCard
+              narrative={groundReality}
+              narrativeLoading={groundRealityLoading}
+              mapillary={mapillaryIntel}
+              mapillaryLoading={mapillaryIntelLoading}
+              satelliteVision={satelliteVision}
+            />
 
             {/* 15-Minute City Score — surfaced early for immediate impact */}
             <div id="neighborhood" className="scroll-mt-16">

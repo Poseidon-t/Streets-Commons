@@ -5188,6 +5188,376 @@ app.get('/api/street-features', async (req, res) => {
 });
 
 // =====================
+// GROUND INTELLIGENCE — MAPILLARY CV
+// Extended street-level CV: crossings, lighting, signals, bike infra, furniture + photo thumbnails
+// 400m radius (tighter than street-features 800m — for display precision)
+// Cache: 7 days
+// =====================
+
+const mapillaryIntelCache = new Map();
+const MAPILLARY_INTEL_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+app.get('/api/mapillary', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `mapillary-intel:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = mapillaryIntelCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < MAPILLARY_INTEL_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+    if (mapillaryIntelCache.size >= 500) {
+      const oldest = [...mapillaryIntelCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+      if (oldest) mapillaryIntelCache.delete(oldest[0]);
+    }
+
+    const token = process.env.MAPILLARY_ACCESS_TOKEN || 'MLY|25607627822191844|737dd8db4693e310e140e6d895c6b06d';
+
+    // 400m radius bbox
+    const radius = 400;
+    const R = 111111;
+    const dLat = radius / R;
+    const dLon = radius / (R * Math.cos(latNum * Math.PI / 180));
+    const bbox = `${lonNum - dLon},${latNum - dLat},${lonNum + dLon},${latNum + dLat}`;
+
+    // Fetch image thumbnails (up to 5 for display)
+    const imagesRes = await fetch(
+      `https://graph.mapillary.com/images?bbox=${bbox}&fields=id,computed_geometry,thumb_256_url,captured_at&limit=5&access_token=${token}`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(10000) }
+    );
+    if (!imagesRes.ok) throw new Error(`Mapillary images ${imagesRes.status}`);
+    const imagesData = (await imagesRes.json()).data || [];
+
+    // Count images in area for coverage check
+    const countRes = await fetch(
+      `https://graph.mapillary.com/images?bbox=${bbox}&fields=id&limit=50&access_token=${token}`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(8000) }
+    );
+    const imageCount = countRes.ok ? ((await countRes.json()).data || []).length : imagesData.length;
+
+    // If too few images, return no-coverage result
+    if (imageCount < 3) {
+      const result = { coverage: false, imageCount, features: { crossings: 0, lighting: 0, pedestrianSignals: 0, bikeInfra: 0, streetFurniture: 0 }, infrastructureScore: 0, photos: [] };
+      mapillaryIntelCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      return res.json({ success: true, data: result });
+    }
+
+    const photos = imagesData
+      .filter(img => img.thumb_256_url && img.computed_geometry?.coordinates)
+      .map(img => ({ url: img.thumb_256_url, lat: img.computed_geometry.coordinates[1], lon: img.computed_geometry.coordinates[0], capturedAt: img.captured_at || '' }));
+
+    // Fetch pre-computed CV map features
+    const featuresRes = await fetch(
+      `https://graph.mapillary.com/map_features?bbox=${bbox}&fields=object_type,geometry&limit=200&access_token=${token}`,
+      { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(15000) }
+    );
+    if (!featuresRes.ok) throw new Error(`Mapillary map_features ${featuresRes.status}`);
+    const features = (await featuresRes.json()).data || [];
+
+    let crossings = 0, lighting = 0, pedestrianSignals = 0, bikeInfra = 0, streetFurniture = 0;
+    for (const f of features) {
+      const t = f.object_type || '';
+      if (t === 'object--sign--information--pedestrian-crossing') crossings++;
+      else if (t === 'object--support--street-light') lighting++;
+      else if (t === 'object--traffic-light--pedestrian') pedestrianSignals++;
+      else if (t === 'marking--continuous--dashed') crossings++;
+      else if (t === 'object--bike-rack' || t === 'object--support--bike-lane-separator') bikeInfra++;
+      else if (t === 'object--bench') streetFurniture++;
+    }
+
+    // Infrastructure score based on lighting density
+    const areaKm2 = Math.PI * Math.pow(radius / 1000, 2);
+    const lightDensity = lighting / areaKm2;
+    let infrastructureScore = 0;
+    if (lightDensity >= 50)      infrastructureScore = 10;
+    else if (lightDensity >= 30) infrastructureScore = 8;
+    else if (lightDensity >= 15) infrastructureScore = 6;
+    else if (lightDensity >= 7)  infrastructureScore = 4;
+    else if (lighting > 0)       infrastructureScore = 2;
+    if (crossings > 5)           infrastructureScore = Math.min(10, infrastructureScore + 1);
+    if (pedestrianSignals > 2)   infrastructureScore = Math.min(10, infrastructureScore + 1);
+
+    const result = { coverage: true, imageCount, features: { crossings, lighting, pedestrianSignals, bikeInfra, streetFurniture }, infrastructureScore, photos };
+    console.log(`Mapillary intel: ${imageCount} images, ${lighting} lights, ${crossings} crossings`);
+    mapillaryIntelCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.warn('Mapillary intel failed:', error.message);
+    return res.json({ success: true, data: null });
+  }
+});
+
+// =====================
+// GROUND INTELLIGENCE — SATELLITE VISION AI
+// Fetches Esri World Imagery tile at zoom 16, sends to Claude Sonnet vision
+// Returns urban form assessment: parking, street width, density, pattern, greenery
+// Cache: 30 days
+// =====================
+
+const satelliteVisionCache = new Map();
+const SATELLITE_VISION_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
+
+function lonLatToTileXY(lon, lat, zoom) {
+  const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+  const latRad = lat * Math.PI / 180;
+  const y = Math.floor((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * Math.pow(2, zoom));
+  return { x, y };
+}
+
+app.get('/api/satellite-vision', async (req, res) => {
+  try {
+    const { lat, lon, name } = req.query;
+    if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `sat-vision:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = satelliteVisionCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < SATELLITE_VISION_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+    if (satelliteVisionCache.size >= 500) {
+      const oldest = [...satelliteVisionCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+      if (oldest) satelliteVisionCache.delete(oldest[0]);
+    }
+
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) return res.status(503).json({ error: 'AI not configured' });
+
+    const zoom = 16;
+    const { x, y } = lonLatToTileXY(lonNum, latNum, zoom);
+    const tileUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${y}/${x}`;
+
+    const tileRes = await fetch(tileUrl, {
+      headers: { 'User-Agent': 'SafeStreets/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!tileRes.ok) throw new Error(`Esri tile ${tileRes.status}`);
+
+    const base64Image = Buffer.from(await tileRes.arrayBuffer()).toString('base64');
+    const locationName = typeof name === 'string' && name ? name : `${latNum.toFixed(4)}, ${lonNum.toFixed(4)}`;
+
+    const prompt = `You are analyzing a satellite image of ${locationName} to assess its pedestrian environment.
+
+This is a zoom level 16 satellite tile (~611m wide, ~2.4m per pixel).
+
+Return ONLY valid JSON with no surrounding text or markdown:
+{
+  "parkingCoverage": "low|medium|high",
+  "streetWidth": "narrow|medium|wide",
+  "buildingDensity": "low|medium|high",
+  "greenCoverage": "low|medium|high",
+  "urbanPattern": "grid|organic|sprawl|mixed",
+  "activeStreetFrontage": "low|medium|high",
+  "satelliteAssessment": "<exactly 2 sentences: what you see and what it means for pedestrians>"
+}
+
+Definitions:
+- parkingCoverage: visible surface parking lots as fraction of total land area
+- streetWidth: predominant street width (narrow=lanes/alleys, medium=2-lane arterials, wide=4+ lane roads)
+- buildingDensity: building footprint coverage (low=suburban lots, medium=mixed urban, high=dense blocks)
+- greenCoverage: visible tree canopy + parks + grass (low=mostly paved, high=abundant canopy)
+- urbanPattern: predominant layout visible from above
+- activeStreetFrontage: buildings facing streets with doors/windows vs blank walls or parking lots`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64Image } },
+            { type: 'text', text: prompt },
+          ],
+        }],
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Satellite vision AI error:', response.status, errText);
+      return res.json({ success: true, data: null });
+    }
+
+    const aiData = await response.json();
+    const text = aiData.content?.[0]?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return res.json({ success: true, data: null });
+
+    const result = JSON.parse(jsonMatch[0]);
+    const validLevels = ['low', 'medium', 'high'];
+    const validPatterns = ['grid', 'organic', 'sprawl', 'mixed'];
+    const validWidths = ['narrow', 'medium', 'wide'];
+    if (!validLevels.includes(result.parkingCoverage))       result.parkingCoverage = 'medium';
+    if (!validWidths.includes(result.streetWidth))           result.streetWidth = 'medium';
+    if (!validLevels.includes(result.buildingDensity))       result.buildingDensity = 'medium';
+    if (!validLevels.includes(result.greenCoverage))         result.greenCoverage = 'medium';
+    if (!validPatterns.includes(result.urbanPattern))        result.urbanPattern = 'mixed';
+    if (!validLevels.includes(result.activeStreetFrontage))  result.activeStreetFrontage = 'medium';
+    if (typeof result.satelliteAssessment !== 'string')      result.satelliteAssessment = '';
+
+    console.log(`Satellite vision: parking=${result.parkingCoverage}, density=${result.buildingDensity}, pattern=${result.urbanPattern}`);
+    satelliteVisionCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.warn('Satellite vision failed:', error.message);
+    return res.json({ success: true, data: null });
+  }
+});
+
+// =====================
+// GROUND INTELLIGENCE — GROUND REALITY NARRATIVE
+// Synthesizes all signals (OSM + Mapillary CV + Satellite Vision) into a human paragraph + 3 insights
+// Uses Claude Sonnet for reasoning quality
+// Cache: 7 days
+// =====================
+
+const groundRealityCache = new Map();
+const GROUND_REALITY_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
+
+app.post('/api/ground-reality', async (req, res) => {
+  try {
+    const { lat, lon, name, compositeScore, mapillary, satelliteVision } = req.body || {};
+    if (!lat || !lon) return res.status(400).json({ error: 'lat and lon required' });
+    const latNum = parseFloat(lat);
+    const lonNum = parseFloat(lon);
+    if (isNaN(latNum) || isNaN(lonNum)) return res.status(400).json({ error: 'Invalid coordinates' });
+
+    const cacheKey = `ground-reality:${latNum.toFixed(3)},${lonNum.toFixed(3)}`;
+    const cached = groundRealityCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < GROUND_REALITY_CACHE_TTL) {
+      return res.json({ success: true, data: cached.data });
+    }
+    if (groundRealityCache.size >= 300) {
+      const oldest = [...groundRealityCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+      if (oldest) groundRealityCache.delete(oldest[0]);
+    }
+
+    const anthropicKey = process.env.ANTHROPIC_API_KEY;
+    if (!anthropicKey) return res.status(503).json({ error: 'AI not configured' });
+
+    const locationName = typeof name === 'string' && name ? name : `${latNum.toFixed(4)}, ${lonNum.toFixed(4)}`;
+    const dataSections = [];
+    const availableSources = ['OSM Street Network'];
+
+    // Composite score block
+    if (compositeScore) {
+      const score = compositeScore.overallScore;
+      const displayScore = (score / 10).toFixed(1);
+      const nd = compositeScore.components?.networkDesign?.score ?? 'n/a';
+      const ec = compositeScore.components?.environmentalComfort?.score ?? 'n/a';
+      const sf = compositeScore.components?.safety?.score ?? 'n/a';
+      const dc = compositeScore.components?.densityContext?.score ?? 'n/a';
+      dataSections.push(`WALKABILITY SCORE: ${displayScore}/10 (${compositeScore.grade || 'n/a'}) — internal 0-100: ${score}
+  Network Design: ${nd}/100
+  Environmental Comfort: ${ec}/100
+  Safety: ${sf}/100
+  Density & Destinations: ${dc}/100`);
+    }
+
+    // Mapillary CV block
+    if (mapillary && mapillary.coverage) {
+      availableSources.push('Mapillary CV');
+      dataSections.push(`STREET-LEVEL COMPUTER VISION (Mapillary, ${mapillary.imageCount} photos):
+  Pedestrian crossings detected: ${mapillary.features.crossings}
+  Street lights detected: ${mapillary.features.lighting}
+  Pedestrian signals: ${mapillary.features.pedestrianSignals}
+  Bike infrastructure: ${mapillary.features.bikeInfra}
+  Street furniture (benches): ${mapillary.features.streetFurniture}
+  Infrastructure score: ${mapillary.infrastructureScore}/10`);
+    } else {
+      dataSections.push(`STREET-LEVEL PHOTOS: Not available for this area (Mapillary has no street-level coverage here)`);
+    }
+
+    // Satellite vision block
+    if (satelliteVision) {
+      availableSources.push('Satellite Vision AI');
+      dataSections.push(`SATELLITE VISUAL ANALYSIS (Esri World Imagery + AI):
+  Parking coverage: ${satelliteVision.parkingCoverage}
+  Street width: ${satelliteVision.streetWidth}
+  Building density: ${satelliteVision.buildingDensity}
+  Green coverage: ${satelliteVision.greenCoverage}
+  Urban pattern: ${satelliteVision.urbanPattern}
+  Active street frontage: ${satelliteVision.activeStreetFrontage}
+  Visual observation: ${satelliteVision.satelliteAssessment}`);
+    } else {
+      dataSections.push(`SATELLITE VISION: Analysis unavailable for this location`);
+    }
+
+    const prompt = `You are writing the "Ground Reality" section of a walkability report for ${locationName}.
+
+Your job is to synthesize the data below into a culturally-aware, honest description of what it actually feels like to walk here — for a person deciding whether to live, visit, or work in this neighborhood.
+
+DATA:
+${dataSections.join('\n\n')}
+
+INSTRUCTIONS:
+- Write a 3-4 sentence narrative paragraph. Be specific — reference actual data points, not generic walkability language.
+- Honest about gaps: if street photos are unavailable, acknowledge it. If data is limited, say so.
+- Do NOT use corporate or promotional language. Write like a knowledgeable friend who has studied the data.
+- The narrative must reflect the actual score tier: if it is 45/100 car-dependent, do not describe it as pleasant.
+- Be culturally aware: dense South/Southeast Asian, Middle Eastern, African, and Latin American urban areas often score lower due to incomplete OSM data, not because they are unwalkable — acknowledge this where relevant.
+- Write exactly 3 key insight bullets (each 8-15 words).
+- confidence level: "high" if Mapillary + satellite + OSM all present; "medium" if some missing; "low" if minimal data.
+
+Respond with ONLY valid JSON, no markdown, no surrounding text:
+{
+  "narrative": "<3-4 sentence paragraph>",
+  "keyInsights": ["<insight 1>", "<insight 2>", "<insight 3>"],
+  "dataSources": ${JSON.stringify(availableSources)},
+  "confidence": "high|medium|low"
+}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+      signal: AbortSignal.timeout(25000),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Ground reality AI error:', response.status, errText);
+      return res.status(502).json({ error: 'AI service error' });
+    }
+
+    const aiData = await response.json();
+    const text = aiData.content?.[0]?.text || '';
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error('Ground reality: could not parse AI response:', text.slice(0, 200));
+      return res.status(500).json({ error: 'Could not parse AI response' });
+    }
+
+    const result = JSON.parse(jsonMatch[0]);
+    if (typeof result.narrative !== 'string' || !Array.isArray(result.keyInsights) || result.keyInsights.length !== 3) {
+      return res.status(500).json({ error: 'Unexpected AI response shape' });
+    }
+    if (!['high', 'medium', 'low'].includes(result.confidence)) result.confidence = 'low';
+
+    console.log(`Ground reality: ${availableSources.length} sources, confidence=${result.confidence}`);
+    groundRealityCache.set(cacheKey, { data: result, timestamp: Date.now() });
+    return res.json({ success: true, data: result });
+  } catch (error) {
+    console.warn('Ground reality failed:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+// =====================
 // GEMINI AI BUDGET ANALYSIS
 // =====================
 
