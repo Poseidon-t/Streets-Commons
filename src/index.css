@@ -45,12 +45,12 @@
 .retro-card-header-meta {
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: rgba(242,236,224,0.45);
+  color: rgba(242,236,224,0.85);
 }
 
 /* Verdict stamps */
 .retro-stamp {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -66,7 +66,7 @@
 
 /* Component tag */
 .retro-tag {
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

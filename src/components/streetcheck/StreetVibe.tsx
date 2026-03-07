@@ -60,7 +60,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
       }}>
         {archetype.name}
       </div>
-      <div style={{ fontSize: 11, color: '#5c4a2c', fontStyle: 'italic' }}>
+      <div style={{ fontSize: 13, color: '#3d2f18' }}>
         {archetype.tagline}
       </div>
     </div>

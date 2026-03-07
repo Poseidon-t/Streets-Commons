@@ -78,9 +78,9 @@ function GaugeDial({ score, label, isTop, isBottom }: {
         <line x1={40} y1={12} x2={40} y2={15.5} stroke="#1e1608" strokeWidth={1} opacity={0.35} />
         <line x1={72} y1={44} x2={68.5} y2={44} stroke="#1e1608" strokeWidth={1} opacity={0.35} />
         {/* Tick labels */}
-        <text x={5} y={50} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={5.5} fill="#8a7a60">0</text>
-        <text x={40} y={10} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={5.5} fill="#8a7a60">5</text>
-        <text x={75} y={50} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={5.5} fill="#8a7a60">10</text>
+        <text x={5} y={50} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={7} fill="#5c4a2c">0</text>
+        <text x={40} y={10} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={7} fill="#5c4a2c">5</text>
+        <text x={75} y={50} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={7} fill="#5c4a2c">10</text>
         {/* Score number */}
         <text x={40} y={42} textAnchor="middle" fontFamily="IBM Plex Mono, monospace" fontSize={13} fontWeight={700} fill={color}>
           {(score / 10).toFixed(1)}

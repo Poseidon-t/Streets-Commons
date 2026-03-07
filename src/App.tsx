@@ -1512,7 +1512,7 @@ function App() {
                 <span style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(242,236,224,0.65)', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
-                <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.4)' }}>
+                <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.8)' }}>
                   PEDESTRIAN SURVEY
                 </span>
               </div>
@@ -1520,7 +1520,7 @@ function App() {
                 <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1e1608', letterSpacing: '-0.01em', lineHeight: 1 }}>
                   {location.displayName.split(',').slice(0, 2).join(',')}
                 </h2>
-                <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#8a7a60' }}>
+                <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#5c4a2c' }}>
                   {location.countryCode} · Urban Analysis
                 </span>
               </div>
@@ -1559,7 +1559,7 @@ function App() {
             {/* ACT 3 divider */}
             <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0 3px' }}>
               <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
-              <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: '#f2ece0', background: '#1e1608', padding: '4px 16px', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: '#f2ece0', background: '#1e1608', padding: '4px 16px', whiteSpace: 'nowrap' }}>
                 Detailed Analysis
               </span>
               <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
@@ -1579,12 +1579,12 @@ function App() {
 
             {/* Compact data quality badge */}
             {dataQuality && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 9, letterSpacing: '0.08em', color: '#8a7a60' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 10, letterSpacing: '0.08em', color: '#5c4a2c' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   DATA QUALITY:
                   <span style={{
                     padding: '2px 7px', border: '1.5px solid',
-                    fontWeight: 700, fontSize: 9, letterSpacing: '0.12em',
+                    fontWeight: 700, fontSize: 10, letterSpacing: '0.12em',
                     color: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
                     borderColor: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
                   }}>
