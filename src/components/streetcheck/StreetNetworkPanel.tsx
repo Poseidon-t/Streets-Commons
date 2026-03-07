@@ -191,7 +191,7 @@ export default function StreetNetworkPanel({
         className="px-5 pb-4 text-xs"
         style={{ color: '#b0a8a0' }}
       >
-        Source: OpenStreetMap network topology · 800m radius · AI analysis by Claude
+        Source: OpenStreetMap network topology · 800m radius · Street character analysis
       </div>
     </div>
   );
