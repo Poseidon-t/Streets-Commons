@@ -365,7 +365,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
         {/* Map Poster — opens TerraInk with coordinates pre-filled */}
         <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />
         <a
-          href={`https://terraink.app/?lat=${location.lat}&lon=${location.lon}`}
+          href={`https://capable-victory-production.up.railway.app/?lat=${location.lat}&lon=${location.lon}`}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackEvent('share_click', { platform: 'terraink' })}
