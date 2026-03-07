@@ -41,7 +41,7 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
     return (
       <div className="retro-card">
         <div className="retro-card-header">
-          <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
+          <span className="retro-card-header-title">What drives this score</span>
         </div>
         <div style={{ padding: '16px' }}>
           {[0, 1, 2, 3].map(i => (
@@ -69,7 +69,7 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
   return (
     <div className="retro-card">
       <div className="retro-card-header">
-        <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
+        <span className="retro-card-header-title">What drives this score</span>
       </div>
 
       <div style={{ padding: '16px' }}>

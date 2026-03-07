@@ -4,7 +4,6 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
 import PersonaCards from './components/streetcheck/PersonaCards';
-import PersonaChips from './components/streetcheck/PersonaChips';
 import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
@@ -16,7 +15,6 @@ import ErrorBoundary from './components/ErrorBoundary';
 // Lazy-load heavy components (only loaded when needed)
 const CompareView = lazy(() => import('./components/CompareView'));
 const ShareButtons = lazy(() => import('./components/ShareButtons'));
-const FifteenMinuteCity = lazy(() => import('./components/FifteenMinuteCity'));
 const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'));
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const ProductTour = lazy(() => import('./components/ProductTour'));
@@ -159,10 +157,7 @@ function App() {
   // Sign-in modal state (was payment modal — now all features are free)
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showMethodology, setShowMethodology] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    try { return !localStorage.getItem('safestreets_seen_onboarding'); } catch { return true; }
-  });
-
+  const [showDetailedMetrics, setShowDetailedMetrics] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [savedAddressList, setSavedAddressList] = useState<SavedAddress[]>(() => getSavedAddresses());
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
@@ -1541,8 +1536,8 @@ function App() {
               </div>
             </div>
 
-            {/* ACT 1 — Persona chips: quick verdict for 3 key groups */}
-            <PersonaChips compositeScore={compositeScore} />
+            {/* ACT 1 — Persona verdicts */}
+            <PersonaCards compositeScore={compositeScore} />
 
             {/* ACT 2 — Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
             <GroundRealityCard
@@ -1565,56 +1560,24 @@ function App() {
               <div style={{ flex: 1, height: 2, background: '#1a1208' }} />
             </div>
 
-            {/* ACT 3 — Full persona table */}
-            <PersonaCards compositeScore={compositeScore} />
+            {/* ACT 3 starts after divider — no duplicate persona table */}
 
-            {/* 15-Minute City Score */}
-            <div id="neighborhood" className="scroll-mt-16">
-              <ErrorBoundary sectionName="15-Minute City">
-                <Suspense fallback={null}>
-                  <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
 
-            {/* Compact data quality badge */}
-            {dataQuality && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 11, letterSpacing: '0.06em', color: '#2a2010', fontWeight: 600 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  DATA QUALITY:
-                  <span style={{
-                    padding: '2px 8px', border: '2px solid',
-                    fontWeight: 700, fontSize: 11, letterSpacing: '0.1em',
-                    color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a',
-                    borderColor: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a',
-                  }}>
-                    {dataQuality.confidence.toUpperCase()}
-                  </span>
-                </span>
-                <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings</span>
-                <span className="hidden sm:inline">OSM · Sentinel-2 · {location.countryCode === 'US' ? 'Census ACS · EPA' : 'OpenStreetMap'}</span>
-              </div>
-            )}
-
-            {/* First-time onboarding tip */}
-            {showOnboarding && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-gray-600">
-                <span>Scores are 0 to 10 (10 = best). Green = strengths, red = needs attention. Scroll down for more.</span>
-                <button
-                  onClick={() => {
-                    setShowOnboarding(false);
-                    try { localStorage.setItem('safestreets_seen_onboarding', '1'); } catch {}
-                  }}
-                  className="font-semibold text-blue-600 hover:text-blue-800 whitespace-nowrap px-2 py-1 rounded hover:bg-blue-100"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-
-            {/* Metrics Grid — fully free including detail expansion */}
+            {/* Metrics Grid — collapsed by default */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
+              <button
+                onClick={() => setShowDetailedMetrics(!showDetailedMetrics)}
+                className="w-full retro-card"
+                style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px' }}
+              >
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
+                  {showDetailedMetrics ? 'Hide' : 'Show'} detailed metrics
+                </span>
+                <span style={{ fontSize: 18, color: '#3d3020' }}>{showDetailedMetrics ? '−' : '+'}</span>
+              </button>
+              {showDetailedMetrics && (
+                <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
+              )}
             </div>
 
             {/* Street Network Analysis — free for all */}
@@ -1715,6 +1678,15 @@ function App() {
                       <p className="text-[#4a5a4a]">All data comes from publicly available sources: OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
                     </div>
                   </div>
+                  {dataQuality && (
+                    <div className="mt-4">
+                      <strong className="block mb-1">Data Quality</strong>
+                      <p className="text-[#4a5a4a]">
+                        Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span> — {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
+                        Sources: OSM, Sentinel-2{location?.countryCode === 'US' ? ', Census ACS, EPA' : ''}.
+                      </p>
+                    </div>
+                  )}
                   <div className="mt-6 p-4 rounded-lg border bg-white/60 border-[#d0dbd0]">
                     <p className="text-xs text-[#3a4a3a]">
                       <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.

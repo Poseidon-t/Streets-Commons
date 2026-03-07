@@ -229,7 +229,7 @@ export default function EquityContextSection({
   return (
     <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Equity Context</h3>
+        <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Equity & Access</h3>
         {analysis && (
           <span
             className="px-3 py-1 rounded-full text-xs font-bold"
@@ -245,14 +245,14 @@ export default function EquityContextSection({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {stats.map((stat) => (
             <div key={stat.label} className="p-2.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#2a2010' }}>
+              <div className="text-xs uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#2a2010' }}>
                 {stat.label}
               </div>
               <div className="text-sm font-bold" style={{ color: '#1a1208' }}>
                 {stat.value}
               </div>
               {stat.context && (
-                <div className="text-[10px] mt-0.5" style={{ color: stat.contextColor || '#8a9a8a' }}>
+                <div className="text-xs mt-0.5" style={{ color: stat.contextColor || '#8a9a8a' }}>
                   {stat.context}
                 </div>
               )}

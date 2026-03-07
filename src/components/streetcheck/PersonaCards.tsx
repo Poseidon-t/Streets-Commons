@@ -25,8 +25,8 @@ function PersonaCardsSkeleton() {
   return (
     <div className="retro-card" style={{ overflow: 'hidden' }}>
       <div className="retro-card-header">
-        <span className="retro-card-header-title">Pedestrian Persona Assessment</span>
-        <span className="retro-card-header-meta">Score / 100</span>
+        <span className="retro-card-header-title">Who is this area good for?</span>
+        <span className="retro-card-header-meta">Score / 10</span>
       </div>
       {PERSONA_NAMES.map((_, i) => (
         <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: i < 4 ? '1px solid #c4b59a' : 'none' }}>
@@ -67,7 +67,7 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
 
       {/* Score */}
       <div style={{ textAlign: 'right', flexShrink: 0, paddingRight: 8 }}>
-        <div style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{score}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{(score / 10).toFixed(1)}</div>
       </div>
 
       {/* Verdict stamp */}
@@ -84,8 +84,8 @@ export default function PersonaCards({ compositeScore }: PersonaCardsProps) {
   return (
     <div className="retro-card" style={{ overflow: 'hidden' }}>
       <div className="retro-card-header">
-        <span className="retro-card-header-title">Pedestrian Persona Assessment</span>
-        <span className="retro-card-header-meta">Score / 100</span>
+        <span className="retro-card-header-title">Who is this area good for?</span>
+        <span className="retro-card-header-meta">Score / 10</span>
       </div>
       <div>
         {personas.map((p, i) => (

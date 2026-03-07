@@ -179,8 +179,8 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
     >
       <span className="text-2xl mb-1">{icon}</span>
       <span className="text-lg font-bold" style={{ color: hasItems ? '#1a1208' : '#c0b0a0' }}>{count}</span>
-      <span className="text-[0.65rem] leading-tight" style={{ color: '#2a2010' }}>{label}</span>
-      {distance && <span className="text-[0.6rem] mt-0.5" style={{ color: '#a0b0a0' }}>{distance}</span>}
+      <span className="text-xs leading-tight" style={{ color: '#2a2010' }}>{label}</span>
+      {distance && <span className="text-xs mt-0.5" style={{ color: '#a0b0a0' }}>{distance}</span>}
     </div>
   );
 }
@@ -211,7 +211,7 @@ function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: numb
         </div>
       </div>
       <div className="flex justify-between mt-0.5">
-        <span className="text-[0.6rem]" style={{ color: isBetter ? '#22c55e' : '#ef4444' }}>
+        <span className="text-xs" style={{ color: isBetter ? '#22c55e' : '#ef4444' }}>
           {isBetter ? 'Better than' : 'Above'} US avg ({usAvg}%)
         </span>
       </div>
@@ -265,19 +265,16 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
   const healthSectionScore = getHealthScore(health, flood);
 
   return (
-    <div className="w-full mt-8">
-      <h2 className="text-2xl font-bold mb-1" style={{ color: '#1a1208' }}>
-        Neighborhood Intelligence
-      </h2>
-      <p className="text-sm mb-5" style={{ color: '#2a2010' }}>
-        Beyond the walkability score — what daily life looks like here.
-      </p>
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Daily life here</span>
+      </div>
 
-      <div className="space-y-4">
+      <div style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
         {/* Getting Around */}
         {(commute || transit) && (
-          <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid #c4b59a' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">🚶</span>
               <span className="text-base font-semibold" style={{ color: '#1a1208' }}>How People Get Around</span>
@@ -290,7 +287,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
             {commute && <CommuteBar commute={commute} />}
             {transit && <TransitBadges transit={transit} />}
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
+            <div className="text-xs mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               {commute ? 'Census ACS' : ''}{commute && transit ? ' · ' : ''}{transit ? 'OpenStreetMap' : ''}
             </div>
           </div>
@@ -298,7 +295,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
         {/* What's Nearby */}
         {(parks || food) && (
-          <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
+          <div style={{ padding: '16px 18px', borderBottom: '1px solid #c4b59a' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">📍</span>
               <span className="text-base font-semibold" style={{ color: '#1a1208' }}>What's Nearby</span>
@@ -341,7 +338,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
                 </span>
               </div>
             )}
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
+            <div className="text-xs mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               OpenStreetMap · 1.2 km radius
             </div>
           </div>
@@ -349,7 +346,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
         {/* Health & Environment */}
         {(health || flood) && (
-          <div className="rounded-xl border p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
+          <div style={{ padding: '16px 18px' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">❤️</span>
               <span className="text-base font-semibold" style={{ color: '#1a1208' }}>Health & Environment</span>
@@ -366,7 +363,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
                 <div className="text-xs font-medium mb-3" style={{ color: '#2a2010' }}>
                   Community health vs US average
                   <span className="inline-block ml-2 h-3 w-0.5 rounded-full align-middle" style={{ backgroundColor: '#8a9a8a' }} />
-                  <span className="text-[0.6rem] ml-1" style={{ color: '#a0b0a0' }}>gray line = US avg</span>
+                  <span className="text-xs ml-1" style={{ color: '#a0b0a0' }}>gray line = US avg</span>
                 </div>
                 {health.obesity !== null && (
                   <HealthBar label="Obesity" value={health.obesity} usAvg={32} maxVal={50} />
@@ -385,7 +382,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
 
             {flood && <FloodBadge flood={flood} />}
 
-            <div className="text-[0.65rem] mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
+            <div className="text-xs mt-3 pt-2 border-t" style={{ color: '#3d3020', borderColor: '#f0ebe0' }}>
               {health ? 'CDC PLACES' : ''}{health && flood ? ' · ' : ''}{flood ? 'FEMA NFHL' : ''}
             </div>
           </div>

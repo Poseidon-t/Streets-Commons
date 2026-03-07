@@ -12,7 +12,7 @@ function GroundRealityCardSkeleton() {
   return (
     <div className="retro-card">
       <div className="retro-card-header">
-        <span className="retro-card-header-title">Ground Reality · Field Observation</span>
+        <span className="retro-card-header-title">What it's actually like</span>
       </div>
       <div style={{ padding: '16px 16px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {[100, 93, 86, 72].map((w, i) => (
@@ -80,7 +80,7 @@ export default function GroundRealityCard({
     <div className="retro-card">
       {/* Header */}
       <div className="retro-card-header">
-        <span className="retro-card-header-title">🗺 Ground Reality · Field Observation</span>
+        <span className="retro-card-header-title">🗺 What it's actually like</span>
         <span style={{
           fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
           padding: '3px 8px', border: `2px solid ${confColor}`, color: confColor,

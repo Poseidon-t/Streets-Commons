@@ -166,18 +166,10 @@ export default function EconomicContextSection({ osmData, demographicData, demog
 
   return (
     <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Local Economy</h3>
+      <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Local businesses</h3>
 
       <LocalEconomyView profile={profile} />
 
-      {/* US Census data as supplementary context */}
-      {demographicData && <CensusContext data={demographicData} />}
-
-      {demographicLoading && (
-        <div className="pt-3 border-t animate-pulse" style={{ borderColor: '#f0ebe0' }}>
-          <div className="h-3 w-32 rounded" style={{ backgroundColor: '#e0dbd0' }} />
-        </div>
-      )}
     </div>
   );
 }
