@@ -74,7 +74,7 @@ export default function GroundRealityCard({
       ]
     : [];
 
-  const confColor = narrative.confidence === 'high' ? '#2a5224' : narrative.confidence === 'medium' ? '#d4920c' : '#b8401a';
+  const confColor = narrative.confidence === 'high' ? '#1a7a28' : narrative.confidence === 'medium' ? '#b87a00' : '#b8401a';
 
   return (
     <div className="retro-card">

@@ -18,8 +18,8 @@ interface WalkerInfographicProps {
 }
 
 function retroColor(score: number): string {
-  if (score >= 8) return '#2a5224';
-  if (score >= 6) return '#d4920c';
+  if (score >= 8) return '#1a7a28';
+  if (score >= 6) return '#b87a00';
   return '#b8401a';
 }
 
@@ -39,11 +39,11 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
       {/* Label */}
       <p style={{
         textAlign: 'center',
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 700,
-        letterSpacing: '0.14em',
+        letterSpacing: '0.12em',
         textTransform: 'uppercase',
-        color: '#3d2f18',
+        color: '#3d3020',
         marginBottom: 10,
       }}>
         Out of 10 people, how many walk here comfortably?
@@ -61,11 +61,11 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
 
       {/* Verdict line */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color }}>
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', color }}>
           {filled} feel comfortable
         </span>
         {empty > 0 && (
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', color: '#5c4a2c' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.04em', color: '#5a4a30' }}>
             {empty} find it difficult
           </span>
         )}

@@ -21,16 +21,16 @@ interface MetricGridProps {
 }
 
 function getCardBackground(score: number): string {
-  if (score >= 7.5) return 'rgba(34,197,94,0.05)';
-  if (score <= 3.0 && score > 0) return 'rgba(239,68,68,0.05)';
-  return 'white';
+  if (score >= 7.5) return 'rgba(26,122,40,0.03)';
+  if (score <= 3.0 && score > 0) return 'rgba(184,64,26,0.03)';
+  return '#fff';
 }
 
 function getCardBorderColor(score: number, isExpanded: boolean, expandedColor: string): string {
   if (isExpanded) return expandedColor;
-  if (score >= 7.5) return 'rgba(34,197,94,0.25)';
-  if (score <= 3.0 && score > 0) return 'rgba(239,68,68,0.25)';
-  return '#e0dbd0';
+  if (score >= 7.5) return 'rgba(26,122,40,0.35)';
+  if (score <= 3.0 && score > 0) return 'rgba(184,64,26,0.35)';
+  return '#d8d0c0';
 }
 
 function getInsight(key: string, score: number): string {
@@ -395,11 +395,14 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
 
   return (
     <div
-      className="rounded-xl border p-4 transition-all"
+      className="transition-all"
       style={{
         borderColor,
         backgroundColor: bg,
-        borderWidth: isExpanded ? '2px' : '1px',
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        borderRadius: '12px',
+        padding: '16px',
       }}
     >
       {isLoading ? (
@@ -412,48 +415,45 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
       ) : (
         <>
           {/* Header row: icon + name + score */}
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{def.icon}</span>
-              <span className="font-bold" style={{ color: '#2a3a2a', fontSize: '15px' }}>{def.name}</span>
+          <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
+            <div className="flex items-center" style={{ gap: '6px' }}>
+              <span style={{ fontSize: '20px' }}>{def.icon}</span>
+              <span style={{ color: '#1a1208', fontSize: '16px', fontWeight: 700 }}>{def.name}</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold tabular-nums" style={{ color, fontSize: '22px' }}>{displayScore}</span>
-              <span className="font-medium" style={{ color: '#5c4a2c', fontSize: '13px' }}>/10</span>
+            <div className="flex items-center" style={{ gap: '4px' }}>
+              <span style={{ color, fontSize: '24px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
+              <span style={{ color: '#6b5d45', fontSize: '14px', fontWeight: 600 }}>/10</span>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#ede8dd', height: '12px' }}>
+          <div style={{ backgroundColor: '#ede8dd', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom: '10px' }}>
             <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{ width: `${Math.max(score * 10, 2)}%`, backgroundColor: color }}
+              style={{ height: '100%', borderRadius: '5px', width: `${Math.max(score * 10, 2)}%`, backgroundColor: color, transition: 'width 0.5s' }}
             />
           </div>
 
           {/* Inline context — always visible, no click required */}
           {contextText && (
-            <p className="leading-relaxed mb-3" style={{ color: '#2a3a2a', fontSize: '14px', lineHeight: '1.6' }}>
+            <p style={{ color: '#2a2010', fontSize: '14px', lineHeight: '1.6', marginBottom: '10px' }}>
               {contextText}
             </p>
           )}
 
           {/* Data source + estimated badge + expand toggle */}
-          <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: '#f0ebe0' }}>
-            <div className="flex items-center gap-1.5">
-              <span style={{ color: '#5c4a2c', fontSize: '13px' }}>{detail?.source ?? def.source}</span>
+          <div className="flex items-center justify-between" style={{ paddingTop: '8px', borderTop: '1px solid #f0ebe0' }}>
+            <div className="flex items-center" style={{ gap: '6px' }}>
+              <span style={{ color: '#6b5d45', fontSize: '13px', fontWeight: 500 }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
                 <span
-                  className="px-1.5 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '12px' }}
+                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '12px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px' }}
                 >
                   Estimated
                 </span>
               )}
             </div>
             <button
-              className="underline cursor-pointer font-medium"
-              style={{ color: '#3a5a3a', fontSize: '13px' }}
+              style={{ color: '#2a6a2a', fontSize: '13px', fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none' }}
               onClick={onClick}
             >
               {isExpanded ? 'Less' : 'How it\'s scored'}
@@ -542,10 +542,10 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   return (
     <div className="w-full">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+        <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#1a1208' }}>
           Score Breakdown
         </h2>
-        <p className="mt-1" style={{ color: '#3a4a3a', fontSize: '15px' }}>
+        <p style={{ color: '#3d3020', fontSize: '15px', marginTop: '4px' }}>
           Each metric contributes to your walkability score. Green = strength, red = needs attention.
         </p>
       </div>
@@ -572,12 +572,12 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           return (
             <div key={groupKey}>
               {/* Group header */}
-              <div className="flex items-center gap-2 mb-3">
-                <span style={{ fontSize: '16px' }}>{groupMeta.icon}</span>
-                <span className="font-bold uppercase" style={{ color: '#2a3a2a', letterSpacing: '0.1em', fontSize: '13px' }}>
+              <div className="flex items-center" style={{ gap: '8px', marginBottom: '12px' }}>
+                <span style={{ fontSize: '18px' }}>{groupMeta.icon}</span>
+                <span style={{ color: '#1a1208', letterSpacing: '0.1em', fontSize: '14px', fontWeight: 800, textTransform: 'uppercase' as const }}>
                   {groupMeta.label}
                 </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: '#c4b59a' }} />
+                <div className="flex-1" style={{ height: '2px', backgroundColor: '#c4b59a' }} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -13,8 +13,8 @@ const CHIP_PERSONAS = [
 ];
 
 function retroColor(score: number): string {
-  if (score >= 65) return '#2a5224';
-  if (score >= 42) return '#d4920c';
+  if (score >= 65) return '#1a7a28';
+  if (score >= 42) return '#b87a00';
   return '#b8401a';
 }
 
@@ -50,7 +50,7 @@ function FigureRow({ personaKey, score, color }: { personaKey: string; score: nu
           <FigureComponent key={`e-${i}`} color="#c4b59a" opacity={0.7} width={fw} height={fh} />
         ))}
       </div>
-      <div style={{ fontSize: 10, fontWeight: 600, color: '#5c4a2c', marginTop: 4, letterSpacing: '0.04em' }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: '#5a4a30', marginTop: 3, letterSpacing: '0.04em' }}>
         {CAPTIONS[personaKey]?.(filled)}
       </div>
     </div>
@@ -116,7 +116,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
 
             {/* Name + figure row */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#1e1608', lineHeight: 1.2 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2 }}>
                 {label}
               </div>
               <FigureRow personaKey={key} score={score} color={color} />
@@ -125,10 +125,10 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
             {/* Score + verdict */}
             <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
               <div>
-                <span style={{ fontSize: 20, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                <span style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                   {score}
                 </span>
-                <span style={{ fontSize: 10, color: '#5c4a2c', marginLeft: 2 }}>/100</span>
+                <span style={{ fontSize: 11, color: '#6b5d45', fontWeight: 600, marginLeft: 2 }}>/100</span>
               </div>
               <span className={stampClass(score)}>{verdict}</span>
             </div>

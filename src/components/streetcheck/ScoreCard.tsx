@@ -18,8 +18,8 @@ function getScoreTier(score: number): string {
 }
 
 function retroColor(score: number): string {
-  if (score >= 65) return '#2a5224';
-  if (score >= 42) return '#d4920c';
+  if (score >= 65) return '#1a7a28';
+  if (score >= 42) return '#b87a00';
   return '#b8401a';
 }
 
@@ -50,7 +50,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
         }}>
           {displayScore}
         </span>
-        <span style={{ fontSize: 11, color: '#5c4a2c', paddingBottom: 6 }}>/10</span>
+        <span style={{ fontSize: 13, color: '#6b5d45', fontWeight: 600, paddingBottom: 6 }}>/10</span>
       </div>
 
       {/* Gauge with tick labels */}
@@ -67,9 +67,9 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
 
       {/* Tier stamp */}
       <span style={{
-        fontSize: 10, fontWeight: 700, letterSpacing: '0.2em',
-        textTransform: 'uppercase' as const, padding: '3px 10px',
-        border: `1.5px solid ${color}`, color,
+        fontSize: 11, fontWeight: 700, letterSpacing: '0.14em',
+        textTransform: 'uppercase' as const, padding: '4px 10px',
+        border: `2px solid ${color}`, color,
         display: 'inline-block', marginBottom: 14,
       }}>
         {tier}

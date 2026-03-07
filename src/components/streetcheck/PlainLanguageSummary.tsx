@@ -79,12 +79,12 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
     tone = 'danger';
   }
 
-  // Retro palette — matches forest/amber/brick system used throughout
+  // Vibrant palette — matches green/amber/brick system
   const toneColors = {
-    positive: { text: '#2a5224', bg: 'rgba(42,82,36,0.07)' },
-    neutral:  { text: '#d4920c', bg: 'rgba(212,146,12,0.07)' },
-    warning:  { text: '#b8401a', bg: 'rgba(184,64,26,0.07)' },
-    danger:   { text: '#b8401a', bg: 'rgba(184,64,26,0.1)' },
+    positive: { text: '#1a7a28', bg: 'rgba(26,122,40,0.06)' },
+    neutral:  { text: '#b87a00', bg: 'rgba(184,122,0,0.06)' },
+    warning:  { text: '#b8401a', bg: 'rgba(184,64,26,0.06)' },
+    danger:   { text: '#b8401a', bg: 'rgba(184,64,26,0.08)' },
   };
 
   const colors = toneColors[tone];
@@ -92,8 +92,8 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
 
   return (
     <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #c4b59a' }}>
-      <div style={{ padding: '10px 12px', background: colors.bg, border: `1.5px solid ${colors.text}`, fontSize: 13, lineHeight: 1.65, color: '#3d2f18' }}>
-        <span style={{ color: colors.text, fontWeight: 700, letterSpacing: '0.05em' }}>
+      <div style={{ padding: '12px 14px', background: colors.bg, border: `2px solid ${colors.text}`, fontSize: 14, lineHeight: 1.65, color: '#2a2010' }}>
+        <span style={{ color: colors.text, fontWeight: 800, letterSpacing: '0.04em' }}>
           {tierLabel}
         </span>
         {' — '}

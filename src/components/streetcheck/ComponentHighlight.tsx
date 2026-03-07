@@ -5,15 +5,9 @@ interface ComponentHighlightProps {
 }
 
 function retroColor(score: number): string {
-  if (score >= 65) return '#2a5224';
-  if (score >= 42) return '#d4920c';
+  if (score >= 65) return '#1a7a28';
+  if (score >= 42) return '#b87a00';
   return '#b8401a';
-}
-
-function barFillClass(score: number): string {
-  if (score >= 65) return 'retro-comp-fill';
-  if (score >= 42) return 'retro-comp-fill';
-  return 'retro-comp-fill';
 }
 
 const LABELS: Record<string, string> = {
@@ -49,14 +43,14 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
         <div className="retro-card-header">
           <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
         </div>
-        <div style={{ padding: '14px 16px' }}>
+        <div style={{ padding: '16px' }}>
           {[0, 1, 2, 3].map(i => (
-            <div key={i} style={{ marginBottom: i < 3 ? 12 : 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                <div className="animate-pulse" style={{ height: 10, width: [80, 72, 48, 88][i], background: '#d8d0c4' }} />
-                <div className="animate-pulse" style={{ height: 10, width: 28, background: '#d8d0c4' }} />
+            <div key={i} style={{ marginBottom: i < 3 ? 16 : 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                <div className="animate-pulse" style={{ height: 12, width: [80, 72, 48, 88][i], background: '#d8d0c4' }} />
+                <div className="animate-pulse" style={{ height: 12, width: 32, background: '#d8d0c4' }} />
               </div>
-              <div className="animate-pulse" style={{ height: 14, background: '#e0d8cc' }} />
+              <div className="animate-pulse" style={{ height: 16, background: '#e0d8cc' }} />
             </div>
           ))}
         </div>
@@ -78,7 +72,7 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
         <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
       </div>
 
-      <div style={{ padding: '14px 16px' }}>
+      <div style={{ padding: '16px' }}>
         {sorted.map((c, i) => {
           const color = retroColor(c.score);
           const displayScore = (c.score / 10).toFixed(1);
@@ -87,28 +81,28 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
           const isBottom = c.score === bottomScore && c.score < 50 && sorted.length > 1;
 
           return (
-            <div key={c.label} style={{ marginBottom: i < sorted.length - 1 ? 14 : 0 }}>
+            <div key={c.label} style={{ marginBottom: i < sorted.length - 1 ? 16 : 0 }}>
               {/* Label row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#1e1608' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
                     {shortLabel}
                   </span>
                   {isTop && <span className="retro-tag retro-tag-strength">Strength</span>}
                   {isBottom && <span className="retro-tag retro-tag-challenge">Challenge</span>}
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>
                   {displayScore}
                 </span>
               </div>
 
               {/* Bar */}
-              <div className="retro-comp-bar">
-                <div className={barFillClass(c.score)} style={{ width: `${Math.max(c.score, 2)}%`, background: color }} />
+              <div className="retro-comp-bar" style={{ height: 16 }}>
+                <div className="retro-comp-fill" style={{ width: `${Math.max(c.score, 2)}%`, background: color }} />
               </div>
 
               {/* Explanation */}
-              <div style={{ fontSize: 11, color: '#3d2f18', lineHeight: 1.5, marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: '#2a2010', lineHeight: 1.55, marginTop: 5 }}>
                 {EXPLANATIONS[c.label]?.(c.score) ?? ''}
               </div>
             </div>

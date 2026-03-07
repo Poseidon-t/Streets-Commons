@@ -46,21 +46,21 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
 
   return (
     <div style={{ paddingBottom: 16 }}>
-      <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#5c4a2c', marginBottom: 4 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#6b5d45', marginBottom: 4 }}>
         Street character
       </div>
       <div style={{
         fontFamily: 'Georgia, "Times New Roman", serif',
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: 700,
-        color: '#1e1608',
+        color: '#1a1208',
         letterSpacing: '-0.01em',
         lineHeight: 1.15,
-        marginBottom: 3,
+        marginBottom: 4,
       }}>
         {archetype.name}
       </div>
-      <div style={{ fontSize: 13, color: '#3d2f18' }}>
+      <div style={{ fontSize: 14, color: '#3d3020', lineHeight: 1.4 }}>
         {archetype.tagline}
       </div>
     </div>

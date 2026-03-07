@@ -1507,27 +1507,27 @@ function App() {
           <div className={`retro-analysis ${demoMode ? 'pt-12' : ''}`} style={{ gap: 0 }}>
 
             {/* Document header */}
-            <div style={{ border: '2px solid #1e1608', background: '#faf7f0', marginBottom: 3 }}>
-              <div style={{ background: '#1e1608', padding: '7px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(242,236,224,0.85)', fontWeight: 700 }}>
+            <div style={{ border: '2px solid #1a1208', background: '#faf7f0', marginBottom: 4 }}>
+              <div style={{ background: '#1a1208', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#e8e0d0', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
-                <span style={{ fontSize: 10, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.85)' }}>
+                <span style={{ fontSize: 11, letterSpacing: '0.1em', color: '#c4b89a' }}>
                   PEDESTRIAN SURVEY
                 </span>
               </div>
-              <div style={{ padding: '18px 16px 14px', borderBottom: '2px solid #1e1608', display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
-                <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1e1608', letterSpacing: '-0.01em', lineHeight: 1 }}>
+              <div style={{ padding: '20px 16px 16px', borderBottom: '2px solid #1a1208', display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
+                <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1a1208', letterSpacing: '-0.01em', lineHeight: 1 }}>
                   {location.displayName.split(',').slice(0, 2).join(',')}
                 </h2>
-                <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#5c4a2c' }}>
+                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#6b5d45' }}>
                   {location.countryCode} · Urban Analysis
                 </span>
               </div>
             </div>
 
             {/* ACT 1 — Hero: wider map + archetype + score */}
-            <div id="score" style={{ border: '2px solid #1e1608', background: '#faf7f0', marginBottom: 3, overflow: 'hidden' }} className="scroll-mt-16">
+            <div id="score" style={{ border: '2px solid #1a1208', background: '#faf7f0', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
                 <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
                   <Map location={location} osmData={osmData} seamless />
@@ -1557,12 +1557,12 @@ function App() {
             <ComponentHighlight compositeScore={compositeScore} />
 
             {/* ACT 3 divider */}
-            <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0 3px' }}>
-              <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: '#f2ece0', background: '#1e1608', padding: '4px 16px', whiteSpace: 'nowrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 6px' }}>
+              <div style={{ flex: 1, height: 2, background: '#1a1208' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#f0e8d8', background: '#1a1208', padding: '5px 18px', whiteSpace: 'nowrap' }}>
                 Detailed Analysis
               </span>
-              <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
+              <div style={{ flex: 1, height: 2, background: '#1a1208' }} />
             </div>
 
             {/* ACT 3 — Full persona table */}
@@ -1579,14 +1579,14 @@ function App() {
 
             {/* Compact data quality badge */}
             {dataQuality && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 10, letterSpacing: '0.08em', color: '#5c4a2c' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 11, letterSpacing: '0.06em', color: '#6b5d45', fontWeight: 500 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   DATA QUALITY:
                   <span style={{
-                    padding: '2px 7px', border: '1.5px solid',
-                    fontWeight: 700, fontSize: 10, letterSpacing: '0.12em',
-                    color: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
-                    borderColor: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
+                    padding: '2px 8px', border: '2px solid',
+                    fontWeight: 700, fontSize: 11, letterSpacing: '0.1em',
+                    color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a',
+                    borderColor: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a',
                   }}>
                     {dataQuality.confidence.toUpperCase()}
                   </span>

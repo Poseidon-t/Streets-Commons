@@ -5,9 +5,9 @@
 /* ── Retro Urbanism Analysis Page ──────────────────────────────── */
 .retro-analysis {
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
-  background-color: #f2ece0;
+  background-color: #f5f0e8;
   background-image: none;
-  padding: 32px 16px 64px;
+  padding: 24px 16px 80px;
 }
 
 .retro-analysis h2,
@@ -18,60 +18,60 @@
 /* Retro card — sharp corners, 2px ink border */
 .retro-card {
   background: #ffffff;
-  border: 2px solid #1e1608;
+  border: 2px solid #1a1208;
   border-radius: 0;
-  margin-bottom: 10px;
-  box-shadow: 3px 3px 0 rgba(30,22,8,0.12);
+  margin-bottom: 4px;
+  box-shadow: 3px 3px 0 rgba(26,18,8,0.10);
 }
 
 /* Dark header bar inside retro cards */
 .retro-card-header {
-  background: #1e1608;
-  padding: 7px 16px;
+  background: #1a1208;
+  padding: 8px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 .retro-card-header-title {
-  font-size: 10px;
-  letter-spacing: 0.22em;
+  font-size: 11px;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #f2ece0;
+  color: #f0e8d8;
   font-weight: 700;
 }
 .retro-card-header-meta {
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  color: rgba(242,236,224,0.85);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: #c4b89a;
 }
 
 /* Verdict stamps */
 .retro-stamp {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   padding: 3px 8px;
-  border: 1.5px solid;
+  border: 2px solid;
   display: inline-block;
   white-space: nowrap;
   border-radius: 0;
 }
-.retro-stamp-green { color: #2a5224; border-color: #2a5224; }
+.retro-stamp-green { color: #1a7a28; border-color: #1a7a28; }
 .retro-stamp-red   { color: #b8401a; border-color: #b8401a; }
-.retro-stamp-amber { color: #d4920c; border-color: #d4920c; }
+.retro-stamp-amber { color: #b87a00; border-color: #b87a00; }
 
 /* Component tag */
 .retro-tag {
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 2px 6px;
-  border: 1px solid;
+  border: 2px solid;
   border-radius: 0;
 }
-.retro-tag-strength { color: #2a5224; border-color: #2a5224; }
+.retro-tag-strength { color: #1a7a28; border-color: #1a7a28; }
 .retro-tag-challenge { color: #b8401a; border-color: #b8401a; }
 
 /* Gauge bar (score display) */
@@ -90,15 +90,15 @@
   height: 100%;
   background: repeating-linear-gradient(
     90deg,
-    #2a5224 0px, #2a5224 3px,
-    rgba(42,82,36,0.55) 3px, rgba(42,82,36,0.55) 4px
+    #1a7a28 0px, #1a7a28 3px,
+    rgba(26,122,40,0.55) 3px, rgba(26,122,40,0.55) 4px
   );
 }
 .retro-gauge-fill-amber {
   background: repeating-linear-gradient(
     90deg,
-    #d4920c 0px, #d4920c 3px,
-    rgba(212,146,12,0.55) 3px, rgba(212,146,12,0.55) 4px
+    #b87a00 0px, #b87a00 3px,
+    rgba(184,122,0,0.55) 3px, rgba(184,122,0,0.55) 4px
   );
 }
 .retro-gauge-fill-red {

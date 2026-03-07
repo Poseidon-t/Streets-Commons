@@ -10,8 +10,8 @@ const PERSONA_NAMES = ['Daily Commuter', 'Families', 'Older Adults', 'Car-Free L
 const SKELETON_NAME_WIDTHS = [88, 56, 76, 84, 96];
 
 function retroColor(score: number): string {
-  if (score >= 65) return '#2a5224';
-  if (score >= 42) return '#d4920c';
+  if (score >= 65) return '#1a7a28';
+  if (score >= 42) return '#b87a00';
   return '#b8401a';
 }
 
@@ -52,10 +52,10 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
 
       {/* Name + subtitle */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1e1608', lineHeight: 1.2 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2 }}>
           {name}
         </div>
-        <div style={{ fontSize: 11, fontWeight: 500, color: '#3d2f18', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>
+        <div style={{ fontSize: 12, fontWeight: 500, color: '#3d3020', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>
       </div>
 
       {/* Bar */}
