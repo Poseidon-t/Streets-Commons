@@ -95,38 +95,19 @@ export default function StreetNetworkPanel({
     : null;
 
   return (
-    <div
-      className="rounded-2xl border mt-8"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
-    >
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-4 border-b"
-        style={{ borderColor: '#f0ebe0' }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-lg">🔀</span>
-          <span className="text-base font-bold" style={{ color: '#1a1208' }}>
-            Street Network Analysis
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Street Network Analysis</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 14, fontWeight: 800, color: barColor(networkDesign.score), fontVariantNumeric: 'tabular-nums' }}>
+            {(networkDesign.score / 10).toFixed(1)}/10
           </span>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* Overall score pill */}
-          <span className="text-sm font-bold" style={{ color: barColor(networkDesign.score) }}>
-            {networkDesign.score}/100
-          </span>
-          {/* Network type badge */}
           {streetCharacterLoading && !streetCharacter && (
-            <div
-              className="h-6 w-28 rounded-full animate-pulse"
-              style={{ backgroundColor: '#e8e3d8' }}
-            />
+            <div className="animate-pulse" style={{ height: 20, width: 80, background: '#d8d0c4' }} />
           )}
           {streetCharacter && typeStyle && (
-            <span
-              className="text-xs font-semibold px-3 py-1 rounded-full border"
-              style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, borderColor: typeStyle.border }}
-            >
+            <span className="retro-stamp" style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, borderColor: typeStyle.border }}>
               {streetCharacter.type}
             </span>
           )}
@@ -134,7 +115,7 @@ export default function StreetNetworkPanel({
       </div>
 
       {/* AI Assessment */}
-      <div className="px-5 pt-4 pb-3">
+      <div style={{ padding: '14px 18px 10px' }}>
         {streetCharacterLoading && !streetCharacter ? (
           <div className="space-y-2">
             <SkeletonLine w="full" />
@@ -149,7 +130,7 @@ export default function StreetNetworkPanel({
       </div>
 
       {/* Sub-metric bars */}
-      <div className="px-5 pb-4 space-y-3">
+      <div style={{ padding: '0 18px 14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {networkDesign.metrics.map((m) => (
           <SubMetricBar key={m.name} name={m.name} score={m.score} rawValue={m.rawValue} />
         ))}
@@ -158,8 +139,7 @@ export default function StreetNetworkPanel({
       {/* Strength / Concern callout */}
       {streetCharacter && (
         <div
-          className="mx-5 mb-5 grid grid-cols-2 gap-3 rounded-xl p-4"
-          style={{ backgroundColor: '#f8f6f1' }}
+          style={{ margin: '0 18px 14px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: 14, border: '1px solid #c4b59a', background: '#f8f6f1' }}
         >
           <div>
             <div
@@ -188,8 +168,7 @@ export default function StreetNetworkPanel({
 
       {/* Source note */}
       <div
-        className="px-5 pb-4 text-xs"
-        style={{ color: '#b0a8a0' }}
+        style={{ padding: '0 18px 14px', fontSize: 12, color: '#3d3020', fontWeight: 600 }}
       >
         Source: OpenStreetMap network topology · 800m radius · Street character analysis
       </div>

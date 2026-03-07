@@ -302,10 +302,10 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
   };
 
   return (
-    <div className="rounded-xl border p-4 sm:p-5" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Share & Export</h3>
-        <span className="text-[10px]" style={{ color: '#b0a8a0' }}>Every post references verified data and global standards</span>
+    <div className="retro-card" style={{ padding: '14px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#1a1208' }}>Share & Export</span>
+        <span style={{ fontSize: 12, color: '#3d3020', fontWeight: 500 }}>Every post references verified data and global standards</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

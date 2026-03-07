@@ -165,11 +165,13 @@ export default function EconomicContextSection({ osmData, demographicData, demog
   }
 
   return (
-    <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Local businesses</h3>
-
-      <LocalEconomyView profile={profile} />
-
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Local businesses</span>
+      </div>
+      <div style={{ padding: '14px 18px' }}>
+        <LocalEconomyView profile={profile} />
+      </div>
     </div>
   );
 }

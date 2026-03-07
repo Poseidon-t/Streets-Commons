@@ -227,9 +227,9 @@ export default function EquityContextSection({
     : `World Bank ${demographicData.year}, ${demographicData.countryName}`;
 
   return (
-    <div className="rounded-xl border p-5 space-y-4" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}>
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold" style={{ color: '#1a1208' }}>Equity & Access</h3>
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Equity & Access</span>
         {analysis && (
           <span
             className="px-3 py-1 rounded-full text-xs font-bold"
@@ -240,53 +240,55 @@ export default function EquityContextSection({
         )}
       </div>
 
-      {/* Demographic Data Snapshot */}
-      {stats.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="p-2.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-              <div className="text-xs uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#2a2010' }}>
-                {stat.label}
-              </div>
-              <div className="text-sm font-bold" style={{ color: '#1a1208' }}>
-                {stat.value}
-              </div>
-              {stat.context && (
-                <div className="text-xs mt-0.5" style={{ color: stat.contextColor || '#8a9a8a' }}>
-                  {stat.context}
+      <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Demographic Data Snapshot */}
+        {stats.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {stats.map((stat) => (
+              <div key={stat.label} style={{ padding: 10, background: '#f8f6f1', border: '1px solid #c4b59a' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#2a2010', marginBottom: 2 }}>
+                  {stat.label}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Equity Insights */}
-      {analysis && analysis.insights.length > 0 && (
-        <div className="space-y-2">
-          {analysis.insights.map((insight, i) => (
-            <div key={i} className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: config.bg }}>
-              <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
-              <div>
-                <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{insight.label}</div>
-                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#1a1208' }}>{insight.detail}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1208' }}>
+                  {stat.value}
+                </div>
+                {stat.context && (
+                  <div style={{ fontSize: 12, marginTop: 2, color: stat.contextColor || '#3d3020' }}>
+                    {stat.context}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Context + Sources */}
-      <div className="pt-3 border-t" style={{ borderColor: '#f0ebe0' }}>
-        {analysis && (
-          <p className="text-xs leading-relaxed mb-2" style={{ color: '#2a2010' }}>
-            <span className="font-semibold" style={{ color: '#1a1208' }}>Why this matters:</span>{' '}
-            {analysis.context}
-          </p>
+            ))}
+          </div>
         )}
-        <p className="text-xs font-semibold" style={{ color: '#3d3020' }}>
-          {sourceLabel} · Smart Growth America
-        </p>
+
+        {/* Equity Insights */}
+        {analysis && analysis.insights.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {analysis.insights.map((insight, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, background: config.bg, border: `1px solid ${config.border}` }}>
+                <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>{insight.icon}</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>{insight.label}</div>
+                  <div style={{ fontSize: 12, marginTop: 2, lineHeight: 1.5, color: '#1a1208' }}>{insight.detail}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Context + Sources */}
+        <div style={{ paddingTop: 10, borderTop: '1px solid #c4b59a' }}>
+          {analysis && (
+            <p style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 6, color: '#2a2010' }}>
+              <span style={{ fontWeight: 700, color: '#1a1208' }}>Why this matters:</span>{' '}
+              {analysis.context}
+            </p>
+          )}
+          <p style={{ fontSize: 12, fontWeight: 600, color: '#3d3020' }}>
+            {sourceLabel} · Smart Growth America
+          </p>
+        </div>
       </div>
     </div>
   );

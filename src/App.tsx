@@ -1589,28 +1589,19 @@ function App() {
               />
             )}
 
-            {/* Street Audit CTA — direct action after seeing all the data */}
-            <div
-              className="rounded-2xl border p-5 flex items-center justify-between gap-4"
-              style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
-            >
+            {/* Street Audit CTA */}
+            <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
               <div>
-                <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: '#2a3a2a' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    <path d="M9 12h6M9 16h4"/>
-                  </svg>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>
                   Want to take action on this analysis?
                 </div>
-                <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
                   Generate a structured report to share with landlords, property managers, or local authorities
                 </div>
               </div>
               <button
                 onClick={() => setShowAuditTool(true)}
-                className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border transition hover:opacity-80"
-                style={{ borderColor: '#e0dbd0', color: '#2a3a2a', backgroundColor: 'white' }}
+                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a1208', background: '#faf7f0', cursor: 'pointer' }}
               >
                 Generate report →
               </button>
@@ -1650,45 +1641,45 @@ function App() {
 
 
             {/* --- Tier 4: Reference --- */}
-            <div id="methodology" className="rounded-2xl border-2 overflow-hidden scroll-mt-16 bg-earth-sage/60 border-[#c8d8c8]">
+            <div id="methodology" className="retro-card scroll-mt-16" style={{ overflow: 'hidden' }}>
               <button
                 onClick={() => setShowMethodology(!showMethodology)}
-                className="w-full flex items-center justify-between px-8 py-5 transition hover:opacity-80"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', cursor: 'pointer', background: 'none', border: 'none' }}
               >
-                <h3 className="text-xl font-bold text-earth-text-dark">
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
                   How This Analysis Works
-                </h3>
-                <span className="text-2xl text-gray-500" aria-hidden="true">
-                  {showMethodology ? '\u2212' : '+'}
+                </span>
+                <span style={{ fontSize: 18, color: '#3d3020' }}>
+                  {showMethodology ? '−' : '+'}
                 </span>
               </button>
               {showMethodology && (
-                <div className="px-8 pb-8">
-                  <div className="space-y-3 text-sm text-[#3a4a3a]">
+                <div style={{ padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#2a2010', lineHeight: 1.6 }}>
                     <div>
-                      <strong className="block mb-1">Walkability Metrics</strong>
-                      <p className="text-[#4a5a4a]">US locations get 4 metrics: tree canopy, street design, destinations, and commute mode from Sentinel-2 satellite imagery, EPA National Walkability Index, OpenStreetMap, and Census ACS. International locations get 3 metrics with OSM street grid analysis replacing US-only data sources.</p>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Walkability Metrics</strong>
+                      <p>US locations get 4 metrics: tree canopy, street design, destinations, and commute mode from Sentinel-2 satellite imagery, EPA National Walkability Index, OpenStreetMap, and Census ACS. International locations get 3 metrics with OSM street grid analysis replacing US-only data sources.</p>
                     </div>
                     <div>
-                      <strong className="block mb-1">Global Standards</strong>
-                      <p className="text-[#4a5a4a]">Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Global Standards</strong>
+                      <p>Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
                     </div>
                     <div>
-                      <strong className="block mb-1">Free & Open Data</strong>
-                      <p className="text-[#4a5a4a]">All data comes from publicly available sources: OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Free & Open Data</strong>
+                      <p>All data comes from publicly available sources: OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
                     </div>
                   </div>
                   {dataQuality && (
-                    <div className="mt-4">
-                      <strong className="block mb-1">Data Quality</strong>
-                      <p className="text-[#4a5a4a]">
+                    <div>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Data Quality</strong>
+                      <p style={{ fontSize: 13, color: '#2a2010' }}>
                         Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span> — {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
                         Sources: OSM, Sentinel-2{location?.countryCode === 'US' ? ', Census ACS, EPA' : ''}.
                       </p>
                     </div>
                   )}
-                  <div className="mt-6 p-4 rounded-lg border bg-white/60 border-[#d0dbd0]">
-                    <p className="text-xs text-[#3a4a3a]">
+                  <div style={{ padding: 12, border: '1px solid #c4b59a', background: '#f8f6f1' }}>
+                    <p style={{ fontSize: 12, color: '#2a2010' }}>
                       <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
                     </p>
                   </div>
