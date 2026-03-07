@@ -128,7 +128,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
                 <span style={{ fontSize: 20, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                   {score}
                 </span>
-                <span style={{ fontSize: 9, color: '#8a7a60', marginLeft: 2 }}>/100</span>
+                <span style={{ fontSize: 10, color: '#5c4a2c', marginLeft: 2 }}>/100</span>
               </div>
               <span className={stampClass(score)}>{verdict}</span>
             </div>

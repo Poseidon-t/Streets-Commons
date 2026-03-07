@@ -79,20 +79,22 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
     tone = 'danger';
   }
 
+  // Retro palette — matches forest/amber/brick system used throughout
   const toneColors = {
-    positive: { text: '#16a34a', bg: 'rgba(34,197,94,0.06)' },
-    neutral:  { text: '#65a30d', bg: 'rgba(101,163,13,0.06)' },
-    warning:  { text: '#ca8a04', bg: 'rgba(202,138,4,0.06)' },
-    danger:   { text: '#dc2626', bg: 'rgba(220,38,38,0.06)' },
+    positive: { text: '#2a5224', bg: 'rgba(42,82,36,0.07)' },
+    neutral:  { text: '#d4920c', bg: 'rgba(212,146,12,0.07)' },
+    warning:  { text: '#b8401a', bg: 'rgba(184,64,26,0.07)' },
+    danger:   { text: '#b8401a', bg: 'rgba(184,64,26,0.1)' },
   };
 
   const colors = toneColors[tone];
+  const tierLabel = score >= 80 ? 'Walkable' : score >= 60 ? 'Moderate' : score >= 40 ? 'Car-dependent' : score >= 20 ? 'Difficult' : 'Hostile';
 
   return (
-    <div className="mt-4 pt-4 border-t" style={{ borderColor: '#e0dbd0' }}>
-      <div className="px-3 py-2.5 rounded-lg text-sm leading-relaxed" style={{ backgroundColor: colors.bg, color: '#4a5a4a' }}>
-        <span style={{ color: colors.text, fontWeight: 600 }}>
-          {score >= 80 ? 'Walkable' : score >= 60 ? 'Moderate' : score >= 40 ? 'Car-dependent' : score >= 20 ? 'Difficult' : 'Hostile'}
+    <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #c4b59a' }}>
+      <div style={{ padding: '10px 12px', background: colors.bg, border: `1.5px solid ${colors.text}`, fontSize: 13, lineHeight: 1.65, color: '#3d2f18' }}>
+        <span style={{ color: colors.text, fontWeight: 700, letterSpacing: '0.05em' }}>
+          {tierLabel}
         </span>
         {' — '}
         {summary}

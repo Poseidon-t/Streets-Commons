@@ -57,7 +57,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
       <div style={{ marginBottom: 10 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
           {['0', '2.5', '5.0', '7.5', '10'].map(t => (
-            <span key={t} style={{ fontSize: 8, color: '#8a7a60' }}>{t}</span>
+            <span key={t} style={{ fontSize: 10, color: '#5c4a2c' }}>{t}</span>
           ))}
         </div>
         <div className="retro-gauge-track">
@@ -67,7 +67,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
 
       {/* Tier stamp */}
       <span style={{
-        fontSize: 9, fontWeight: 700, letterSpacing: '0.2em',
+        fontSize: 10, fontWeight: 700, letterSpacing: '0.2em',
         textTransform: 'uppercase' as const, padding: '3px 10px',
         border: `1.5px solid ${color}`, color,
         display: 'inline-block', marginBottom: 14,

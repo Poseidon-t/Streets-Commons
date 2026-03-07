@@ -1509,10 +1509,10 @@ function App() {
             {/* Document header */}
             <div style={{ border: '2px solid #1e1608', background: '#faf7f0', marginBottom: 3 }}>
               <div style={{ background: '#1e1608', padding: '7px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(242,236,224,0.65)', fontWeight: 700 }}>
+                <span style={{ fontSize: 10, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(242,236,224,0.85)', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
-                <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.8)' }}>
+                <span style={{ fontSize: 10, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.85)' }}>
                   PEDESTRIAN SURVEY
                 </span>
               </div>
