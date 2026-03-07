@@ -1,15 +1,22 @@
 import type { WalkabilityScoreV2 } from '../../types';
 import { computePersonas } from '../../utils/personas';
+import { PedestrianFigure, FamilyFigure, ElderFigure } from '../RetroIcons';
 
 interface PersonaChipsProps {
   compositeScore: WalkabilityScoreV2 | null;
 }
 
 const CHIP_PERSONAS = [
-  { key: 'Car-Free Living', icon: '🚶', label: 'Car-Free Living' },
-  { key: 'Families',        icon: '👨‍👩‍👧', label: 'Families'        },
-  { key: 'Older Adults',    icon: '🧓', label: 'Older Adults'    },
+  { key: 'Car-Free Living', label: 'Car-Free Living' },
+  { key: 'Families',        label: 'Families'        },
+  { key: 'Older Adults',    label: 'Older Adults'    },
 ];
+
+function PersonaIcon({ personaKey, color }: { personaKey: string; color: string }) {
+  if (personaKey === 'Families') return <FamilyFigure color={color} width={20} height={18} />;
+  if (personaKey === 'Older Adults') return <ElderFigure color={color} width={13} height={18} />;
+  return <PedestrianFigure color={color} width={11} height={18} />;
+}
 
 function retroColor(score: number): string {
   if (score >= 65) return '#2a5224';
@@ -43,9 +50,9 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
   }
 
   const all = computePersonas(compositeScore);
-  const chips = CHIP_PERSONAS.map(({ key, icon, label }) => {
+  const chips = CHIP_PERSONAS.map(({ key, label }) => {
     const p = all.find(x => x.name === key)!;
-    return { icon, label, score: p.score, verdict: p.verdictLabel };
+    return { key, label, score: p.score, verdict: p.verdictLabel };
   });
 
   return (
@@ -54,7 +61,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
         <span className="retro-card-header-title">Who this works for</span>
         <span className="retro-card-header-meta">Score /100</span>
       </div>
-      {chips.map(({ icon, label, score, verdict }, i) => {
+      {chips.map(({ key, label, score, verdict }, i) => {
         const color = retroColor(score);
         return (
           <div
@@ -67,7 +74,9 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
               borderBottom: i < chips.length - 1 ? '1px solid #c4b59a' : 'none',
             }}
           >
-            <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
+            <div style={{ flexShrink: 0, width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <PersonaIcon personaKey={key} color={color} />
+            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#1e1608', lineHeight: 1.2 }}>
                 {label}
