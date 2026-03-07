@@ -55,7 +55,7 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1e1608', lineHeight: 1.2 }}>
           {name}
         </div>
-        <div style={{ fontSize: 10, color: '#8a7a60', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>
+        <div style={{ fontSize: 10, color: '#5c4a2c', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>
       </div>
 
       {/* Bar */}

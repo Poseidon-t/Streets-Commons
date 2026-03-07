@@ -32,7 +32,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
   if (!compositeScore) {
     return (
       <div style={{ paddingBottom: 14 }}>
-        <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8a7a60', marginBottom: 4 }}>
+        <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5c4a2c', marginBottom: 4 }}>
           Street character
         </div>
         <div className="animate-pulse" style={{ height: 20, width: 140, backgroundColor: '#c4b59a', marginBottom: 4 }} />
@@ -46,7 +46,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
 
   return (
     <div style={{ paddingBottom: 16 }}>
-      <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#8a7a60', marginBottom: 4 }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#5c4a2c', marginBottom: 4 }}>
         Street character
       </div>
       <div style={{
@@ -60,7 +60,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
       }}>
         {archetype.name}
       </div>
-      <div style={{ fontSize: 11, color: '#8a7a60', fontStyle: 'italic' }}>
+      <div style={{ fontSize: 11, color: '#5c4a2c', fontStyle: 'italic' }}>
         {archetype.tagline}
       </div>
     </div>

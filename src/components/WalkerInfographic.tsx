@@ -65,7 +65,7 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
           {filled} feel comfortable
         </span>
         {empty > 0 && (
-          <span style={{ fontSize: 10, letterSpacing: '0.06em', color: '#bfb09a' }}>
+          <span style={{ fontSize: 10, letterSpacing: '0.06em', color: '#8a7a60' }}>
             {empty} find it difficult
           </span>
         )}
