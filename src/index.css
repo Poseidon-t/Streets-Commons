@@ -4,7 +4,7 @@
 
 /* ── Retro Urbanism Analysis Page ──────────────────────────────── */
 .retro-analysis {
-  font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #f5f0e8;
   background-image: none;
   padding: 24px 16px 80px;
@@ -33,26 +33,26 @@
   justify-content: space-between;
 }
 .retro-card-header-title {
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-size: 12px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #f0e8d8;
   font-weight: 700;
 }
 .retro-card-header-meta {
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  letter-spacing: 0.06em;
   color: #e0d8c8;
   font-weight: 600;
 }
 
 /* Verdict stamps */
 .retro-stamp {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border: 2px solid;
   display: inline-block;
   white-space: nowrap;
@@ -64,11 +64,11 @@
 
 /* Component tag */
 .retro-tag {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border: 2px solid;
   border-radius: 0;
 }

@@ -46,16 +46,16 @@ function PersonaCardsSkeleton() {
 function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaResult) {
   const color = retroColor(score);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid #c4b59a' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: '1px solid #c4b59a' }}>
       {/* Accent bar */}
-      <div style={{ width: 3, alignSelf: 'stretch', minHeight: 32, background: color, flexShrink: 0, borderRadius: 1 }} />
+      <div style={{ width: 3, alignSelf: 'stretch', minHeight: 36, background: color, flexShrink: 0, borderRadius: 1 }} />
 
       {/* Name + subtitle */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2 }}>
           {name}
         </div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: '#2a2010', marginTop: 2, lineHeight: 1.3 }}>{subtitle}</div>
+        <div style={{ fontSize: 13, fontWeight: 500, color: '#2a2010', marginTop: 3, lineHeight: 1.4 }}>{subtitle}</div>
       </div>
 
       {/* Bar */}
@@ -67,7 +67,7 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
 
       {/* Score */}
       <div style={{ textAlign: 'right', flexShrink: 0, paddingRight: 8 }}>
-        <div style={{ fontSize: 20, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{score}</div>
+        <div style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{score}</div>
       </div>
 
       {/* Verdict stamp */}

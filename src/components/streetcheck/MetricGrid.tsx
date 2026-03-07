@@ -435,7 +435,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
 
           {/* Inline context — always visible, no click required */}
           {contextText && (
-            <p style={{ color: '#1a1208', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+            <p style={{ color: '#1a1208', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
               {contextText}
             </p>
           )}

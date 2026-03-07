@@ -26,7 +26,7 @@ function stampClass(score: number): string {
 
 const CAPTIONS: Record<string, (n: number) => string> = {
   'Car-Free Living': (n) => `${n} of 10 car-free residents thrive here`,
-  'Families':        (n) => `${n} of 10 families find this workable`,
+  'Families':        (n) => `${n} of 10 families find this suitable`,
   'Older Adults':    (n) => `${n} of 10 older adults navigate comfortably`,
 };
 
@@ -41,7 +41,7 @@ function FigureRow({ personaKey, score, color }: { personaKey: string; score: nu
   const [fw, fh] = isFamilies ? [13, 11] : [9, 14];
 
   return (
-    <div style={{ marginTop: 6 }}>
+    <div style={{ marginTop: 8 }}>
       <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2 }}>
         {Array.from({ length: filled }).map((_, i) => (
           <FigureComponent key={`f-${i}`} color={color} width={fw} height={fh} />
@@ -50,7 +50,7 @@ function FigureRow({ personaKey, score, color }: { personaKey: string; score: nu
           <FigureComponent key={`e-${i}`} color="#c4b59a" opacity={0.7} width={fw} height={fh} />
         ))}
       </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: '#2a2010', marginTop: 3, letterSpacing: '0.04em' }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#2a2010', marginTop: 5, letterSpacing: '0.02em' }}>
         {CAPTIONS[personaKey]?.(filled)}
       </div>
     </div>
@@ -99,8 +99,8 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
             style={{
               display: 'flex',
               alignItems: 'flex-start',
-              gap: 12,
-              padding: '12px 16px',
+              gap: 14,
+              padding: '16px 18px',
               borderBottom: i < chips.length - 1 ? '1px solid #c4b59a' : 'none',
             }}
           >
@@ -116,7 +116,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
 
             {/* Name + figure row */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2, marginBottom: 2 }}>
                 {label}
               </div>
               <FigureRow personaKey={key} score={score} color={color} />
@@ -125,10 +125,10 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
             {/* Score + verdict */}
             <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
               <div>
-                <span style={{ fontSize: 22, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                <span style={{ fontSize: 24, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
                   {score}
                 </span>
-                <span style={{ fontSize: 11, color: '#3d3020', fontWeight: 700, marginLeft: 2 }}>/100</span>
+                <span style={{ fontSize: 13, color: '#2a2010', fontWeight: 700, marginLeft: 2 }}>/100</span>
               </div>
               <span className={stampClass(score)}>{verdict}</span>
             </div>
