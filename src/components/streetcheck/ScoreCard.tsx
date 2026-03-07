@@ -82,7 +82,7 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
       <WalkerInfographic score={score / 10} compact />
 
       {compositeScore && compositeScore.confidence < 55 && (
-        <div style={{ marginTop: 8, fontSize: 10, color: '#5c4a2c', fontStyle: 'italic' }}>
+        <div style={{ marginTop: 8, fontSize: 11, color: '#5c4a2c' }}>
           Building a complete picture...
         </div>
       )}

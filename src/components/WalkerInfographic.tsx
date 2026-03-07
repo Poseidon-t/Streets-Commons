@@ -55,7 +55,7 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
           <PedestrianFigure key={`f-${i}`} color={color} width={13} height={22} />
         ))}
         {Array.from({ length: empty }).map((_, i) => (
-          <PedestrianFigure key={`e-${i}`} color="#c4b59a" opacity={0.6} width={13} height={22} />
+          <PedestrianFigure key={`e-${i}`} color="#c4b59a" opacity={0.7} width={13} height={22} />
         ))}
       </div>
 
