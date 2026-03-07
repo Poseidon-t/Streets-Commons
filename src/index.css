@@ -6,10 +6,7 @@
 .retro-analysis {
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
   background-color: #f2ece0;
-  background-image:
-    linear-gradient(rgba(196,181,154,0.30) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(196,181,154,0.30) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: none;
   padding: 32px 16px 64px;
 }
 

@@ -77,7 +77,7 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
         >
           {v.label}
         </span>
-        <span className="text-xs" style={{ color: '#8a9a8a' }}>
+        <span className="text-xs" style={{ color: '#3a4a3a' }}>
           {profile.totalBusinesses} businesses within {radiusM}m
         </span>
       </div>
@@ -100,13 +100,13 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
           {profile.highlights.map((h, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-xs mt-0.5" style={{ color: '#16a34a' }}>+</span>
-              <span className="text-xs" style={{ color: '#4a5a4a' }}>{h}</span>
+              <span className="text-xs" style={{ color: '#2a3a2a' }}>{h}</span>
             </div>
           ))}
           {profile.gaps.map((g, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-xs mt-0.5" style={{ color: '#dc2626' }}>-</span>
-              <span className="text-xs" style={{ color: '#6b7280' }}>{g}</span>
+              <span className="text-xs" style={{ color: '#3a4a3a' }}>{g}</span>
             </div>
           ))}
         </div>
@@ -130,24 +130,24 @@ function CensusContext({ data }: { data: DemographicData }) {
 
   return (
     <div className="pt-4 border-t" style={{ borderColor: '#f0ebe0' }}>
-      <p className="text-xs font-medium mb-2" style={{ color: '#8a9a8a' }}>
+      <p className="text-xs font-medium mb-2" style={{ color: '#3a4a3a' }}>
         Census Tract Data
       </p>
       <div className="grid grid-cols-3 gap-3">
         <div>
           <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
-          <div className="text-xs" style={{ color: '#8a9a8a' }}>Median Income</div>
+          <div className="text-xs" style={{ color: '#3a4a3a' }}>Median Income</div>
         </div>
         <div>
           <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatCurrency(data.medianHomeValue)}</div>
-          <div className="text-xs" style={{ color: '#8a9a8a' }}>Home Value</div>
+          <div className="text-xs" style={{ color: '#3a4a3a' }}>Home Value</div>
         </div>
         <div>
           <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{formatPercent(data.unemploymentRate)}</div>
-          <div className="text-xs" style={{ color: '#8a9a8a' }}>Unemployment</div>
+          <div className="text-xs" style={{ color: '#3a4a3a' }}>Unemployment</div>
         </div>
       </div>
-      <div className="text-xs mt-2" style={{ color: '#b0a8a0' }}>
+      <div className="text-xs mt-2" style={{ color: '#5c4a2c' }}>
         {data.dataSource} ({data.year})
       </div>
     </div>

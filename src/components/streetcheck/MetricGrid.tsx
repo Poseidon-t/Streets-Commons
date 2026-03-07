@@ -406,7 +406,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
         <div className="flex items-center justify-center h-24">
           <div className="animate-pulse flex items-center gap-2">
             <span className="text-xl">{def.icon}</span>
-            <span className="text-sm" style={{ color: '#8a9a8a' }}>Loading {def.name}...</span>
+            <span className="text-sm" style={{ color: '#5c6a5c' }}>Loading {def.name}...</span>
           </div>
         </div>
       ) : (
@@ -415,16 +415,16 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-lg">{def.icon}</span>
-              <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{def.name}</span>
+              <span className="font-bold" style={{ color: '#2a3a2a', fontSize: '15px' }}>{def.name}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xl font-bold tabular-nums" style={{ color }}>{displayScore}</span>
-              <span className="text-xs font-normal" style={{ color: '#b0a8a0' }}>/10</span>
+              <span className="font-bold tabular-nums" style={{ color, fontSize: '22px' }}>{displayScore}</span>
+              <span className="font-medium" style={{ color: '#5c4a2c', fontSize: '13px' }}>/10</span>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="h-2.5 rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#ede8dd' }}>
+          <div className="rounded-full overflow-hidden mb-3" style={{ backgroundColor: '#ede8dd', height: '12px' }}>
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{ width: `${Math.max(score * 10, 2)}%`, backgroundColor: color }}
@@ -433,7 +433,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
 
           {/* Inline context — always visible, no click required */}
           {contextText && (
-            <p className="text-xs leading-relaxed mb-3" style={{ color: '#4a5a4a' }}>
+            <p className="leading-relaxed mb-3" style={{ color: '#2a3a2a', fontSize: '14px', lineHeight: '1.6' }}>
               {contextText}
             </p>
           )}
@@ -441,19 +441,19 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
           {/* Data source + estimated badge + expand toggle */}
           <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: '#f0ebe0' }}>
             <div className="flex items-center gap-1.5">
-              <span className="text-xs" style={{ color: '#b0a8a0' }}>{detail?.source ?? def.source}</span>
+              <span style={{ color: '#5c4a2c', fontSize: '13px' }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
                 <span
-                  className="text-xs px-1.5 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}
+                  className="px-1.5 py-0.5 rounded font-medium"
+                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: '12px' }}
                 >
                   Estimated
                 </span>
               )}
             </div>
             <button
-              className="text-xs underline cursor-pointer"
-              style={{ color: '#8a9a8a' }}
+              className="underline cursor-pointer font-medium"
+              style={{ color: '#3a5a3a', fontSize: '13px' }}
               onClick={onClick}
             >
               {isExpanded ? 'Less' : 'How it\'s scored'}
@@ -488,33 +488,33 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
 
       <div className="space-y-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: '#8a9a8a' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#2a3a2a', fontSize: '12px', letterSpacing: '0.08em' }}>
             What this measures
           </div>
-          <div className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>
+          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
             {detail.what}
           </div>
         </div>
 
         <div>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: '#8a9a8a' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#2a3a2a', fontSize: '12px', letterSpacing: '0.08em' }}>
             How it's scored
           </div>
-          <div className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>
+          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
             {detail.how}
           </div>
         </div>
 
         <div className="rounded-lg p-3" style={{ backgroundColor: '#f8f6f1' }}>
-          <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color }}>
+          <div className="font-bold uppercase mb-1" style={{ color, fontSize: '12px', letterSpacing: '0.08em' }}>
             What your {score.toFixed(1)} means
           </div>
-          <div className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>
+          <div className="leading-relaxed" style={{ color: '#2a3a2a', fontSize: '14px' }}>
             {detail.getMeans(score)}
           </div>
         </div>
 
-        <div className="text-xs pt-2 border-t" style={{ color: '#b0a8a0', borderColor: '#f0ebe0' }}>
+        <div className="pt-2 border-t font-medium" style={{ color: '#5c4a2c', borderColor: '#f0ebe0', fontSize: '13px' }}>
           Source: {detail.source}
         </div>
       </div>
@@ -545,7 +545,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
         <h2 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
           Score Breakdown
         </h2>
-        <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
+        <p className="mt-1" style={{ color: '#3a4a3a', fontSize: '15px' }}>
           Each metric contributes to your walkability score. Green = strength, red = needs attention.
         </p>
       </div>
@@ -573,11 +573,11 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
             <div key={groupKey}>
               {/* Group header */}
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-sm">{groupMeta.icon}</span>
-                <span className="text-xs font-bold uppercase tracking-widest" style={{ color: '#8a9a8a', letterSpacing: '0.1em' }}>
+                <span style={{ fontSize: '16px' }}>{groupMeta.icon}</span>
+                <span className="font-bold uppercase" style={{ color: '#2a3a2a', letterSpacing: '0.1em', fontSize: '13px' }}>
                   {groupMeta.label}
                 </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: '#e8e3d8' }} />
+                <div className="flex-1 h-px" style={{ backgroundColor: '#c4b59a' }} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

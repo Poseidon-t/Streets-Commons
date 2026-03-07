@@ -245,7 +245,7 @@ export default function EquityContextSection({
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {stats.map((stat) => (
             <div key={stat.label} className="p-2.5 rounded-lg" style={{ backgroundColor: '#f8f6f1' }}>
-              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#8a9a8a' }}>
+              <div className="text-[10px] uppercase tracking-wide font-semibold mb-0.5" style={{ color: '#3a4a3a' }}>
                 {stat.label}
               </div>
               <div className="text-sm font-bold" style={{ color: '#2a3a2a' }}>
@@ -269,7 +269,7 @@ export default function EquityContextSection({
               <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
               <div>
                 <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{insight.label}</div>
-                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#4a5a4a' }}>{insight.detail}</div>
+                <div className="text-xs mt-0.5 leading-relaxed" style={{ color: '#2a3a2a' }}>{insight.detail}</div>
               </div>
             </div>
           ))}
@@ -279,12 +279,12 @@ export default function EquityContextSection({
       {/* Context + Sources */}
       <div className="pt-3 border-t" style={{ borderColor: '#f0ebe0' }}>
         {analysis && (
-          <p className="text-xs leading-relaxed mb-2" style={{ color: '#6b7280' }}>
-            <span className="font-semibold" style={{ color: '#4a5a4a' }}>Why this matters:</span>{' '}
+          <p className="text-xs leading-relaxed mb-2" style={{ color: '#3a4a3a' }}>
+            <span className="font-semibold" style={{ color: '#2a3a2a' }}>Why this matters:</span>{' '}
             {analysis.context}
           </p>
         )}
-        <p className="text-xs" style={{ color: '#b0a8a0' }}>
+        <p className="text-xs" style={{ color: '#5c4a2c' }}>
           {sourceLabel} · Smart Growth America
         </p>
       </div>
