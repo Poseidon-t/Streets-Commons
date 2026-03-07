@@ -1862,18 +1862,40 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const streetGridScore = Math.round((networkScore100 / 10) * 10) / 10; // 0-10
     console.log(`  ✅ Street Grid: ${streetGridScore}/10 (${graphIntersections.length} intersections, ${graphDeadEnds.length} dead-ends, ${averageBlockLengthM.toFixed(0)}m avg block)`);
 
-    // 4. Calculate metrics (same logic as client-side metrics.ts)
-    // Destination Access
-    const cats = { education: false, transit: false, shopping: false, healthcare: false, food: false, recreation: false };
+    // 4. Street Life score — Shannon entropy across 8 POI categories
+    // Categories: grocery, dining, health, education, park, culture, services, transit
+    const lifeCats = { grocery: 0, dining: 0, health: 0, education: 0, park: 0, culture: 0, services: 0, transit: 0 };
     pois.forEach(p => {
-      if (p.tags?.amenity === 'school' || p.tags?.amenity === 'kindergarten') cats.education = true;
-      if (p.tags?.amenity === 'bus_station' || p.tags?.railway === 'station') cats.transit = true;
-      if (p.tags?.shop) cats.shopping = true;
-      if (p.tags?.amenity === 'hospital' || p.tags?.amenity === 'clinic' || p.tags?.amenity === 'pharmacy') cats.healthcare = true;
-      if (p.tags?.amenity === 'restaurant' || p.tags?.amenity === 'cafe') cats.food = true;
-      if (p.tags?.leisure === 'park' || p.tags?.leisure === 'playground') cats.recreation = true;
+      const t = p.tags || {};
+      if (t.shop === 'supermarket' || t.shop === 'grocery' || t.shop === 'greengrocer' || t.shop === 'convenience') lifeCats.grocery++;
+      if (t.amenity === 'restaurant' || t.amenity === 'cafe' || t.amenity === 'bar' || t.amenity === 'fast_food' || t.amenity === 'food_court') lifeCats.dining++;
+      if (t.amenity === 'hospital' || t.amenity === 'clinic' || t.amenity === 'pharmacy' || t.amenity === 'doctors' || t.amenity === 'dentist') lifeCats.health++;
+      if (t.amenity === 'school' || t.amenity === 'kindergarten' || t.amenity === 'university' || t.amenity === 'library') lifeCats.education++;
+      if (t.leisure === 'park' || t.leisure === 'playground' || t.leisure === 'garden' || t.leisure === 'nature_reserve' || t.leisure === 'sports_centre') lifeCats.park++;
+      if (t.amenity === 'theatre' || t.amenity === 'cinema' || t.amenity === 'arts_centre' || t.amenity === 'museum' || t.amenity === 'nightclub' || t.amenity === 'community_centre') lifeCats.culture++;
+      if (t.shop && !['supermarket','grocery','greengrocer','convenience'].includes(t.shop)) lifeCats.services++;
+      if (t.highway === 'bus_stop' || t.amenity === 'bus_station' || t.railway === 'station' || t.public_transport === 'stop_position') lifeCats.transit++;
     });
-    const destinationAccess = Math.round(Math.min(10, (Object.values(cats).filter(Boolean).length / 6) * 10) * 10) / 10;
+    const lifeCatCounts = Object.values(lifeCats);
+    const totalPois = lifeCatCounts.reduce((a, b) => a + b, 0);
+    // Shannon entropy: H = -Σ p_i * log2(p_i), normalized to 0-1 by dividing by log2(8)
+    let shannonEntropy = 0;
+    if (totalPois > 0) {
+      lifeCatCounts.forEach(count => {
+        if (count > 0) {
+          const p = count / totalPois;
+          shannonEntropy -= p * Math.log2(p);
+        }
+      });
+      shannonEntropy = shannonEntropy / Math.log2(8); // normalize: 0 = monoculture, 1 = perfectly diverse
+    }
+    // Density score: total POIs scaled, capped at 100
+    const densityScore = Math.min(1, totalPois / 80);
+    // Evening economy: dining + culture as share of total (proxy for after-5pm vitality)
+    const eveningRatio = totalPois > 0 ? Math.min(1, (lifeCats.dining + lifeCats.culture) / totalPois * 3) : 0;
+    const streetLifeRaw = (shannonEntropy * 0.5) + (densityScore * 0.3) + (eveningRatio * 0.2);
+    const destinationAccess = Math.round(Math.min(10, streetLifeRaw * 10) * 10) / 10;
+    console.log(`  ✅ Street Life: ${destinationAccess}/10 (entropy=${shannonEntropy.toFixed(2)}, ${totalPois} POIs, evening=${eveningRatio.toFixed(2)})`);
 
     // 5. Fetch tree canopy and other layers in parallel
     console.log(`🛰️  Fetching NDVI, Census, EPA for ${lat}, ${lon}...`);
@@ -4920,6 +4942,27 @@ app.get('/api/terrain', async (req, res) => {
 const transitlandCache = new Map();
 const TRANSITLAND_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+async function fetchOSMTransitFallback(lat, lon) {
+  const query = `[out:json][timeout:12];(node(around:800,${lat},${lon})["highway"="bus_stop"];node(around:800,${lat},${lon})["amenity"="bus_station"];node(around:800,${lat},${lon})["railway"="station"];node(around:800,${lat},${lon})["railway"="halt"];node(around:800,${lat},${lon})["railway"="tram_stop"];node(around:800,${lat},${lon})["station"="subway"];node(around:800,${lat},${lon})["station"="light_rail"];node(around:800,${lat},${lon})["public_transport"="stop_position"];);out tags;`;
+  const endpoints = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+  for (const endpoint of endpoints) {
+    try {
+      const r = await fetch(endpoint, { method: 'POST', body: query, signal: AbortSignal.timeout(10000) });
+      if (!r.ok) continue;
+      const data = await r.json();
+      const elements = data.elements || [];
+      let busStops = 0, railStops = 0;
+      for (const el of elements) {
+        const t = el.tags || {};
+        if (t.railway === 'station' || t.railway === 'halt' || t.railway === 'tram_stop' || t.station === 'subway' || t.station === 'light_rail') railStops++;
+        else busStops++;
+      }
+      return { busStops, railStops, ferryStops: 0, total: elements.length };
+    } catch { continue; }
+  }
+  return null;
+}
+
 function scoreTransitStops(busStops, railStops, ferryStops) {
   const total = busStops + railStops + ferryStops;
   let base;
@@ -4982,23 +5025,43 @@ app.get('/api/transit-access', async (req, res) => {
       busStops = stops.length;
     }
 
-    const score = scoreTransitStops(busStops, railStops, ferryStops);
-    const result = {
-      score,
-      totalStops: stops.length,
-      busStops,
-      railStops,
-      ferryStops,
-      dataSource: 'Transitland (GTFS)',
-    };
+    let score, result;
 
-    console.log(`✅ Transit: ${stops.length} stops (bus=${busStops} rail=${railStops} ferry=${ferryStops}) → score=${score}`);
+    if (stops.length === 0) {
+      // Transitland found nothing — city likely has no GTFS feed published
+      console.log(`🚌 Transitland: 0 stops — trying OSM fallback for ${latNum}, ${lonNum}`);
+      const osm = await fetchOSMTransitFallback(latNum, lonNum);
+      if (osm && osm.total > 0) {
+        score = scoreTransitStops(osm.busStops, osm.railStops, osm.ferryStops);
+        result = { score, totalStops: osm.total, busStops: osm.busStops, railStops: osm.railStops, ferryStops: osm.ferryStops, dataSource: 'OpenStreetMap (GTFS unavailable)' };
+        console.log(`✅ OSM transit fallback: ${osm.total} stops (bus=${osm.busStops} rail=${osm.railStops}) → score=${score}`);
+      } else {
+        score = 1;
+        result = { score, totalStops: 0, busStops: 0, railStops: 0, ferryStops: 0, dataSource: 'Transitland (GTFS)' };
+      }
+    } else {
+      score = scoreTransitStops(busStops, railStops, ferryStops);
+      result = { score, totalStops: stops.length, busStops, railStops, ferryStops, dataSource: 'Transitland (GTFS)' };
+      console.log(`✅ Transit: ${stops.length} stops (bus=${busStops} rail=${railStops} ferry=${ferryStops}) → score=${score}`);
+    }
+
     transitlandCache.set(cacheKey, { data: result, timestamp: Date.now() });
     return res.json({ success: true, data: result });
 
   } catch (error) {
-    console.warn('⚠️  Transitland failed, falling back to null:', error.message);
-    return res.json({ success: true, data: null }); // fail gracefully
+    console.warn('⚠️  Transitland failed, trying OSM fallback:', error.message);
+    try {
+      const osm = await fetchOSMTransitFallback(parseFloat(lat), parseFloat(lon));
+      if (osm && osm.total > 0) {
+        const score = scoreTransitStops(osm.busStops, osm.railStops, osm.ferryStops);
+        const result = { score, totalStops: osm.total, busStops: osm.busStops, railStops: osm.railStops, ferryStops: osm.ferryStops, dataSource: 'OpenStreetMap (GTFS unavailable)' };
+        transitlandCache.set(`transit:${parseFloat(lat).toFixed(3)},${parseFloat(lon).toFixed(3)}`, { data: result, timestamp: Date.now() });
+        return res.json({ success: true, data: result });
+      }
+    } catch (osmErr) {
+      console.warn('⚠️  OSM transit fallback also failed:', osmErr.message);
+    }
+    return res.json({ success: true, data: null });
   }
 });
 

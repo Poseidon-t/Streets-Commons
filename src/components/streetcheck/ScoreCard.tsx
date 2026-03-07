@@ -1,5 +1,6 @@
 import type { WalkabilityMetrics, WalkabilityScoreV2 } from '../../types';
 import PlainLanguageSummary from './PlainLanguageSummary';
+import WalkerInfographic from '../WalkerInfographic';
 import { scoreColor100 as getScoreColor } from '../../utils/colors';
 
 interface ScoreCardProps {
@@ -96,11 +97,10 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
       <div className="flex flex-col lg:flex-row lg:gap-8 lg:items-start">
 
         {/* Left — circular score */}
-        <div className="flex flex-col items-center lg:items-start lg:w-[180px] flex-shrink-0">
+        <div className="flex flex-col items-center lg:w-[180px] flex-shrink-0">
           <CircularScore score={score} />
-          {/* Confidence note — compact, below ring */}
           {compositeScore && compositeScore.confidence < 55 && (
-            <div className="mt-2 text-xs text-center lg:text-left" style={{ color: '#8a9a8a' }}>
+            <div className="mt-2 text-xs text-center" style={{ color: '#8a9a8a' }}>
               Building a complete picture...
             </div>
           )}
@@ -112,6 +112,9 @@ export default function ScoreCard({ metrics, compositeScore, embedded }: ScoreCa
           <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} />
         </div>
       </div>
+
+      {/* Walker infographic — full width, below both columns */}
+      <WalkerInfographic score={score / 10} compact />
 
     </>
   );

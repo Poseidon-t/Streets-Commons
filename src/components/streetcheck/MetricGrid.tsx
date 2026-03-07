@@ -52,10 +52,10 @@ function getInsight(key: string, score: number): string {
         : score >= 4 ? 'Mixed connectivity, some car-oriented design'
         : 'Car-dependent street layout';
     case 'destinations':
-      return score >= 8 ? 'Shops, dining, services within walking distance'
-        : score >= 6 ? 'Most daily needs accessible on foot'
-        : score >= 4 ? 'Some amenities nearby, car helpful'
-        : 'Few walkable destinations';
+      return score >= 8 ? 'Diverse, active neighbourhood — shops, dining, parks, culture all nearby'
+        : score >= 6 ? 'Good variety of daily destinations within walking distance'
+        : score >= 4 ? 'Some destinations nearby but limited variety'
+        : 'Few destinations — low diversity and density';
     case 'populationDensity':
       return score >= 8 ? 'Most residents walk, bike, or take transit'
         : score >= 6 ? 'Good share of car-free commuters'
@@ -142,14 +142,14 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : 'Car-dependent street layout with low intersection density, distant transit, and separated land uses. Walking is impractical for most trips.',
   },
   destinations: {
-    what: 'Variety and density of daily needs within walking distance — shops, schools, healthcare, restaurants, parks, and transit.',
-    how: '6 categories scored by how many exist nearby (density) and how close the nearest one is (proximity). Having 3+ options within 400m scores highest.',
+    what: 'How diverse and active the surrounding neighbourhood is — scored across 8 categories: grocery, dining, health, education, parks, culture, services, and transit.',
+    how: 'Shannon entropy across 8 POI categories within 1.2km. A perfectly diverse neighbourhood (equal spread across all categories) scores highest. Density and evening economy (dining + culture share) also contribute. Monocultures — all restaurants, or all shops — score lower even with high counts.',
     source: 'OpenStreetMap amenities, 1.2km radius',
     getMeans: (s) =>
-      s >= 8 ? 'Excellent access — most daily needs are a short walk away. This is a self-sufficient walkable neighborhood.'
-      : s >= 6 ? 'Good access to most services. Some categories may require a slightly longer walk.'
-      : s >= 4 ? 'Partial access — some daily needs require a car or long walk. Not fully self-sufficient on foot.'
-      : 'Very few destinations within walking distance. Most errands require driving.',
+      s >= 8 ? 'Rich, diverse neighbourhood. Multiple categories are well-represented — this is the kind of place where daily life happens on foot.'
+      : s >= 6 ? 'Good variety nearby. Most categories are represented, with some gaps. A typical active urban neighbourhood.'
+      : s >= 4 ? 'Limited diversity. A few categories dominate — the neighbourhood may feel one-note despite having some destinations.'
+      : 'Low diversity and density. Few walkable options across categories — most daily needs require a car.',
   },
   populationDensity: {
     what: 'What share of residents commute by walking, biking, or public transit instead of driving.',
@@ -344,8 +344,8 @@ const METRICS: MetricDef[] = [
   },
   {
     key: 'destinations',
-    name: 'Destinations',
-    icon: '🏪',
+    name: 'Street Life',
+    icon: '🏙️',
     source: 'OpenStreetMap',
     group: 'density',
     getScore: (m) => m.destinationAccess,
