@@ -4242,14 +4242,16 @@ Respond with valid JSON only — no markdown, no explanation outside the JSON:
   "concern": "<the single biggest walkability concern in 5-8 words>"
 }
 
-Type selection guide:
+Type selection guide (weight location name heavily alongside the metrics):
 - Complete Streets: all four scores ≥75
 - Well-Connected Grid: overall ≥65, intersections high, dead-ends low
-- Organic Urban: medium mixed scores, typical of old pre-grid cities
-- Mixed Pattern: high variance — some metrics good, others poor
-- Car-Centric Grid: network/intersection scores decent but block length and dead-end poor
-- Suburban Sprawl: low intersection density AND high dead-end ratio
-- Disconnected Network: majority of scores below 35`;
+- Organic Urban: dense pre-grid or planned urban fabric — common in South Asia, Middle East, Africa, Latin America, Southern Europe; high POI presence even if OSM connectivity scores are moderate
+- Mixed Pattern: high variance — some metrics strong, others weak
+- Car-Centric Grid: decent network structure but long blocks, few safe crossings
+- Suburban Sprawl: genuinely automobile-dependent sprawl — low density, low POI count, long cul-de-sac streets; typical of US/Australian suburbs; DO NOT apply to dense urban neighbourhoods in cities like Chennai, Mumbai, Cairo, Lagos, or Jakarta simply because OSM intersection data is sparse
+- Disconnected Network: majority of scores below 35
+
+IMPORTANT: Low intersection density scores in South/Southeast Asian, Middle Eastern, African, and Latin American cities almost always reflect incomplete OSM tagging, not actual sprawl. If the location name suggests a dense urban area, default to Organic Urban or Mixed Pattern.`;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
