@@ -1,57 +1,46 @@
 import type { WalkabilityScoreV2 } from '../../types';
-import { computePersonas, scoreColor } from '../../utils/personas';
+import { computePersonas } from '../../utils/personas';
 
 interface PersonaChipsProps {
   compositeScore: WalkabilityScoreV2 | null;
 }
 
 const CHIP_PERSONAS = [
-  { key: 'Car-Free Living', icon: '🚗', label: 'Car-Free Living' },
-  { key: 'Families',        icon: '👧', label: 'Families'        },
+  { key: 'Car-Free Living', icon: '🚶', label: 'Car-Free Living' },
+  { key: 'Families',        icon: '👨‍👩‍👧', label: 'Families'        },
   { key: 'Older Adults',    icon: '🧓', label: 'Older Adults'    },
 ];
 
-function VerdictBadge({ label, score }: { label: string; score: number }) {
-  const color = scoreColor(score);
-  const bg =
-    score >= 65 ? 'rgba(34,197,94,0.10)'  :
-    score >= 42 ? 'rgba(234,179,8,0.10)'  :
-                  'rgba(239,68,68,0.10)';
-  const border =
-    score >= 65 ? 'rgba(34,197,94,0.25)'  :
-    score >= 42 ? 'rgba(234,179,8,0.25)'  :
-                  'rgba(239,68,68,0.25)';
-  return (
-    <span
-      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full border"
-      style={{ backgroundColor: bg, borderColor: border, color }}
-    >
-      {label}
-    </span>
-  );
+function retroColor(score: number): string {
+  if (score >= 65) return '#2a5224';
+  if (score >= 42) return '#d4920c';
+  return '#b8401a';
 }
 
-function PersonaChipsSkeleton() {
-  return (
-    <div
-      className="rounded-2xl border overflow-hidden"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
-    >
-      <div className="divide-y" style={{ borderColor: '#f0ebe2' }}>
-        {[0, 1, 2].map(i => (
-          <div key={i} className="flex items-center gap-3 px-4 sm:px-5 py-3">
-            <div className="w-5 h-5 rounded-full animate-pulse" style={{ backgroundColor: '#e0dbd0' }} />
-            <div className="h-3 rounded animate-pulse" style={{ width: [80, 56, 76][i], backgroundColor: '#e8e3d8' }} />
-            <div className="ml-auto h-4 w-20 rounded-full animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+function stampClass(score: number): string {
+  if (score >= 65) return 'retro-stamp retro-stamp-green';
+  if (score >= 42) return 'retro-stamp retro-stamp-amber';
+  return 'retro-stamp retro-stamp-red';
 }
 
 export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
-  if (!compositeScore) return <PersonaChipsSkeleton />;
+  if (!compositeScore) {
+    return (
+      <div className="retro-card">
+        <div className="retro-card-header">
+          <span className="retro-card-header-title">Who this works for</span>
+          <span className="retro-card-header-meta">Score /100</span>
+        </div>
+        {[0, 1, 2].map(i => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: i < 2 ? '1px solid #c4b59a' : 'none' }}>
+            <div className="animate-pulse" style={{ width: 20, height: 20, background: '#c4b59a' }} />
+            <div className="animate-pulse" style={{ height: 12, width: [80, 56, 76][i], background: '#d8d0c4' }} />
+            <div className="animate-pulse" style={{ height: 20, width: 60, background: '#c4b59a', marginLeft: 'auto' }} />
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   const all = computePersonas(compositeScore);
   const chips = CHIP_PERSONAS.map(({ key, icon, label }) => {
@@ -60,21 +49,40 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
   });
 
   return (
-    <div
-      className="rounded-2xl border overflow-hidden"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.7)' }}
-    >
-      <div className="divide-y" style={{ borderColor: '#f0ebe2' }}>
-        {chips.map(({ icon, label, score, verdict }) => (
-          <div key={label} className="flex items-center gap-3 px-4 sm:px-5 py-3">
-            <span className="text-base" aria-hidden="true">{icon}</span>
-            <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{label}</span>
-            <div className="ml-auto">
-              <VerdictBadge label={verdict} score={score} />
-            </div>
-          </div>
-        ))}
+    <div className="retro-card">
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Who this works for</span>
+        <span className="retro-card-header-meta">Score /100</span>
       </div>
+      {chips.map(({ icon, label, score, verdict }, i) => {
+        const color = retroColor(score);
+        return (
+          <div
+            key={label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              padding: '11px 16px',
+              borderBottom: i < chips.length - 1 ? '1px solid #c4b59a' : 'none',
+            }}
+          >
+            <span style={{ fontSize: 15, flexShrink: 0 }}>{icon}</span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, color: '#1e1608', lineHeight: 1.2 }}>
+                {label}
+              </div>
+            </div>
+            <div style={{ textAlign: 'right', flexShrink: 0, marginRight: 8 }}>
+              <span style={{ fontSize: 20, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+                {score}
+              </span>
+              <span style={{ fontSize: 9, color: '#bfb09a', marginLeft: 2 }}>/100</span>
+            </div>
+            <span className={stampClass(score)}>{verdict}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }

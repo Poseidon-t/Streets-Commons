@@ -31,9 +31,12 @@ interface StreetVibeProps {
 export default function StreetVibe({ compositeScore }: StreetVibeProps) {
   if (!compositeScore) {
     return (
-      <div className="pb-3">
-        <div className="h-4 w-32 rounded mb-1.5 animate-pulse" style={{ backgroundColor: '#e0dbd0' }} />
-        <div className="h-3 w-52 rounded animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
+      <div style={{ paddingBottom: 14 }}>
+        <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#8a7a60', marginBottom: 4 }}>
+          Street character
+        </div>
+        <div className="animate-pulse" style={{ height: 20, width: 140, backgroundColor: '#c4b59a', marginBottom: 4 }} />
+        <div className="animate-pulse" style={{ height: 12, width: 200, backgroundColor: '#d8d0c4' }} />
       </div>
     );
   }
@@ -42,11 +45,22 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
   const archetype = getArchetype(compositeScore, sig);
 
   return (
-    <div className="pb-3">
-      <div className="text-base font-bold leading-tight" style={{ color: '#2a3a2a', letterSpacing: '-0.01em' }}>
+    <div style={{ paddingBottom: 16 }}>
+      <div style={{ fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#8a7a60', marginBottom: 4 }}>
+        Street character
+      </div>
+      <div style={{
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontSize: 22,
+        fontWeight: 700,
+        color: '#1e1608',
+        letterSpacing: '-0.01em',
+        lineHeight: 1.15,
+        marginBottom: 3,
+      }}>
         {archetype.name}
       </div>
-      <div className="text-xs mt-0.5" style={{ color: '#8a9a8a', fontStyle: 'italic' }}>
+      <div style={{ fontSize: 11, color: '#8a7a60', fontStyle: 'italic' }}>
         {archetype.tagline}
       </div>
     </div>

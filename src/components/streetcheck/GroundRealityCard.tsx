@@ -8,35 +8,22 @@ interface GroundRealityCardProps {
   satelliteVision: SatelliteVisionAnalysis | null;
 }
 
-function SkeletonLine({ width = '100%' }: { width?: string }) {
-  return (
-    <div
-      className="h-3 rounded animate-pulse"
-      style={{ backgroundColor: '#e8e3d8', width }}
-    />
-  );
-}
-
 function GroundRealityCardSkeleton() {
   return (
-    <div
-      className="rounded-2xl border mt-8"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
-    >
-      <div className="px-5 py-4 border-b" style={{ borderColor: '#f0ebe0' }}>
-        <div className="h-4 w-44 rounded animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
+    <div className="retro-card">
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Ground Reality · Field Observation</span>
       </div>
-      <div className="px-5 pt-4 pb-3 space-y-2.5">
-        <SkeletonLine />
-        <SkeletonLine width="93%" />
-        <SkeletonLine width="86%" />
-        <SkeletonLine width="72%" />
+      <div style={{ padding: '16px 16px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[100, 93, 86, 72].map((w, i) => (
+          <div key={i} className="animate-pulse" style={{ height: 11, width: `${w}%`, background: '#d8d0c4' }} />
+        ))}
       </div>
-      <div className="px-5 pb-5 space-y-2">
-        {[0, 1, 2].map(i => (
-          <div key={i} className="flex items-start gap-2">
-            <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 animate-pulse" style={{ backgroundColor: '#e0dbd0' }} />
-            <SkeletonLine width={`${[82, 74, 68][i]}%`} />
+      <div style={{ padding: '4px 16px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {[82, 74, 68].map((w, i) => (
+          <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div className="animate-pulse" style={{ width: 10, height: 10, background: '#c4b59a', flexShrink: 0, marginTop: 1 }} />
+            <div className="animate-pulse" style={{ height: 10, width: `${w}%`, background: '#d8d0c4' }} />
           </div>
         ))}
       </div>
@@ -44,53 +31,19 @@ function GroundRealityCardSkeleton() {
   );
 }
 
-function SourceBadge({ label }: { label: string }) {
-  return (
-    <span
-      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-      style={{ backgroundColor: '#f0ebe0', color: '#5a6a5a' }}
-    >
-      {label}
-    </span>
-  );
-}
-
-function ConfidenceBadge({ confidence }: { confidence: 'high' | 'medium' | 'low' }) {
-  const styles = {
-    high:   { bg: 'rgba(34,197,94,0.10)',  border: 'rgba(34,197,94,0.30)',  text: '#15803d' },
-    medium: { bg: 'rgba(234,179,8,0.10)',  border: 'rgba(234,179,8,0.30)',  text: '#854d0e' },
-    low:    { bg: 'rgba(239,68,68,0.10)',  border: 'rgba(239,68,68,0.30)',  text: '#991b1b' },
-  };
-  const s = styles[confidence];
-  return (
-    <span
-      className="text-xs font-semibold px-2 py-0.5 rounded-full border"
-      style={{ backgroundColor: s.bg, borderColor: s.border, color: s.text }}
-    >
-      {confidence.charAt(0).toUpperCase() + confidence.slice(1)} confidence
-    </span>
-  );
-}
-
 function PhotoThumbnail({ url, capturedAt }: { url: string; capturedAt: string }) {
   const year = capturedAt ? new Date(capturedAt).getFullYear() : null;
   return (
-    <div
-      className="relative flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border"
-      style={{ borderColor: '#e0dbd0' }}
-    >
+    <div style={{ position: 'relative', flexShrink: 0, width: 88, height: 58, border: '1px solid #c4b59a', overflow: 'hidden' }}>
       <img
         src={url}
         alt="Street view"
-        className="w-full h-full object-cover"
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         loading="lazy"
         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
       />
       {year && (
-        <div
-          className="absolute bottom-0.5 right-0.5 text-[9px] px-1 rounded"
-          style={{ backgroundColor: 'rgba(0,0,0,0.55)', color: 'white' }}
-        >
+        <div style={{ position: 'absolute', bottom: 2, right: 3, fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 3px', background: 'rgba(0,0,0,0.55)', color: 'white' }}>
           {year}
         </div>
       )}
@@ -115,80 +68,67 @@ export default function GroundRealityCard({
 
   const satelliteRows: { label: string; value: string }[] = satelliteVision
     ? [
-        { label: 'Parking', value: satelliteVision.parkingCoverage },
+        { label: 'Parking',          value: satelliteVision.parkingCoverage },
         { label: 'Building density', value: satelliteVision.buildingDensity },
-        { label: 'Green cover', value: satelliteVision.greenCoverage },
+        { label: 'Green cover',      value: satelliteVision.greenCoverage },
       ]
     : [];
 
+  const confColor = narrative.confidence === 'high' ? '#2a5224' : narrative.confidence === 'medium' ? '#d4920c' : '#b8401a';
+
   return (
-    <div
-      className="rounded-2xl border mt-8"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
-    >
+    <div className="retro-card">
       {/* Header */}
-      <div
-        className="flex items-center justify-between px-5 py-4 border-b"
-        style={{ borderColor: '#f0ebe0' }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-lg" aria-hidden="true">🗺</span>
-          <span className="text-base font-bold" style={{ color: '#2a3a2a' }}>
-            Ground Reality
-          </span>
-        </div>
-        <ConfidenceBadge confidence={narrative.confidence} />
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">🗺 Ground Reality · Field Observation</span>
+        <span style={{
+          fontSize: 8, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
+          padding: '3px 8px', border: `1.5px solid ${confColor}`, color: confColor,
+        }}>
+          {narrative.confidence} confidence
+        </span>
       </div>
 
       {/* Narrative */}
-      <div className="px-5 pt-4 pb-3">
-        <p className="text-sm leading-relaxed" style={{ color: '#3a4a3a' }}>
+      <div style={{ padding: '16px 16px 10px' }}>
+        <p style={{ fontSize: 12, lineHeight: 1.7, color: '#3d2f18', fontStyle: 'italic' }}>
           {narrative.narrative}
         </p>
       </div>
 
-      {/* Key insights */}
-      <div className="px-5 pb-4 space-y-2">
+      {/* Key insights with → bullets */}
+      <div style={{ padding: '4px 16px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {narrative.keyInsights.map((insight, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <div
-              className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
-              style={{ backgroundColor: '#e07850' }}
-            />
-            <span className="text-sm" style={{ color: '#3a4a3a' }}>{insight}</span>
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+            <span style={{ fontSize: 13, color: '#b8401a', lineHeight: 1.3, flexShrink: 0, fontFamily: 'Georgia, serif' }}>→</span>
+            <span style={{ fontSize: 11, color: '#3d2f18', lineHeight: 1.5 }}>{insight}</span>
           </div>
         ))}
       </div>
 
-      {/* Mapillary photo strip */}
+      {/* Photo strip */}
       {photos.length > 0 && (
-        <div className="px-5 pb-4">
-          <div className="flex gap-2 overflow-x-auto pb-1">
+        <div style={{ padding: '0 16px 12px' }}>
+          <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4 }}>
             {photos.map((photo, i) => (
               <PhotoThumbnail key={i} url={photo.url} capturedAt={photo.capturedAt} />
             ))}
           </div>
-          <p className="mt-1.5 text-xs" style={{ color: '#b0a8a0' }}>
-            Street photos: Mapillary (open data, Meta) · {mapillary?.imageCount} images in area
+          <p style={{ marginTop: 5, fontSize: 9, color: '#bfb09a', letterSpacing: '0.04em' }}>
+            Mapillary (open data, Meta) · {mapillary?.imageCount} images in area
           </p>
         </div>
       )}
 
-      {/* Satellite detail row */}
+      {/* Satellite detail */}
       {satelliteRows.length > 0 && (
-        <div
-          className="mx-5 mb-4 rounded-xl p-3.5 grid grid-cols-3 gap-2"
-          style={{ backgroundColor: '#f8f6f1' }}
-        >
-          {satelliteRows.map(({ label, value }) => (
-            <div key={label}>
-              <div
-                className="text-xs font-semibold uppercase mb-0.5"
-                style={{ color: '#8a9a8a', letterSpacing: '0.06em' }}
-              >
+        <div style={{ margin: '0 16px 14px', border: '1px solid #c4b59a', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
+          {satelliteRows.map(({ label, value }, i) => (
+            <div key={label} style={{ padding: '8px 10px', borderRight: i < 2 ? '1px solid #c4b59a' : 'none' }}>
+              <div style={{ fontSize: 8, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: '#bfb09a', marginBottom: 3 }}>
                 {label}
               </div>
-              <div className="text-sm font-medium capitalize" style={{ color: '#2a3a2a' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: '#1e1608' }}>
                 {value}
               </div>
             </div>
@@ -196,10 +136,12 @@ export default function GroundRealityCard({
         </div>
       )}
 
-      {/* Data source footer */}
-      <div className="px-5 pb-4 flex flex-wrap items-center gap-1.5">
+      {/* Data sources */}
+      <div style={{ padding: '8px 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
         {narrative.dataSources.map(src => (
-          <SourceBadge key={src} label={src} />
+          <span key={src} style={{ fontSize: 9, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#8a7a60', padding: '2px 6px', border: '1px solid #c4b59a' }}>
+            {src}
+          </span>
         ))}
       </div>
     </div>

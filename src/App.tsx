@@ -1504,21 +1504,37 @@ function App() {
 
         {/* Single Location Results */}
         {!compareMode && location && metrics && !isAnalyzing && (
-          <div className={`space-y-6 ${demoMode ? 'pt-12' : ''}`}>
-            {/* Location name — show first 2 comma-separated segments to avoid wrapping */}
-            <h2 className="text-2xl font-bold text-center text-earth-text-dark">
-              {location.displayName.split(',').slice(0, 2).join(',')}
-            </h2>
+          <div className={`retro-analysis ${demoMode ? 'pt-12' : ''}`} style={{ gap: 0 }}>
+
+            {/* Document header */}
+            <div style={{ border: '2px solid #1e1608', background: '#faf7f0', marginBottom: 3 }}>
+              <div style={{ background: '#1e1608', padding: '7px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: 'rgba(242,236,224,0.65)', fontWeight: 700 }}>
+                  Streets &amp; Commons · SafeStreets
+                </span>
+                <span style={{ fontSize: 9, letterSpacing: '0.1em', color: 'rgba(242,236,224,0.4)' }}>
+                  PEDESTRIAN SURVEY
+                </span>
+              </div>
+              <div style={{ padding: '18px 16px 14px', borderBottom: '2px solid #1e1608', display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+                <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1e1608', letterSpacing: '-0.01em', lineHeight: 1 }}>
+                  {location.displayName.split(',').slice(0, 2).join(',')}
+                </h2>
+                <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase' as const, color: '#8a7a60' }}>
+                  {location.countryCode} · Urban Analysis
+                </span>
+              </div>
+            </div>
 
             {/* ACT 1 — Hero: wider map + archetype + score */}
-            <div id="score" className="rounded-2xl overflow-hidden border scroll-mt-16" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}>
+            <div id="score" style={{ border: '2px solid #1e1608', background: '#faf7f0', marginBottom: 3, overflow: 'hidden' }} className="scroll-mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
-                <div className="lg:border-r" style={{ minHeight: 300, borderColor: '#e0dbd0' }}>
+                <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
                   <Map location={location} osmData={osmData} seamless />
                 </div>
-                <div className="p-5 sm:p-6 lg:p-7 h-full flex flex-col">
+                <div style={{ padding: '22px 20px 20px', height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <StreetVibe compositeScore={compositeScore} />
-                  <div className="flex-1 mt-3">
+                  <div style={{ flex: 1, marginTop: 8 }}>
                     <ScoreCard metrics={metrics} compositeScore={compositeScore} embedded compact />
                   </div>
                 </div>
@@ -1541,12 +1557,12 @@ function App() {
             <ComponentHighlight compositeScore={compositeScore} />
 
             {/* ACT 3 divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px" style={{ backgroundColor: '#e0dbd0' }} />
-              <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#b0a8a0', letterSpacing: '0.1em' }}>
+            <div style={{ display: 'flex', alignItems: 'center', margin: '10px 0 3px' }}>
+              <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
+              <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: '0.22em', textTransform: 'uppercase' as const, color: '#f2ece0', background: '#1e1608', padding: '4px 16px', whiteSpace: 'nowrap' }}>
                 Detailed Analysis
               </span>
-              <div className="flex-1 h-px" style={{ backgroundColor: '#e0dbd0' }} />
+              <div style={{ flex: 1, height: 2, background: '#1e1608' }} />
             </div>
 
             {/* ACT 3 — Full persona table */}
@@ -1563,18 +1579,19 @@ function App() {
 
             {/* Compact data quality badge */}
             {dataQuality && (
-              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-earth-text-light">
-                <span className="flex items-center gap-1.5">
-                  Data Quality:
-                  <span className={`px-2 py-0.5 rounded font-bold ${
-                    dataQuality.confidence === 'high' ? 'bg-green-100 text-green-700' :
-                    dataQuality.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-red-100 text-red-700'
-                  }`}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '4px 16px', fontSize: 9, letterSpacing: '0.08em', color: '#8a7a60' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  DATA QUALITY:
+                  <span style={{
+                    padding: '2px 7px', border: '1.5px solid',
+                    fontWeight: 700, fontSize: 9, letterSpacing: '0.12em',
+                    color: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
+                    borderColor: dataQuality.confidence === 'high' ? '#2a5224' : dataQuality.confidence === 'medium' ? '#d4920c' : '#b8401a',
+                  }}>
                     {dataQuality.confidence.toUpperCase()}
                   </span>
                 </span>
-                <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings · {dataQuality.poiCount} POIs</span>
+                <span>{dataQuality.streetCount} streets · {dataQuality.sidewalkCount} sidewalks · {dataQuality.crossingCount} crossings</span>
                 <span className="hidden sm:inline">OSM · Sentinel-2 · {location.countryCode === 'US' ? 'Census ACS · EPA' : 'OpenStreetMap'}</span>
               </div>
             )}

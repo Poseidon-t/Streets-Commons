@@ -1,45 +1,69 @@
 import type { WalkabilityScoreV2 } from '../../types';
-import { scoreColor } from '../../utils/personas';
 
 interface ComponentHighlightProps {
   compositeScore: WalkabilityScoreV2 | null;
 }
 
-function ComponentHighlightSkeleton() {
-  return (
-    <div
-      className="rounded-2xl border"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
-    >
-      <div className="px-5 py-4 border-b" style={{ borderColor: '#f0ebe0' }}>
-        <div className="h-4 w-28 rounded animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
-      </div>
-      <div className="px-5 py-4 space-y-4">
-        {[0, 1, 2, 3].map(i => (
-          <div key={i}>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="h-3 rounded animate-pulse" style={{ width: [120, 96, 56, 140][i], backgroundColor: '#e8e3d8' }} />
-              <div className="h-3 w-8 rounded animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
-            </div>
-            <div className="h-2 rounded-full animate-pulse" style={{ backgroundColor: '#e8e3d8' }} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+// One-line contextual explanations by label + score tier
+const EXPLANATIONS: Record<string, (score: number) => string> = {
+  'Network Design': (s) =>
+    s >= 65 ? 'Well-connected grid with frequent crossings and good footpath coverage'
+    : s >= 42 ? 'Reasonable connectivity but some gaps in the pedestrian network'
+    : 'Fragmented street network makes walking routes indirect or difficult',
+  'Environmental Comfort': (s) =>
+    s >= 65 ? 'Pleasant walking environment with shade, low noise, and good air quality'
+    : s >= 42 ? 'Moderate comfort — some noise or limited shade on key routes'
+    : 'High noise, limited tree canopy, or poor air quality reduces walking comfort',
+  'Safety': (s) =>
+    s >= 65 ? 'Low traffic speeds and good pedestrian infrastructure make walking safe'
+    : s >= 42 ? 'Moderate safety — main arterials are more exposed to traffic'
+    : 'High traffic speeds or missing crossings create hazards for pedestrians',
+  'Density & Destinations': (s) =>
+    s >= 65 ? 'Excellent access to daily needs and services within walking distance'
+    : s >= 42 ? 'Good access to some destinations; transit coverage is moderate'
+    : 'Limited destinations within walking distance; car often needed for errands',
+};
+
+function getExplanation(label: string, score: number): string {
+  return EXPLANATIONS[label]?.(score) ?? 'No additional detail available';
+}
+
+function retroColor(score: number): string {
+  if (score >= 65) return '#2a5224';
+  if (score >= 42) return '#d4920c';
+  return '#b8401a';
+}
+
+function retroFillClass(score: number): string {
+  if (score >= 65) return 'retro-comp-fill';
+  if (score >= 42) return 'retro-comp-fill retro-gauge-fill-amber';
+  return 'retro-comp-fill retro-gauge-fill-red';
 }
 
 export default function ComponentHighlight({ compositeScore }: ComponentHighlightProps) {
-  if (!compositeScore) return <ComponentHighlightSkeleton />;
+  if (!compositeScore) {
+    return (
+      <div className="retro-card">
+        <div className="retro-card-header">
+          <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
+        </div>
+        <div style={{ padding: '16px 16px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {[120, 56, 96, 140].map((w, i) => (
+            <div key={i}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div className="animate-pulse" style={{ height: 11, width: w, background: '#d8d0c4' }} />
+                <div className="animate-pulse" style={{ height: 11, width: 28, background: '#d8d0c4' }} />
+              </div>
+              <div className="animate-pulse" style={{ height: 14, background: '#d8d0c4' }} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const { networkDesign, environmentalComfort, safety, densityContext } = compositeScore.components;
-  const components = [
-    networkDesign,
-    environmentalComfort,
-    safety,
-    densityContext,
-  ].filter(c => c.score > 0);
-
+  const components = [networkDesign, environmentalComfort, safety, densityContext].filter(c => c.score > 0);
   if (components.length === 0) return null;
 
   const sorted = [...components].sort((a, b) => b.score - a.score);
@@ -47,43 +71,36 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
   const bottomScore = sorted[sorted.length - 1].score;
 
   return (
-    <div
-      className="rounded-2xl border"
-      style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
-    >
-      <div className="px-5 py-4 border-b" style={{ borderColor: '#f0ebe0' }}>
-        <h3 className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Why this score</h3>
+    <div className="retro-card">
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">Score Breakdown · Component Analysis</span>
       </div>
-      <div className="px-5 py-4 space-y-4">
+      <div style={{ padding: '16px 16px 18px', display: 'flex', flexDirection: 'column', gap: 16 }}>
         {sorted.map(c => {
           const pct = Math.round(c.score);
-          const color = scoreColor(pct);
+          const color = retroColor(pct);
           const isTop = c.score === topScore;
           const isBottom = c.score === bottomScore && c.score < 50 && sorted.length > 1;
 
           return (
             <div key={c.label}>
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-medium" style={{ color: '#4a5a4a' }}>{c.label}</span>
-                  {isTop && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(34,197,94,0.10)', color: '#15803d' }}>
-                      Strength
-                    </span>
-                  )}
-                  {isBottom && (
-                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(239,68,68,0.10)', color: '#991b1b' }}>
-                      Challenge
-                    </span>
-                  )}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#3d2f18' }}>
+                    {c.label}
+                  </span>
+                  {isTop && <span className="retro-tag retro-tag-strength">Strength</span>}
+                  {isBottom && <span className="retro-tag retro-tag-challenge">Challenge</span>}
                 </div>
-                <span className="text-xs font-bold tabular-nums" style={{ color }}>{(c.score / 10).toFixed(1)}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
+                  {(c.score / 10).toFixed(1)}
+                </span>
               </div>
-              <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#e8e3d8' }}>
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${Math.max(pct, 2)}%`, backgroundColor: color }}
-                />
+              <div className="retro-comp-bar" style={{ marginBottom: 6 }}>
+                <div className={retroFillClass(pct)} style={{ width: `${Math.max(pct, 2)}%`, background: color }} />
+              </div>
+              <div style={{ fontSize: 10, color: '#8a7a60', fontStyle: 'italic', lineHeight: 1.4 }}>
+                {getExplanation(c.label, pct)}
               </div>
             </div>
           );
