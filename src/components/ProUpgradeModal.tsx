@@ -18,7 +18,7 @@ interface ProUpgradeModalProps {
 }
 
 const PRO_FEATURES = [
-  { icon: '📊', name: 'Compare up to 4 addresses', desc: 'Score neighborhoods side by side — for moving decisions, property comparisons, or school catchment areas' },
+  { icon: '📋', name: 'Street Audit Tool', desc: 'Generate structured audit reports to share with landlords, property managers, or local authorities' },
   { icon: '📄', name: 'Shareable walkability report', desc: 'Export as PDF or link — send to a partner, landlord, council, or attach to a listing' },
   { icon: '🏷️', name: 'Your branding on reports', desc: 'Add your logo and contact details for professional use' },
 ];
@@ -173,9 +173,9 @@ export default function ProUpgradeModal({ isOpen, onClose, onReady, context = 'a
           <>
             <div className="text-center mb-5">
               <div className="text-4xl mb-3">📊</div>
-              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Compare streets. Share your findings.</h2>
+              <h2 className="text-xl font-bold mb-1 text-[#2a3a2a]">Audit streets. Share your findings.</h2>
               <p className="text-sm text-[#8a9a8a]">
-                One payment, lifetime access. Compare neighborhoods side by side and export shareable reports.
+                One payment, lifetime access. Generate audit reports and export shareable walkability analysis.
               </p>
             </div>
 

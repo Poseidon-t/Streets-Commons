@@ -79,5 +79,15 @@ export function useAdminApi() {
     generateComparison: (params: { neighborhoods: Array<{ neighborhood: string; city: string; state: string }>; agentProfile: { name: string; company?: string; email?: string; phone?: string; title?: string } }) =>
       adminFetch('/api/admin/sales/generate-comparison', { method: 'POST', body: JSON.stringify(params) }),
 
+    // Reddit Monitor
+    fetchRedditPosts: () => adminFetch('/api/admin/reddit/posts'),
+    refreshRedditPosts: () => adminFetch('/api/admin/reddit/refresh', { method: 'POST' }),
+    dismissRedditPost: (id: string) =>
+      adminFetch(`/api/admin/reddit/posts/${id}`, { method: 'DELETE' }),
+    fetchRedditConfig: () => adminFetch('/api/admin/reddit/config'),
+    updateRedditConfig: (config: { subreddits?: string[]; keywordsHigh?: string[]; keywordsMedium?: string[] }) =>
+      adminFetch('/api/admin/reddit/config', { method: 'PUT', body: JSON.stringify(config) }),
+    clearRedditPosts: () => adminFetch('/api/admin/reddit/clear', { method: 'POST' }),
+
   };
 }

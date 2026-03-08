@@ -1587,7 +1587,11 @@ function App() {
                 </div>
               </div>
               <button
-                onClick={() => setShowAuditTool(true)}
+                onClick={() => {
+                  if (!isSignedIn) { setShowSignInModal(true); return; }
+                  if (!canGenerateAgentReport(user)) { setShowProUpgradeModal(true); return; }
+                  setShowAuditTool(true);
+                }}
                 style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a1208', background: '#faf7f0', cursor: 'pointer' }}
               >
                 Generate report →
@@ -1860,7 +1864,7 @@ function App() {
                     <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#8a9a8a' }}>Everything in Free, plus:</p>
                     <ul className="space-y-2.5 flex-1">
                       {[
-                        { text: 'Compare up to 4 addresses side-by-side', bold: true },
+                        { text: 'Street Audit Tool — generate structured reports', bold: true },
                         { text: 'Shareable walkability reports (PDF + link)', bold: true },
                         { text: 'Your logo & branding on every report', bold: true },
                         { text: '3 free branded reports to try before you pay', bold: false },

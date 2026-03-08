@@ -36,19 +36,6 @@ function SubMetricBar({ name, score, rawValue }: { name: string; score: number; 
   const display = METRIC_DISPLAY[name];
   const label = display?.label ?? name;
 
-  if (score === 0) {
-    return (
-      <div className="flex items-center gap-3">
-        <div className="w-36 flex-shrink-0">
-          <div className="text-xs font-medium" style={{ color: '#2a2010' }}>{label}</div>
-          {rawValue && <div className="text-xs" style={{ color: '#8a9a8a' }}>{rawValue}</div>}
-        </div>
-        <div className="flex-1 h-2 rounded-full" style={{ backgroundColor: '#f0ebe0' }} />
-        <div className="w-10 text-right text-xs flex-shrink-0" style={{ color: '#b0a8a0' }}>—</div>
-      </div>
-    );
-  }
-
   const color = barColor(score);
   return (
     <div className="flex items-center gap-3">

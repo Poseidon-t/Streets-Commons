@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/blog', label: 'Blog Posts', end: false },
   { to: '/admin/infographics', label: 'Infographics', end: false },
   { to: '/admin/sales-pipeline', label: 'Sales Pipeline', end: false },
+  { to: '/admin/reddit-monitor', label: 'Reddit Monitor', end: false },
 ];
 
 export default function AdminLayout() {

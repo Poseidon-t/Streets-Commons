@@ -350,6 +350,100 @@ function saveBlogPosts(posts) {
   }
 }
 
+// ─── Reddit Monitor Storage ────────────────────────────────────────────────
+const REDDIT_MONITOR_FILE = process.env.REDDIT_MONITOR_FILE || path.join(__dirname, '..', 'data', 'reddit-monitor.json');
+const REDDIT_MAX_POSTS = 500;
+
+const DEFAULT_REDDIT_CONFIG = {
+  subreddits: [
+    'urbanplanning', 'fuckcars', 'notjustbikes', 'urbandesign',
+    'StrongTowns', 'WalkableStreets', 'transit',
+    'realestate', 'FirstTimeHomeBuyer', 'moving'
+  ],
+  keywordsHigh: [
+    'walkable', 'walkability', 'walk score', 'pedestrian',
+    'no sidewalks', 'without a car', 'car free', 'car-free'
+  ],
+  keywordsMedium: [
+    'stroad', 'road diet', 'complete streets', 'mixed use', 'mixed-use',
+    '15 minute', '15-minute', 'hostile infrastructure',
+    'moving to', 'which neighborhood', 'unsafe to walk', 'have to drive'
+  ],
+};
+
+function loadRedditData() {
+  try {
+    if (fs.existsSync(REDDIT_MONITOR_FILE)) {
+      const raw = JSON.parse(fs.readFileSync(REDDIT_MONITOR_FILE, 'utf-8'));
+      // Ensure config exists with defaults
+      if (!raw.config) raw.config = { ...DEFAULT_REDDIT_CONFIG };
+      return raw;
+    }
+  } catch (err) {
+    console.warn('Could not load reddit data:', err.message);
+  }
+  return { lastUpdated: null, posts: [], config: { ...DEFAULT_REDDIT_CONFIG } };
+}
+
+function saveRedditData(data) {
+  try {
+    const dir = path.dirname(REDDIT_MONITOR_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(REDDIT_MONITOR_FILE, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.warn('Could not save reddit data:', err.message);
+  }
+}
+
+function matchRedditKeywords(title, selftext, keywordsHigh, keywordsMedium) {
+  const text = `${title} ${selftext}`.toLowerCase();
+  const matched = [];
+  let score = 0;
+  let hasHigh = false;
+
+  for (const kw of keywordsHigh) {
+    if (text.includes(kw.toLowerCase())) {
+      matched.push(kw);
+      score += 3;
+      hasHigh = true;
+    }
+  }
+  for (const kw of keywordsMedium) {
+    if (text.includes(kw.toLowerCase())) {
+      matched.push(kw);
+      score += 1;
+    }
+  }
+
+  if (matched.length === 0) return null;
+  return { matchedKeywords: matched, relevanceScore: score, relevanceTier: hasHigh ? 'high' : 'medium' };
+}
+
+async function fetchSubredditPosts(subreddit) {
+  const url = `https://www.reddit.com/r/${subreddit}/new.json?limit=25`;
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'SafeStreets/1.0 (admin monitor)' }
+  });
+  if (!res.ok) {
+    console.warn(`Reddit fetch failed for r/${subreddit}: ${res.status}`);
+    return [];
+  }
+  const json = await res.json();
+  return (json?.data?.children || []).map(c => c.data);
+}
+
+function stripRedditHtml(html) {
+  if (!html) return '';
+  return html.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .substring(0, 500);
+}
+
+function redditSleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function calculateReadTime(htmlContent) {
   const text = htmlContent.replace(/<[^>]*>/g, '');
   const words = text.trim().split(/\s+/).length;
@@ -6775,6 +6869,143 @@ app.get('/api/debug/epa-raw', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message, name: e.name }); }
 });
 
+
+// ─── Reddit Monitor Endpoints ──────────────────────────────────────────────
+
+// GET stored reddit posts + config
+app.get('/api/admin/reddit/posts', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load reddit data' });
+  }
+});
+
+// GET config only
+app.get('/api/admin/reddit/config', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    res.json(data.config);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load reddit config' });
+  }
+});
+
+// PUT config — update subreddits and keywords
+app.put('/api/admin/reddit/config', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    const { subreddits, keywordsHigh, keywordsMedium } = req.body;
+
+    if (subreddits !== undefined) {
+      data.config.subreddits = subreddits.map(s => s.replace(/^r\//, '').trim()).filter(Boolean);
+    }
+    if (keywordsHigh !== undefined) {
+      data.config.keywordsHigh = keywordsHigh.map(k => k.trim().toLowerCase()).filter(Boolean);
+    }
+    if (keywordsMedium !== undefined) {
+      data.config.keywordsMedium = keywordsMedium.map(k => k.trim().toLowerCase()).filter(Boolean);
+    }
+
+    saveRedditData(data);
+    res.json({ success: true, config: data.config });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update config' });
+  }
+});
+
+// Refresh — fetch new posts from Reddit, filter by keywords, deduplicate
+app.post('/api/admin/reddit/refresh', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    const { subreddits, keywordsHigh, keywordsMedium } = data.config;
+    const existingIds = new Set(data.posts.map(p => p.id));
+    let newCount = 0;
+
+    for (const subreddit of subreddits) {
+      try {
+        const rawPosts = await fetchSubredditPosts(subreddit);
+        for (const raw of rawPosts) {
+          if (existingIds.has(raw.id)) continue;
+
+          const title = raw.title || '';
+          const selftext = stripRedditHtml(raw.selftext_html || raw.selftext || '');
+          const match = matchRedditKeywords(title, selftext, keywordsHigh, keywordsMedium);
+          if (!match) continue;
+
+          data.posts.push({
+            id: raw.id,
+            subreddit: `r/${subreddit}`,
+            title,
+            selftext: selftext.substring(0, 500),
+            url: `https://www.reddit.com${raw.permalink}`,
+            author: raw.author,
+            score: raw.score || 0,
+            numComments: raw.num_comments || 0,
+            created: raw.created_utc,
+            matchedKeywords: match.matchedKeywords,
+            relevanceTier: match.relevanceTier,
+            relevanceScore: match.relevanceScore,
+            fetchedAt: new Date().toISOString()
+          });
+          existingIds.add(raw.id);
+          newCount++;
+        }
+      } catch (err) {
+        console.warn(`Error fetching r/${subreddit}:`, err.message);
+      }
+      await redditSleep(2000);
+    }
+
+    // Sort by relevanceScore desc, then created desc
+    data.posts.sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0) || (b.created || 0) - (a.created || 0));
+
+    // Cap at max posts
+    if (data.posts.length > REDDIT_MAX_POSTS) {
+      data.posts = data.posts.slice(0, REDDIT_MAX_POSTS);
+    }
+
+    data.lastUpdated = new Date().toISOString();
+    saveRedditData(data);
+
+    res.json({ success: true, newPosts: newCount, totalPosts: data.posts.length });
+  } catch (err) {
+    console.error('Reddit refresh error:', err);
+    res.status(500).json({ error: 'Reddit refresh failed' });
+  }
+});
+
+// Dismiss a post
+app.delete('/api/admin/reddit/posts/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    data.posts = data.posts.filter(p => p.id !== req.params.id);
+    saveRedditData(data);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove post' });
+  }
+});
+
+// Clear all posts (keep config)
+app.post('/api/admin/reddit/clear', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  try {
+    const data = loadRedditData();
+    data.posts = [];
+    data.lastUpdated = null;
+    saveRedditData(data);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to clear posts' });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {
