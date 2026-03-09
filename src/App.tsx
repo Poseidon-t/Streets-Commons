@@ -1707,14 +1707,16 @@ function App() {
 
                 <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl shadow-2xl border" style={{ borderColor: '#e0dbd0' }}>
                   <video
-                    src="/demo.mp4"
                     autoPlay
                     muted
                     loop
                     playsInline
+                    preload="auto"
                     className="w-full block"
                     style={{ aspectRatio: '1920/1080', backgroundColor: '#f5f2ec' }}
-                  />
+                  >
+                    <source src="/demo.mp4" type="video/mp4" />
+                  </video>
                 </div>
 
                 {/* CTA */}
