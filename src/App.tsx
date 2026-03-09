@@ -1713,7 +1713,7 @@ function App() {
                     loop
                     playsInline
                     className="w-full block"
-                    style={{ aspectRatio: '1280/720', backgroundColor: '#f5f2ec' }}
+                    style={{ aspectRatio: '1920/1080', backgroundColor: '#f5f2ec' }}
                   />
                 </div>
 
