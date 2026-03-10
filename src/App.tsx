@@ -921,46 +921,50 @@ function App() {
         )}
       </header>
 
-      {/* Hero Section - Side-by-side with topographic texture */}
+      {/* Hero Section */}
       {!compareMode && !location && !isAnalyzing && (
-        <section className="relative flex flex-col font-sans" style={{ background: 'linear-gradient(160deg, #fdf6f0 0%, #f8f0e8 25%, #f0ece4 55%, #eaf0e8 100%)' }}>
-          {/* Topographic contour background */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid slice" style={{ opacity: 0.06 }}>
-            <defs>
-              <pattern id="topoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-                <path d="M 100 10 Q 140 30, 180 25 Q 195 60, 170 90 Q 150 120, 100 110 Q 50 100, 30 70 Q 15 40, 50 20 Q 70 10, 100 10 Z" fill="none" stroke="#c06030" strokeWidth="1"/>
-                <path d="M 100 30 Q 130 45, 160 40 Q 175 65, 155 85 Q 140 100, 100 95 Q 65 88, 50 65 Q 38 48, 60 35 Q 75 28, 100 30 Z" fill="none" stroke="#c06030" strokeWidth="0.8"/>
-                <path d="M 100 50 Q 120 58, 140 55 Q 150 70, 135 80 Q 125 88, 100 85 Q 78 80, 70 65 Q 64 55, 78 50 Q 88 46, 100 50 Z" fill="none" stroke="#c06030" strokeWidth="0.6"/>
-                <path d="M 100 65 Q 112 68, 120 66 Q 125 73, 118 78 Q 112 82, 100 80 Q 90 78, 85 72 Q 82 67, 90 65 Q 95 63, 100 65 Z" fill="none" stroke="#c06030" strokeWidth="0.5"/>
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#topoPattern)"/>
-          </svg>
+        <section className="relative flex flex-col font-sans overflow-hidden" style={{ backgroundColor: '#f5f2eb' }}>
+          {/* Street grid background */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            opacity: 0.045,
+            backgroundImage: 'linear-gradient(#1a3a1a 1px, transparent 1px), linear-gradient(90deg, #1a3a1a 1px, transparent 1px), linear-gradient(#1a3a1a 1px, transparent 1px), linear-gradient(90deg, #1a3a1a 1px, transparent 1px)',
+            backgroundSize: '80px 80px, 80px 80px, 20px 20px, 20px 20px',
+          }} />
+          {/* Radial fade over grid */}
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: 'radial-gradient(ellipse 80% 70% at 40% 50%, transparent 30%, #f5f2eb 80%)',
+          }} />
 
           {/* Two-column hero layout */}
-          <div className="relative z-10 max-w-7xl mx-auto w-full px-6 pt-10 lg:pt-16 pb-8">
-            <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-              {/* Left column - Text & Search */}
+          <div className="relative z-10 max-w-6xl mx-auto w-full px-6 pt-12 lg:pt-16 pb-8">
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+
+              {/* Left column */}
               <div className="flex flex-col items-center lg:items-start">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 tracking-tight text-earth-text-dark max-w-xl">
-                  How Walkable Is Your Street,{' '}
-                  <span className="text-terra">Really</span>?
+                {/* Eyebrow */}
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 text-[11px] font-bold uppercase tracking-widest" style={{ color: '#3a7a3a', background: 'rgba(58,122,58,0.08)', border: '1px solid rgba(58,122,58,0.2)' }}>
+                  Free · No sign-up · Works globally
+                </div>
+
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center lg:text-left mb-4 leading-tight" style={{ color: '#1a2a1a', letterSpacing: '-0.02em' }}>
+                  How Walkable<br className="hidden sm:block" /> Is Your Street,{' '}
+                  <span style={{ color: '#e07850' }}>Really?</span>
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl text-center lg:text-left max-w-xl mb-6 text-earth-text-body">
-                  Walkability scores, street design analysis, and neighborhood health for any address.
-                  <span className="text-earth-text-light"> Free, no sign-up.</span>
+                <p className="text-base sm:text-lg text-center lg:text-left mb-7 max-w-md" style={{ color: '#4a6a4a', lineHeight: 1.55 }}>
+                  Walkability data for any address worldwide.{' '}
+                  <strong style={{ color: '#3a7a3a', fontWeight: 600 }}>Free, instant, no sign-up.</strong>
                 </p>
 
                 {/* Search Box */}
-                <div className="w-full max-w-xl mb-4">
+                <div className="w-full max-w-lg mb-3">
                   <div className="search-box-light bg-white rounded-2xl">
                     <AddressInput
                       onSelect={handleLocationSelect}
                       placeholder="Enter any address worldwide..."
                     />
                   </div>
-                  <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center gap-3 mt-2.5">
                     <button
                       onClick={() => {
                         if (navigator.geolocation) {
@@ -982,7 +986,8 @@ function App() {
                           alert('Geolocation is not supported by your browser.');
                         }
                       }}
-                      className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                      className="text-sm font-semibold transition-colors"
+                      style={{ color: '#e07850' }}
                       aria-label="Use my current location"
                     >
                       <span className="inline-flex items-center gap-1.5">
@@ -990,10 +995,11 @@ function App() {
                         Use my location
                       </span>
                     </button>
-                    <span className="text-earth-text-light text-sm">·</span>
+                    <span style={{ color: '#a0b0a0' }} className="text-sm">·</span>
                     <button
                       onClick={activateDemoMode}
-                      className="text-sm font-medium text-terra hover:text-terra/80 transition-colors"
+                      className="text-sm font-semibold transition-colors"
+                      style={{ color: '#e07850' }}
                     >
                       <span className="inline-flex items-center gap-1.5">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -1002,112 +1008,91 @@ function App() {
                     </button>
                   </div>
                 </div>
-
               </div>
 
-              {/* Right column — Live example card */}
+              {/* Right column — Example score card */}
               <div className="flex justify-center">
-                <div className="w-full max-w-md">
-                  <div className="bg-white rounded-2xl shadow-xl border border-earth-border p-5 relative overflow-hidden">
+                <div className="relative w-full" style={{ maxWidth: 420 }}>
+                  {/* Example badge */}
+                  <div className="absolute -top-3 right-4 z-10 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full text-white" style={{ background: '#e07850', letterSpacing: '0.1em' }}>
+                    Example
+                  </div>
 
-                    {/* Warm top accent strip */}
-                    <div className="absolute top-0 left-0 right-0 h-1 rounded-t-2xl" style={{ background: 'linear-gradient(90deg, #e07850 0%, #f59e0b 100%)' }} />
-
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-3 mt-1">
+                  <div className="rounded-2xl overflow-hidden" style={{ background: 'white', boxShadow: '0 20px 60px rgba(26,58,26,0.12), 0 4px 16px rgba(0,0,0,0.06)', border: '1px solid rgba(26,58,26,0.08)' }}>
+                    {/* Card header */}
+                    <div className="flex items-center justify-between px-5 py-3.5" style={{ background: '#1a3a1a' }}>
                       <div className="flex items-center gap-2">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span className="text-sm font-bold" style={{ color: '#1a2a1a' }}>Brooklyn, NY</span>
+                        <div className="w-2 h-2 rounded-full" style={{ background: '#e07850' }} />
+                        <span className="text-sm font-bold tracking-wide" style={{ color: '#e8f0e8' }}>Brooklyn, New York</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: '#fef3ec', color: '#c05c30' }}>Example</span>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-2xl font-bold" style={{ color: '#22c55e' }}>7.4</span>
-                          <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
-                        </div>
-                      </div>
+                      <span className="text-[10px] uppercase tracking-widest font-semibold" style={{ color: 'rgba(255,255,255,0.4)' }}>US · Urban</span>
                     </div>
 
-                    {/* Score bar */}
-                    <div className="h-2 rounded-full mb-4" style={{ backgroundColor: '#f0ebe0' }}>
-                      <div className="h-full rounded-full" style={{ width: '74%', background: 'linear-gradient(90deg, #84cc16, #22c55e)' }} />
+                    {/* Big score row */}
+                    <div className="flex items-end gap-5 px-6 py-5 border-b" style={{ borderColor: '#f0ede8' }}>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 72, fontWeight: 700, lineHeight: 1, color: '#22c55e', letterSpacing: '-0.03em' }}>
+                        7.4<span style={{ fontSize: 26, color: '#a0b8a0', fontWeight: 400 }}>/10</span>
+                      </div>
+                      <div className="pb-2">
+                        <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#22c55e' }}>Walkable</div>
+                        <div className="text-xs" style={{ color: '#7a9a7a', maxWidth: 160, lineHeight: 1.4 }}>Most daily needs accessible on foot</div>
+                      </div>
                     </div>
 
                     {/* Component bars */}
-                    <div className="space-y-2 mb-4">
+                    <div className="px-6 py-4 border-b" style={{ borderColor: '#f0ede8' }}>
                       {[
-                        { label: 'Network Design',         score: 82, color: '#22c55e' },
-                        { label: 'Density Context',         score: 78, color: '#22c55e' },
-                        { label: 'Environmental Comfort',  score: 61, color: '#84cc16' },
-                        { label: 'Safety',                 score: 55, color: '#eab308' },
+                        { label: 'Network Design',        score: 82, color: '#22c55e' },
+                        { label: 'Density Context',        score: 78, color: '#22c55e' },
+                        { label: 'Environmental Comfort', score: 61, color: '#84cc16' },
+                        { label: 'Safety',                score: 55, color: '#eab308' },
                       ].map(c => (
-                        <div key={c.label}>
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs" style={{ color: '#4a5a4a' }}>{c.label}</span>
-                            <span className="text-xs font-bold tabular-nums" style={{ color: c.color }}>{(c.score / 10).toFixed(1)}</span>
-                          </div>
-                          <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
+                        <div key={c.label} className="flex items-center gap-3 mb-2.5 last:mb-0">
+                          <span className="text-xs font-medium flex-shrink-0" style={{ color: '#4a6a4a', width: 158 }}>{c.label}</span>
+                          <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: '#f0ede8' }}>
                             <div className="h-full rounded-full" style={{ width: `${c.score}%`, backgroundColor: c.color }} />
                           </div>
+                          <span className="text-[11px] font-bold w-7 text-right tabular-nums" style={{ fontFamily: "'Space Mono', monospace", color: c.color }}>{(c.score / 10).toFixed(1)}</span>
                         </div>
                       ))}
                     </div>
 
-                    {/* Persona quick row */}
-                    <div className="border-t pt-3" style={{ borderColor: '#f0ebe0' }}>
-                      <div className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#b0a898' }}>Persona Verdicts</div>
-                      <div className="flex gap-2 flex-wrap">
+                    {/* Persona chips */}
+                    <div className="px-6 py-4">
+                      <div className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: '#a0b0a0' }}>Persona Verdicts</div>
+                      <div className="flex flex-wrap gap-2">
                         {[
                           { name: 'Car-free here?', verdict: 'Yes', color: '#22c55e' },
                           { name: 'Kids walking?', verdict: 'Borderline', color: '#eab308' },
                           { name: 'Aging in place?', verdict: 'Yes', color: '#22c55e' },
                         ].map(p => (
-                          <div key={p.name} className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium" style={{ backgroundColor: '#f8f6f1', color: '#4a5a4a' }}>
+                          <div key={p.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium" style={{ background: '#f5f2eb', color: '#4a6a4a' }}>
                             <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
-                            {p.name}
-                            <span style={{ color: p.color, fontWeight: 700 }}>{p.verdict}</span>
+                            {p.name} <span style={{ color: p.color, fontWeight: 700 }}>{p.verdict}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-
                   </div>
                 </div>
               </div>
+
             </div>
           </div>
 
-          {/* Credibility & Data Sources - centered */}
-          <div className="relative z-10 flex flex-col items-center px-6 pb-8">
-            {/* Credibility Marker */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-earth-green/[0.08]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
-                </svg>
-                <span className="text-sm text-earth-green">
-                  Informed by <strong>NACTO</strong> & <strong>Vision Zero</strong> principles
-                </span>
+          {/* Trust bar */}
+          <div className="relative z-10 flex flex-wrap items-center justify-center gap-6 px-6 py-4 border-t" style={{ borderColor: 'rgba(26,58,26,0.08)', background: 'rgba(255,255,255,0.5)' }}>
+            {[
+              { label: <><strong>Sentinel-2</strong> Satellite</> },
+              { label: <><strong>OpenStreetMap</strong></> },
+              { label: <><strong>US Census</strong> & CDC</> },
+              { label: <>Informed by <strong>NACTO</strong> & <strong>Vision Zero</strong></> },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs font-medium" style={{ color: '#7a9a7a' }}>
+                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#3a7a3a' }} />
+                <span>{item.label}</span>
               </div>
-              <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-earth-green/[0.08]">
-                <span className="text-sm text-earth-green"><strong>Global</strong> coverage</span>
-              </div>
-            </div>
-
-            {/* Data Sources */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {['Sentinel-2 Satellite', 'US Census & CDC', 'OpenStreetMap', 'FEMA & EPA'].map((source) => (
-                <div
-                  key={source}
-                  className="source-tag-light flex items-center gap-2 px-3 py-1.5 rounded-full bg-earth-green/10 border border-earth-green/20"
-                >
-                  <div className="w-1.5 h-1.5 rounded-full bg-earth-green"/>
-                  <span className="text-xs font-mono text-earth-green">
-                    {source}
-                  </span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </section>
       )}
