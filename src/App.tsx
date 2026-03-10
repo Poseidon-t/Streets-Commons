@@ -21,6 +21,7 @@ const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
 const ProUpgradeModal = lazy(() => import('./components/ProUpgradeModal'));
 const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
+const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
 
 import { trackEvent, identifyUser } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
@@ -164,6 +165,7 @@ function App() {
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
+  const [showAdvocacyLetter, setShowAdvocacyLetter] = useState(false);
 
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -1591,6 +1593,37 @@ function App() {
                 Generate report →
               </button>
             </div>
+
+            {/* Advocacy Letter CTA */}
+            <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>
+                  Share this with your local council
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
+                  Generate a letter pre-filled with your walkability data to send to local representatives
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdvocacyLetter(true)}
+                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a1208', background: '#faf7f0', cursor: 'pointer' }}
+              >
+                Write letter →
+              </button>
+            </div>
+
+            {/* Advocacy Letter modal */}
+            {showAdvocacyLetter && compositeScore && (
+              <ErrorBoundary sectionName="Advocacy Letter">
+                <Suspense fallback={null}>
+                  <AdvocacyLetter
+                    location={location}
+                    compositeScore={compositeScore}
+                    onClose={() => setShowAdvocacyLetter(false)}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            )}
 
             {/* Street Audit Tool modal */}
             {showAuditTool && (
