@@ -139,7 +139,7 @@ function GenerateModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-lg font-bold" style={{ color: '#1a2a1a' }}>
             Generate Post
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
@@ -348,7 +348,7 @@ function SuggestModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-          <h2 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-lg font-bold" style={{ color: '#1a2a1a' }}>
             AI Topic Ideas
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none">
@@ -397,7 +397,7 @@ function SuggestModal({
               onClick={handleSuggest}
               disabled={loading}
               className="px-4 py-2 text-sm font-bold text-white rounded-lg disabled:opacity-50 transition-all hover:shadow-md"
-              style={{ backgroundColor: '#2a3a2a' }}
+              style={{ backgroundColor: '#1a2a1a' }}
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -431,7 +431,7 @@ function SuggestModal({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-sm" style={{ color: '#2a3a2a' }}>
+                      <div className="font-semibold text-sm" style={{ color: '#1a2a1a' }}>
                         {s.title}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">{s.primaryMessage}</div>
@@ -626,7 +626,7 @@ export default function ContentQueue() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+          <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>
             Content Queue
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -636,7 +636,7 @@ export default function ContentQueue() {
         <button
           onClick={() => setShowSuggestModal(true)}
           className="px-4 py-2 text-sm font-bold text-white rounded-lg hover:shadow-lg transition-all flex items-center gap-2"
-          style={{ backgroundColor: '#2a3a2a' }}
+          style={{ backgroundColor: '#1a2a1a' }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -648,7 +648,7 @@ export default function ContentQueue() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <div className="bg-white rounded-xl p-4 border border-gray-200">
-          <div className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+          <div className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>
             {stats.total}
           </div>
           <div className="text-xs text-gray-500 uppercase font-semibold">Total Planned</div>
@@ -766,7 +766,7 @@ export default function ContentQueue() {
               >
                 <td className="px-4 py-3 text-gray-400">{post.id}</td>
                 <td className="px-4 py-3">
-                  <div className="font-medium" style={{ color: '#2a3a2a' }}>
+                  <div className="font-medium" style={{ color: '#1a2a1a' }}>
                     {post.title}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 line-clamp-1">{post.keywords.join(', ')}</div>

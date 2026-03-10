@@ -135,7 +135,7 @@ export default function StreetNetworkPanel({
             >
               Strength
             </div>
-            <div className="text-sm" style={{ color: '#1a1208' }}>
+            <div className="text-sm" style={{ color: '#1a3a1a' }}>
               {streetCharacter.strength}
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function StreetNetworkPanel({
             >
               Challenge
             </div>
-            <div className="text-sm" style={{ color: '#1a1208' }}>
+            <div className="text-sm" style={{ color: '#1a3a1a' }}>
               {streetCharacter.concern}
             </div>
           </div>

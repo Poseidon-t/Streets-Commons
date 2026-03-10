@@ -80,7 +80,7 @@ export default function MetricCard({
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
           <span className="text-2xl flex-shrink-0">{icon}</span>
-          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#2a3a2a' }}>
+          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#1a2a1a' }}>
             {dataSource?.split(' ')[0] || 'Satellite'} Data
           </h3>
         </div>
@@ -109,7 +109,7 @@ export default function MetricCard({
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="text-2xl flex-shrink-0">{icon}</span>
-          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#2a3a2a' }}>
+          <h3 className="text-sm font-semibold leading-tight" style={{ color: '#1a2a1a' }}>
             {headline}
           </h3>
         </div>
@@ -121,7 +121,7 @@ export default function MetricCard({
       {/* Score */}
       <div className="mb-4">
         <div className="flex items-baseline gap-1 mb-2">
-          <span className="text-3xl font-bold tabular-nums" style={{ color: '#2a3a2a' }}>{score}</span>
+          <span className="text-3xl font-bold tabular-nums" style={{ color: '#1a2a1a' }}>{score}</span>
           <span className="text-sm font-medium" style={{ color: '#8a9a8a' }}>/10</span>
         </div>
         <div className={`w-full rounded-full h-2 overflow-hidden ${getScoreTrack()}`}>

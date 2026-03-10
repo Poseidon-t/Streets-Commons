@@ -345,7 +345,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                   <path d="M9 14l2 2 4-4" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold mb-1" style={{ color: '#2a3a2a' }}>Walk & Audit Your Street</h1>
+              <h1 className="text-2xl font-bold mb-1" style={{ color: '#1a2a1a' }}>Walk & Audit Your Street</h1>
               <p className="text-sm" style={{ color: '#5a6a5a' }}>{address}</p>
               {compositeScore && (
                 <div className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-xl" style={{ backgroundColor: 'rgba(224,120,80,0.08)', border: '1px solid rgba(224,120,80,0.2)' }}>
@@ -367,7 +367,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                   <div key={c.id} className="flex items-center justify-between px-4 py-3 rounded-xl border" style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderColor: '#e0dbd0' }}>
                     <div className="flex items-center gap-3">
                       <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: '#e07850' }}>{i + 1}</span>
-                      <span className="text-sm font-medium" style={{ color: '#2a3a2a' }}>{c.name}</span>
+                      <span className="text-sm font-medium" style={{ color: '#1a2a1a' }}>{c.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {score !== null && score !== undefined && score <= 40 && (
@@ -412,7 +412,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
               >
                 {'\u2190'} {catIdx > 0 ? 'Prev' : 'Back'}
               </button>
-              <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>{cat.name}</span>
+              <span className="text-sm font-bold" style={{ color: '#1a2a1a' }}>{cat.name}</span>
               <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ backgroundColor: '#f0ebe0', color: '#5a6a5a' }}>
                 {rated}/{TOTAL_ITEMS}
               </span>
@@ -471,7 +471,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                   }}
                 >
                   <div className="px-4 pt-4 pb-3">
-                    <p className="font-semibold text-sm mb-0.5" style={{ color: '#2a3a2a' }}>{item.label}</p>
+                    <p className="font-semibold text-sm mb-0.5" style={{ color: '#1a2a1a' }}>{item.label}</p>
                     <p className="text-xs mb-3" style={{ color: '#8a9a8a' }}>{item.hint}</p>
 
                     {/* Rating buttons */}
@@ -523,7 +523,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                           placeholder="What did you observe?"
                           rows={2}
                           className="w-full mt-2 px-3 py-2 rounded-lg text-sm resize-none"
-                          style={{ backgroundColor: '#f8f6f1', color: '#2a3a2a', outline: 'none', border: '1px solid #e0dbd0' }}
+                          style={{ backgroundColor: '#f8f6f1', color: '#1a2a1a', outline: 'none', border: '1px solid #e0dbd0' }}
                           autoFocus
                         />
                       )}
@@ -562,13 +562,13 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
         <>
           <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: '#e0dbd0', backgroundColor: 'rgba(255,255,255,0.9)' }}>
             <button onClick={() => setStage('audit')} className="text-sm font-medium cursor-pointer border-none bg-transparent" style={{ color: '#5a6a5a' }}>{'\u2190'} Edit</button>
-            <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Audit Summary</span>
+            <span className="text-sm font-bold" style={{ color: '#1a2a1a' }}>Audit Summary</span>
             <button onClick={onClose} className="text-sm font-medium cursor-pointer border-none bg-transparent" style={{ color: '#5a6a5a' }}>Done</button>
           </div>
 
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-6 max-w-lg mx-auto w-full">
             <div className="text-center mb-6">
-              <h2 className="text-xl font-bold mb-1" style={{ color: '#2a3a2a' }}>Audit Complete</h2>
+              <h2 className="text-xl font-bold mb-1" style={{ color: '#1a2a1a' }}>Audit Complete</h2>
               <p className="text-sm" style={{ color: '#5a6a5a' }}>{address}</p>
             </div>
 
@@ -601,7 +601,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
               );
               return (
                 <div className="mb-6">
-                  <h3 className="text-sm font-bold mb-3" style={{ color: '#2a3a2a' }}>Issues Found ({issues.length})</h3>
+                  <h3 className="text-sm font-bold mb-3" style={{ color: '#1a2a1a' }}>Issues Found ({issues.length})</h3>
                   <div className="space-y-2">
                     {issues.map(iss => (
                       <div
@@ -616,7 +616,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                         }}
                       >
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-semibold text-sm" style={{ color: '#2a3a2a' }}>{iss.label}</span>
+                          <span className="font-semibold text-sm" style={{ color: '#1a2a1a' }}>{iss.label}</span>
                           <span className="text-xs font-semibold" style={{ color: RATING_COLORS[iss.entry.rating!].bg }}>
                             {iss.entry.rating === 'needs-work' ? '\u26A0 Needs Work' : '\u2717 Missing'}
                           </span>
@@ -633,7 +633,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
 
             {/* Category breakdown */}
             <div className="mb-8">
-              <h3 className="text-sm font-bold mb-3" style={{ color: '#2a3a2a' }}>By Category</h3>
+              <h3 className="text-sm font-bold mb-3" style={{ color: '#1a2a1a' }}>By Category</h3>
               <div className="space-y-2">
                 {cats.map(c => {
                   const s = catStats(c);
@@ -642,7 +642,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
                   return (
                     <div key={c.id} className="px-4 py-3 rounded-xl border" style={{ backgroundColor: 'rgba(255,255,255,0.8)', borderColor: '#e0dbd0' }}>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{c.name}</span>
+                        <span className="text-sm font-semibold" style={{ color: '#1a2a1a' }}>{c.name}</span>
                         <span className="text-xs font-semibold" style={{ color: pctGood >= 75 ? '#4a8a3c' : pctGood >= 50 ? '#e07850' : '#c03030' }}>
                           {pctGood}% good
                         </span>

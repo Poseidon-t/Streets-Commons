@@ -65,7 +65,7 @@ export default function BlogPost() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
         <div className="text-center px-6">
-          <h1 className="text-6xl font-bold mb-4" style={{ color: '#2a3a2a' }}>404</h1>
+          <h1 className="text-6xl font-bold mb-4" style={{ color: '#1a2a1a' }}>404</h1>
           <p className="text-xl mb-6" style={{ color: '#5a6a5a' }}>Post not found</p>
           <Link to="/blog" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ backgroundColor: '#e07850' }}>
             Back to Blog
@@ -186,7 +186,7 @@ export default function BlogPost() {
             </span>
             <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.readTime}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4 leading-tight" style={{ color: '#2a3a2a' }}>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4 leading-tight" style={{ color: '#1a2a1a' }}>
             {post.title}
           </h1>
           <div className="flex items-center gap-3 text-sm" style={{ color: '#8a9a8a' }}>
@@ -222,7 +222,7 @@ export default function BlogPost() {
           className="mt-10 rounded-2xl p-8 text-center border-2"
           style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.05)' }}
         >
-          <h2 className="text-2xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             Check Your Street's Walkability Score
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -240,7 +240,7 @@ export default function BlogPost() {
         {/* Related Posts */}
         {sortedRelated.length > 0 && (
           <div className="mt-12">
-            <h2 className="text-xl font-bold mb-6" style={{ color: '#2a3a2a' }}>More from the Blog</h2>
+            <h2 className="text-xl font-bold mb-6" style={{ color: '#1a2a1a' }}>More from the Blog</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {sortedRelated.map(related => (
                 <Link
@@ -250,7 +250,7 @@ export default function BlogPost() {
                   style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
                 >
                   <span className="text-xs font-semibold" style={{ color: '#e07850' }}>{related.category}</span>
-                  <h3 className="font-bold text-sm mt-1 mb-2" style={{ color: '#2a3a2a' }}>{related.title}</h3>
+                  <h3 className="font-bold text-sm mt-1 mb-2" style={{ color: '#1a2a1a' }}>{related.title}</h3>
                   <p className="text-xs" style={{ color: '#8a9a8a' }}>{related.readTime}</p>
                 </Link>
               ))}
@@ -260,7 +260,7 @@ export default function BlogPost() {
       </article>
 
       {/* Footer */}
-      <footer className="py-8 text-center" style={{ backgroundColor: '#2a3a2a' }}>
+      <footer className="py-8 text-center" style={{ backgroundColor: '#1a2a1a' }}>
         <Link to="/" className="text-sm font-semibold" style={{ color: '#e07850' }}>SafeStreets</Link>
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>

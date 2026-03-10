@@ -2,7 +2,7 @@ export default function AdminDashboard() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>Dashboard</h1>
+        <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>Dashboard</h1>
       </div>
 
       <div className="bg-white rounded-xl p-8 shadow-sm text-center max-w-md mx-auto mt-12">

@@ -7,7 +7,7 @@ import { generateMapStyle } from '../utils/maplibreStyle';
 
 // ── SafeStreets earth-tone theme ─────────────────────────────────────────────
 const THEME = {
-  ui: { bg: '#f8f6f1', text: '#2a3a2a' },
+  ui: { bg: '#f8f6f1', text: '#1a2a1a' },
   map: {
     land: '#f0ece3',
     water: '#c5dce8',

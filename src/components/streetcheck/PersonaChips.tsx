@@ -116,7 +116,7 @@ export default function PersonaChips({ compositeScore }: PersonaChipsProps) {
 
             {/* Name + figure row */}
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208', lineHeight: 1.2, marginBottom: 2 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a3a1a', lineHeight: 1.2, marginBottom: 2 }}>
                 {label}
               </div>
               <FigureRow personaKey={key} score={score} color={color} />

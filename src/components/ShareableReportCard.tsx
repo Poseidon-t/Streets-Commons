@@ -237,7 +237,7 @@ export default function ShareableReportCard({
           </svg>
         </button>
 
-        <h2 className="text-lg font-bold mb-4" style={{ color: '#2a3a2a' }}>Share Your Walkability Score</h2>
+        <h2 className="text-lg font-bold mb-4" style={{ color: '#1a2a1a' }}>Share Your Walkability Score</h2>
 
         {/* The Card — captured as image */}
         <div
@@ -269,7 +269,7 @@ export default function ShareableReportCard({
 
           {/* Location */}
           <div style={{ fontSize: '14px', color: '#5a6a5a', marginBottom: '4px' }}>Walkability Score for</div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#2a3a2a', marginBottom: '20px', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a2a1a', marginBottom: '20px', lineHeight: 1.2 }}>
             {shortName}
           </div>
 
@@ -344,7 +344,7 @@ export default function ShareableReportCard({
                   </div>
                   <span style={{
                     fontSize: '11px', fontWeight: 600, width: '28px', textAlign: 'right',
-                    color: isAdjusted ? '#2563eb' : '#2a3a2a',
+                    color: isAdjusted ? '#2563eb' : '#1a2a1a',
                   }}>
                     {score.toFixed(1)}
                   </span>
@@ -403,7 +403,7 @@ export default function ShareableReportCard({
                       >-</button>
                       <span
                         className="px-2 py-1 text-xs font-semibold tabular-nums min-w-[2.5rem] text-center border-x"
-                        style={{ borderColor: '#d0cbc0', backgroundColor: '#faf8f5', color: isAdjusted ? '#2563eb' : '#2a3a2a' }}
+                        style={{ borderColor: '#d0cbc0', backgroundColor: '#faf8f5', color: isAdjusted ? '#2563eb' : '#1a2a1a' }}
                       >
                         {current.toFixed(1)}
                       </span>
@@ -433,10 +433,10 @@ export default function ShareableReportCard({
             className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all hover:shadow-md disabled:opacity-50"
             style={{ borderColor: '#e0dbd0' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="#2a3a2a" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="#1a2a1a" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
-            <span className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>
+            <span className="text-xs font-semibold" style={{ color: '#1a2a1a' }}>
               {downloading ? 'Saving...' : 'Save Image'}
             </span>
           </button>
@@ -446,10 +446,10 @@ export default function ShareableReportCard({
             className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all hover:shadow-md"
             style={{ borderColor: '#e0dbd0' }}
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#2a3a2a">
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="#1a2a1a">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
-            <span className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>Share on X</span>
+            <span className="text-xs font-semibold" style={{ color: '#1a2a1a' }}>Share on X</span>
           </button>
 
           <button
@@ -457,10 +457,10 @@ export default function ShareableReportCard({
             className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all hover:shadow-md"
             style={{ borderColor: '#e0dbd0' }}
           >
-            <svg className="w-5 h-5" fill="none" stroke="#2a3a2a" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="#1a2a1a" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
             </svg>
-            <span className="text-xs font-semibold" style={{ color: '#2a3a2a' }}>
+            <span className="text-xs font-semibold" style={{ color: '#1a2a1a' }}>
               {copied ? 'Copied!' : 'Copy Link'}
             </span>
           </button>

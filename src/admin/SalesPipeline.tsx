@@ -416,7 +416,7 @@ export default function SalesPipeline() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>Sales Pipeline</h1>
+          <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>Sales Pipeline</h1>
           <p className="text-sm text-gray-500 mt-1">Real estate agent outreach for Pro tier</p>
         </div>
         <div className="flex items-center gap-3">
@@ -424,14 +424,14 @@ export default function SalesPipeline() {
             onClick={handleValidateAll}
             disabled={validatingAll}
             className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition disabled:opacity-50"
-            style={{ color: '#2a3a2a' }}
+            style={{ color: '#1a2a1a' }}
           >
             {validatingAll ? 'Validating...' : 'Validate Emails'}
           </button>
           <button
             onClick={handleExportCSV}
             className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
-            style={{ color: '#2a3a2a' }}
+            style={{ color: '#1a2a1a' }}
           >
             Export CSV
           </button>
@@ -462,7 +462,7 @@ export default function SalesPipeline() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         {[
-          { label: 'Total Leads', value: stats.total, color: '#2a3a2a' },
+          { label: 'Total Leads', value: stats.total, color: '#1a2a1a' },
           { label: 'Valid Emails', value: stats.validEmails, color: '#059669' },
           { label: 'Not Started', value: stats.not_started, color: '#6b7280' },
           { label: 'Email Sent', value: stats.email_sent, color: '#1d4ed8' },
@@ -604,7 +604,7 @@ export default function SalesPipeline() {
               onClick={() => { setEmailModalLead(null); setEmailReportLink(null); setCopySuccess(false); }}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
             >×</button>
-            <h2 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>
+            <h2 className="text-lg font-bold mb-1" style={{ color: '#1a2a1a' }}>
               Email for {emailModalLead.agentName}
             </h2>
             <p className="text-xs text-gray-500 mb-4">
@@ -629,7 +629,7 @@ export default function SalesPipeline() {
                 <a
                   href={`mailto:${emailModalLead.email}?subject=${encodeURIComponent(`Walkability data for your ${emailModalLead.neighborhood} listing`)}&body=${encodeURIComponent(generateEmail(emailModalLead, emailReportLink || undefined).split('\n').slice(2).join('\n'))}`}
                   className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition"
-                  style={{ color: '#2a3a2a' }}
+                  style={{ color: '#1a2a1a' }}
                 >
                   Open in Mail
                 </a>
@@ -730,7 +730,7 @@ function LeadRow({
         <td className="px-4 py-3 text-sm text-gray-400 font-mono">{lead.rank}</td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{lead.agentName}</span>
+            <span className="text-sm font-semibold" style={{ color: '#1a2a1a' }}>{lead.agentName}</span>
             {lead.emailValid === 'valid' && <span className="w-2 h-2 rounded-full bg-green-500 inline-block flex-shrink-0" title="Email valid" />}
             {lead.emailValid === 'invalid' && <span className="w-2 h-2 rounded-full bg-red-500 inline-block flex-shrink-0" title="Email invalid" />}
             {lead.emailValid === 'placeholder' && <span className="w-2 h-2 rounded-full bg-amber-400 inline-block flex-shrink-0" title="Placeholder email" />}
@@ -739,7 +739,7 @@ function LeadRow({
           <div className="text-xs text-gray-500 md:hidden">{lead.city}, {lead.state} · {lead.neighborhood}</div>
         </td>
         <td className="px-4 py-3 hidden md:table-cell">
-          <div className="text-sm" style={{ color: '#2a3a2a' }}>{lead.city}, {lead.state}</div>
+          <div className="text-sm" style={{ color: '#1a2a1a' }}>{lead.city}, {lead.state}</div>
           <div className="text-xs text-gray-400">{lead.neighborhood}</div>
         </td>
         <td className="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell">{lead.brokerage}</td>
@@ -997,7 +997,7 @@ function AddLeadModal({ onClose, onAdd }: { onClose: () => void; onAdd: (data: R
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-lg w-full p-6 relative my-8">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">×</button>
-        <h2 className="text-lg font-bold mb-4" style={{ color: '#2a3a2a' }}>Add New Lead</h2>
+        <h2 className="text-lg font-bold mb-4" style={{ color: '#1a2a1a' }}>Add New Lead</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Agent Name *" value={form.agentName} onChange={set('agentName')} required />
@@ -1143,7 +1143,7 @@ function FindAgentsModal({ onClose, onAddAgent }: {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-          <h2 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>Find Agents</h2>
+          <h2 className="text-lg font-bold" style={{ color: '#1a2a1a' }}>Find Agents</h2>
         </div>
         <p className="text-xs text-gray-500 mb-4">AI searches for qualified real estate agents in walkable neighborhoods. Duplicates are automatically filtered out.</p>
 
@@ -1220,7 +1220,7 @@ function FindAgentsModal({ onClose, onAddAgent }: {
         {results.length > 0 && (
           <>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>
+              <h3 className="text-sm font-semibold" style={{ color: '#1a2a1a' }}>
                 Found {results.length} agent{results.length !== 1 ? 's' : ''} in {city}
               </h3>
               <button
@@ -1245,7 +1245,7 @@ function FindAgentsModal({ onClose, onAddAgent }: {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{agent.agentName}</span>
+                        <span className="text-sm font-semibold" style={{ color: '#1a2a1a' }}>{agent.agentName}</span>
                         <span className="text-xs text-gray-400">·</span>
                         <span className="text-xs text-gray-500">{agent.brokerage}</span>
                       </div>

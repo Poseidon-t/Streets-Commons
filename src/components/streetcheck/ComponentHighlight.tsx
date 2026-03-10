@@ -85,7 +85,7 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
               {/* Label row */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
                     {shortLabel}
                   </span>
                   {isTop && <span className="retro-tag retro-tag-strength">Strength</span>}

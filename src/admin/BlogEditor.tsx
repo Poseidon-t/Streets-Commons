@@ -203,7 +203,7 @@ function AIGeneratePanel({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl">&#9889;</span>
-          <h2 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-lg font-bold" style={{ color: '#1a2a1a' }}>
             AI Content Generator
           </h2>
         </div>
@@ -455,7 +455,7 @@ export default function BlogEditor() {
   return (
     <div className="max-w-4xl">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+        <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>
           {isEditing ? 'Edit Post' : 'New Post'}
         </h1>
         <div className="flex gap-2">

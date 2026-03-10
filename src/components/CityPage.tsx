@@ -15,7 +15,7 @@ export default function CityPage() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
         <div className="text-center px-6">
-          <h1 className="text-6xl font-bold mb-4" style={{ color: '#2a3a2a' }}>404</h1>
+          <h1 className="text-6xl font-bold mb-4" style={{ color: '#1a2a1a' }}>404</h1>
           <p className="text-xl mb-6" style={{ color: '#5a6a5a' }}>City not found</p>
           <Link to="/" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ backgroundColor: '#e07850' }}>
             Go to SafeStreets
@@ -108,7 +108,7 @@ export default function CityPage() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-8">
         <div className="text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             {city.name}, {city.stateCode} Walkability Score
           </h1>
           <p className="text-lg max-w-2xl mx-auto mb-6" style={{ color: '#5a6a5a' }}>
@@ -132,7 +132,7 @@ export default function CityPage() {
 
       {/* What You'll Get */}
       <section className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold text-center mb-8" style={{ color: '#2a3a2a' }}>
+        <h2 className="text-2xl font-bold text-center mb-8" style={{ color: '#1a2a1a' }}>
           What Your {city.name} Analysis Includes
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -149,7 +149,7 @@ export default function CityPage() {
               style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
             >
               <div className="text-2xl mb-2">{item.icon}</div>
-              <h3 className="font-bold text-sm mb-1" style={{ color: '#2a3a2a' }}>{item.title}</h3>
+              <h3 className="font-bold text-sm mb-1" style={{ color: '#1a2a1a' }}>{item.title}</h3>
               <p className="text-xs" style={{ color: '#6b7280' }}>{item.desc}</p>
             </div>
           ))}
@@ -158,7 +158,7 @@ export default function CityPage() {
 
       {/* How It Works */}
       <section className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold text-center mb-8" style={{ color: '#2a3a2a' }}>
+        <h2 className="text-2xl font-bold text-center mb-8" style={{ color: '#1a2a1a' }}>
           How It Works
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -174,7 +174,7 @@ export default function CityPage() {
               >
                 {item.step}
               </div>
-              <h3 className="font-bold mb-1" style={{ color: '#2a3a2a' }}>{item.title}</h3>
+              <h3 className="font-bold mb-1" style={{ color: '#1a2a1a' }}>{item.title}</h3>
               <p className="text-sm" style={{ color: '#6b7280' }}>{item.desc}</p>
             </div>
           ))}
@@ -187,7 +187,7 @@ export default function CityPage() {
           className="rounded-2xl p-8 text-center border-2"
           style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.05)' }}
         >
-          <h2 className="text-2xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             Ready to Analyze Your Street in {city.name}?
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -231,7 +231,7 @@ export default function CityPage() {
 
       {/* Nearby Cities (internal linking for SEO) */}
       <section className="max-w-5xl mx-auto px-6 py-10">
-        <h2 className="text-xl font-bold text-center mb-6" style={{ color: '#2a3a2a' }}>
+        <h2 className="text-xl font-bold text-center mb-6" style={{ color: '#1a2a1a' }}>
           Walkability Scores in Other Cities
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -242,7 +242,7 @@ export default function CityPage() {
               className="rounded-lg p-4 border text-center transition-all hover:shadow-md"
               style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
             >
-              <div className="font-bold text-sm" style={{ color: '#2a3a2a' }}>{c.name}</div>
+              <div className="font-bold text-sm" style={{ color: '#1a2a1a' }}>{c.name}</div>
               <div className="text-xs" style={{ color: '#8a9a8a' }}>{c.stateCode}</div>
             </Link>
           ))}
@@ -255,7 +255,7 @@ export default function CityPage() {
       </section>
 
       {/* Footer */}
-      <footer className="mt-8 py-8 text-center" style={{ backgroundColor: '#2a3a2a' }}>
+      <footer className="mt-8 py-8 text-center" style={{ backgroundColor: '#1a2a1a' }}>
         <Link to="/" className="text-sm font-semibold" style={{ color: '#e07850' }}>SafeStreets</Link>
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>

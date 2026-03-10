@@ -53,7 +53,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
   return (
     <div className="rounded-2xl border-2 p-6 sm:p-8" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f5' }}>
       <div className="text-center mb-6">
-        <h3 className="text-xl font-bold" style={{ color: '#2a3a2a' }}>
+        <h3 className="text-xl font-bold" style={{ color: '#1a2a1a' }}>
           Unlock More with SafeStreets
         </h3>
         <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
@@ -81,7 +81,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
                   For Agents
                 </span>
               )}
-              <h4 className="text-lg font-bold" style={{ color: '#2a3a2a' }}>{tier.name}</h4>
+              <h4 className="text-lg font-bold" style={{ color: '#1a2a1a' }}>{tier.name}</h4>
               <div className="text-2xl font-bold mt-1" style={{ color: tier.color }}>{tier.price}</div>
               <p className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>{tier.subtitle}</p>
             </div>
@@ -95,7 +95,7 @@ export default function TierComparisonCard({ onUpgrade, onContact }: TierCompari
                   ) : (
                     <span className="flex-shrink-0 mt-0.5" style={{ color: '#d1d5db' }}>&mdash;</span>
                   )}
-                  <span style={{ color: f.included ? '#2a3a2a' : '#b0a8a0' }}>{f.name}</span>
+                  <span style={{ color: f.included ? '#1a2a1a' : '#b0a8a0' }}>{f.name}</span>
                 </li>
               ))}
             </ul>

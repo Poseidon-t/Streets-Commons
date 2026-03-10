@@ -123,8 +123,8 @@ function CommuteBar({ commute }: { commute: CommuteData }) {
         {segments.filter(s => s.pct >= 1).map((seg, i) => (
           <div key={i} className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: seg.color }} />
-            <span className="text-xs" style={{ color: '#1a1208' }}>
-              <strong style={{ color: '#1a1208' }}>{Math.round(seg.pct)}%</strong> {seg.label}
+            <span className="text-xs" style={{ color: '#1a3a1a' }}>
+              <strong style={{ color: '#1a3a1a' }}>{Math.round(seg.pct)}%</strong> {seg.label}
             </span>
           </div>
         ))}
@@ -178,7 +178,7 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
       }}
     >
       <span className="text-2xl mb-1">{icon}</span>
-      <span className="text-lg font-bold" style={{ color: hasItems ? '#1a1208' : '#c0b0a0' }}>{count}</span>
+      <span className="text-lg font-bold" style={{ color: hasItems ? '#1a3a1a' : '#c0b0a0' }}>{count}</span>
       <span className="text-xs leading-tight" style={{ color: '#2a2010' }}>{label}</span>
       {distance && <span className="text-xs mt-0.5" style={{ color: '#a0b0a0' }}>{distance}</span>}
     </div>
@@ -195,7 +195,7 @@ function HealthBar({ label, value, usAvg, maxVal }: { label: string; value: numb
   return (
     <div className="mb-3">
       <div className="flex items-baseline justify-between mb-1">
-        <span className="text-xs font-medium" style={{ color: '#1a1208' }}>{label}</span>
+        <span className="text-xs font-medium" style={{ color: '#1a3a1a' }}>{label}</span>
         <span className="text-xs font-bold" style={{ color: barColor }}>{value}%</span>
       </div>
       <div className="relative h-3 rounded-full overflow-visible" style={{ backgroundColor: '#f0ebe0' }}>
@@ -277,7 +277,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div style={{ padding: '16px 18px', borderBottom: '1px solid #c4b59a' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">🚶</span>
-              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>How People Get Around</span>
+              <span className="text-base font-semibold" style={{ color: '#1a3a1a' }}>How People Get Around</span>
               <SectionScoreBadge score={transitSectionScore} />
             </div>
             {/* Context line */}
@@ -298,7 +298,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div style={{ padding: '16px 18px', borderBottom: '1px solid #c4b59a' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">📍</span>
-              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>What's Nearby</span>
+              <span className="text-base font-semibold" style={{ color: '#1a3a1a' }}>What's Nearby</span>
               <SectionScoreBadge score={nearbySectionScore} />
             </div>
             <p className="text-xs mb-4" style={{ color: '#2a2010' }}>
@@ -349,7 +349,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
           <div style={{ padding: '16px 18px' }}>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-lg">❤️</span>
-              <span className="text-base font-semibold" style={{ color: '#1a1208' }}>Health & Environment</span>
+              <span className="text-base font-semibold" style={{ color: '#1a3a1a' }}>Health & Environment</span>
               <SectionScoreBadge score={healthSectionScore} />
             </div>
             {health && (

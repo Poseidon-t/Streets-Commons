@@ -192,7 +192,7 @@ export default function LearnIndex() {
 
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 pt-12 pb-10 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#2a3a2a' }}>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-4" style={{ color: '#1a2a1a' }}>
           Learn to Read Streets
         </h1>
         <p className="text-lg max-w-2xl mx-auto" style={{ color: '#5a6a5a' }}>
@@ -219,7 +219,7 @@ export default function LearnIndex() {
                     >
                       {topic.icon}
                     </div>
-                    <h2 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>
+                    <h2 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>
                       {topic.title}
                     </h2>
                   </div>
@@ -241,7 +241,7 @@ export default function LearnIndex() {
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-base font-bold leading-snug group-hover:underline" style={{ color: '#2a3a2a' }}>
+                            <h3 className="text-base font-bold leading-snug group-hover:underline" style={{ color: '#1a2a1a' }}>
                               {post.title}
                             </h3>
                             <span
@@ -290,7 +290,7 @@ export default function LearnIndex() {
           className="rounded-2xl p-8 text-center border-2"
           style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.05)' }}
         >
-          <h2 className="text-2xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             Ready to Analyze Your Street?
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -307,7 +307,7 @@ export default function LearnIndex() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 text-center" style={{ backgroundColor: '#2a3a2a' }}>
+      <footer className="py-8 text-center" style={{ backgroundColor: '#1a2a1a' }}>
         <Link to="/" className="text-sm font-semibold" style={{ color: '#e07850' }}>SafeStreets</Link>
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>

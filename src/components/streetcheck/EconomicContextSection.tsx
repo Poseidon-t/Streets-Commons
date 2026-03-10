@@ -45,7 +45,7 @@ function CategoryBar({ category, count, maxCount }: { category: keyof LocalEcono
   return (
     <div className="flex items-center gap-2 py-1">
       <span className="text-sm w-5 text-center flex-shrink-0">{icon}</span>
-      <span className="text-xs w-20 flex-shrink-0" style={{ color: count > 0 ? '#1a1208' : '#b0a8a0' }}>{label}</span>
+      <span className="text-xs w-20 flex-shrink-0" style={{ color: count > 0 ? '#1a3a1a' : '#b0a8a0' }}>{label}</span>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>
         <div
           className="h-full rounded-full transition-all duration-500"
@@ -55,7 +55,7 @@ function CategoryBar({ category, count, maxCount }: { category: keyof LocalEcono
           }}
         />
       </div>
-      <span className="text-xs font-semibold w-6 text-right" style={{ color: count > 0 ? '#1a1208' : '#c5c0b5' }}>
+      <span className="text-xs font-semibold w-6 text-right" style={{ color: count > 0 ? '#1a3a1a' : '#c5c0b5' }}>
         {count}
       </span>
     </div>
@@ -100,7 +100,7 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
           {profile.highlights.map((h, i) => (
             <div key={i} className="flex items-start gap-2">
               <span className="text-xs mt-0.5" style={{ color: '#16a34a' }}>+</span>
-              <span className="text-xs" style={{ color: '#1a1208' }}>{h}</span>
+              <span className="text-xs" style={{ color: '#1a3a1a' }}>{h}</span>
             </div>
           ))}
           {profile.gaps.map((g, i) => (
@@ -135,15 +135,15 @@ function CensusContext({ data }: { data: DemographicData }) {
       </p>
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>{formatCurrency(data.medianHouseholdIncome)}</div>
           <div className="text-xs" style={{ color: '#2a2010' }}>Median Income</div>
         </div>
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatCurrency(data.medianHomeValue)}</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>{formatCurrency(data.medianHomeValue)}</div>
           <div className="text-xs" style={{ color: '#2a2010' }}>Home Value</div>
         </div>
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>{formatPercent(data.unemploymentRate)}</div>
+          <div className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>{formatPercent(data.unemploymentRate)}</div>
           <div className="text-xs" style={{ color: '#2a2010' }}>Unemployment</div>
         </div>
       </div>

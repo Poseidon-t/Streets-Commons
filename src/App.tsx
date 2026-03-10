@@ -1017,7 +1017,7 @@ function App() {
                     <div className="flex items-center justify-between mb-3 mt-1">
                       <div className="flex items-center gap-2">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e07850" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        <span className="text-sm font-bold" style={{ color: '#2a3a2a' }}>Brooklyn, NY</span>
+                        <span className="text-sm font-bold" style={{ color: '#1a2a1a' }}>Brooklyn, NY</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: '#fef3ec', color: '#c05c30' }}>Example</span>
@@ -1464,7 +1464,7 @@ function App() {
         {!compareMode && isAnalyzing && (
           <div className="flex flex-col items-center py-16">
             <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-5" />
-            <p className="text-lg font-semibold" style={{ color: '#2a3a2a' }} aria-live="polite">Analyzing walkability...</p>
+            <p className="text-lg font-semibold" style={{ color: '#1a2a1a' }} aria-live="polite">Analyzing walkability...</p>
             <AnalysisProgress />
             {analysisQuote && (
               <div className="mt-10 max-w-sm text-center px-6">
@@ -1497,8 +1497,8 @@ function App() {
           <div className={`retro-analysis ${demoMode ? 'pt-12' : ''}`} style={{ gap: 0 }}>
 
             {/* Document header */}
-            <div style={{ border: '2px solid #1a1208', background: '#faf7f0', marginBottom: 4 }}>
-              <div style={{ background: '#1a1208', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4 }}>
+              <div style={{ background: '#1a3a1a', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#e8e0d0', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
@@ -1507,7 +1507,7 @@ function App() {
                 </span>
               </div>
               <div style={{ padding: '20px 16px 16px', borderBottom: '2px solid #1a1208', display: 'flex', alignItems: 'baseline', gap: 14, flexWrap: 'wrap' }}>
-                <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1a1208', letterSpacing: '-0.01em', lineHeight: 1 }}>
+                <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1a3a1a', letterSpacing: '-0.01em', lineHeight: 1 }}>
                   {location.displayName.split(',').slice(0, 2).join(',')}
                 </h2>
                 <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
@@ -1517,7 +1517,7 @@ function App() {
             </div>
 
             {/* ACT 1 — Hero: wider map + archetype + score */}
-            <div id="score" style={{ border: '2px solid #1a1208', background: '#faf7f0', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
+            <div id="score" style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
                 <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
                   <Map location={location} osmData={osmData} seamless />
@@ -1548,11 +1548,11 @@ function App() {
 
             {/* ACT 3 divider */}
             <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 6px' }}>
-              <div style={{ flex: 1, height: 2, background: '#1a1208' }} />
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#f0e8d8', background: '#1a1208', padding: '5px 18px', whiteSpace: 'nowrap' }}>
+              <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#f0e8d8', background: '#1a3a1a', padding: '5px 18px', whiteSpace: 'nowrap' }}>
                 Detailed Analysis
               </span>
-              <div style={{ flex: 1, height: 2, background: '#1a1208' }} />
+              <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
             </div>
 
             {/* ACT 3 starts after divider — no duplicate persona table */}
@@ -1575,7 +1575,7 @@ function App() {
             {/* Street Audit CTA */}
             <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
                   Want to take action on this analysis?
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
@@ -1588,7 +1588,7 @@ function App() {
                   if (!canGenerateAgentReport(user)) { setShowProUpgradeModal(true); return; }
                   setShowAuditTool(true);
                 }}
-                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a1208', background: '#faf7f0', cursor: 'pointer' }}
+                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
               >
                 Generate report →
               </button>
@@ -1597,7 +1597,7 @@ function App() {
             {/* Advocacy Letter CTA */}
             <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
                   Share this with your local council
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
@@ -1606,7 +1606,7 @@ function App() {
               </div>
               <button
                 onClick={() => setShowAdvocacyLetter(true)}
-                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a1208', background: '#faf7f0', cursor: 'pointer' }}
+                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
               >
                 Write letter →
               </button>
@@ -1664,7 +1664,7 @@ function App() {
                 onClick={() => setShowMethodology(!showMethodology)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', cursor: 'pointer', background: 'none', border: 'none' }}
               >
-                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a1208' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
                   How This Analysis Works
                 </span>
                 <span style={{ fontSize: 18, color: '#3d3020' }}>
@@ -1675,21 +1675,21 @@ function App() {
                 <div style={{ padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#2a2010', lineHeight: 1.6 }}>
                     <div>
-                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Walkability Metrics</strong>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Walkability Metrics</strong>
                       <p>US locations get 4 metrics: tree canopy, street design, destinations, and commute mode from Sentinel-2 satellite imagery, EPA National Walkability Index, OpenStreetMap, and Census ACS. International locations get 3 metrics with OSM street grid analysis replacing US-only data sources.</p>
                     </div>
                     <div>
-                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Global Standards</strong>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Global Standards</strong>
                       <p>Each metric is compared against international standards from WHO, UN-Habitat, ADA, and leading urban planning organizations.</p>
                     </div>
                     <div>
-                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Free & Open Data</strong>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Free & Open Data</strong>
                       <p>All data comes from publicly available sources: OpenStreetMap, Sentinel-2 satellite imagery, EPA National Walkability Index, US Census ACS, CDC PLACES, and FEMA NFHL.</p>
                     </div>
                   </div>
                   {dataQuality && (
                     <div>
-                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a1208' }}>Data Quality</strong>
+                      <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Data Quality</strong>
                       <p style={{ fontSize: 13, color: '#2a2010' }}>
                         Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span> — {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
                         Sources: OSM, Sentinel-2{location?.countryCode === 'US' ? ', Census ACS, EPA' : ''}.
@@ -1717,7 +1717,7 @@ function App() {
                 <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="10" cy="10" r="1.5" fill="#2a3a2a"/>
+                      <circle cx="10" cy="10" r="1.5" fill="#1a2a1a"/>
                     </pattern>
                   </defs>
                   <rect width="100%" height="100%" fill="url(#dots)"/>
@@ -1833,7 +1833,7 @@ function App() {
             {/* Support / Donate Section */}
             <section className="py-12 bg-white/30">
               <div className="max-w-2xl mx-auto px-6 text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>Support SafeStreets</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>Support SafeStreets</h2>
                 <p className="text-sm sm:text-base max-w-xl mx-auto mb-6" style={{ color: '#6b7a6b' }}>
                   SafeStreets is free and open source. If this tool helped you make a better decision about where to live or walk, consider supporting us.
                 </p>
@@ -1859,7 +1859,7 @@ function App() {
             {false && (<><section className="py-16 bg-white/50">
               <div className="max-w-4xl mx-auto px-6">
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>Simple, Honest Pricing</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>Simple, Honest Pricing</h2>
                   <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: '#6b7a6b' }}>
                     The core analysis is free forever. Pro unlocks comparison, reports, and branding — one payment, no subscription.
                   </p>
@@ -1871,7 +1871,7 @@ function App() {
                     <div className="mb-4">
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(74,138,74,0.1)', color: '#4a8a4a' }}>Free</span>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold" style={{ color: '#2a3a2a' }}>$0</span>
+                        <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$0</span>
                         <span className="text-sm" style={{ color: '#8a9a8a' }}>forever</span>
                       </div>
                       <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>No sign-up required</p>
@@ -1910,7 +1910,7 @@ function App() {
                     <div className="mb-4">
                       <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Pro</span>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold" style={{ color: '#2a3a2a' }}>$49</span>
+                        <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$49</span>
                         <span className="text-sm" style={{ color: '#8a9a8a' }}>one-time</span>
                       </div>
                       <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>Lifetime access, no renewal</p>
@@ -1953,7 +1953,7 @@ function App() {
             {/* Branded Reports CTA */}
             <section className="py-12 bg-white/30">
               <div className="max-w-5xl mx-auto px-6">
-                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#2a3a2a' }}>
+                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1a2a1a' }}>
                   <div className="p-8 sm:p-10 lg:p-12">
                     <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                       {/* Content */}
@@ -1993,17 +1993,17 @@ function App() {
                             <div className="flex items-center gap-2 mb-1">
                               <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#e07850' }} />
                               <div>
-                                <div className="h-1.5 w-16 rounded" style={{ backgroundColor: '#2a3a2a' }} />
+                                <div className="h-1.5 w-16 rounded" style={{ backgroundColor: '#1a2a1a' }} />
                                 <div className="h-1 w-12 rounded mt-0.5" style={{ backgroundColor: '#8a9a8a' }} />
                               </div>
                             </div>
                           </div>
                           {/* Report content */}
                           <div className="px-4 pt-3 pb-2">
-                            <div className="h-1 w-24 rounded mb-0.5" style={{ backgroundColor: '#2a3a2a' }} />
+                            <div className="h-1 w-24 rounded mb-0.5" style={{ backgroundColor: '#1a2a1a' }} />
                             <div className="h-0.5 w-16 rounded mb-3" style={{ backgroundColor: '#c0b8a8' }} />
                             <div className="flex items-baseline justify-center gap-1 mb-3">
-                              <span className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>8.4</span>
+                              <span className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>8.4</span>
                               <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
                             </div>
                             {/* Metric rows with names */}

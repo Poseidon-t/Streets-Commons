@@ -42,7 +42,7 @@ function DiffRow({ label, past, current, unit, goodHigh }: {
       <div className="flex-1 flex items-center gap-2 text-sm">
         <span style={{ color: '#8a9a8a' }}>{past.toFixed(1)}{unit}</span>
         <span style={{ color: '#c0b8b0' }}>→</span>
-        <span className="font-semibold" style={{ color: '#1a1208' }}>{current.toFixed(1)}{unit}</span>
+        <span className="font-semibold" style={{ color: '#1a3a1a' }}>{current.toFixed(1)}{unit}</span>
       </div>
       <div className="text-xs font-semibold flex-shrink-0" style={{ color: diffColor }}>
         {unchanged ? '—' : `${diffSign}${pct}%`}
@@ -83,7 +83,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
         style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}
       >
         <div>
-          <div className="text-sm font-semibold" style={{ color: '#1a1208' }}>
+          <div className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>
             Has this area improved?
           </div>
           <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
@@ -93,7 +93,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
         <button
           onClick={load}
           className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
-          style={{ backgroundColor: '#1a1208', color: 'white' }}
+          style={{ backgroundColor: '#1a3a1a', color: 'white' }}
         >
           Compare with {year} →
         </button>
@@ -162,7 +162,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">📅</span>
-          <span className="text-base font-bold" style={{ color: '#1a1208' }}>
+          <span className="text-base font-bold" style={{ color: '#1a3a1a' }}>
             Change since {year}
           </span>
         </div>

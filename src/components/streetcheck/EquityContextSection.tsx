@@ -249,7 +249,7 @@ export default function EquityContextSection({
                 <div style={{ fontSize: 12, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.08em', color: '#2a2010', marginBottom: 2 }}>
                   {stat.label}
                 </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#1a1208' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#1a3a1a' }}>
                   {stat.value}
                 </div>
                 {stat.context && (
@@ -269,8 +269,8 @@ export default function EquityContextSection({
               <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, background: config.bg, border: `1px solid ${config.border}` }}>
                 <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>{insight.icon}</span>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1a1208' }}>{insight.label}</div>
-                  <div style={{ fontSize: 12, marginTop: 2, lineHeight: 1.5, color: '#1a1208' }}>{insight.detail}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>{insight.label}</div>
+                  <div style={{ fontSize: 12, marginTop: 2, lineHeight: 1.5, color: '#1a3a1a' }}>{insight.detail}</div>
                 </div>
               </div>
             ))}
@@ -281,7 +281,7 @@ export default function EquityContextSection({
         <div style={{ paddingTop: 10, borderTop: '1px solid #c4b59a' }}>
           {analysis && (
             <p style={{ fontSize: 12, lineHeight: 1.5, marginBottom: 6, color: '#2a2010' }}>
-              <span style={{ fontWeight: 700, color: '#1a1208' }}>Why this matters:</span>{' '}
+              <span style={{ fontWeight: 700, color: '#1a3a1a' }}>Why this matters:</span>{' '}
               {analysis.context}
             </p>
           )}

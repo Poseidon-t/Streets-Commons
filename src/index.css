@@ -5,7 +5,7 @@
 /* ── Retro Urbanism Analysis Page ──────────────────────────────── */
 .retro-analysis {
   font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: #f5f0e8;
+  background-color: #f0f2e8;
   background-image: none;
   padding: 24px 16px 80px;
 }
@@ -18,7 +18,7 @@
 /* Retro card — sharp corners, 2px ink border */
 .retro-card {
   background: #ffffff;
-  border: 2px solid #1a1208;
+  border: 2px solid #1a3a1a;
   border-radius: 0;
   margin-bottom: 4px;
   box-shadow: 3px 3px 0 rgba(26,18,8,0.10);
@@ -26,7 +26,7 @@
 
 /* Dark header bar inside retro cards */
 .retro-card-header {
-  background: #1a1208;
+  background: #1a3a1a;
   padding: 8px 16px;
   display: flex;
   align-items: center;

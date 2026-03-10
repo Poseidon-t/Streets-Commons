@@ -117,7 +117,7 @@ export default function BlogIndex() {
 
       {/* Hero */}
       <section className="max-w-3xl mx-auto px-6 pt-12 pb-6 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
           SafeStreets Blog
         </h1>
         <p className="text-lg" style={{ color: '#5a6a5a' }}>
@@ -169,7 +169,7 @@ export default function BlogIndex() {
                   <span className="text-xs" style={{ color: '#8a9a8a' }}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
                   <span className="text-xs" style={{ color: '#8a9a8a' }}>{post.readTime}</span>
                 </div>
-                <h2 className="text-xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+                <h2 className="text-xl font-bold mb-2" style={{ color: '#1a2a1a' }}>
                   {post.title}
                 </h2>
                 <p className="text-sm" style={{ color: '#5a6a5a' }}>
@@ -194,7 +194,7 @@ export default function BlogIndex() {
           className="rounded-2xl p-8 text-center border-2"
           style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.05)' }}
         >
-          <h2 className="text-2xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             Ready to Analyze Your Street?
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -211,7 +211,7 @@ export default function BlogIndex() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 text-center" style={{ backgroundColor: '#2a3a2a' }}>
+      <footer className="py-8 text-center" style={{ backgroundColor: '#1a2a1a' }}>
         <Link to="/" className="text-sm font-semibold" style={{ color: '#e07850' }}>SafeStreets</Link>
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>

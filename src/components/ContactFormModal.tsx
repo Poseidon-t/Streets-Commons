@@ -84,7 +84,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
         {submitted ? (
           <div className="text-center py-8">
             <div className="text-5xl mb-4">&#x2705;</div>
-            <h2 className="text-2xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+            <h2 className="text-2xl font-bold mb-2" style={{ color: '#1a2a1a' }}>
               Inquiry Sent!
             </h2>
             <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -101,7 +101,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
         ) : (
           <>
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#1a2a1a' }}>
                 Custom Analysis Inquiry
               </h2>
               <p className="text-sm" style={{ color: '#6b7280' }}>
@@ -111,7 +111,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Name <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -126,7 +126,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Email <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -141,7 +141,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Location / Area of Interest
                 </label>
                 <input
@@ -155,7 +155,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Project Type <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -173,7 +173,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Brief Description <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -188,7 +188,7 @@ export default function ContactFormModal({ isOpen, onClose }: ContactFormModalPr
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1" style={{ color: '#2a3a2a' }}>
+                <label className="block text-sm font-semibold mb-1" style={{ color: '#1a2a1a' }}>
                   Timeline
                 </label>
                 <select

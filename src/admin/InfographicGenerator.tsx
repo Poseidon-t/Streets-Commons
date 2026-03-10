@@ -87,7 +87,7 @@ function ScoreCard({ d }: { d: ScoreCardData }) {
   return (
     <div style={{ width: 560, background: '#fff', borderRadius: 20, overflow: 'hidden', fontFamily: 'system-ui, -apple-system, sans-serif', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
       {/* Header */}
-      <div style={{ background: '#2a3a2a', padding: '24px 28px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ background: '#1a2a1a', padding: '24px 28px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ color: '#e07850', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>SafeStreets Analysis</div>
           <div style={{ color: '#fff', fontSize: 26, fontWeight: 800, lineHeight: 1.1 }}>{d.city || 'City Name'}</div>
@@ -128,7 +128,7 @@ function ScoreCard({ d }: { d: ScoreCardData }) {
       </div>
 
       {/* Footer */}
-      <div style={{ background: '#2a3a2a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ background: '#1a2a1a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: 600, letterSpacing: 1 }}>STREETSANDCOMMONS.COM</div>
         <div style={{ color: '#e07850', fontSize: 10, fontWeight: 700 }}>Try SafeStreets Free ↗</div>
       </div>
@@ -138,7 +138,7 @@ function ScoreCard({ d }: { d: ScoreCardData }) {
 
 function DataStoryCard({ d }: { d: DataStoryData }) {
   return (
-    <div style={{ width: 560, background: '#2a3a2a', borderRadius: 20, overflow: 'hidden', fontFamily: 'system-ui, -apple-system, sans-serif', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
+    <div style={{ width: 560, background: '#1a2a1a', borderRadius: 20, overflow: 'hidden', fontFamily: 'system-ui, -apple-system, sans-serif', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
       {/* Logo strip */}
       <div style={{ background: '#e07850', padding: '8px 24px', display: 'flex', alignItems: 'center', gap: 8 }}>
         <span style={{ color: '#fff', fontSize: 11, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase' }}>SafeStreets · Data Report</span>
@@ -177,7 +177,7 @@ function BeforeAfterCard({ d }: { d: BeforeAfterData }) {
   return (
     <div style={{ width: 560, background: '#fff', borderRadius: 20, overflow: 'hidden', fontFamily: 'system-ui, -apple-system, sans-serif', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
       {/* Header */}
-      <div style={{ background: '#2a3a2a', padding: '20px 28px' }}>
+      <div style={{ background: '#1a2a1a', padding: '20px 28px' }}>
         <div style={{ color: '#e07850', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>Transformation Case Study</div>
         <div style={{ color: '#fff', fontSize: 22, fontWeight: 800 }}>{d.city || 'City'}: {d.intervention || 'Intervention'}</div>
         <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, marginTop: 2 }}>{d.period || '2018 → 2024'}</div>
@@ -221,7 +221,7 @@ function BeforeAfterCard({ d }: { d: BeforeAfterData }) {
       )}
 
       {/* Footer */}
-      <div style={{ background: '#2a3a2a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ background: '#1a2a1a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>STREETSANDCOMMONS.COM</span>
         <span style={{ color: '#e07850', fontSize: 10, fontWeight: 700 }}>SafeStreets Analysis</span>
       </div>
@@ -235,7 +235,7 @@ function CityComparisonCard({ d }: { d: CityComparisonData }) {
   return (
     <div style={{ width: 560, background: '#fff', borderRadius: 20, overflow: 'hidden', fontFamily: 'system-ui, -apple-system, sans-serif', boxShadow: '0 8px 40px rgba(0,0,0,0.12)' }}>
       {/* Header */}
-      <div style={{ background: '#2a3a2a', padding: '20px 28px' }}>
+      <div style={{ background: '#1a2a1a', padding: '20px 28px' }}>
         <div style={{ color: '#e07850', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 }}>City Comparison</div>
         <div style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>{d.title || 'Walkability: City vs. City'}</div>
         <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, marginTop: 2 }}>{d.metric || 'Overall Walkability Score'}</div>
@@ -245,12 +245,12 @@ function CityComparisonCard({ d }: { d: CityComparisonData }) {
       <div style={{ padding: '16px 28px' }}>
         {sorted.map((city, i) => (
           <div key={i} style={{ marginBottom: 16, padding: '14px 16px', borderRadius: 12, background: i === 0 ? '#f0fdf4' : '#f9f9f7', border: i === 0 ? '1.5px solid #86efac' : '1.5px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? '#2a3a2a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <div style={{ width: 32, height: 32, borderRadius: '50%', background: i === 0 ? '#1a2a1a' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               <span style={{ color: i === 0 ? '#e07850' : '#888', fontSize: 13, fontWeight: 800 }}>#{i + 1}</span>
             </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: '#2a3a2a' }}>{city.name}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#1a2a1a' }}>{city.name}</span>
                 <span style={{ fontSize: 18, fontWeight: 900, color: scoreColor(city.score) }}>{city.score.toFixed(1)}</span>
               </div>
               <div style={{ height: 5, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden', marginBottom: 6 }}>
@@ -275,7 +275,7 @@ function CityComparisonCard({ d }: { d: CityComparisonData }) {
       )}
 
       {/* Footer */}
-      <div style={{ background: '#2a3a2a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between' }}>
+      <div style={{ background: '#1a2a1a', padding: '10px 28px', display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10 }}>STREETSANDCOMMONS.COM</span>
         <span style={{ color: '#e07850', fontSize: 10, fontWeight: 700 }}>SafeStreets · Walkability Intelligence</span>
       </div>

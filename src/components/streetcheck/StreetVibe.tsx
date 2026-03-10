@@ -53,7 +53,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
         fontFamily: 'Georgia, "Times New Roman", serif',
         fontSize: 24,
         fontWeight: 700,
-        color: '#1a1208',
+        color: '#1a3a1a',
         letterSpacing: '-0.01em',
         lineHeight: 1.15,
         marginBottom: 4,

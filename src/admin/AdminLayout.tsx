@@ -16,7 +16,7 @@ export default function AdminLayout() {
     <AdminGuard>
       <div className="min-h-screen flex" style={{ backgroundColor: '#f5f5f5' }}>
         {/* Sidebar */}
-        <aside className="w-60 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#2a3a2a' }}>
+        <aside className="w-60 flex-shrink-0 flex flex-col" style={{ backgroundColor: '#1a2a1a' }}>
           <div className="p-5 border-b border-white/10">
             <a href="/" className="flex items-center gap-2">
               <img src="/logo.svg" alt="SafeStreets logo" style={{ width: 28, height: 28 }} />

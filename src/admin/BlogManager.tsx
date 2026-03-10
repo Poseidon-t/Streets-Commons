@@ -46,7 +46,7 @@ export default function BlogManager() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>Blog Posts</h1>
+        <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>Blog Posts</h1>
         <Link
           to="/admin/blog/new"
           className="px-4 py-2 rounded-lg font-semibold text-sm text-white transition-all hover:shadow-md"
@@ -84,7 +84,7 @@ export default function BlogManager() {
                     <Link
                       to={`/admin/blog/edit/${post.slug}`}
                       className="font-medium text-sm hover:underline"
-                      style={{ color: '#2a3a2a' }}
+                      style={{ color: '#1a2a1a' }}
                     >
                       {post.title}
                     </Link>

@@ -91,7 +91,7 @@ export default function GroundRealityCard({
 
       {/* Narrative */}
       <div style={{ padding: '16px 16px 10px' }}>
-        <p style={{ fontSize: 14, lineHeight: 1.7, fontWeight: 500, color: '#1a1208', fontFamily: 'Georgia, "Times New Roman", serif' }}>
+        <p style={{ fontSize: 14, lineHeight: 1.7, fontWeight: 500, color: '#1a3a1a', fontFamily: 'Georgia, "Times New Roman", serif' }}>
           {narrative.narrative}
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function GroundRealityCard({
         {narrative.keyInsights.map((insight, i) => (
           <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
             <span style={{ fontSize: 13, color: '#b8401a', lineHeight: 1.3, flexShrink: 0, fontFamily: 'Georgia, serif' }}>→</span>
-            <span style={{ fontSize: 12, fontWeight: 500, color: '#1a1208', lineHeight: 1.5 }}>{insight}</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#1a3a1a', lineHeight: 1.5 }}>{insight}</span>
           </div>
         ))}
       </div>

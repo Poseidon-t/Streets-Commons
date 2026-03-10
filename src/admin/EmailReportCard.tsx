@@ -142,7 +142,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
         >x</button>
 
-        <h2 className="text-lg font-bold mb-1" style={{ color: '#2a3a2a' }}>
+        <h2 className="text-lg font-bold mb-1" style={{ color: '#1a2a1a' }}>
           Email Image for {leadName}
         </h2>
         <p className="text-xs text-gray-500 mb-4">
@@ -176,7 +176,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
 
           {/* Location + Score */}
           <div style={{ fontSize: '12px', color: '#8a9a8a', marginBottom: '4px' }}>Walkability Report</div>
-          <div style={{ fontSize: '20px', fontWeight: 700, color: '#2a3a2a', marginBottom: '16px', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '20px', fontWeight: 700, color: '#1a2a1a', marginBottom: '16px', lineHeight: 1.2 }}>
             {shortName}
           </div>
 
@@ -234,7 +234,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
                 <div style={{ flex: 1, height: '7px', borderRadius: '4px', backgroundColor: '#e0dbd0', overflow: 'hidden' }}>
                   <div style={{ width: `${Math.min(m.score * 10, 100)}%`, height: '100%', borderRadius: '4px', backgroundColor: getScoreColor(m.score) }} />
                 </div>
-                <span style={{ fontSize: '10px', fontWeight: 600, width: '24px', textAlign: 'right', color: '#2a3a2a' }}>{m.score.toFixed(1)}</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, width: '24px', textAlign: 'right', color: '#1a2a1a' }}>{m.score.toFixed(1)}</span>
               </div>
             ))}
           </div>
@@ -275,7 +275,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                     <div style={{ height: '6px', width: '6px', borderRadius: '1px', background: seg.color }} />
                     <span style={{ fontSize: '8px', color: '#5a6a5a' }}>
-                      <strong style={{ color: '#2a3a2a' }}>{Math.round(seg.pct)}%</strong> {seg.label}
+                      <strong style={{ color: '#1a2a1a' }}>{Math.round(seg.pct)}%</strong> {seg.label}
                     </span>
                   </div>
                 ))}
@@ -371,7 +371,7 @@ export default function EmailReportCard({ reportData, isOpen, onClose, leadName 
           <button
             onClick={handleCopyImage}
             className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold border transition hover:bg-gray-50"
-            style={{ color: '#2a3a2a', borderColor: '#d0cbc0' }}
+            style={{ color: '#1a2a1a', borderColor: '#d0cbc0' }}
           >
             {copied ? 'Copied!' : 'Copy to Clipboard'}
           </button>

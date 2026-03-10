@@ -48,7 +48,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose }: UpgradeModalPr
 
         <div className="text-center mb-6">
           <div className="text-5xl mb-4">&#x1F513;</div>
-          <h2 className="text-2xl font-bold mb-2" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#1a2a1a' }}>
             Sign In to SafeStreets
           </h2>
           <p className="text-sm" style={{ color: '#6b7280' }}>

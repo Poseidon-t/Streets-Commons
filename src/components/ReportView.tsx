@@ -233,7 +233,7 @@ export default function ReportView() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4" style={{ color: '#2a3a2a' }}>No Report Data</h1>
+          <h1 className="text-2xl font-bold mb-4" style={{ color: '#1a2a1a' }}>No Report Data</h1>
           <p className="mb-6" style={{ color: '#5a6a5a' }}>Please generate a report from the main analysis page.</p>
           <a href="/" className="inline-block px-6 py-3 rounded-xl font-semibold text-white transition-all hover:shadow-lg" style={{ backgroundColor: '#e07850' }}>
             Go to SafeStreets

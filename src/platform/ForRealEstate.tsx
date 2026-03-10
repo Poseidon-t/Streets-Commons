@@ -12,7 +12,7 @@ export default function ForRealEstate() {
               <p className="text-xs font-bold uppercase tracking-wider mb-3" style={{ color: '#1e3a5f' }}>
                 For Real Estate Agents
               </p>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
                 Branded Walkability Reports for Your Listings
               </h2>
               <p className="text-sm mb-4 leading-relaxed" style={{ color: '#6b7280' }}>
@@ -40,7 +40,7 @@ export default function ForRealEstate() {
                 <div key={f.title} className="flex items-start gap-3 p-3 rounded-lg border" style={{ borderColor: '#e0dbd0', backgroundColor: 'white' }}>
                   <span className="text-lg flex-shrink-0">{f.icon}</span>
                   <div>
-                    <div className="text-sm font-semibold" style={{ color: '#2a3a2a' }}>{f.title}</div>
+                    <div className="text-sm font-semibold" style={{ color: '#1a2a1a' }}>{f.title}</div>
                     <div className="text-xs" style={{ color: '#8a9a8a' }}>{f.desc}</div>
                   </div>
                 </div>

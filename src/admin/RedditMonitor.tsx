@@ -155,7 +155,7 @@ function SettingsPanel({
     <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-5">
       {/* Subreddits */}
       <div>
-        <label className="block text-sm font-semibold mb-2" style={{ color: '#2a3a2a' }}>
+        <label className="block text-sm font-semibold mb-2" style={{ color: '#1a2a1a' }}>
           Subreddits to Monitor
         </label>
         <p className="text-xs mb-2" style={{ color: '#8a9a8a' }}>
@@ -172,7 +172,7 @@ function SettingsPanel({
 
       {/* High-priority keywords */}
       <div>
-        <label className="block text-sm font-semibold mb-2" style={{ color: '#2a3a2a' }}>
+        <label className="block text-sm font-semibold mb-2" style={{ color: '#1a2a1a' }}>
           High-Priority Keywords
           <span className="ml-2 text-xs font-normal" style={{ color: '#8a9a8a' }}>+3 relevance each</span>
         </label>
@@ -187,7 +187,7 @@ function SettingsPanel({
 
       {/* Medium-priority keywords */}
       <div>
-        <label className="block text-sm font-semibold mb-2" style={{ color: '#2a3a2a' }}>
+        <label className="block text-sm font-semibold mb-2" style={{ color: '#1a2a1a' }}>
           Medium-Priority Keywords
           <span className="ml-2 text-xs font-normal" style={{ color: '#8a9a8a' }}>+1 relevance each</span>
         </label>
@@ -327,7 +327,7 @@ export default function RedditMonitor() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#2a3a2a' }}>Reddit Monitor</h1>
+          <h1 className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>Reddit Monitor</h1>
           {data.lastUpdated && (
             <p className="text-sm mt-1" style={{ color: '#8a9a8a' }}>
               Last refreshed: {new Date(data.lastUpdated).toLocaleString()}
@@ -338,7 +338,7 @@ export default function RedditMonitor() {
           <button
             onClick={() => setShowSettings(!showSettings)}
             className="px-3 py-2 rounded-lg text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
-            style={{ color: '#2a3a2a' }}
+            style={{ color: '#1a2a1a' }}
           >
             {showSettings ? 'Hide Settings' : 'Settings'}
           </button>
@@ -443,7 +443,7 @@ export default function RedditMonitor() {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm font-semibold hover:underline block mb-1"
-                      style={{ color: '#2a3a2a' }}
+                      style={{ color: '#1a2a1a' }}
                     >
                       {post.title}
                     </a>

@@ -304,7 +304,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
   return (
     <div className="retro-card" style={{ padding: '14px 18px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#1a1208' }}>Share & Export</span>
+        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>Share & Export</span>
         <span style={{ fontSize: 12, color: '#3d3020', fontWeight: 500 }}>Every post references verified data and global standards</span>
       </div>
 
@@ -313,7 +313,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
         <button
           onClick={handleCopyLink}
           className="px-3 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5"
-          style={copied ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#2a3a2a' }}
+          style={copied ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#1a2a1a' }}
         >
           <span>{copied ? '\u2713' : '\uD83D\uDD17'}</span>
           {copied ? 'Copied!' : 'Copy Link'}
@@ -321,7 +321,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
         <button
           onClick={handleCopyShareText}
           className="px-3 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5"
-          style={copiedText ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#2a3a2a' }}
+          style={copiedText ? { backgroundColor: 'rgba(101,163,13,0.1)', color: '#65a30d' } : { backgroundColor: '#f8f6f1', color: '#1a2a1a' }}
         >
           <span>{copiedText ? '\u2713' : '\uD83D\uDCCB'}</span>
           {copiedText ? 'Copied!' : 'Share Text'}
@@ -342,7 +342,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
             <button
               onClick={onShareReport}
               className="px-3 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5 border"
-              style={{ borderColor: '#e0dbd0', color: '#2a3a2a' }}
+              style={{ borderColor: '#e0dbd0', color: '#1a2a1a' }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -370,7 +370,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
           rel="noopener noreferrer"
           onClick={() => trackEvent('share_click', { platform: 'terraink' })}
           className="px-3 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5"
-          style={{ backgroundColor: '#f8f6f1', color: '#2a3a2a' }}
+          style={{ backgroundColor: '#f8f6f1', color: '#1a2a1a' }}
         >
           Map Poster ↗
         </a>

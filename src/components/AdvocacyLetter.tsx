@@ -128,9 +128,9 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-xl" style={{ backgroundColor: '#faf7f0', border: '2px solid #1a1208' }}>
+      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl shadow-xl" style={{ backgroundColor: '#f5f2eb', border: '2px solid #1a1208' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '2px solid #1a1208', background: '#1a1208' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '2px solid #1a1208', background: '#1a3a1a' }}>
           <div>
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#e8e0d0' }}>
               Advocacy Letter
@@ -156,7 +156,7 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
             style={{
               minHeight: 400,
               fontFamily: 'DM Sans, sans-serif',
-              color: '#1a1208',
+              color: '#1a3a1a',
               backgroundColor: '#ffffff',
               borderColor: '#c4b59a',
             }}
@@ -179,7 +179,7 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
           <button
             onClick={handleDownload}
             className="flex-1 py-2.5 rounded-lg font-bold text-sm transition-all"
-            style={{ backgroundColor: '#faf7f0', color: '#1a1208', border: '2px solid #1a1208', cursor: 'pointer' }}
+            style={{ backgroundColor: '#f5f2eb', color: '#1a3a1a', border: '2px solid #1a1208', cursor: 'pointer' }}
           >
             Download .txt
           </button>

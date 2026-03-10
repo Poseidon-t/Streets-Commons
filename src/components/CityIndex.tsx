@@ -72,7 +72,7 @@ export default function CityIndex() {
 
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-6 pt-12 pb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
           Walkability Scores by City
         </h1>
         <p className="text-lg max-w-2xl mx-auto mb-8" style={{ color: '#5a6a5a' }}>
@@ -85,7 +85,7 @@ export default function CityIndex() {
       <section className="max-w-5xl mx-auto px-6 pb-12">
         {states.map(state => (
           <div key={state} className="mb-8">
-            <h2 className="text-lg font-bold mb-3" style={{ color: '#2a3a2a' }}>{state}</h2>
+            <h2 className="text-lg font-bold mb-3" style={{ color: '#1a2a1a' }}>{state}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {byState[state].map(city => (
                 <Link
@@ -101,7 +101,7 @@ export default function CityIndex() {
                     {city.stateCode}
                   </div>
                   <div>
-                    <div className="font-bold text-sm" style={{ color: '#2a3a2a' }}>{city.name}</div>
+                    <div className="font-bold text-sm" style={{ color: '#1a2a1a' }}>{city.name}</div>
                     <div className="text-xs" style={{ color: '#8a9a8a' }}>
                       Pop. {city.population.toLocaleString()} · Free analysis
                     </div>
@@ -119,7 +119,7 @@ export default function CityIndex() {
           className="rounded-2xl p-8 text-center border-2"
           style={{ borderColor: '#e07850', backgroundColor: 'rgba(224, 120, 80, 0.05)' }}
         >
-          <h2 className="text-2xl font-bold mb-3" style={{ color: '#2a3a2a' }}>
+          <h2 className="text-2xl font-bold mb-3" style={{ color: '#1a2a1a' }}>
             Don't See Your City?
           </h2>
           <p className="text-sm mb-6" style={{ color: '#6b7280' }}>
@@ -162,7 +162,7 @@ export default function CityIndex() {
       </section>
 
       {/* Footer */}
-      <footer className="py-8 text-center" style={{ backgroundColor: '#2a3a2a' }}>
+      <footer className="py-8 text-center" style={{ backgroundColor: '#1a2a1a' }}>
         <Link to="/" className="text-sm font-semibold" style={{ color: '#e07850' }}>SafeStreets</Link>
         <span className="text-xs mx-2" style={{ color: '#5a6a5a' }}>by</span>
         <span className="text-xs" style={{ color: '#8a9a8a' }}>Streets & Commons</span>

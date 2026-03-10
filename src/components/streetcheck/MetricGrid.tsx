@@ -418,7 +418,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
           <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
             <div className="flex items-center" style={{ gap: '6px' }}>
               <span style={{ fontSize: '20px' }}>{def.icon}</span>
-              <span style={{ color: '#1a1208', fontSize: '17px', fontWeight: 800 }}>{def.name}</span>
+              <span style={{ color: '#1a3a1a', fontSize: '17px', fontWeight: 800 }}>{def.name}</span>
             </div>
             <div className="flex items-center" style={{ gap: '4px' }}>
               <span style={{ color, fontSize: '26px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
@@ -435,7 +435,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
 
           {/* Inline context — always visible, no click required */}
           {contextText && (
-            <p style={{ color: '#1a1208', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
+            <p style={{ color: '#1a3a1a', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
               {contextText}
             </p>
           )}
@@ -482,25 +482,25 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
     >
       <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#f0ebe0' }}>
         <span className="text-xl">{icon}</span>
-        <span className="text-base font-bold" style={{ color: '#1a1208' }}>{name}</span>
+        <span className="text-base font-bold" style={{ color: '#1a3a1a' }}>{name}</span>
         <span className="text-base font-bold ml-auto" style={{ color }}>{score.toFixed(1)}/10</span>
       </div>
 
       <div className="space-y-4">
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#1a1208', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#1a3a1a', fontSize: '12px', letterSpacing: '0.08em' }}>
             What this measures
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
             {detail.what}
           </div>
         </div>
 
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#1a1208', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div className="font-bold uppercase mb-1" style={{ color: '#1a3a1a', fontSize: '12px', letterSpacing: '0.08em' }}>
             How it's scored
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
             {detail.how}
           </div>
         </div>
@@ -509,7 +509,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
           <div className="font-bold uppercase mb-1" style={{ color, fontSize: '12px', letterSpacing: '0.08em' }}>
             What your {score.toFixed(1)} means
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a1208', fontSize: '14px' }}>
+          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
             {detail.getMeans(score)}
           </div>
         </div>
@@ -542,10 +542,10 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   return (
     <div className="w-full">
       <div className="mb-6">
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a1208' }}>
+        <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a3a1a' }}>
           Score Breakdown
         </h2>
-        <p style={{ color: '#1a1208', fontSize: '16px', fontWeight: 500, marginTop: '4px' }}>
+        <p style={{ color: '#1a3a1a', fontSize: '16px', fontWeight: 500, marginTop: '4px' }}>
           Each metric contributes to your walkability score. Green = strength, red = needs attention.
         </p>
       </div>
@@ -574,7 +574,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
               {/* Group header */}
               <div className="flex items-center" style={{ gap: '8px', marginBottom: '12px' }}>
                 <span style={{ fontSize: '18px' }}>{groupMeta.icon}</span>
-                <span style={{ color: '#1a1208', letterSpacing: '0.1em', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' as const }}>
+                <span style={{ color: '#1a3a1a', letterSpacing: '0.1em', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' as const }}>
                   {groupMeta.label}
                 </span>
                 <div className="flex-1" style={{ height: '2px', backgroundColor: '#c4b59a' }} />

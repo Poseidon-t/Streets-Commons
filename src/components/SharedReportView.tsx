@@ -11,7 +11,7 @@ import ComparisonReportView from './ComparisonReportView';
 const API_URL = import.meta.env.VITE_API_URL || '';
 
 const C = {
-  text: '#2a3a2a',
+  text: '#1a2a1a',
   textMuted: '#4a5a4a',
   textLight: '#8a9a8a',
   border: '#e0dbd0',
