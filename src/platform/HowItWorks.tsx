@@ -39,7 +39,7 @@ const PHASES = [
     details: [
       'Build primary dashboard view with your priority metrics and map layers',
       'Configure per-role views for planners, executives, and field teams',
-      'Set up heat maps, hotspot analysis, and corridor comparison tools',
+      'Configure corridor comparison and scoring breakdown views',
       'Build decisioning panels: priority lists, threshold alerts, scoring breakdowns',
       'Test with your team and iterate on display logic and user experience',
       'Document custom metric definitions and scoring methodology for your records',

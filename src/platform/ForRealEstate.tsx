@@ -56,11 +56,11 @@ export default function ForRealEstate() {
         metaDescription="Branded walkability reports for agents. Site selection insights for developers. Data-driven pedestrian analysis powered by satellite imagery."
         title="Walkability & Street Intelligence for Real Estate"
         subtitle="For Developers & Investors"
-        heroDescription="Pedestrian infrastructure drives property values. Our platform quantifies street-level conditions with interactive dashboards, field audits, and community sentiment data to inform site selection, assess risk, and identify value-creation opportunities."
+        heroDescription="Pedestrian infrastructure drives property values. Our platform quantifies street-level conditions with interactive dashboards and data-driven scoring to inform site selection, assess risk, and identify value-creation opportunities."
         challenges={[
           {
             title: 'Proximity Scores Are Not Enough',
-            description: 'Traditional walkability scores measure proximity to destinations but ignore actual pedestrian conditions - crossing safety, lighting, and ADA compliance.',
+            description: 'Traditional walkability scores measure proximity to destinations but ignore actual pedestrian conditions — street network quality, tree canopy, and environmental comfort.',
           },
           {
             title: 'Hidden Development Risk',
@@ -68,25 +68,24 @@ export default function ForRealEstate() {
           },
           {
             title: 'Quantifying the Pedestrian Premium',
-            description: 'Research shows strong pedestrian environments add 5-30% to property values, but developers lack the granular data to quantify this premium for specific sites.',
+            description: 'Strong pedestrian environments correlate with higher property values, but developers lack the granular data to quantify walkability conditions for specific sites.',
           },
         ]}
         solutionTitle="Beyond Proximity Scores"
-        solutionDescription="Our field-verified platform gives you ground-truth data that no algorithmic score can provide. Understand the actual pedestrian experience and community sentiment around your development sites."
+        solutionDescription="Our platform uses satellite imagery, OpenStreetMap, and government data to give you a multi-dimensional view of pedestrian conditions — not just proximity scores."
         solutionPoints={[
           'Interactive dashboard for site comparison and portfolio monitoring',
-          'Street-level pedestrian safety scoring with photo documentation',
-          'Community sentiment data to anticipate neighborhood reception',
+          'Composite walkability scoring across 4 components (Network, Comfort, Safety, Density)',
+          'Tree canopy and environmental comfort analysis from Sentinel-2 satellite data',
           'Pedestrian infrastructure gap analysis for due diligence',
-          'Improvement opportunity identification to enhance the pedestrian environment',
           'Comparative analysis against competing sites or neighborhoods',
-          'Cultural context insights for community-aligned development proposals',
-          'Transit connectivity scoring for TOD projects',
+          'Neighborhood intelligence: demographics, health outcomes, flood risk (US)',
+          'Transit connectivity and 15-minute city access scoring',
         ]}
         useCases={[
           {
             title: 'Site Selection & Due Diligence',
-            description: 'Compare pedestrian conditions across potential development sites with field-verified data, not just algorithmic estimates.',
+            description: 'Compare pedestrian conditions across potential development sites with satellite and infrastructure data, beyond simple proximity scores.',
           },
           {
             title: 'Pedestrian Premium Analysis',
@@ -102,12 +101,12 @@ export default function ForRealEstate() {
           },
         ]}
         metrics={[
-          { name: 'Sidewalk Quality', category: 'Infrastructure' },
-          { name: 'Destination Density', category: 'Access' },
-          { name: 'Transit Proximity', category: 'Access' },
-          { name: 'Crossing Safety', category: 'Infrastructure' },
-          { name: 'Shade & Weather Protection', category: 'Environment' },
-          { name: 'Network Connectivity', category: 'Access' },
+          { name: 'Network Design', category: 'Infrastructure' },
+          { name: 'Environmental Comfort', category: 'Environment' },
+          { name: 'Safety', category: 'Infrastructure' },
+          { name: 'Density Context', category: 'Access' },
+          { name: 'Tree Canopy (NDVI)', category: 'Environment' },
+          { name: 'Transit Access', category: 'Access' },
         ]}
         ctaTitle="Make pedestrian safety part of your investment thesis"
         ctaDescription="Contact us to discuss pedestrian infrastructure analysis for your development project."

@@ -68,7 +68,7 @@ export default function PlatformHome() {
               },
               {
                 title: 'Infrastructure Decisioning',
-                desc: 'Set rules that turn scores into action — flag corridors below an ADA threshold, prioritize Vision Zero interventions by injury density, or trigger capital budget alerts when a zone drops below a target score.',
+                desc: 'Configure rules that turn scores into action — flag corridors below a walkability threshold, prioritize interventions by composite score, and generate ranked priority lists for capital planning.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -76,8 +76,8 @@ export default function PlatformHome() {
                 ),
               },
               {
-                title: 'Scenario & Impact Modeling',
-                desc: 'Model what-if interventions before committing budget. Project property value impacts, estimate safety outcomes, and track before/after changes over time with temporal analysis.',
+                title: 'Comparative Analysis',
+                desc: 'Compare walkability conditions across sites, corridors, or neighborhoods. Identify infrastructure gaps and quantify differences to support investment decisions.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />

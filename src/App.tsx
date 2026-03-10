@@ -265,21 +265,15 @@ function App() {
     }
   }, [metrics, location]);
 
-  // Auto-open upgrade modal when arriving via ?upgrade=pro (from ForRealEstate / landing CTA)
+  // Clean up legacy ?upgrade=pro param if present (no longer used)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('upgrade') === 'pro') {
-      if (isSignedIn) {
-        setShowProUpgradeModal(true);
-      } else {
-        setShowSignInModal(true);
-      }
-      // Clean URL
+    if (params.get('upgrade')) {
       params.delete('upgrade');
       const clean = params.toString();
       window.history.replaceState({}, '', clean ? `?${clean}` : window.location.pathname);
     }
-  }, [isSignedIn]);
+  }, []);
 
   // Dynamic page title — updates when analysis loads
   useEffect(() => {
@@ -293,7 +287,7 @@ function App() {
     } else if (compareMode) {
       document.title = 'Compare Mode — SafeStreets Walkability Analysis';
     } else {
-      document.title = 'SafeStreets — Is Your Street Safe to Walk? | Free Satellite Analysis';
+      document.title = 'SafeStreets — Is Your Street Safe to Walk? | Free Walkability Analysis';
     }
   }, [location, compositeScore, isAnalyzing, compareMode]);
 
@@ -782,7 +776,7 @@ function App() {
         <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-semibold transition-all
           ${paymentBanner === 'success' ? 'bg-green-600 text-white' : 'bg-gray-700 text-white'}`}>
           {paymentBanner === 'success' ? (
-            <>✓ Payment successful — Pro access activated!</>
+            <>✓ Payment successful — Agent Report access activated!</>
           ) : (
             <>Payment cancelled — no charge was made.</>
           )}
@@ -1041,7 +1035,7 @@ function App() {
                     <div className="space-y-2 mb-4">
                       {[
                         { label: 'Network Design',         score: 82, color: '#22c55e' },
-                        { label: 'Density & Destinations', score: 78, color: '#22c55e' },
+                        { label: 'Density Context',         score: 78, color: '#22c55e' },
                         { label: 'Environmental Comfort',  score: 61, color: '#84cc16' },
                         { label: 'Safety',                 score: 55, color: '#eab308' },
                       ].map(c => (
@@ -1059,17 +1053,17 @@ function App() {
 
                     {/* Persona quick row */}
                     <div className="border-t pt-3" style={{ borderColor: '#f0ebe0' }}>
-                      <div className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#b0a898' }}>Who it works for</div>
+                      <div className="text-[10px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#b0a898' }}>Persona Verdicts</div>
                       <div className="flex gap-2 flex-wrap">
                         {[
-                          { name: 'Daily Commuter', color: '#22c55e', score: 79 },
-                          { name: 'Car-Free Living', color: '#84cc16', score: 71 },
-                          { name: 'Remote Workers', color: '#eab308', score: 58 },
+                          { name: 'Car-free here?', verdict: 'Yes', color: '#22c55e' },
+                          { name: 'Kids walking?', verdict: 'Borderline', color: '#eab308' },
+                          { name: 'Aging in place?', verdict: 'Yes', color: '#22c55e' },
                         ].map(p => (
                           <div key={p.name} className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium" style={{ backgroundColor: '#f8f6f1', color: '#4a5a4a' }}>
                             <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
                             {p.name}
-                            <span style={{ color: p.color, fontWeight: 700 }}>{p.score}</span>
+                            <span style={{ color: p.color, fontWeight: 700 }}>{p.verdict}</span>
                           </div>
                         ))}
                       </div>
@@ -1090,11 +1084,11 @@ function App() {
                   <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#4a8a4a"/>
                 </svg>
                 <span className="text-sm text-earth-green">
-                  Built on <strong>NACTO</strong> & <strong>Vision Zero</strong> standards
+                  Informed by <strong>NACTO</strong> & <strong>Vision Zero</strong> principles
                 </span>
               </div>
               <div className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-earth-green/[0.08]">
-                <span className="text-sm text-earth-green"><strong>190+</strong> countries</span>
+                <span className="text-sm text-earth-green"><strong>Global</strong> coverage</span>
               </div>
             </div>
 
@@ -1803,8 +1797,33 @@ function App() {
               </div>
             </section>
 
-            {/* Pricing / Pro Section */}
-            <section className="py-16 bg-white/50">
+            {/* Support / Donate Section */}
+            <section className="py-12 bg-white/30">
+              <div className="max-w-2xl mx-auto px-6 text-center">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>Support SafeStreets</h2>
+                <p className="text-sm sm:text-base max-w-xl mx-auto mb-6" style={{ color: '#6b7a6b' }}>
+                  SafeStreets is free and open source. If this tool helped you make a better decision about where to live or walk, consider supporting us.
+                </p>
+                <a
+                  href="https://buymeacoffee.com/civiclensproject"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:brightness-110"
+                  style={{ backgroundColor: '#e07850', color: '#ffffff' }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
+                  </svg>
+                  Support Us
+                </a>
+                <p className="text-xs mt-4" style={{ color: '#8a9a8a' }}>
+                  Every contribution helps us add more cities and improve the data.
+                </p>
+              </div>
+            </section>
+
+            {/* HIDDEN: Pricing / Pro Section — keeping code for future use */}
+            {false && (<><section className="py-16 bg-white/50">
               <div className="max-w-4xl mx-auto px-6">
                 <div className="text-center mb-10">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#2a3a2a' }}>Simple, Honest Pricing</h2>
@@ -1996,7 +2015,7 @@ function App() {
                   </div>
                 </div>
               </div>
-            </section>
+            </section></>)}
 
           </>
         )}
@@ -2044,7 +2063,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 1 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! All data layers, compare mode, field verification, and neighborhood intelligence are completely free with no sign-up required. We use open government data (Sentinel-2, US Census, CDC, EPA, FEMA, OpenStreetMap). Unlimited searches, works globally in 190+ countries.
+                    Yes! All data layers, compare mode, and neighborhood intelligence are completely free with no sign-up required. We use open data sources: Sentinel-2 satellite imagery, US Census, CDC PLACES, EPA, FEMA, NASADEM, OpenAQ, and OpenStreetMap. Unlimited searches, works globally using satellite data and OpenStreetMap.
                   </p>
                 </div>
               </div>
@@ -2144,7 +2163,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>EPA National Walkability Index</strong> (street design quality), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), and <strong>WHO</strong> (international health data). These are the same sources used by governments and research institutions.
+                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy, vegetation), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>EPA National Walkability Index</strong> (street design quality, US only), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), <strong>NASADEM</strong> (terrain and slope), and <strong>OpenAQ</strong> (air quality). These are the same sources used by governments and research institutions.
                   </p>
                 </div>
               </div>
@@ -2222,13 +2241,13 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 8 ? 'block' : 'hidden'}`}
                 >
                   <p className="mb-3">
-                    Yes! The core walkability analysis (5 metric scores, overall score, compare mode) works globally in 190+ countries using satellite data and OpenStreetMap.
+                    Yes! The core walkability analysis (4 component scores, overall score, compare mode) works globally using satellite data and OpenStreetMap.
                   </p>
                   <p className="mb-3">
                     <strong>US locations get extra data layers</strong> powered by federal sources: <strong>commute patterns</strong> (walk/bike/transit/car split from Census ACS), <strong>tract-level demographics</strong> (income, poverty rate, education from Census ACS), <strong>street design quality</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>community health</strong> (obesity, diabetes, asthma, physical inactivity rates from CDC PLACES), and <strong>flood risk</strong> (FEMA flood zone classification).
                   </p>
                   <p>
-                    <strong>International locations</strong> get 3 core walkability metrics (Street Grid, Tree Canopy, Destinations), transit stops, parks, food access, and equity context, plus country-level data from the World Bank (GDP, unemployment) and WHO (health data).
+                    <strong>International locations</strong> get core walkability metrics (Street Grid, Tree Canopy, Destinations), transit stops, parks, food access, and equity context from OpenStreetMap and Sentinel-2 satellite data.
                   </p>
                 </div>
               </div>
@@ -2348,15 +2367,15 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  Global coverage (190+ countries)
+                  Global coverage via OSM & Sentinel-2
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  Field verification & PDF export
+                  Street audit tool & PDF export
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  WHO walkability guidelines
+                  NASADEM terrain & OpenAQ air quality
                 </li>
               </ul>
             </div>

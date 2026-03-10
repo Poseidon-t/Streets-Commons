@@ -51,7 +51,7 @@ const FAQS = [
   },
   {
     q: 'Do you work internationally?',
-    a: 'Yes. The platform is built on OpenStreetMap and satellite data, which have global coverage. The EPA Walkability Index is US-specific, but equivalent layers are available for other regions. We\'ve configured the engine for cities across North America, Europe, and the Global South.',
+    a: 'Yes. The platform is built on OpenStreetMap and satellite data, which have global coverage. The EPA Walkability Index, Census, CDC, and FEMA layers are US-specific, but the core scoring engine works for any geography with OSM and Sentinel-2 data.',
   },
 ];
 

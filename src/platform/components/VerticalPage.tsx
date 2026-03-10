@@ -134,7 +134,7 @@ export default function VerticalPage({
                 ))}
               </div>
               <Link to="/platform/metrics" className="inline-block mt-4 text-sm text-platform-navy font-medium hover:underline">
-                View all 12 metrics &rarr;
+                View all metrics &rarr;
               </Link>
             </div>
           </div>
