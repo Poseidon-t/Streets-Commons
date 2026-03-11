@@ -362,18 +362,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
           PDF Report
         </button>
 
-        {/* Map Poster — opens TerraInk with coordinates pre-filled */}
-        <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />
-        <a
-          href={`https://capable-victory-production.up.railway.app/?lat=${location.lat}&lon=${location.lon}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => trackEvent('share_click', { platform: 'terraink' })}
-          className="px-3 py-2 rounded-lg font-semibold text-xs transition-all flex items-center gap-1.5"
-          style={{ backgroundColor: '#f8f6f1', color: '#1a2a1a' }}
-        >
-          Map Poster ↗
-        </a>
+        {/* Map Poster — hidden until TerraInk has a stable domain */}
 
         {/* JSON Export — premium only */}
         {isPremium && (

@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, NeighborhoodIntelligence } from '../../types';
-import EconomicContextSection from './EconomicContextSection';
-import EquityContextSection from './EquityContextSection';
-import NeighborhoodIntelSection from './NeighborhoodIntelSection';
-import { analyzeLocalEconomy } from '../../utils/localEconomicAnalysis';
+import type { WalkabilityMetrics, WalkabilityScoreV2, DemographicData, OSMData, StreetCharacterAnalysis, StreetNetworkType } from '../../types';
 import { scoreColor10 as getScoreColor } from '../../utils/colors';
 
 interface MetricGridProps {
@@ -15,9 +11,37 @@ interface MetricGridProps {
   demographicLoading?: boolean;
   osmData?: OSMData | null;
   streetDesignScore?: number;
-  neighborhoodIntel?: NeighborhoodIntelligence | null;
   countryCode?: string;
   mapillaryCoverageGap?: boolean;
+  streetCharacter?: StreetCharacterAnalysis | null;
+  streetCharacterLoading?: boolean;
+  airQualityReading?: { pm25: number | null; category: string | null } | null;
+}
+
+// Sub-metric display for Street Grid card
+const SUB_METRIC_LABELS: Record<string, string> = {
+  'Intersection Density': 'Grid Connectivity',
+  'Block Length': 'Block Scale',
+  'Network Density': 'Network Density',
+  'Dead-End Ratio': 'Route Directness',
+};
+
+const NETWORK_TYPE_STYLE: Record<StreetNetworkType, { bg: string; text: string }> = {
+  'Complete Streets':     { bg: '#dcfce7', text: '#15803d' },
+  'Well-Connected Grid':  { bg: '#d1fae5', text: '#065f46' },
+  'Organic Urban':        { bg: '#dbeafe', text: '#1d4ed8' },
+  'Mixed Pattern':        { bg: '#fef9c3', text: '#a16207' },
+  'Car-Centric Grid':     { bg: '#ffedd5', text: '#c2410c' },
+  'Suburban Sprawl':      { bg: '#fee2e2', text: '#b91c1c' },
+  'Disconnected Network': { bg: '#fee2e2', text: '#991b1b' },
+};
+
+function subMetricBarColor(score: number): string {
+  if (score >= 75) return '#22c55e';
+  if (score >= 55) return '#84cc16';
+  if (score >= 35) return '#eab308';
+  if (score >= 20) return '#f97316';
+  return '#ef4444';
 }
 
 function getCardBackground(score: number): string {
@@ -336,7 +360,7 @@ const METRICS: MetricDef[] = [
     source: 'EPA',
     satKey: 'streetDesign',
     usOnly: true,
-    group: 'safety',
+    group: 'network',
     getScore: (_m, cs) => {
       const sdMetric = cs?.components.safety.metrics[0];
       return sdMetric ? sdMetric.score / 10 : 0;
@@ -379,12 +403,15 @@ const METRICS: MetricDef[] = [
   },
 ];
 
-function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
+function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetrics, streetCharacter, airQualityReading }: {
   def: MetricDef;
   score: number;
   isLoading: boolean;
   isExpanded: boolean;
   onClick: () => void;
+  subMetrics?: { name: string; score: number; rawValue?: string }[];
+  streetCharacter?: StreetCharacterAnalysis | null;
+  airQualityReading?: { pm25: number | null; category: string | null } | null;
 }) {
   const color = getScoreColor(score);
   const displayScore = score > 0 ? score.toFixed(1) : '—';
@@ -433,8 +460,51 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
             />
           </div>
 
+          {/* Live reading — shown for Air Quality */}
+          {def.key === 'airQuality' && airQualityReading && (
+            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+              {airQualityReading.pm25 !== null && (
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
+                  PM2.5: {airQualityReading.pm25.toFixed(1)} µg/m³
+                </span>
+              )}
+              {airQualityReading.category && (
+                <span style={{ fontSize: 12, fontWeight: 600, color: color, backgroundColor: `${color}18`, padding: '2px 8px', borderRadius: 4 }}>
+                  {airQualityReading.category}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Sub-metrics — shown for Street Grid */}
+          {subMetrics && subMetrics.length > 0 && (
+            <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {subMetrics.map(m => {
+                const label = SUB_METRIC_LABELS[m.name] ?? m.name;
+                const c = subMetricBarColor(m.score);
+                return (
+                  <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 120, fontSize: 12, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
+                      {label}
+                      {m.rawValue && <span style={{ color: '#8a9a8a', fontWeight: 400 }}> · {m.rawValue}</span>}
+                    </span>
+                    <div style={{ flex: 1, height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: '#ede8dd' }}>
+                      <div style={{ height: '100%', borderRadius: 3, width: `${Math.max(m.score, 2)}%`, backgroundColor: c, transition: 'width 0.5s' }} />
+                    </div>
+                    <span style={{ width: 28, textAlign: 'right', fontSize: 11, fontWeight: 700, color: c, flexShrink: 0 }}>{m.score}</span>
+                  </div>
+                );
+              })}
+              {streetCharacter && (
+                <div style={{ marginTop: 4, fontSize: 12, color: '#2a2010', lineHeight: 1.5 }}>
+                  {streetCharacter.assessment}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Inline context — always visible, no click required */}
-          {contextText && (
+          {!subMetrics && contextText && (
             <p style={{ color: '#1a3a1a', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
               {contextText}
             </p>
@@ -465,15 +535,32 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick }: {
   );
 }
 
-function MetricDetailPanel({ metricKey, score, icon, name }: {
+const SEASONAL_AQ_COUNTRIES = new Set(['th', 'mm', 'la', 'kh', 'vn', 'id']);
+const CHRONIC_AQ_COUNTRIES = new Set(['in', 'cn', 'pk', 'bd', 'ng']);
+
+function airQualitySeasonalNote(countryCode?: string): string | null {
+  if (!countryCode) return null;
+  const cc = countryCode.toLowerCase();
+  if (SEASONAL_AQ_COUNTRIES.has(cc)) {
+    return 'Seasonal burning periods (typically Feb–Apr in SE Asia) can push AQI to 200–400+. This score reflects readings at time of analysis and may not capture annual or worst-case conditions.';
+  }
+  if (CHRONIC_AQ_COUNTRIES.has(cc)) {
+    return 'This region frequently exceeds WHO annual PM2.5 guidelines. Scores can fluctuate significantly with season and local conditions.';
+  }
+  return null;
+}
+
+function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
   metricKey: string;
   score: number;
   icon: string;
   name: string;
+  countryCode?: string;
 }) {
   const detail = METRIC_DETAILS[metricKey];
   if (!detail) return null;
   const color = getScoreColor(score);
+  const seasonalNote = metricKey === 'airQuality' ? airQualitySeasonalNote(countryCode) : null;
 
   return (
     <div
@@ -514,6 +601,17 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
           </div>
         </div>
 
+        {seasonalNote && (
+          <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(245,158,11,0.07)', border: '1px solid #fde68a' }}>
+            <div className="font-bold uppercase mb-1" style={{ color: '#92400e', fontSize: '11px', letterSpacing: '0.08em' }}>
+              Seasonal variation
+            </div>
+            <div className="leading-relaxed" style={{ color: '#78350f', fontSize: '13px' }}>
+              {seasonalNote}
+            </div>
+          </div>
+        )}
+
         <div className="pt-2 border-t font-semibold" style={{ color: '#3d3020', borderColor: '#f0ebe0', fontSize: '13px' }}>
           Source: {detail.source}
         </div>
@@ -522,7 +620,7 @@ function MetricDetailPanel({ metricKey, score, icon, name }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, neighborhoodIntel, countryCode, mapillaryCoverageGap }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, countryCode, mapillaryCoverageGap, streetCharacter, streetCharacterLoading, airQualityReading }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
@@ -534,7 +632,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   };
 
   // Group metrics by component, preserving definition order within each group
-  const groups = (['network', 'environment', 'safety', 'density'] as const).map(groupKey => ({
+  const groups = (['network', 'environment', 'density'] as const).map(groupKey => ({
     groupKey,
     defs: visibleMetrics.filter(d => d.group === groupKey),
   })).filter(g => g.defs.length > 0);
@@ -569,6 +667,10 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
           const hasLoadingCards = cards.some(c => c.isLoading && !c.hidden);
           if (visibleCards.length === 0 && !hasLoadingCards) return null;
 
+          const networkTypeStyle = streetCharacter && groupKey === 'network'
+            ? (NETWORK_TYPE_STYLE[streetCharacter.type] ?? NETWORK_TYPE_STYLE['Mixed Pattern'])
+            : null;
+
           return (
             <div key={groupKey}>
               {/* Group header */}
@@ -577,11 +679,23 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
                 <span style={{ color: '#1a3a1a', letterSpacing: '0.1em', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' as const }}>
                   {groupMeta.label}
                 </span>
+                {networkTypeStyle && (
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, backgroundColor: networkTypeStyle.bg, color: networkTypeStyle.text }}>
+                    {streetCharacter!.type}
+                  </span>
+                )}
+                {streetCharacterLoading && groupKey === 'network' && !streetCharacter && (
+                  <div className="animate-pulse" style={{ height: 18, width: 90, background: '#d8d0c4', borderRadius: 4 }} />
+                )}
                 <div className="flex-1" style={{ height: '2px', backgroundColor: '#c4b59a' }} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {cards.filter(c => !c.hidden || c.isLoading).map(({ def, score, isLoading }) => (
+                {cards.filter(c => !c.hidden || c.isLoading).map(({ def, score, isLoading }) => {
+                  const streetGridSubMetrics = def.key === 'streetGrid'
+                    ? compositeScore?.components.networkDesign.metrics
+                    : undefined;
+                  return (
                   <MetricCardSimple
                     key={def.key}
                     def={def}
@@ -589,8 +703,12 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
                     isLoading={isLoading}
                     isExpanded={expandedMetric === def.key}
                     onClick={() => toggleMetric(def.key)}
+                    subMetrics={streetGridSubMetrics}
+                    streetCharacter={def.key === 'streetGrid' ? streetCharacter : undefined}
+                    airQualityReading={def.key === 'airQuality' ? airQualityReading : undefined}
                   />
-                ))}
+                  );
+                })}
               </div>
 
               {/* Expanded detail panel — appears directly below the expanded metric's group */}
@@ -604,6 +722,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
                       score={card.score}
                       icon={card.def.icon}
                       name={card.def.name}
+                      countryCode={countryCode}
                     />
                   </div>
                 );
@@ -613,31 +732,6 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
         })}
       </div>
 
-      {/* Neighborhood Intelligence */}
-      <NeighborhoodIntelSection neighborhoodIntel={neighborhoodIntel ?? null} />
-
-      {/* Equity Context */}
-      {demographicData && (
-        <div className="mt-8">
-          <EquityContextSection
-            demographicData={demographicData}
-            metrics={metrics}
-            compositeScore={compositeScore ?? null}
-            localEconomy={osmData ? analyzeLocalEconomy(osmData) : null}
-          />
-        </div>
-      )}
-
-      {/* Local Economy */}
-      {osmData && (
-        <div className="mt-8">
-          <EconomicContextSection
-            osmData={osmData}
-            demographicData={demographicData ?? null}
-            demographicLoading={demographicLoading ?? false}
-          />
-        </div>
-      )}
     </div>
   );
 }

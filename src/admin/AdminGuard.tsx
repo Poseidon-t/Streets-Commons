@@ -5,12 +5,19 @@ const ADMIN_USER_ID = import.meta.env.VITE_ADMIN_USER_ID;
 export default function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoaded, isSignedIn } = useUser();
 
-  if (!isLoaded) {
+  // Allow access on localhost in dev without waiting for Clerk
+  const isDev = import.meta.env.DEV && window.location.hostname === 'localhost';
+
+  if (!isLoaded && !isDev) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-lg text-gray-500">Loading...</div>
       </div>
     );
+  }
+
+  if (isDev && !isLoaded) {
+    return <>{children}</>;
   }
 
   if (!isSignedIn) {

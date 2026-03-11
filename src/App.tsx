@@ -2,9 +2,8 @@ import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import AddressInput from './components/streetcheck/AddressInput';
 import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
-import StreetNetworkPanel from './components/streetcheck/StreetNetworkPanel';
+import NeighborhoodProfile from './components/streetcheck/NeighborhoodProfile';
 import PersonaCards from './components/streetcheck/PersonaCards';
-import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
 import Map from './components/Map';
@@ -125,6 +124,7 @@ function App() {
   const [streetCharacter, setStreetCharacter] = useState<StreetCharacterAnalysis | null>(null);
   const [streetCharacterLoading, setStreetCharacterLoading] = useState(false);
   const [mapillaryCoverageGap, setMapillaryCoverageGap] = useState(false);
+  const [airQualityReading, setAirQualityReading] = useState<{ pm25: number | null; category: string | null } | null>(null);
   const [mapillaryIntel, setMapillaryIntel] = useState<MapillaryIntelligence | null>(null);
   const [mapillaryIntelLoading, setMapillaryIntelLoading] = useState(false);
   const [satelliteVision, setSatelliteVision] = useState<SatelliteVisionAnalysis | null>(null);
@@ -307,6 +307,7 @@ function App() {
     setStreetCharacterLoading(false);
     setDemographicData(null);
     setMapillaryCoverageGap(false);
+    setAirQualityReading(null);
     setMapillaryIntel(null);
     setMapillaryIntelLoading(false);
     setSatelliteVision(null);
@@ -605,6 +606,7 @@ function App() {
     promises.airQuality.then(result => {
       if (result) {
         extra.airQuality = result.score * 10; // 0-10 → 0-100
+        setAirQualityReading({ pm25: result.pm25 ?? null, category: result.category ?? null });
       }
       markLoaded('airQuality');
       recalc();
@@ -1528,9 +1530,6 @@ function App() {
               satelliteVision={satelliteVision}
             />
 
-            {/* ACT 2 — Component scores: what drives this result */}
-            <ComponentHighlight compositeScore={compositeScore} />
-
             {/* ACT 3 divider */}
             <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 6px' }}>
               <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
@@ -1545,56 +1544,41 @@ function App() {
 
             {/* Metrics Grid */}
             <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} neighborhoodIntel={neighborhoodIntel} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} />
+              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} />
             </div>
 
-            {/* Street Network Analysis — free for all */}
-            {compositeScore?.components.networkDesign && (
-              <StreetNetworkPanel
-                networkDesign={compositeScore.components.networkDesign}
-                streetCharacter={streetCharacter}
-                streetCharacterLoading={streetCharacterLoading}
-              />
-            )}
+            {/* Neighbourhood Profile — daily life, local economy, community */}
+            <NeighborhoodProfile
+              neighborhoodIntel={neighborhoodIntel ?? null}
+              demographicData={demographicData ?? null}
+              metrics={metrics}
+              compositeScore={compositeScore ?? null}
+              osmData={osmData ?? null}
+            />
 
-            {/* Street Audit CTA */}
-            <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
-                  Want to take action on this analysis?
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
-                  Generate a structured report to share with landlords, property managers, or local authorities
-                </div>
+            {/* Take action — merged CTA */}
+            <div className="retro-card" style={{ padding: '14px 18px' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a', marginBottom: 10 }}>
+                Take action on this analysis
               </div>
-              <button
-                onClick={() => {
-                  if (!isSignedIn) { setShowSignInModal(true); return; }
-                  if (!canGenerateAgentReport(user)) { setShowProUpgradeModal(true); return; }
-                  setShowAuditTool(true);
-                }}
-                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
-              >
-                Generate report →
-              </button>
-            </div>
-
-            {/* Advocacy Letter CTA */}
-            <div className="retro-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14, padding: '14px 18px' }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
-                  Share this with your local council
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 500, color: '#2a2010', marginTop: 2 }}>
-                  Generate a letter pre-filled with your walkability data to send to local representatives
-                </div>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
+                <button
+                  onClick={() => {
+                    if (!isSignedIn) { setShowSignInModal(true); return; }
+                    if (!canGenerateAgentReport(user)) { setShowProUpgradeModal(true); return; }
+                    setShowAuditTool(true);
+                  }}
+                  style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
+                >
+                  Generate report →
+                </button>
+                <button
+                  onClick={() => setShowAdvocacyLetter(true)}
+                  style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
+                >
+                  Write to council →
+                </button>
               </div>
-              <button
-                onClick={() => setShowAdvocacyLetter(true)}
-                style={{ flexShrink: 0, padding: '6px 14px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
-              >
-                Write letter →
-              </button>
             </div>
 
             {/* Advocacy Letter modal */}

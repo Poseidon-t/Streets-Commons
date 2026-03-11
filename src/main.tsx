@@ -50,6 +50,7 @@ const ContentQueue = lazy(() => import('./admin/ContentQueue'))
 const SalesPipeline = lazy(() => import('./admin/SalesPipeline'))
 const InfographicGenerator = lazy(() => import('./admin/InfographicGenerator'))
 const RedditMonitor = lazy(() => import('./admin/RedditMonitor'))
+const SketchGenerator = lazy(() => import('./admin/SketchGenerator'))
 
 // Import Clerk publishable key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -117,6 +118,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="infographics" element={<InfographicGenerator />} />
             <Route path="sales-pipeline" element={<SalesPipeline />} />
             <Route path="reddit-monitor" element={<RedditMonitor />} />
+            <Route path="sketch" element={<SketchGenerator />} />
           </Route>
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
