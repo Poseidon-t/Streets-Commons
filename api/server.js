@@ -1999,7 +1999,7 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
     const withTimeout = (promise, ms, fallback) =>
       Promise.race([promise, new Promise(resolve => setTimeout(() => resolve(fallback), ms))]);
 
-    const [ndviResult, fccResult, floodResult, popResult, epaResult, greeneryResult] = await Promise.allSettled([
+    const [ndviResult, fccResult, floodResult, popResult, epaResult, greeneryResult, planningResult] = await Promise.allSettled([
       // Sentinel-2 NDVI tree canopy (45s timeout)
       withTimeout((async () => {
         try {
@@ -2222,6 +2222,13 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
           return await fetchGroundTruthGreenery(lat, lon, locationName);
         } catch (e) { console.warn('⚠️  Ground truth greenery failed:', e.message); return null; }
       })(), 45000, null),
+
+      // City planning context -- Cloudflare /crawl of city gov site (60s poll budget, skipped if CF creds absent)
+      withTimeout((async () => {
+        try {
+          return await fetchCityPlanningContext(city, state, neighborhood);
+        } catch (e) { console.warn('⚠️  City planning context failed:', e.message); return null; }
+      })(), 65000, null),
     ]);
 
     // Track validation metadata for report health check
@@ -2454,6 +2461,9 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       compositeScore: { overallScore: overallScore * 10, grade, components: [] },
       dataQuality: { crossingCount: crossings.length, streetCount: streets.length, sidewalkCount: sidewalks.length, poiCount: pois.length, confidence: streets.length > 50 ? 'high' : streets.length > 20 ? 'medium' : 'low' },
       neighborhoodIntel,
+      planningContext: planningResult?.status === 'fulfilled' && planningResult.value?.insights?.length > 0
+        ? planningResult.value
+        : null,
       agentProfile,
       percentile,
       // Report health metadata for admin validation
@@ -4305,6 +4315,119 @@ Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find
     return result;
   } catch (e) {
     console.warn(`  Ground truth greenery failed: ${e.message}`);
+    return null;
+  }
+}
+
+// =====================
+// CITY PLANNING CONTEXT (Cloudflare /crawl prototype)
+// Crawls city gov transportation/planning pages and extracts walkability-relevant insights.
+// Requires CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN env vars — gracefully skipped if absent.
+// Docs: https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/
+// =====================
+
+async function fetchCityPlanningContext(city, state, neighborhood) {
+  const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const cfApiToken = process.env.CLOUDFLARE_API_TOKEN;
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+
+  if (!cfAccountId || !cfApiToken || !anthropicKey) return null;
+
+  try {
+    // Step 1: Ask Claude Haiku for the most likely city transportation/planning URL
+    const urlRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 100,
+        messages: [{ role: 'user', content: `What is the official city government website URL for the transportation or public works department of ${city}, ${state}? Reply with ONLY the URL (e.g. https://cityname.gov/transportation), nothing else. If unsure, give the city's main .gov homepage.` }],
+      }),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!urlRes.ok) return null;
+    const urlData = await urlRes.json();
+    const cityUrl = urlData.content?.[0]?.text?.trim().replace(/['"]/g, '');
+    if (!cityUrl || !cityUrl.startsWith('http')) return null;
+
+    console.log(`  🏙️  City planning context: crawling ${cityUrl}`);
+
+    // Step 2: Submit Cloudflare crawl job (render: false = fast static fetch, free in beta)
+    const crawlRes = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/browser-rendering/crawl`,
+      {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${cfApiToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: cityUrl, render: false, maxDepth: 2, maxPages: 12, responseFormat: 'markdown' }),
+        signal: AbortSignal.timeout(15000),
+      }
+    );
+    if (!crawlRes.ok) {
+      console.warn(`  ⚠️  Cloudflare crawl submission failed: ${crawlRes.status}`);
+      return null;
+    }
+    const crawlData = await crawlRes.json();
+    const jobId = crawlData.id || crawlData.result?.id;
+    if (!jobId) return null;
+
+    // Step 3: Poll for results — up to 60s (12 polls × 5s)
+    const pollUrl = `https://api.cloudflare.com/client/v4/accounts/${cfAccountId}/browser-rendering/crawl/${jobId}`;
+    const pollHeaders = { 'Authorization': `Bearer ${cfApiToken}` };
+    let pages = null;
+
+    for (let i = 0; i < 12; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const pollRes = await fetch(pollUrl, { headers: pollHeaders, signal: AbortSignal.timeout(8000) });
+      if (!pollRes.ok) break;
+      const pollData = await pollRes.json();
+      const status = pollData.status || pollData.result?.status;
+      if (status === 'complete' || status === 'completed') {
+        pages = pollData.result || pollData.pages || pollData.results;
+        break;
+      }
+      if (status === 'failed' || status === 'error') break;
+    }
+
+    if (!pages || !Array.isArray(pages) || pages.length === 0) return null;
+
+    // Step 4: Concatenate markdown content, capped at 18k chars
+    const content = pages
+      .map(p => `## ${p.url || ''}\n${p.content || p.markdown || ''}`)
+      .join('\n\n')
+      .slice(0, 18000);
+
+    console.log(`  ✅ Cloudflare crawl: ${pages.length} pages fetched from ${cityUrl}`);
+
+    // Step 5: Extract walkability insights via Claude Haiku
+    const extractRes = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: `You are analyzing city government website content for a walkability report for ${neighborhood ? `${neighborhood}, ` : ''}${city}, ${state}.\n\nFrom the content below, extract walkability-relevant information. Focus on:\n- Pedestrian safety programs or active projects\n- Bike lane, sidewalk, or crosswalk improvements\n- Transit expansions or improvements\n- Vision Zero or road safety goals\n- Park or green space investments\n\nReturn ONLY valid JSON:\n{\n  "insights": ["2-4 short, specific findings as complete sentences"],\n  "projects": ["named active programs or projects, if any — max 3"],\n  "confidence": "high|medium|low"\n}\n\nIf the content is generic, off-topic, or has no walkability info, return { "insights": [], "projects": [], "confidence": "low" }.\n\nContent:\n${content}` }],
+      }),
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!extractRes.ok) return null;
+    const extractData = await extractRes.json();
+    const rawText = extractData.content?.[0]?.text?.trim();
+    if (!rawText) return null;
+
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) return null;
+    const parsed = JSON.parse(jsonMatch[0]);
+    if (!Array.isArray(parsed.insights)) return null;
+
+    return {
+      insights: parsed.insights.slice(0, 4),
+      projects: (parsed.projects || []).slice(0, 3),
+      confidence: ['high', 'medium', 'low'].includes(parsed.confidence) ? parsed.confidence : 'low',
+      crawledUrl: cityUrl,
+      pagesFound: pages.length,
+    };
+  } catch (err) {
+    console.warn('  ⚠️  City planning context fetch failed:', err.message);
     return null;
   }
 }
@@ -6788,13 +6911,16 @@ if (distPath) {
     },
   }));
 
-  // SPA fallback - serve index.html for non-API, non-asset routes (no cache)
+  // SPA fallback - domain-aware: streetsandcommons.com → landing page, all else → SafeStreets app
   // Assets must NOT fall through here — missing hashed assets should 404,
   // not return index.html (which causes MIME type errors in the browser).
   app.use((req, res, next) => {
     if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/assets/')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.sendFile(path.join(distPath, 'index.html'));
+      const host = req.hostname || '';
+      const isLandingDomain = host === 'streetsandcommons.com' || host === 'www.streetsandcommons.com';
+      const htmlFile = isLandingDomain ? 'streetscommons.html' : 'index.html';
+      res.sendFile(path.join(distPath, htmlFile));
     } else {
       next();
     }

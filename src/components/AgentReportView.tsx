@@ -44,12 +44,21 @@ interface GroundTruthGreenery {
   knownFeatures?: string[];
 }
 
+interface PlanningContext {
+  insights: string[];
+  projects: string[];
+  confidence: 'high' | 'medium' | 'low';
+  crawledUrl: string;
+  pagesFound: number;
+}
+
 interface AgentReportData {
   location: Location;
   metrics: WalkabilityMetrics;
   compositeScore?: WalkabilityScoreV2;
   dataQuality?: DataQuality;
   neighborhoodIntel?: NeighborhoodIntelligence;
+  planningContext?: PlanningContext | null;
   agentProfile: AgentProfile;
   percentile?: PercentileData | null;
   reportHealth?: ReportHealth;
@@ -870,6 +879,36 @@ export default function AgentReportView() {
               </div>
             );
           })()}
+
+          {/* Local Planning Context — shown only when Cloudflare crawl data is available */}
+          {data.planningContext && data.planningContext.insights.length > 0 && (
+            <div style={{ marginBottom: '2.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Local Planning Context</h2>
+              <p style={{ fontSize: '0.8125rem', color: C.textLight, marginBottom: '1rem' }}>Sourced from city government — active projects and pedestrian safety programs.</p>
+              <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: 'white' }}>
+                <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {data.planningContext.insights.map((insight, i) => (
+                    <li key={i} style={{ display: 'flex', gap: '0.625rem', fontSize: '0.8125rem', color: C.textMuted, lineHeight: 1.5 }}>
+                      <span style={{ color: C.accent, fontWeight: 700, flexShrink: 0 }}>·</span>
+                      {insight}
+                    </li>
+                  ))}
+                </ul>
+                {data.planningContext.projects.length > 0 && (
+                  <div style={{ marginTop: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    {data.planningContext.projects.map((project, i) => (
+                      <span key={i} style={{ display: 'inline-block', padding: '0.25rem 0.625rem', borderRadius: '9999px', fontSize: '0.6875rem', fontWeight: 600, background: 'rgba(30,58,95,0.08)', color: C.accent }}>
+                        {project}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div style={{ fontSize: '0.625rem', color: C.textLight, marginTop: '0.75rem', borderTop: `1px solid ${C.border}`, paddingTop: '0.375rem' }}>
+                  City Gov Website · {data.planningContext.pagesFound} pages crawled
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* About this report */}
           <div style={{ marginBottom: '2.5rem' }}>
