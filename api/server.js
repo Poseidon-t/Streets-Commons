@@ -6917,8 +6917,8 @@ if (distPath) {
   app.use((req, res, next) => {
     if (req.method === 'GET' && !req.path.startsWith('/api/') && !req.path.startsWith('/assets/')) {
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      const host = req.hostname || '';
-      const isLandingDomain = host === 'streetsandcommons.com' || host === 'www.streetsandcommons.com';
+      const host = (req.headers['x-forwarded-host'] || req.hostname || '').toString().split(',')[0].trim().toLowerCase();
+      const isLandingDomain = (host.includes('streetsandcommons') && !host.includes('safestreets'));
       const htmlFile = isLandingDomain ? 'streetscommons.html' : 'index.html';
       res.sendFile(path.join(distPath, htmlFile));
     } else {
