@@ -215,7 +215,7 @@ function NeighborhoodSketch({
   innerRef,
 }: {
   params: SketchParams;
-  innerRef?: React.RefObject<SVGSVGElement>;
+  innerRef?: React.RefObject<SVGSVGElement | null>;
 }) {
   const tier =
     params.overallScore >= 8 ? 'WALKABLE' :
