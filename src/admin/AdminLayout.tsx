@@ -4,10 +4,10 @@ import AdminGuard from './AdminGuard';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', end: true },
+  { to: '/admin/crm', label: 'Sales CRM', end: false },
   { to: '/admin/content-queue', label: 'Content Queue', end: false },
   { to: '/admin/blog', label: 'Blog Posts', end: false },
   { to: '/admin/infographics', label: 'Infographics', end: false },
-  { to: '/admin/sales-pipeline', label: 'Sales Pipeline', end: false },
   { to: '/admin/sketch', label: 'Sketch Lab', end: false },
   { to: '/admin/theme', label: 'Landing Theme', end: false },
 ];

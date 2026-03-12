@@ -2253,19 +2253,26 @@ async function generateReportForLocation(neighborhood, city, state, agentProfile
       _validation.treeCanopy = { status: 'failed', imageDate: null, cloudCover: null, peakRank: null, ndvi: null };
     }
 
-    // Ground-truth knowledge assessment: Claude primary, NDVI as fallback
-    // Claude scores are more accurate for pedestrian experience in dense urban areas.
-    // NDVI only used when Claude is unavailable or has low confidence.
+    // Ground-truth knowledge assessment: blend Claude + NDVI for robustness.
+    // Claude can underestimate due to aggregate city-level canopy data (not pedestrian level);
+    // NDVI can underestimate in dense urban areas due to building shadows suppressing the green signal.
+    // Blending the two signals is more stable than choosing one winner.
     let groundTruthData = null;
     const ndviOnlyScore = treeCanopyScore;
     if (greeneryResult.status === 'fulfilled' && greeneryResult.value?.score != null) {
       groundTruthData = greeneryResult.value;
-      if (groundTruthData.confidence === 'high' || groundTruthData.confidence === 'medium') {
-        // Claude knows this area -- use its score directly
-        treeCanopyScore = groundTruthData.score;
-        console.log(`  🌳 Tree Canopy: Claude ${treeCanopyScore}/10 (${groundTruthData.confidence}) | NDVI ${ndviOnlyScore}/10 (fallback only)`);
+      if (groundTruthData.confidence === 'high') {
+        // High confidence: trust Claude almost entirely.
+        // NDVI is structurally unreliable in dense urban areas — satellite sees concrete/rooftops,
+        // not street trees and nearby parks. Claude correctly accounts for pedestrian-accessible greenery.
+        treeCanopyScore = Math.round((groundTruthData.score * 0.90 + ndviOnlyScore * 0.10) * 10) / 10;
+        console.log(`  🌳 Tree Canopy: blend ${treeCanopyScore}/10 (Claude ${groundTruthData.score} × 0.90 + NDVI ${ndviOnlyScore} × 0.10, high confidence)`);
+      } else if (groundTruthData.confidence === 'medium') {
+        // Medium confidence: lean on Claude, NDVI as minor signal only
+        treeCanopyScore = Math.round((groundTruthData.score * 0.70 + ndviOnlyScore * 0.30) * 10) / 10;
+        console.log(`  🌳 Tree Canopy: blend ${treeCanopyScore}/10 (Claude ${groundTruthData.score} × 0.70 + NDVI ${ndviOnlyScore} × 0.30, medium confidence)`);
       } else {
-        // Low confidence -- fall back to NDVI
+        // Low confidence -- fall back to NDVI entirely
         console.log(`  🌳 Tree Canopy: NDVI ${ndviOnlyScore}/10 (Claude low confidence: ${groundTruthData.score}/10)`);
       }
     }
@@ -4223,16 +4230,20 @@ After researching, return ONLY valid JSON (no other text, no markdown):
   "knownFeatures": ["feature1", "feature2", "feature3", "feature4", "feature5"]
 }
 
-Scoring guide:
+Scoring guide (pedestrian experience, NOT city-level % canopy stats):
 0-1: Industrial/highway, no vegetation
 2-3: Dense commercial core, concrete canyon, very few street trees (Times Square, downtown parking lots)
-4-5: Some street trees but inconsistent, limited shade
-6-7: Good tree coverage, shade on most blocks, parks nearby, pleasant walking
-7-8: Well-treed neighborhood, tree-lined streets, multiple parks, Walk Score 90+
+4-5: Some street trees but inconsistent, limited shade, no parks within 5 min walk
+5-6: Moderate street trees, a small park or green space accessible on foot — typical urban residential
+6-7: Good tree coverage, shade on most blocks, park within 3 min walk, pleasant walking
+7-8: Well-treed neighborhood, tree-lined streets, multiple parks or green corridors, Walk Score 90+
 8-9: Exceptional canopy, famous for trees, continuous shade
 9-10: World-class urban forest (Savannah historic district, old-growth urban areas)
 
-Your score must reflect the ACTUAL WALKING EXPERIENCE based on the data you find. Trust Walk Score, tree canopy percentages, and neighborhood descriptions over any single photo.`
+IMPORTANT: Base this on the PEDESTRIAN WALKING EXPERIENCE, not aggregate city canopy % statistics.
+A neighborhood with a nearby park or planted median boulevard scores higher than raw canopy % suggests.
+A 15-20% canopy cover with good street trees and a pocket park = 5-6, not 3-4.
+Trust neighbourhood-level descriptions over city-wide averages.`
       }],
     };
 
@@ -7185,4 +7196,59 @@ app.listen(PORT, () => {
   console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);
   console.log(`   🪝 Stripe Webhook: POST /api/stripe-webhook ${process.env.STRIPE_WEBHOOK_SECRET ? '(configured)' : '(needs STRIPE_WEBHOOK_SECRET)'}`);
   console.log(`   📬 Contact Inquiry: POST /api/contact-inquiry ${process.env.SMTP_HOST ? '(email configured)' : '(console-only)'}\n`);
+});
+
+// ─── CRM Leads ─────────────────────────────────────────────────────────────
+
+const CRM_FILE = path.join(__dirname, '..', 'data', 'crm-leads.json');
+
+function loadCrmLeads() {
+  try {
+    return JSON.parse(fs.readFileSync(CRM_FILE, 'utf8'));
+  } catch {
+    return [];
+  }
+}
+
+function saveCrmLeads(leads) {
+  fs.mkdirSync(path.dirname(CRM_FILE), { recursive: true });
+  fs.writeFileSync(CRM_FILE, JSON.stringify(leads, null, 2));
+}
+
+app.get('/api/admin/crm/leads', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadCrmLeads();
+  res.json({ leads, count: leads.length });
+});
+
+app.post('/api/admin/crm/leads', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadCrmLeads();
+  const lead = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    createdAt: new Date().toISOString(),
+    ...req.body,
+  };
+  leads.push(lead);
+  saveCrmLeads(leads);
+  res.json({ lead });
+});
+
+app.put('/api/admin/crm/leads/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadCrmLeads();
+  const idx = leads.findIndex(l => l.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+  leads[idx] = { ...leads[idx], ...req.body, id: req.params.id };
+  saveCrmLeads(leads);
+  res.json({ lead: leads[idx] });
+});
+
+app.delete('/api/admin/crm/leads/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadCrmLeads();
+  const filtered = leads.filter(l => l.id !== req.params.id);
+  if (filtered.length === leads.length) return res.status(404).json({ error: 'Lead not found' });
+  saveCrmLeads(filtered);
+  res.json({ ok: true });
 });
