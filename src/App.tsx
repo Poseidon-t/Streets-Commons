@@ -4,6 +4,7 @@ import ScoreCard from './components/streetcheck/ScoreCard';
 import MetricGrid from './components/streetcheck/MetricGrid';
 import NeighborhoodProfile from './components/streetcheck/NeighborhoodProfile';
 import PersonaCards from './components/streetcheck/PersonaCards';
+import StreetPortrait from './components/StreetPortrait';
 import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
 import Map from './components/Map';
@@ -1520,6 +1521,12 @@ function App() {
 
             {/* ACT 1 — Persona verdicts */}
             <PersonaCards compositeScore={compositeScore} />
+
+            {/* Street Portrait — NACTO-style illustration for this walkability tier */}
+            <StreetPortrait
+              score={compositeScore ? compositeScore.overallScore / 10 : metrics.overallScore}
+              locationName={location?.displayName}
+            />
 
             {/* ACT 2 — Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
             <GroundRealityCard

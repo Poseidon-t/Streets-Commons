@@ -1,6 +1,6 @@
 {
   "name": "safestreets-api",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Backend API for SafeStreets - Free data sources (NASA POWER, OpenAQ, OpenStreetMap)",
   "main": "server.js",
   "type": "module",
