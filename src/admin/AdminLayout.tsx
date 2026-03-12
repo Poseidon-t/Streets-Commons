@@ -9,6 +9,7 @@ const navItems = [
   { to: '/admin/infographics', label: 'Infographics', end: false },
   { to: '/admin/sales-pipeline', label: 'Sales Pipeline', end: false },
   { to: '/admin/sketch', label: 'Sketch Lab', end: false },
+  { to: '/admin/theme', label: 'Landing Theme', end: false },
 ];
 
 export default function AdminLayout() {

@@ -7135,6 +7135,36 @@ app.post('/api/admin/reddit/clear', async (req, res) => {
   }
 });
 
+// ── Landing Page Theme ────────────────────────────────────────────────────────
+const THEME_FILE = path.join(__dirname, '..', 'data', 'landing-theme.json');
+
+function loadTheme() {
+  try {
+    if (fs.existsSync(THEME_FILE)) return JSON.parse(fs.readFileSync(THEME_FILE, 'utf8'));
+  } catch {}
+  return { theme: 'A' };
+}
+
+function saveTheme(data) {
+  fs.writeFileSync(THEME_FILE, JSON.stringify(data, null, 2));
+}
+
+// GET /api/landing-theme — public, read by landing page
+app.get('/api/landing-theme', (req, res) => {
+  res.json(loadTheme());
+});
+
+// POST /api/admin/landing-theme — admin only
+app.post('/api/admin/landing-theme', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const { theme } = req.body;
+  if (!['A', 'B', 'C', 'D'].includes(theme)) {
+    return res.status(400).json({ error: 'Invalid theme. Must be A, B, C, or D.' });
+  }
+  saveTheme({ theme });
+  res.json({ success: true, theme });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`\n🚀 SafeStreets API Server`);

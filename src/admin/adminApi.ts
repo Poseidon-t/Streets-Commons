@@ -28,6 +28,7 @@ export function useAdminApi() {
   }
 
   return {
+    adminFetch,
     // Blog
     fetchAdminPosts: () => adminFetch('/api/admin/blog/posts'),
     fetchAdminPost: (slug: string) => adminFetch(`/api/admin/blog/posts/${slug}`),
