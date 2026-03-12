@@ -69,7 +69,7 @@ export default function StreetsCommons() {
           background: C.accent, clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0% 100%)',
         }} />
         <div style={{ position: 'relative', zIndex: 1, padding: '5rem 2rem 5rem', maxWidth: '700px' }}>
-          <div style={overline(C)}>Est. 2024 — Urban Research & Action</div>
+          <div style={overline(C)}>Est. 2026 — Urban Research & Action</div>
           <h1 style={{ fontSize: 'clamp(2.75rem, 6vw, 5.5rem)', fontWeight: 900, lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em', color: C.light, margin: '0 0 2rem' }}>
             The Street<br />Belongs to<br /><span style={{ color: C.accent }}>Everyone.</span>
           </h1>
