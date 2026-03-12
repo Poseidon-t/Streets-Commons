@@ -6903,7 +6903,9 @@ if (distPath) {
   }));
 
   // All other static files - no cache to prevent stale index.html
+  // index: false so that / requests fall through to the domain-aware SPA fallback below
   app.use(express.static(distPath, {
+    index: false,
     setHeaders: (res, filePath) => {
       if (filePath.endsWith('.html')) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
