@@ -347,7 +347,7 @@ export default function ReportView() {
 
           {/* Street Portrait */}
           <div className="mb-8">
-            <StreetPortrait score={displayScore} locationName={location?.name} />
+            <StreetPortrait score={displayScore} locationName={location?.displayName} />
           </div>
 
           {/* Key findings — 2 col grid */}
