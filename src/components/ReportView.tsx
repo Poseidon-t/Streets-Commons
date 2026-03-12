@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Location, WalkabilityMetrics, DataQuality, WalkabilityScoreV2 } from '../types';
 import WalkerInfographic from './WalkerInfographic';
+import StreetPortrait from './StreetPortrait';
 
 // ---- types ------------------------------------------------------------------
 
@@ -342,6 +343,11 @@ export default function ReportView() {
           {/* Walker infographic */}
           <div className="mb-8">
             <WalkerInfographic score={displayScore} />
+          </div>
+
+          {/* Street Portrait */}
+          <div className="mb-8">
+            <StreetPortrait score={displayScore} locationName={location?.name} />
           </div>
 
           {/* Key findings — 2 col grid */}
