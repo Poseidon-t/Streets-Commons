@@ -651,6 +651,95 @@ function mapToStreetAttributes(tags: any, osmId?: number): StreetAttributes {
   };
 }
 
+// ── Building/park/water geometry for map overlay ────────────────────────────
+
+export interface MapGeometry {
+  buildings: Array<{ coords: [number, number][][]; name?: string }>;
+  parks: Array<{ coords: [number, number][][]; name?: string }>;
+  water: Array<{ coords: [number, number][][]; name?: string; type: string }>;
+  waterways: Array<{ coords: [number, number][]; name?: string; type: string }>;
+}
+
+export async function fetchMapGeometry(lat: number, lon: number, radius = 500): Promise<MapGeometry> {
+  const query = `[out:json][timeout:20];
+(
+  way(around:${radius},${lat},${lon})["building"];
+  way(around:${radius},${lat},${lon})["leisure"~"^(park|garden|playground)$"];
+  way(around:${radius},${lat},${lon})["natural"="water"];
+  way(around:${radius},${lat},${lon})["water"];
+  way(around:${radius},${lat},${lon})["waterway"~"^(river|stream|canal)$"];
+);
+out body; >; out skel qt;`;
+
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  let data: any;
+
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
+    const res = await fetch(`${apiUrl}/api/overpass`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+      signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    if (res.ok) { const json = await res.json(); data = json.data; }
+    else throw new Error('proxy failed');
+  } catch {
+    try { data = await queryOverpassDirect(query); } catch { /* all failed */ }
+  }
+
+  const empty: MapGeometry = { buildings: [], parks: [], water: [], waterways: [] };
+  if (!data) return empty;
+
+  const elements = data.elements || [];
+  const nodeMap = new Map<string, [number, number]>();
+  for (const el of elements) {
+    if (el.type === 'node' && el.lat !== undefined) {
+      nodeMap.set(el.id.toString(), [el.lon, el.lat]); // GeoJSON = [lon, lat]
+    }
+  }
+
+  const resolveCoords = (nodeIds: number[]): [number, number][] => {
+    const coords: [number, number][] = [];
+    for (const nid of nodeIds) {
+      const c = nodeMap.get(nid.toString());
+      if (c) coords.push(c);
+    }
+    return coords;
+  };
+
+  const result: MapGeometry = { buildings: [], parks: [], water: [], waterways: [] };
+
+  for (const el of elements) {
+    if (el.type !== 'way' || !el.nodes || el.nodes.length < 2) continue;
+
+    if (el.tags?.waterway) {
+      const coords = resolveCoords(el.nodes);
+      if (coords.length >= 2) result.waterways.push({ coords, name: el.tags.name, type: el.tags.waterway });
+      continue;
+    }
+    if (el.nodes.length < 3) continue;
+
+    const coords = resolveCoords(el.nodes);
+    if (coords.length < 3) continue;
+    // Ensure polygon is closed
+    const ring = [...coords];
+    if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) ring.push(ring[0]);
+
+    if (el.tags?.natural === 'water' || el.tags?.water) {
+      result.water.push({ coords: [ring], name: el.tags.name, type: el.tags.water || 'water' });
+    } else if (el.tags?.building) {
+      result.buildings.push({ coords: [ring], name: el.tags.name });
+    } else if (['park', 'garden', 'playground'].includes(el.tags?.leisure)) {
+      result.parks.push({ coords: [ring], name: el.tags.name });
+    }
+  }
+
+  return result;
+}
+
 export async function fetchNearestStreetDetails(
   lat: number,
   lon: number,

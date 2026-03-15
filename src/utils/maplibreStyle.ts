@@ -49,15 +49,15 @@ const MAP_RAIL_CLASSES = ['rail','transit'];
 
 const MAP_WATERWAY_WIDTH_STOPS: [number,number][] = [[0,.2],[6,.34],[12,.8],[18,2.4]];
 const MAP_RAIL_WIDTH_STOPS: [number,number][] = [[3,.4],[6,.7],[10,1],[18,1.5]];
-const MAP_ROAD_MINOR_HIGH_OVERVIEW: [number,number][] = [[0,.1],[4,.18],[8,.3],[11,.46]];
-const MAP_ROAD_MINOR_MID_OVERVIEW: [number,number][] = [[0,.08],[4,.14],[8,.24],[11,.36]];
-const MAP_ROAD_MINOR_LOW_OVERVIEW: [number,number][] = [[0,.06],[4,.1],[8,.18],[11,.3]];
-const MAP_ROAD_MINOR_HIGH_DETAIL: [number,number][] = [[6,.46],[10,.8],[14,1.48],[18,2.7]];
-const MAP_ROAD_MINOR_MID_DETAIL: [number,number][] = [[6,.34],[10,.62],[14,1.2],[18,2.35]];
-const MAP_ROAD_MINOR_LOW_DETAIL: [number,number][] = [[6,.24],[10,.44],[14,.84],[18,1.65]];
-const MAP_ROAD_PATH_OVERVIEW: [number,number][] = [[5,.06],[8,.1],[11,.2]];
-const MAP_ROAD_PATH_DETAIL: [number,number][] = [[8,.2],[12,.42],[16,.85],[18,1.3]];
-const MAP_ROAD_MAJOR_WIDTH: [number,number][] = [[0,.36],[3,.52],[9,1.1],[14,2.05],[18,3.3]];
+const MAP_ROAD_MINOR_HIGH_OVERVIEW: [number,number][] = [[0,.2],[4,.4],[8,.7],[11,1.0]];
+const MAP_ROAD_MINOR_MID_OVERVIEW: [number,number][] = [[0,.14],[4,.28],[8,.5],[11,.7]];
+const MAP_ROAD_MINOR_LOW_OVERVIEW: [number,number][] = [[0,.1],[4,.2],[8,.36],[11,.55]];
+const MAP_ROAD_MINOR_HIGH_DETAIL: [number,number][] = [[6,1.0],[10,1.8],[14,3.2],[18,5.5]];
+const MAP_ROAD_MINOR_MID_DETAIL: [number,number][] = [[6,.7],[10,1.3],[14,2.5],[18,4.5]];
+const MAP_ROAD_MINOR_LOW_DETAIL: [number,number][] = [[6,.5],[10,1.0],[14,1.8],[18,3.2]];
+const MAP_ROAD_PATH_OVERVIEW: [number,number][] = [[5,.1],[8,.2],[11,.4]];
+const MAP_ROAD_PATH_DETAIL: [number,number][] = [[8,.4],[12,.8],[16,1.5],[18,2.2]];
+const MAP_ROAD_MAJOR_WIDTH: [number,number][] = [[0,.6],[3,1.0],[9,2.2],[14,4.0],[18,6.5]];
 
 function widthExpr(stops: [number,number][]): any {
   return ['interpolate',['linear'],['zoom'],...stops.flat()];
@@ -116,74 +116,95 @@ export function generateMapStyle(theme: MapTheme): StyleSpecification {
           'line-opacity': opacityExpr([[0,.56],[12,.62],[18,.72]]), 'line-dasharray': [2,1.6] },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
 
-      // Road overview (thin lines at low zoom)
+      // Road overview (visible lines at low zoom)
       { id: 'road-minor-overview-high', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 0, maxzoom: 11.8, filter: lineFilter(MAP_ROAD_MINOR_HIGH_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_high, 'line-width': widthExpr(MAP_ROAD_MINOR_HIGH_OVERVIEW),
-          'line-opacity': opacityExpr([[0,.66],[8,.76],[12,0]]) },
+          'line-opacity': opacityExpr([[0,.8],[8,.9],[12,0]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-overview-mid', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 0, maxzoom: 11.8, filter: lineFilter(MAP_ROAD_MINOR_MID_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_mid, 'line-width': widthExpr(MAP_ROAD_MINOR_MID_OVERVIEW),
-          'line-opacity': opacityExpr([[0,.46],[8,.56],[12,0]]) },
+          'line-opacity': opacityExpr([[0,.65],[8,.75],[12,0]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-overview-low', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 0, maxzoom: 11.8, filter: lineFilter(MAP_ROAD_MINOR_LOW_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_low, 'line-width': widthExpr(MAP_ROAD_MINOR_LOW_OVERVIEW),
-          'line-opacity': opacityExpr([[0,.26],[8,.34],[12,0]]) },
+          'line-opacity': opacityExpr([[0,.5],[8,.6],[12,0]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-path-overview', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 5, maxzoom: 11.8, filter: lineFilter(MAP_ROAD_PATH_CLASSES),
         paint: { 'line-color': theme.map.roads.path, 'line-width': widthExpr(MAP_ROAD_PATH_OVERVIEW),
-          'line-opacity': opacityExpr([[5,.45],[9,.58],[12,0]]) },
+          'line-opacity': opacityExpr([[5,.6],[9,.7],[12,0]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
 
-      // Road casings
+      // Road casings (edge outlines that give roads definition)
       { id: 'road-major-casing', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         filter: lineFilter(MAP_ROAD_MAJOR_CLASSES),
-        paint: { 'line-color': theme.map.roads.outline, 'line-width': widthExpr(majorCasing), 'line-opacity': 0.95 },
+        paint: { 'line-color': theme.map.roads.outline, 'line-width': widthExpr(majorCasing), 'line-opacity': 1 },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-high-casing', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 6, filter: lineFilter(MAP_ROAD_MINOR_HIGH_CLASSES),
         paint: { 'line-color': theme.map.roads.outline, 'line-width': widthExpr(minorHighCasing),
-          'line-opacity': opacityExpr([[6,.72],[12,.85],[18,.92]]) },
+          'line-opacity': opacityExpr([[6,.85],[12,.95],[18,1]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-mid-casing', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 6, filter: lineFilter(MAP_ROAD_MINOR_MID_CLASSES),
         paint: { 'line-color': theme.map.roads.outline, 'line-width': widthExpr(minorMidCasing),
-          'line-opacity': opacityExpr([[6,.42],[12,.56],[18,.66]]) },
+          'line-opacity': opacityExpr([[6,.7],[12,.8],[18,.9]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-path-casing', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 8, filter: lineFilter(MAP_ROAD_PATH_CLASSES),
         paint: { 'line-color': theme.map.roads.outline, 'line-width': widthExpr(pathCasing),
-          'line-opacity': opacityExpr([[8,.62],[12,.72],[18,.85]]) },
+          'line-opacity': opacityExpr([[8,.75],[12,.85],[18,.95]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
 
-      // Roads
+      // Roads — bold, high-contrast street network
       { id: 'road-major', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         filter: lineFilter(MAP_ROAD_MAJOR_CLASSES),
-        paint: { 'line-color': theme.map.roads.major, 'line-width': widthExpr(MAP_ROAD_MAJOR_WIDTH) },
+        paint: { 'line-color': theme.map.roads.major, 'line-width': widthExpr(MAP_ROAD_MAJOR_WIDTH), 'line-opacity': 1 },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-high', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 6, filter: lineFilter(MAP_ROAD_MINOR_HIGH_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_high, 'line-width': widthExpr(MAP_ROAD_MINOR_HIGH_DETAIL),
-          'line-opacity': opacityExpr([[6,.84],[10,.92],[18,1]]) },
+          'line-opacity': opacityExpr([[6,.92],[10,1],[18,1]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-mid', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 6, filter: lineFilter(MAP_ROAD_MINOR_MID_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_mid, 'line-width': widthExpr(MAP_ROAD_MINOR_MID_DETAIL),
-          'line-opacity': opacityExpr([[6,.62],[10,.74],[18,.86]]) },
+          'line-opacity': opacityExpr([[6,.8],[10,.9],[18,1]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-minor-low', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 6, filter: lineFilter(MAP_ROAD_MINOR_LOW_CLASSES),
         paint: { 'line-color': theme.map.roads.minor_low, 'line-width': widthExpr(MAP_ROAD_MINOR_LOW_DETAIL),
-          'line-opacity': opacityExpr([[6,.34],[10,.46],[18,.58]]) },
+          'line-opacity': opacityExpr([[6,.6],[10,.75],[18,.9]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
       { id: 'road-path', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         minzoom: 8, filter: lineFilter(MAP_ROAD_PATH_CLASSES),
         paint: { 'line-color': theme.map.roads.path, 'line-width': widthExpr(MAP_ROAD_PATH_DETAIL),
-          'line-opacity': opacityExpr([[8,.7],[12,.82],[18,.95]]) },
+          'line-opacity': opacityExpr([[8,.8],[12,.9],[18,1]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
+
+      // Street name labels
+      { id: 'road-labels', source: SOURCE_ID, 'source-layer': 'transportation_name', type: 'symbol',
+        minzoom: 13,
+        filter: ['has', 'name'],
+        layout: {
+          'symbol-placement': 'line',
+          'text-field': ['get', 'name'],
+          'text-font': ['Noto Sans Regular'],
+          'text-size': widthExpr([[13, 10], [16, 13], [18, 15]]),
+          'text-max-angle': 30,
+          'text-padding': 4,
+          'symbol-spacing': 300,
+        },
+        paint: {
+          'text-color': '#6a5a48',
+          'text-halo-color': '#f5f0e8',
+          'text-halo-width': 1.5,
+          'text-opacity': opacityExpr([[13, 0.6], [15, 0.85], [18, 1]]),
+        },
+      },
     ],
   };
 }

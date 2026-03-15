@@ -23,7 +23,8 @@ const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
 
 import { trackEvent, identifyUser } from './utils/analytics';
-import { fetchOSMData } from './services/overpass';
+import { fetchOSMData, fetchMapGeometry } from './services/overpass';
+import type { MapGeometry } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
 import { fetchNDVI, scoreTreeCanopy, fetchWeather, applyHeatStressModifier } from './services/treecanopy';
 import type { WeatherData } from './services/treecanopy';
@@ -115,6 +116,7 @@ function App() {
   const [metrics, setMetrics] = useState<WalkabilityMetrics | null>(null);
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
+  const [mapGeometry, setMapGeometry] = useState<MapGeometry | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
@@ -325,9 +327,10 @@ function App() {
     const abortController = new AbortController();
     satelliteAbortRef.current = abortController;
 
-    // Fire OSM, satellite, and street design requests simultaneously
+    // Fire OSM, satellite, street design, and map geometry requests simultaneously
     const osmPromise = fetchOSMData(selectedLocation.lat, selectedLocation.lon);
     const satellitePromises = startSatelliteFetches(selectedLocation);
+    fetchMapGeometry(selectedLocation.lat, selectedLocation.lon).then(setMapGeometry).catch(() => {});
 
     try {
       // Wait for OSM data first (needed for core metrics)
@@ -1529,7 +1532,7 @@ function App() {
             <div id="score" style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
                 <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
-                  <Map location={location} osmData={osmData} seamless />
+                  <Map location={location} osmData={osmData} mapGeometry={mapGeometry} seamless />
                 </div>
                 <div style={{ padding: '22px 20px 20px', height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <StreetVibe compositeScore={compositeScore} />
