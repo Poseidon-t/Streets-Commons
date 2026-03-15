@@ -25,7 +25,8 @@ const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
 import { trackEvent, identifyUser } from './utils/analytics';
 import { fetchOSMData } from './services/overpass';
 import { calculateMetrics, assessDataQuality } from './utils/metrics';
-import { fetchNDVI, scoreTreeCanopy } from './services/treecanopy';
+import { fetchNDVI, scoreTreeCanopy, fetchWeather, applyHeatStressModifier } from './services/treecanopy';
+import type { WeatherData } from './services/treecanopy';
 import { fetchSurfaceTemperature } from './services/surfacetemperature';
 import { fetchAirQuality } from './services/airquality';
 import { fetchHeatIsland } from './services/heatisland';
@@ -115,6 +116,8 @@ function App() {
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const demoVideoRef = useRef<HTMLVideoElement>(null);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
@@ -527,6 +530,8 @@ function App() {
       .catch(() => null),
     streetFeatures: fetchStreetFeatures(selectedLocation.lat, selectedLocation.lon)
       .catch(() => null),
+    weather: fetchWeather(selectedLocation.lat, selectedLocation.lon)
+      .catch(() => null),
   });
 
   // Progressively update metrics as each satellite result arrives
@@ -548,6 +553,7 @@ function App() {
       terrain?: number;
       streetLighting?: number;
       airQuality?: number;
+      weather?: WeatherData | null;
     } = {};
     const recalc = () => {
       if (abortController.signal.aborted) return;
@@ -569,6 +575,7 @@ function App() {
         terrainScore: extra.terrain,
         streetLightingScore: extra.streetLighting,
         airQualityScore: extra.airQuality,
+        weatherData: extra.weather ?? undefined,
       });
       setCompositeScore(composite);
     };
@@ -609,6 +616,10 @@ function App() {
         setAirQualityReading({ pm25: result.pm25 ?? null, category: result.category ?? null });
       }
       markLoaded('airQuality');
+      recalc();
+    });
+    promises.weather.then(weather => {
+      extra.weather = weather;
       recalc();
     });
     promises.heatIsland.then(result => {
@@ -1045,9 +1056,9 @@ function App() {
                     <div className="px-6 py-4 border-b" style={{ borderColor: '#f0ede8' }}>
                       {[
                         { label: 'Network Design',        score: 82, color: '#22c55e' },
-                        { label: 'Density Context',        score: 78, color: '#22c55e' },
+                        { label: 'Accessibility',          score: 78, color: '#22c55e' },
                         { label: 'Environmental Comfort', score: 61, color: '#84cc16' },
-                        { label: 'Safety',                score: 55, color: '#eab308' },
+                        { label: 'Street Design',         score: 55, color: '#eab308' },
                       ].map(c => (
                         <div key={c.label} className="flex items-center gap-3 mb-2.5 last:mb-0">
                           <span className="text-xs font-medium flex-shrink-0" style={{ color: '#4a6a4a', width: 158 }}>{c.label}</span>
@@ -1276,7 +1287,7 @@ function App() {
 
                           // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
-                          const extra: { populationDensity?: number; streetDesign?: number } = {};
+                          const extra: { populationDensity?: number; streetDesign?: number; weather?: WeatherData | null } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -1287,9 +1298,9 @@ function App() {
                             const composite = calculateCompositeScore({
                               legacy: updated,
                               networkGraph: fetchedOsmData.networkGraph,
-
                               populationDensityScore: extra.populationDensity,
                               streetDesignScore: extra.streetDesign,
+                              weatherData: extra.weather ?? undefined,
                             });
                             setLocation1(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
@@ -1307,6 +1318,7 @@ function App() {
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
                           satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
                           satellitePromises.streetDesign.then(v => { if (v) { extra.streetDesign = v.score; recalc(); } });
+                          satellitePromises.weather.then(v => { extra.weather = v; recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 1:', error);
                           setCompareError('Failed to analyze location 1. Please try again.');
@@ -1362,7 +1374,7 @@ function App() {
 
                           // Progressively update metrics + composite as satellite data arrives
                           const scores: Record<string, number> = {};
-                          const extra: { populationDensity?: number; streetDesign?: number } = {};
+                          const extra: { populationDensity?: number; streetDesign?: number; weather?: WeatherData | null } = {};
                           const recalc = () => {
                             const updated = calculateMetrics(
                               fetchedOsmData,
@@ -1373,9 +1385,9 @@ function App() {
                             const composite = calculateCompositeScore({
                               legacy: updated,
                               networkGraph: fetchedOsmData.networkGraph,
-
                               populationDensityScore: extra.populationDensity,
                               streetDesignScore: extra.streetDesign,
+                              weatherData: extra.weather ?? undefined,
                             });
                             setLocation2(prev => prev ? { ...prev, metrics: updated, compositeScore: composite } : prev);
                           };
@@ -1393,6 +1405,7 @@ function App() {
                           satellitePromises.heatIsland.then(v => { if (v) { scores.heatIsland = v.score; recalc(); } });
                           satellitePromises.populationDensity.then(v => { if (v) { extra.populationDensity = v.score; recalc(); } });
                           satellitePromises.streetDesign.then(v => { if (v) { extra.streetDesign = v.score; recalc(); } });
+                          satellitePromises.weather.then(v => { extra.weather = v; recalc(); });
                         } catch (error) {
                           console.error('Failed to analyze location 2:', error);
                           setCompareError('Failed to analyze location 2. Please try again.');
@@ -1701,8 +1714,21 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl shadow-2xl border" style={{ borderColor: '#e0dbd0' }}>
+                <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl shadow-2xl border relative" style={{ borderColor: '#e0dbd0' }}>
+                  {/* Skeleton loader shown until video can play */}
+                  <div
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-earth-cream transition-opacity duration-500"
+                    style={{
+                      opacity: videoReady ? 0 : 1,
+                      pointerEvents: videoReady ? 'none' : 'auto',
+                      zIndex: 1,
+                    }}
+                  >
+                    <div className="w-12 h-12 rounded-full border-[3px] border-terra/30 border-t-terra animate-spin mb-3" />
+                    <span className="text-sm text-earth-text-light">Loading demo…</span>
+                  </div>
                   <video
+                    ref={demoVideoRef}
                     autoPlay
                     muted
                     loop
@@ -1710,6 +1736,8 @@ function App() {
                     preload="auto"
                     className="w-full block"
                     style={{ aspectRatio: '1920/1080', backgroundColor: '#f5f2ec' }}
+                    onCanPlayThrough={() => setVideoReady(true)}
+                    onPlaying={() => setVideoReady(true)}
                   >
                     <source src="/demo.mp4" type="video/mp4" />
                   </video>
@@ -1795,6 +1823,87 @@ function App() {
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Scoring Methodology Section */}
+            <section className="py-16 bg-white/50">
+              <div className="max-w-5xl mx-auto px-6">
+                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-3 text-earth-text-dark">
+                  How We Score Walkability
+                </h2>
+                <p className="text-center text-sm sm:text-base mb-10 max-w-2xl mx-auto" style={{ color: '#6b7a6b' }}>
+                  Four evidence-based components, weighted by impact on daily walkability. Every metric uses open data — no black boxes.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    {
+                      label: 'Network Design',
+                      weight: '20%',
+                      color: '#4a8a4a',
+                      metrics: 'Intersection density, block length, network density, dead-end ratio, connectivity (betweenness centrality)',
+                      source: 'OpenStreetMap',
+                      why: 'Are there multiple routes to walk, or does the street layout force detours?',
+                    },
+                    {
+                      label: 'Environmental Comfort',
+                      weight: '20%',
+                      color: '#2d8a6a',
+                      metrics: 'Tree canopy (heat-adjusted), air quality, noise, speed environment, terrain, street lighting',
+                      source: 'Sentinel-2, Open-Meteo, OpenAQ, OSM, NASADEM',
+                      why: 'Is it comfortable to walk — shade, clean air, quiet streets, manageable slopes?',
+                    },
+                    {
+                      label: 'Street Design',
+                      weight: '25%',
+                      color: '#b87a00',
+                      metrics: 'EPA National Walkability Index: intersection density, transit proximity, land use diversity',
+                      source: 'EPA (US), OSM (intl)',
+                      why: 'Is the built environment designed around people or cars?',
+                    },
+                    {
+                      label: 'Accessibility',
+                      weight: '35%',
+                      color: '#8a4a2a',
+                      metrics: 'Commute mode share, destination access, transit stops within 800m',
+                      source: 'Census ACS (US), OpenStreetMap',
+                      why: 'Can you actually reach daily needs on foot — groceries, schools, transit?',
+                    },
+                  ].map(comp => (
+                    <div
+                      key={comp.label}
+                      className="rounded-xl border p-5"
+                      style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold" style={{ color: comp.color }}>{comp.label}</span>
+                        <span
+                          className="text-xs font-bold px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: `${comp.color}15`, color: comp.color }}
+                        >
+                          {comp.weight}
+                        </span>
+                      </div>
+                      <p className="text-xs italic mb-2" style={{ color: '#5a6a5a' }}>
+                        {comp.why}
+                      </p>
+                      <p className="text-xs" style={{ color: '#6b7a6b' }}>
+                        {comp.metrics}
+                      </p>
+                      <p className="text-[10px] mt-2" style={{ color: '#8a9a8a' }}>
+                        Data: {comp.source}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 text-center">
+                  <p className="text-xs max-w-xl mx-auto" style={{ color: '#8a9a8a' }}>
+                    Score is 0–10 with tier labels: Walkable (8+), Moderate (6–7.9), Car-dependent (4–5.9), Difficult (2–3.9), Hostile (0–1.9).
+                    Each component uses weighted sub-metrics. Missing data is redistributed proportionally — the score reflects what we can verify.
+                  </p>
                 </div>
               </div>
             </section>
@@ -2090,7 +2199,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Your score (out of 10) is a weighted average of walkability metrics. For US locations: <strong>tree canopy</strong> (shade and vegetation from satellite imagery), <strong>street design</strong> (intersection density and transit proximity from EPA Walkability Index), <strong>destinations</strong> (daily needs within walking distance), and <strong>commute mode</strong> (walk, bike, and transit commute share from Census ACS). International locations use <strong>street grid</strong> (OSM network connectivity) instead of EPA and Census metrics. Each metric is scored independently so you can see exactly what's strong or weak about your area.
+                    Your score (0–10) combines four weighted components. <strong>Network Design</strong> (20%) measures street connectivity — intersection density, block length, dead-end ratio, and betweenness centrality from OpenStreetMap. <strong>Environmental Comfort</strong> (20%) covers tree canopy (heat-adjusted using real-time weather), air quality, noise, speed environment, terrain, and street lighting. <strong>Street Design</strong> (25%) uses the EPA National Walkability Index for intersection density, transit proximity, and land use mix (US only). <strong>Accessibility</strong> (35%) scores commute mode share, destination access, and transit stops within walking distance. Missing data is redistributed proportionally — the score reflects what we can verify. International locations get full Network Design and Environmental Comfort scores via OpenStreetMap and Sentinel-2 satellite imagery.
                   </p>
                 </div>
               </div>
@@ -2165,7 +2274,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 5 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy, vegetation), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>EPA National Walkability Index</strong> (street design quality, US only), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), <strong>NASADEM</strong> (terrain and slope), and <strong>OpenAQ</strong> (air quality). These are the same sources used by governments and research institutions.
+                    We use research-grade open data: <strong>Sentinel-2</strong> satellite imagery (tree canopy, vegetation), <strong>OpenStreetMap</strong> (street infrastructure, transit stops, amenities), <strong>Open-Meteo</strong> (real-time weather for heat stress adjustment), <strong>EPA National Walkability Index</strong> (street design quality, US only), <strong>US Census ACS</strong> (commute patterns, demographics), <strong>CDC PLACES</strong> (health outcomes by census tract), <strong>FEMA NFHL</strong> (flood risk zones), <strong>NASADEM</strong> (terrain and slope), and <strong>OpenAQ</strong> (air quality). These are the same sources used by governments and research institutions.
                   </p>
                 </div>
               </div>
@@ -2274,7 +2383,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Yes! Use the agent link above to generate branded walkability reports for any listing. Enter the address, complete your agent profile once, and export a print-ready PDF with your name, title, and contact details. The first 3 reports are free — unlimited reports with Pro ($49 one-time). Research consistently shows walkable neighborhoods command a significant home value premium — give your buyers the data they need to decide.
+                    Yes! Generate branded walkability reports for any listing. Enter the address, complete your profile once, and export a print-ready PDF with your name, company, and contact details. The first 3 branded reports are free — then $49 one-time for unlimited. Research consistently shows walkable neighborhoods command a significant home value premium — give your clients the data they need to decide.
                   </p>
                 </div>
               </div>
@@ -2365,7 +2474,7 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>
-                  4 walkability metrics (US), 3 international
+                  4-component walkability scoring
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-terra">·</span>

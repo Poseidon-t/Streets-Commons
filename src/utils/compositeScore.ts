@@ -1,15 +1,14 @@
 /**
  * 4-Component Walkability Scoring (0-100 + A-F Grade)
  *
- * Only high-accuracy (>90% ground-truth) metrics are scored:
- *
  * Components:
- *   Network Design   35%  — intersection density, block length, network density, dead-end ratio (OSM topology)
- *   Environment      25%  — tree canopy (Sentinel-2 NDVI)
- *   Street Design    15%  — EPA National Walkability Index (intersection density, transit proximity, land use mix)
- *   Accessibility    25%  — commute mode (Census ACS), destination access (OSM POIs)
+ *   Network Design   20%  — intersection density, block length, network density, dead-end ratio, connectivity/betweenness centrality (OSM topology)
+ *   Environment      20%  — tree canopy (heat-adjusted via Open-Meteo), terrain, street lighting, air quality, noise, speed environment
+ *   Street Design    25%  — EPA National Walkability Index (intersection density, transit proximity, land use mix)
+ *   Accessibility    35%  — commute mode (Census ACS), destination access (OSM POIs), transit access
  *
  * Each sub-metric is 0-100. Components are weighted averages of their sub-metrics.
+ * Missing metrics have their weight redistributed proportionally.
  * Overall = weighted sum of components → 0-100 + letter grade.
  */
 
@@ -26,7 +25,10 @@ import {
   scoreBlockLength,
   scoreNetworkDensity,
   scoreDeadEndRatio,
+  scoreBetweennessCentrality,
 } from './networkMetrics';
+import { applyHeatStressModifier } from '../services/treecanopy';
+import type { WeatherData } from '../services/treecanopy';
 
 // ---------- helpers ----------
 
@@ -67,12 +69,13 @@ export interface CompositeScoreInput {
   terrainScore?: number;             // 0-100 from OpenTopoData (0-10 × 10)
   streetLightingScore?: number;      // 0-100 from Mapillary CV or OSM lit tags (0-10 × 10)
   airQualityScore?: number;          // 0-100 from OpenAQ (0-10 × 10)
+  weatherData?: WeatherData;         // Open-Meteo current weather (heat stress modifier for Tree Canopy)
 }
 
 // ---------- main function ----------
 
 export function calculateCompositeScore(input: CompositeScoreInput): WalkabilityScoreV2 {
-  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore, streetLightingScore, airQualityScore } = input;
+  const { legacy, networkGraph, populationDensityScore, streetDesignScore, transitAccessScore, terrainScore, streetLightingScore, airQualityScore, weatherData } = input;
 
   // ===== 1. Network Design (35%) =====
   let networkMetrics: SubMetric[];
@@ -82,19 +85,21 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     const blockLen = scoreBlockLength(networkGraph);
     const netDensity = scoreNetworkDensity(networkGraph);
     const deadEnd = scoreDeadEndRatio(networkGraph);
+    const bcScore = scoreBetweennessCentrality(networkGraph);
 
     networkMetrics = [
-      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.30 },
-      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.30 },
+      { name: 'Intersection Density', score: intDensity.score, rawValue: `${intDensity.raw}/km²`, weight: 0.25 },
+      { name: 'Block Length', score: blockLen.score, rawValue: `${blockLen.raw}m avg`, weight: 0.25 },
       { name: 'Network Density', score: netDensity.score, rawValue: `${netDensity.raw} km/km²`, weight: 0.20 },
-      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.20 },
+      { name: 'Dead-End Ratio', score: deadEnd.score, rawValue: `${deadEnd.raw}%`, weight: 0.15 },
+      ...(bcScore ? [{ name: 'Connectivity', score: bcScore.score, rawValue: bcScore.raw, weight: 0.15 }] : []),
     ];
   } else {
     networkMetrics = [
-      { name: 'Intersection Density', score: 0, weight: 0.30 },
-      { name: 'Block Length', score: 0, weight: 0.30 },
+      { name: 'Intersection Density', score: 0, weight: 0.25 },
+      { name: 'Block Length', score: 0, weight: 0.25 },
       { name: 'Network Density', score: 0, weight: 0.20 },
-      { name: 'Dead-End Ratio', score: 0, weight: 0.20 },
+      { name: 'Dead-End Ratio', score: 0, weight: 0.15 },
     ];
   }
 
@@ -108,7 +113,9 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
   };
 
   // ===== 2. Environment (20%) — Tree Canopy + Terrain + Street Lighting + Noise + Air Quality + Speed Environment =====
-  const treeScore = scale10to100(legacy.treeCanopy);
+  // Apply heat stress modifier: adjusts canopy importance based on thermal conditions (Open-Meteo)
+  const adjustedCanopy = applyHeatStressModifier(legacy.treeCanopy, weatherData ?? null);
+  const treeScore = scale10to100(adjustedCanopy);
   const terrainS = terrainScore ?? 0;
   const lightingS = streetLightingScore ?? 0;
   const airQualS = airQualityScore ?? 0;

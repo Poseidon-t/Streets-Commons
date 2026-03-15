@@ -63,6 +63,11 @@ export interface NetworkGraph {
     avgNoiseDb: number;  // length-weighted avg estimated dB
   };
   osmLitScore?: number | null;  // 0-10 from OSM lit tags; null = insufficient tagging coverage
+  betweennessCentrality?: {
+    mean: number;   // mean normalized betweenness (0-1), lower = more evenly connected
+    max: number;    // max normalized betweenness (0-1), high = dominant chokepoint exists
+    gini: number;   // Gini coefficient of distribution (0-1), lower = more uniform connectivity
+  };
 }
 
 // --- 4-Component Scoring System (0-100 + A-F) ---

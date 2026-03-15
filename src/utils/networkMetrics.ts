@@ -1,5 +1,5 @@
 /**
- * Network Design metrics — 4 pure functions scoring 0-100
+ * Network Design metrics — 5 pure functions scoring 0-100
  * Derived from OSM way topology (NetworkGraph).
  */
 import type { NetworkGraph } from '../types';
@@ -77,5 +77,34 @@ export function scoreDeadEndRatio(graph: NetworkGraph): { score: number; raw: nu
   return {
     score: clamp100(score),
     raw: Math.round(ratio * 1000) / 10, // percentage with 1 decimal
+  };
+}
+
+/**
+ * Betweenness Centrality: how evenly distributed connectivity is across the network.
+ * Uses Gini coefficient of normalized betweenness centrality values.
+ *
+ * Low Gini (≤0.3) = uniform connectivity, no chokepoints = excellent walkability grid
+ * High Gini (≥0.7) = few nodes carry most traffic = fragile, chokepoint-heavy network
+ *
+ * Gini ≤ 0.20 → 100 (perfectly distributed grid)
+ * Gini ≥ 0.70 → 0 (dominated by chokepoints)
+ * Linear interpolation between
+ */
+export function scoreBetweennessCentrality(graph: NetworkGraph): { score: number; raw: string } | null {
+  if (!graph.betweennessCentrality) return null;
+  const { gini } = graph.betweennessCentrality;
+
+  let score: number;
+  if (gini <= 0.20) {
+    score = 100;
+  } else if (gini >= 0.70) {
+    score = 0;
+  } else {
+    score = ((0.70 - gini) / (0.70 - 0.20)) * 100;
+  }
+  return {
+    score: clamp100(score),
+    raw: `${(gini * 100).toFixed(0)}% Gini`,
   };
 }

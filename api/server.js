@@ -3176,6 +3176,61 @@ app.get('/api/air-quality', async (req, res) => {
   }
 });
 
+// Open-Meteo Weather API - Free current weather for heat stress modifier
+// No API key required. Used to adjust Tree Canopy score based on thermal comfort.
+app.get('/api/weather', async (req, res) => {
+  try {
+    const { lat, lon } = req.query;
+
+    if (!lat || !lon) {
+      return res.status(400).json({
+        error: 'Missing required parameters: lat, lon',
+      });
+    }
+
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
+
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      return res.json({ success: true, data: null, message: 'Weather data unavailable' });
+    }
+
+    const result = await response.json();
+    const current = result.current;
+
+    if (!current) {
+      return res.json({ success: true, data: null, message: 'No current weather data' });
+    }
+
+    const tempC = current.temperature_2m;
+    const humidity = current.relative_humidity_2m;
+    const apparentTemp = current.apparent_temperature;
+
+    res.json({
+      success: true,
+      data: {
+        temperatureC: tempC,
+        humidity,
+        apparentTemperatureC: apparentTemp,
+        dataSource: 'Open-Meteo (free, no key required)',
+      },
+    });
+
+  } catch (error) {
+    // Weather is non-critical — degrade gracefully
+    res.json({ success: true, data: null, message: 'Weather fetch failed' });
+  }
+});
+
 // NASADEM Elevation API - Free elevation data from Microsoft Planetary Computer
 app.get('/api/elevation', async (req, res) => {
   try {
@@ -7185,6 +7240,7 @@ app.listen(PORT, () => {
   console.log(`📡 Available APIs:`);
   console.log(`   ☀️  NASA POWER Temperature: GET /api/nasa-power-temperature`);
   console.log(`   🌫️  OpenAQ Air Quality: GET /api/air-quality ${process.env.OPENAQ_API_KEY ? '(configured)' : '(needs API key)'}`);
+  console.log(`   🌡️  Open-Meteo Weather: GET /api/weather (free, no key)`);
   console.log(`   ⛰️  NASADEM Elevation: GET /api/elevation`);
   console.log(`   🏔️  NASADEM Slope: GET /api/slope`);
   console.log(`   🌳 Sentinel-2 NDVI: GET /api/ndvi`);

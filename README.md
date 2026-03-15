@@ -114,6 +114,7 @@ FastAPI CV Backend
 | [WHO GHO](https://www.who.int/data/gho) | World Health Organization | Country-level road traffic deaths | No |
 | [Mapillary](https://www.mapillary.com) | Meta | Street-level imagery | Free token |
 | [SegFormer](https://huggingface.co/nvidia/segformer-b0-finetuned-cityscapes-1024-1024) | NVIDIA/HuggingFace | Semantic segmentation for sidewalk detection | Self-hosted |
+| [Open-Meteo](https://open-meteo.com) | Open-Meteo | Current weather (heat stress modifier for tree canopy) | No |
 
 ---
 

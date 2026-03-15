@@ -175,3 +175,73 @@ export function scoreTreeCanopy(ndvi: number): number {
     return 10;
   }
 }
+
+export interface WeatherData {
+  temperatureC: number;
+  humidity: number;
+  apparentTemperatureC: number;
+}
+
+/**
+ * Heat stress modifier for Tree Canopy score.
+ * Adjusts canopy importance based on current thermal conditions (Open-Meteo).
+ *
+ * Logic: In hot weather, sparse canopy is penalized harder (shade is critical)
+ * while good canopy gets a small bonus. In cold weather, canopy matters slightly less.
+ * Modifier is asymmetric — uses apparent temperature (factors in humidity).
+ *
+ * Returns adjusted score (0-10), never exceeds 10 or drops below 0.
+ */
+export function applyHeatStressModifier(canopyScore: number, weather: WeatherData | null): number {
+  if (!weather) return canopyScore;
+
+  const temp = weather.apparentTemperatureC;
+  const isLowCanopy = canopyScore < 5;
+
+  let modifier = 1.0;
+
+  if (temp < 5) {
+    // Cold — shade/canopy less relevant (bare trees, no heat relief needed)
+    modifier = 0.95;
+  } else if (temp <= 25) {
+    // Mild — baseline, no adjustment
+    modifier = 1.0;
+  } else if (temp <= 30) {
+    // Warm — sparse canopy penalized, good canopy unchanged
+    modifier = isLowCanopy ? 0.90 : 1.0;
+  } else if (temp <= 35) {
+    // Hot — sparse canopy penalized harder, good canopy gets small bonus
+    modifier = isLowCanopy ? 0.80 : 1.05;
+  } else {
+    // Extreme heat (>35°C) — shade is critical
+    modifier = isLowCanopy ? 0.70 : 1.10;
+  }
+
+  return Math.round(Math.min(10, Math.max(0, canopyScore * modifier)) * 10) / 10;
+}
+
+/**
+ * Fetch current weather from Open-Meteo via backend proxy.
+ */
+export async function fetchWeather(lat: number, lon: number): Promise<WeatherData | null> {
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || '';
+    const response = await fetch(`${apiUrl}/api/weather?lat=${lat}&lon=${lon}`, {
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!response.ok) return null;
+
+    const result = await response.json();
+    if (result.success && result.data) {
+      return {
+        temperatureC: result.data.temperatureC,
+        humidity: result.data.humidity,
+        apparentTemperatureC: result.data.apparentTemperatureC,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}

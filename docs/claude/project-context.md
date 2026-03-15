@@ -1,6 +1,6 @@
 # SafeStreets — Current Product Context
 
-Last updated: 2026-03-04
+Last updated: 2026-03-15
 
 ---
 
@@ -52,7 +52,7 @@ Each verdict has a plain-language explanation. Verdicts are computed from compos
 
 ## Features
 
-- **Walkability Score** — 0–10 composite, 4 components: Network Design, Environmental Comfort, Safety, Density Context
+- **Walkability Score** — 0–10 composite, 4 components: Network Design (intersection density, block length, network density, dead-end ratio, connectivity/betweenness centrality), Environmental Comfort, Safety, Density Context
 - **PersonaCards** — 3 lifestyle verdicts (see above)
 - **12 Metric Grid** — expandable, includes tree canopy, sidewalk quality, crossing safety, transit access, destinations, lighting, etc.
 - **15-Minute City Analysis** — scored access to: grocery, school, park, pharmacy, transit, restaurant
@@ -81,6 +81,7 @@ Each verdict has a plain-language explanation. Verdicts are computed from compos
 | FEMA NFHL | Flood zone classification (US only) |
 | NASADEM | Terrain slope, ADA accessibility |
 | OpenAQ | Real-time air quality (PM2.5) |
+| Open-Meteo | Current temperature, humidity, apparent temp (heat stress modifier for Tree Canopy) |
 
 ---
 
@@ -123,6 +124,8 @@ API base URL in frontend: `import.meta.env.VITE_API_URL || ''`
 | Admin infographic generator | `src/admin/InfographicGenerator.tsx` |
 | Admin sales pipeline | `src/admin/SalesPipeline.tsx` |
 | API server | `api/server.js` |
+| Composite score calculation | `src/utils/compositeScore.ts` |
+| Tree canopy + weather/heat modifier | `src/services/treecanopy.ts` |
 | Type definitions | `src/types/index.ts` |
 | Routes | `src/main.tsx` |
 

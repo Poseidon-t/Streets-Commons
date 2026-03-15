@@ -21,7 +21,7 @@ Scores range from 0–10, displayed with tier labels:
 - **2.0–3.9: Difficult** — Walking inconvenient, infrastructure gaps
 - **0–1.9: Hostile** — Basic pedestrian safety infrastructure missing
 
-The composite score combines four components: Network Design (street connectivity, intersection density), Environmental Comfort (tree canopy, air quality), Safety (traffic conditions, street design), and Density Context (proximity to daily destinations, transit access).
+The composite score combines four components: Network Design (street connectivity, intersection density, betweenness centrality), Environmental Comfort (tree canopy with heat stress adjustment, air quality, noise, speed environment), Safety (traffic conditions, street design), and Density Context (proximity to daily destinations, transit access).
 
 ## PersonaCards — The Key Differentiator
 
@@ -58,6 +58,7 @@ Each verdict is computed from the relevant sub-scores and shown with a plain-lan
 | FEMA NFHL | Flood zone classification by address (US only) |
 | NASADEM | Terrain slope and ADA accessibility |
 | OpenAQ | Real-time air quality (PM2.5) |
+| Open-Meteo | Current weather — heat stress modifier for tree canopy scoring |
 
 US addresses receive the full data stack. International addresses receive walkability metrics from OpenStreetMap and Sentinel-2.
 

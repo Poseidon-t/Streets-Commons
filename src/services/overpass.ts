@@ -448,6 +448,127 @@ function processOSMData(data: any): OSMData {
     else osmLitScore = 2;
   }
 
+  // ── Betweenness Centrality (Brandes' algorithm on junction graph) ──
+  // Junction nodes = intersections (degree ≥ 3) + dead-ends (degree 1)
+  // We collapse internal way nodes (degree 2) into weighted edges between junctions.
+  const junctionIds = new Set<string>();
+  for (const [nodeId, deg] of nodeDegree) {
+    if (deg !== 2) junctionIds.add(nodeId);
+  }
+
+  // Build weighted adjacency list between junction nodes
+  const adj = new Map<string, Map<string, number>>(); // nodeId → { neighborId → distance }
+  for (const way of streetWays) {
+    const wayNodes: string[] = way.nodes.map((n: number) => n.toString());
+    // Walk through way, accumulating distance between consecutive junction nodes
+    let lastJunction: string | null = null;
+    let distSinceJunction = 0;
+    for (let i = 0; i < wayNodes.length; i++) {
+      if (i > 0) {
+        const a = nodes.get(wayNodes[i - 1]);
+        const b = nodes.get(wayNodes[i]);
+        if (a && b) distSinceJunction += haversineM(a.lat, a.lon, b.lat, b.lon);
+      }
+      if (junctionIds.has(wayNodes[i])) {
+        if (lastJunction !== null && lastJunction !== wayNodes[i] && distSinceJunction > 0) {
+          // Add edge (keep shortest if multiple ways connect same junctions)
+          if (!adj.has(lastJunction)) adj.set(lastJunction, new Map());
+          if (!adj.has(wayNodes[i])) adj.set(wayNodes[i], new Map());
+          const existing1 = adj.get(lastJunction)!.get(wayNodes[i]);
+          if (existing1 === undefined || distSinceJunction < existing1) {
+            adj.get(lastJunction)!.set(wayNodes[i], distSinceJunction);
+            adj.get(wayNodes[i])!.set(lastJunction, distSinceJunction);
+          }
+        }
+        lastJunction = wayNodes[i];
+        distSinceJunction = 0;
+      }
+    }
+  }
+
+  // Brandes' algorithm for betweenness centrality (unweighted BFS variant for speed)
+  const jNodes = Array.from(adj.keys());
+  const n = jNodes.length;
+  const bc = new Map<string, number>();
+  for (const id of jNodes) bc.set(id, 0);
+
+  if (n >= 3) {
+    for (const s of jNodes) {
+      const stack: string[] = [];
+      const pred = new Map<string, string[]>();
+      const sigma = new Map<string, number>();
+      const dist = new Map<string, number>();
+      const delta = new Map<string, number>();
+
+      for (const v of jNodes) {
+        pred.set(v, []);
+        sigma.set(v, 0);
+        dist.set(v, -1);
+        delta.set(v, 0);
+      }
+      sigma.set(s, 1);
+      dist.set(s, 0);
+
+      const queue: string[] = [s];
+      let qi = 0;
+      while (qi < queue.length) {
+        const v = queue[qi++];
+        stack.push(v);
+        const neighbors = adj.get(v);
+        if (!neighbors) continue;
+        for (const w of neighbors.keys()) {
+          if (dist.get(w)! < 0) {
+            dist.set(w, dist.get(v)! + 1);
+            queue.push(w);
+          }
+          if (dist.get(w) === dist.get(v)! + 1) {
+            sigma.set(w, sigma.get(w)! + sigma.get(v)!);
+            pred.get(w)!.push(v);
+          }
+        }
+      }
+
+      while (stack.length > 0) {
+        const w = stack.pop()!;
+        for (const v of pred.get(w)!) {
+          delta.set(v, delta.get(v)! + (sigma.get(v)! / sigma.get(w)!) * (1 + delta.get(w)!));
+        }
+        if (w !== s) {
+          bc.set(w, bc.get(w)! + delta.get(w)!);
+        }
+      }
+    }
+
+    // Normalize: divide by (n-1)(n-2) for undirected graph
+    const normFactor = (n - 1) * (n - 2);
+    if (normFactor > 0) {
+      for (const id of jNodes) {
+        bc.set(id, bc.get(id)! / normFactor);
+      }
+    }
+  }
+
+  // Compute summary statistics
+  let betweennessCentrality: NetworkGraph['betweennessCentrality'];
+  if (n >= 3) {
+    const values = Array.from(bc.values());
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const max = Math.max(...values);
+    // Gini coefficient
+    const sorted = [...values].sort((a, b) => a - b);
+    let giniNum = 0;
+    for (let i = 0; i < sorted.length; i++) {
+      giniNum += (2 * (i + 1) - sorted.length - 1) * sorted[i];
+    }
+    const giniDen = sorted.length * sorted.reduce((a, b) => a + b, 0);
+    const gini = giniDen > 0 ? giniNum / giniDen : 0;
+    betweennessCentrality = {
+      mean: Math.round(mean * 10000) / 10000,
+      max: Math.round(max * 10000) / 10000,
+      gini: Math.round(gini * 1000) / 1000,
+    };
+  }
+
   const networkGraph: NetworkGraph = {
     intersections,
     deadEnds,
@@ -464,6 +585,7 @@ function processOSMData(data: any): OSMData {
       avgNoiseDb,
     },
     osmLitScore,
+    betweennessCentrality,
   };
 
   return {
