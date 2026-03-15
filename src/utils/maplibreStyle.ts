@@ -49,15 +49,15 @@ const MAP_RAIL_CLASSES = ['rail','transit'];
 
 const MAP_WATERWAY_WIDTH_STOPS: [number,number][] = [[0,.2],[6,.34],[12,.8],[18,2.4]];
 const MAP_RAIL_WIDTH_STOPS: [number,number][] = [[3,.4],[6,.7],[10,1],[18,1.5]];
-const MAP_ROAD_MINOR_HIGH_OVERVIEW: [number,number][] = [[0,.2],[4,.4],[8,.7],[11,1.0]];
-const MAP_ROAD_MINOR_MID_OVERVIEW: [number,number][] = [[0,.14],[4,.28],[8,.5],[11,.7]];
-const MAP_ROAD_MINOR_LOW_OVERVIEW: [number,number][] = [[0,.1],[4,.2],[8,.36],[11,.55]];
-const MAP_ROAD_MINOR_HIGH_DETAIL: [number,number][] = [[6,1.0],[10,1.8],[14,3.2],[18,5.5]];
-const MAP_ROAD_MINOR_MID_DETAIL: [number,number][] = [[6,.7],[10,1.3],[14,2.5],[18,4.5]];
-const MAP_ROAD_MINOR_LOW_DETAIL: [number,number][] = [[6,.5],[10,1.0],[14,1.8],[18,3.2]];
-const MAP_ROAD_PATH_OVERVIEW: [number,number][] = [[5,.1],[8,.2],[11,.4]];
-const MAP_ROAD_PATH_DETAIL: [number,number][] = [[8,.4],[12,.8],[16,1.5],[18,2.2]];
-const MAP_ROAD_MAJOR_WIDTH: [number,number][] = [[0,.6],[3,1.0],[9,2.2],[14,4.0],[18,6.5]];
+const MAP_ROAD_MINOR_HIGH_OVERVIEW: [number,number][] = [[0,.3],[4,.6],[8,1.2],[11,1.8]];
+const MAP_ROAD_MINOR_MID_OVERVIEW: [number,number][] = [[0,.2],[4,.4],[8,.8],[11,1.2]];
+const MAP_ROAD_MINOR_LOW_OVERVIEW: [number,number][] = [[0,.15],[4,.3],[8,.6],[11,.9]];
+const MAP_ROAD_MINOR_HIGH_DETAIL: [number,number][] = [[6,1.8],[10,3.5],[14,7],[18,12]];
+const MAP_ROAD_MINOR_MID_DETAIL: [number,number][] = [[6,1.2],[10,2.5],[14,5.5],[18,10]];
+const MAP_ROAD_MINOR_LOW_DETAIL: [number,number][] = [[6,.8],[10,1.8],[14,4],[18,7]];
+const MAP_ROAD_PATH_OVERVIEW: [number,number][] = [[5,.15],[8,.3],[11,.6]];
+const MAP_ROAD_PATH_DETAIL: [number,number][] = [[8,.6],[12,1.4],[16,2.8],[18,4]];
+const MAP_ROAD_MAJOR_WIDTH: [number,number][] = [[0,.8],[3,1.5],[9,4],[14,9],[18,14]];
 
 function widthExpr(stops: [number,number][]): any {
   return ['interpolate',['linear'],['zoom'],...stops.flat()];
