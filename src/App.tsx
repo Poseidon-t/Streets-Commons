@@ -1844,13 +1844,13 @@ function App() {
                     </button>
                   </div>
 
-                  {/* Agent Reports tier */}
+                  {/* Pro tier */}
                   <div className="rounded-2xl border-2 p-6 flex flex-col relative" style={{ backgroundColor: '#ffffff', borderColor: '#e07850' }}>
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>For Agents</span>
+                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>Most Popular</span>
                     </div>
                     <div className="mb-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Agent Reports</span>
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Pro</span>
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$49</span>
                         <span className="text-sm" style={{ color: '#8a9a8a' }}>one-time</span>
@@ -1860,10 +1860,11 @@ function App() {
                     <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#8a9a8a' }}>Everything in Free, plus:</p>
                     <ul className="space-y-2.5 flex-1">
                       {[
-                        { text: 'Branded PDF walkability reports', bold: true },
-                        { text: 'Your name, company, phone & email on every page', bold: true },
-                        { text: 'Unlimited reports after one-time payment', bold: true },
-                        { text: 'Built for real estate agents and brokers', bold: false },
+                        { text: 'Street Audit Tool — generate structured reports', bold: true },
+                        { text: 'Shareable walkability reports (PDF + link)', bold: true },
+                        { text: 'Your logo & branding on every report', bold: true },
+                        { text: 'Unlimited reports after one-time payment', bold: false },
+                        { text: '3 free reports to try before you pay', bold: false },
                       ].map(f => (
                         <li key={f.text} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
                           <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#e07850" viewBox="0 0 24 24">
@@ -1899,13 +1900,13 @@ function App() {
                     <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
                       <div className="flex-1 text-center lg:text-left">
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
-                          For Real Estate Agents
+                          Branded Reports
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-                          Branded Walkability Reports for Any Listing
+                          Branded Walkability Reports for Any Address
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                          Generate branded PDF reports with your name, company, and contact details. Walkability scores, neighborhood data, and persona verdicts — all under your brand.
+                          Generate branded walkability reports for any address. Your logo, brand colors, and contact details on every page — perfect for agents, planners, and consultants.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -1970,7 +1971,7 @@ function App() {
 
                     {/* Feature bar */}
                     <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      {['Your branding on every page', 'PDF download', 'First 3 free', 'Unlimited after $49'].map(f => (
+                      {['Your logo & brand colors', 'Shareable PDF + link', 'First 3 free', 'Unlimited after $49'].map(f => (
                         <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                           <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
