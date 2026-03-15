@@ -6,6 +6,8 @@ import NeighborhoodProfile from './components/streetcheck/NeighborhoodProfile';
 import PersonaCards from './components/streetcheck/PersonaCards';
 import GroundRealityCard from './components/streetcheck/GroundRealityCard';
 import StreetVibe from './components/streetcheck/StreetVibe';
+import PlainLanguageSummary from './components/streetcheck/PlainLanguageSummary';
+import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 
@@ -1441,8 +1443,10 @@ function App() {
               </div>
             </div>
 
-            {/* ACT 1  -  Hero: wider map + archetype + score */}
-            <div id="score" style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
+            {/* Unified Score Breakdown Box */}
+            <div id="score" style={{ border: '2px solid #1a1208', background: '#f5f2eb', overflow: 'hidden' }} className="scroll-mt-16">
+
+              {/* Hero: Map + Score Panel */}
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
                 <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
                   <Map location={location} osmData={osmData} mapGeometry={mapGeometry} seamless />
@@ -1454,12 +1458,45 @@ function App() {
                   </div>
                 </div>
               </div>
+
+              {/* Verdict + Score Components */}
+              <div style={{ padding: '18px 24px 20px', borderTop: '2px solid #1a1208' }}>
+                <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} inline />
+                {compositeScore && (
+                  <div style={{ marginTop: 16 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 10 }}>
+                      Score Components
+                    </div>
+                    <ComponentHighlight compositeScore={compositeScore} inline />
+                  </div>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div style={{ height: 2, background: '#1a1208' }} />
+
+              {/* Persona Verdicts */}
+              <PersonaCards compositeScore={compositeScore} inline />
+
+              {/* Divider */}
+              <div style={{ height: 2, background: '#1a1208' }} />
+
+              {/* Detailed Metrics */}
+              <div id="metrics" style={{ paddingTop: 18 }} className="scroll-mt-16">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px 12px' }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
+                    Key Metrics
+                  </span>
+                  <span style={{ fontSize: 10, fontWeight: 500, color: '#7a6e5a', fontStyle: 'italic' }}>
+                    Tap any metric to expand
+                  </span>
+                </div>
+                <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} inline />
+              </div>
+
             </div>
 
-            {/* ACT 1  -  Persona verdicts */}
-            <PersonaCards compositeScore={compositeScore} />
-
-            {/* ACT 2  -  Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
+            {/* Ground Reality: AI narrative */}
             <GroundRealityCard
               narrative={groundReality}
               narrativeLoading={groundRealityLoading}
@@ -1468,24 +1505,7 @@ function App() {
               satelliteVision={satelliteVision}
             />
 
-            {/* ACT 3 divider */}
-            <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 6px' }}>
-              <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase' as const, color: '#f0e8d8', background: '#1a3a1a', padding: '5px 18px', whiteSpace: 'nowrap' }}>
-                Detailed Analysis
-              </span>
-              <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
-            </div>
-
-            {/* ACT 3 starts after divider  -  no duplicate persona table */}
-
-
-            {/* Metrics Grid */}
-            <div id="metrics" className="scroll-mt-16">
-              <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} />
-            </div>
-
-            {/* Neighbourhood Profile  -  daily life, local economy, community */}
+            {/* Neighbourhood Profile */}
             <NeighborhoodProfile
               neighborhoodIntel={neighborhoodIntel ?? null}
               demographicData={demographicData ?? null}

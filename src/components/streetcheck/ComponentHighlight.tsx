@@ -2,6 +2,7 @@ import type { WalkabilityScoreV2 } from '../../types';
 
 interface ComponentHighlightProps {
   compositeScore: WalkabilityScoreV2 | null;
+  inline?: boolean;
 }
 
 function retroColor(score: number): string {
@@ -36,7 +37,7 @@ const EXPLANATIONS: Record<string, (score: number) => string> = {
     : 'Limited destinations within walking distance; car often needed for errands',
 };
 
-export default function ComponentHighlight({ compositeScore }: ComponentHighlightProps) {
+export default function ComponentHighlight({ compositeScore, inline }: ComponentHighlightProps) {
   if (!compositeScore) {
     return (
       <div className="retro-card">
@@ -66,49 +67,79 @@ export default function ComponentHighlight({ compositeScore }: ComponentHighligh
   const topScore = sorted[0].score;
   const bottomScore = sorted[sorted.length - 1].score;
 
-  return (
-    <div className="retro-card">
-      <div className="retro-card-header">
-        <span className="retro-card-header-title">What drives this score</span>
-      </div>
+  const rows = sorted.map((c, i) => {
+    const color = retroColor(c.score);
+    const displayScore = (c.score / 10).toFixed(1);
+    const shortLabel = LABELS[c.label] ?? c.label;
+    const isTop = c.score === topScore;
+    const isBottom = c.score === bottomScore && c.score < 50 && sorted.length > 1;
 
-      <div style={{ padding: '16px' }}>
-        {sorted.map((c, i) => {
+    return (
+      <div key={c.label} style={{ marginBottom: i < sorted.length - 1 ? 16 : 0 }}>
+        {/* Label row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
+              {shortLabel}
+            </span>
+            {isTop && <span className="retro-tag retro-tag-strength">Strength</span>}
+            {isBottom && <span className="retro-tag retro-tag-challenge">Challenge</span>}
+          </div>
+          <span style={{ fontSize: 16, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>
+            {displayScore}
+          </span>
+        </div>
+
+        {/* Bar */}
+        <div className="retro-comp-bar" style={{ height: 16 }}>
+          <div className="retro-comp-fill" style={{ width: `${Math.max(c.score, 2)}%`, background: color }} />
+        </div>
+
+        {/* Explanation */}
+        <div style={{ fontSize: 13, color: '#2a2010', lineHeight: 1.55, marginTop: 5 }}>
+          {EXPLANATIONS[c.label]?.(c.score) ?? ''}
+        </div>
+      </div>
+    );
+  });
+
+  if (inline) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {sorted.map((c) => {
           const color = retroColor(c.score);
           const displayScore = (c.score / 10).toFixed(1);
           const shortLabel = LABELS[c.label] ?? c.label;
-          const isTop = c.score === topScore;
-          const isBottom = c.score === bottomScore && c.score < 50 && sorted.length > 1;
-
+          const explanation = EXPLANATIONS[c.label]?.(c.score) ?? '';
           return (
-            <div key={c.label} style={{ marginBottom: i < sorted.length - 1 ? 16 : 0 }}>
-              {/* Label row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
-                    {shortLabel}
-                  </span>
-                  {isTop && <span className="retro-tag retro-tag-strength">Strength</span>}
-                  {isBottom && <span className="retro-tag retro-tag-challenge">Challenge</span>}
-                </div>
-                <span style={{ fontSize: 16, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>
+            <div key={c.label} style={{ padding: '12px 14px', background: '#edeadf', border: '1px solid #c4b59a' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
+                  {shortLabel}
+                </span>
+                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, fontWeight: 700, color, fontVariantNumeric: 'tabular-nums' }}>
                   {displayScore}
                 </span>
               </div>
-
-              {/* Bar */}
-              <div className="retro-comp-bar" style={{ height: 16 }}>
-                <div className="retro-comp-fill" style={{ width: `${Math.max(c.score, 2)}%`, background: color }} />
+              <div style={{ height: 5, background: '#d8d0c4', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${Math.max(c.score, 2)}%`, background: color }} />
               </div>
-
-              {/* Explanation */}
-              <div style={{ fontSize: 13, color: '#2a2010', lineHeight: 1.55, marginTop: 5 }}>
-                {EXPLANATIONS[c.label]?.(c.score) ?? ''}
+              <div style={{ fontSize: 11, color: '#2a2010', lineHeight: 1.5, marginTop: 6 }}>
+                {explanation}
               </div>
             </div>
           );
         })}
       </div>
+    );
+  }
+
+  return (
+    <div className="retro-card">
+      <div className="retro-card-header">
+        <span className="retro-card-header-title">What drives this score</span>
+      </div>
+      <div style={{ padding: '16px' }}>{rows}</div>
     </div>
   );
 }

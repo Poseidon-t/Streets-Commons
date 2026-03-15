@@ -16,6 +16,7 @@ interface MetricGridProps {
   streetCharacter?: StreetCharacterAnalysis | null;
   streetCharacterLoading?: boolean;
   airQualityReading?: { pm25: number | null; category: string | null } | null;
+  inline?: boolean;
 }
 
 // Sub-metric display for Street Grid card
@@ -422,112 +423,105 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
 
   return (
     <div
-      className="transition-all"
+      className="transition-all cursor-pointer"
+      onClick={onClick}
       style={{
         borderColor,
         backgroundColor: bg,
         borderWidth: '2px',
         borderStyle: 'solid',
-        borderRadius: '12px',
-        padding: '16px',
+        padding: '14px 16px',
       }}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-24">
-          <div className="animate-pulse flex items-center gap-2">
-            <span className="text-xl">{def.icon}</span>
-            <span style={{ color: '#3d3020', fontSize: '14px', fontWeight: 500 }}>Loading {def.name}...</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 80 }}>
+          <div className="animate-pulse" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 16 }}>{def.icon}</span>
+            <span style={{ color: '#3d3020', fontSize: 12, fontWeight: 600 }}>Loading {def.name}...</span>
           </div>
         </div>
       ) : (
         <>
           {/* Header row: icon + name + score */}
-          <div className="flex items-center justify-between" style={{ marginBottom: '8px' }}>
-            <div className="flex items-center" style={{ gap: '6px' }}>
-              <span style={{ fontSize: '20px' }}>{def.icon}</span>
-              <span style={{ color: '#1a3a1a', fontSize: '17px', fontWeight: 800 }}>{def.name}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ fontSize: 14 }}>{def.icon}</span>
+              <span style={{ color: '#1a3a1a', fontSize: 13, fontWeight: 700 }}>{def.name}</span>
             </div>
-            <div className="flex items-center" style={{ gap: '4px' }}>
-              <span style={{ color, fontSize: '26px', fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
-              <span style={{ color: '#2a2010', fontSize: '15px', fontWeight: 700 }}>/10</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+              <span style={{ fontFamily: "'IBM Plex Mono', monospace", color, fontSize: 18, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
+              <span style={{ color: '#3d3020', fontSize: 11, fontWeight: 700 }}>/10</span>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div style={{ backgroundColor: '#ede8dd', height: '10px', borderRadius: '5px', overflow: 'hidden', marginBottom: '10px' }}>
-            <div
-              style={{ height: '100%', borderRadius: '5px', width: `${Math.max(score * 10, 2)}%`, backgroundColor: color, transition: 'width 0.5s' }}
-            />
+          <div style={{ backgroundColor: '#d8d0c4', height: 6, overflow: 'hidden', marginBottom: 8 }}>
+            <div style={{ height: '100%', width: `${Math.max(score * 10, 2)}%`, backgroundColor: color, transition: 'width 0.5s' }} />
           </div>
 
-          {/* Live reading  -  shown for Air Quality */}
+          {/* Live reading - shown for Air Quality */}
           {def.key === 'airQuality' && airQualityReading && (
-            <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
+            <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
               {airQualityReading.pm25 !== null && (
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#1a3a1a' }}>
                   PM2.5: {airQualityReading.pm25.toFixed(1)} µg/m³
                 </span>
               )}
               {airQualityReading.category && (
-                <span style={{ fontSize: 12, fontWeight: 600, color: color, backgroundColor: `${color}18`, padding: '2px 8px', borderRadius: 4 }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color, border: `1px solid ${color}`, padding: '1px 6px' }}>
                   {airQualityReading.category}
                 </span>
               )}
             </div>
           )}
 
-          {/* Sub-metrics  -  shown for Street Grid */}
+          {/* Sub-metrics - shown for Street Grid */}
           {subMetrics && subMetrics.length > 0 && (
-            <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <div style={{ marginBottom: 8, display: 'flex', flexDirection: 'column', gap: 5 }}>
               {subMetrics.map(m => {
                 const label = SUB_METRIC_LABELS[m.name] ?? m.name;
                 const c = subMetricBarColor(m.score);
                 return (
                   <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 120, fontSize: 12, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
+                    <span style={{ width: 110, fontSize: 11, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
                       {label}
                       {m.rawValue && <span style={{ color: '#8a9a8a', fontWeight: 400 }}> · {m.rawValue}</span>}
                     </span>
-                    <div style={{ flex: 1, height: 6, borderRadius: 3, overflow: 'hidden', backgroundColor: '#ede8dd' }}>
-                      <div style={{ height: '100%', borderRadius: 3, width: `${Math.max(m.score, 2)}%`, backgroundColor: c, transition: 'width 0.5s' }} />
+                    <div style={{ flex: 1, height: 4, overflow: 'hidden', backgroundColor: '#e8e4d8' }}>
+                      <div style={{ height: '100%', width: `${Math.max(m.score, 2)}%`, backgroundColor: c, transition: 'width 0.5s' }} />
                     </div>
-                    <span style={{ width: 28, textAlign: 'right', fontSize: 11, fontWeight: 700, color: c, flexShrink: 0 }}>{m.score}</span>
+                    <span style={{ width: 24, textAlign: 'right', fontSize: 10, fontWeight: 700, color: c, flexShrink: 0 }}>{m.score}</span>
                   </div>
                 );
               })}
               {streetCharacter && (
-                <div style={{ marginTop: 4, fontSize: 12, color: '#2a2010', lineHeight: 1.5 }}>
+                <div style={{ marginTop: 2, fontSize: 11, color: '#2a2010', lineHeight: 1.5 }}>
                   {streetCharacter.assessment}
                 </div>
               )}
             </div>
           )}
 
-          {/* Inline context  -  always visible, no click required */}
+          {/* Inline context */}
           {!subMetrics && contextText && (
-            <p style={{ color: '#1a3a1a', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
+            <p style={{ color: '#2a2010', fontSize: 12, fontWeight: 500, lineHeight: 1.55, marginBottom: 8 }}>
               {contextText}
             </p>
           )}
 
-          {/* Data source + estimated badge + expand toggle */}
-          <div className="flex items-center justify-between" style={{ paddingTop: '8px', borderTop: '1px solid #f0ebe0' }}>
-            <div className="flex items-center" style={{ gap: '6px' }}>
-              <span style={{ color: '#2a2010', fontSize: '14px', fontWeight: 700 }}>{detail?.source ?? def.source}</span>
+          {/* Data source + expand toggle */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTop: '1px solid #c4b59a' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ color: '#7a6e5a', fontSize: 10, fontWeight: 600 }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
-                <span
-                  style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1.5px solid #fde68a', fontSize: '13px', fontWeight: 700, padding: '2px 7px', borderRadius: '4px' }}
-                >
+                <span style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>
                   Estimated
                 </span>
               )}
             </div>
-            <button
-              style={{ color: '#1a7a28', fontSize: '14px', fontWeight: 700, textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none' }}
-              onClick={onClick}
-            >
-              {isExpanded ? 'Less' : 'How it\'s scored'}
-            </button>
+            <span style={{ color: '#1a7a28', fontSize: 11, fontWeight: 700, textDecoration: 'underline' }}>
+              {isExpanded ? 'Less' : "How it's scored"}
+            </span>
           </div>
         </>
       )}
@@ -564,55 +558,55 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
 
   return (
     <div
-      className="rounded-xl border p-5 animate-in fade-in duration-200"
-      style={{ borderColor: '#e0dbd0', backgroundColor: '#faf7f2' }}
+      className="border animate-in fade-in duration-200"
+      style={{ borderColor: '#c4b59a', backgroundColor: '#edeadf', padding: '14px 16px' }}
     >
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b" style={{ borderColor: '#f0ebe0' }}>
-        <span className="text-xl">{icon}</span>
-        <span className="text-base font-bold" style={{ color: '#1a3a1a' }}>{name}</span>
-        <span className="text-base font-bold ml-auto" style={{ color }}>{score.toFixed(1)}/10</span>
+      <div className="flex items-center gap-2 pb-3 border-b" style={{ borderColor: '#c4b59a', marginBottom: 12 }}>
+        <span style={{ fontSize: 16 }}>{icon}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>{name}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, color, marginLeft: 'auto', fontFamily: "'IBM Plex Mono', monospace", fontVariantNumeric: 'tabular-nums' }}>{score.toFixed(1)}/10</span>
       </div>
 
-      <div className="space-y-4">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#1a3a1a', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
             What this measures
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
+          <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
             {detail.what}
           </div>
         </div>
 
         <div>
-          <div className="font-bold uppercase mb-1" style={{ color: '#1a3a1a', fontSize: '12px', letterSpacing: '0.08em' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
             How it's scored
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
+          <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
             {detail.how}
           </div>
         </div>
 
-        <div className="rounded-lg p-3" style={{ backgroundColor: '#f8f6f1' }}>
-          <div className="font-bold uppercase mb-1" style={{ color, fontSize: '12px', letterSpacing: '0.08em' }}>
+        <div style={{ backgroundColor: '#f5f2eb', border: '1px solid #c4b59a', padding: '10px 12px' }}>
+          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color, marginBottom: 4 }}>
             What your {score.toFixed(1)} means
           </div>
-          <div className="leading-relaxed" style={{ color: '#1a3a1a', fontSize: '14px' }}>
+          <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
             {detail.getMeans(score)}
           </div>
         </div>
 
         {seasonalNote && (
-          <div className="rounded-lg p-3" style={{ backgroundColor: 'rgba(245,158,11,0.07)', border: '1px solid #fde68a' }}>
-            <div className="font-bold uppercase mb-1" style={{ color: '#92400e', fontSize: '11px', letterSpacing: '0.08em' }}>
+          <div style={{ backgroundColor: 'rgba(184,122,0,0.06)', border: '1px solid #b87a00', padding: '10px 12px' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#b87a00', marginBottom: 4 }}>
               Seasonal variation
             </div>
-            <div className="leading-relaxed" style={{ color: '#78350f', fontSize: '13px' }}>
+            <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
               {seasonalNote}
             </div>
           </div>
         )}
 
-        <div className="pt-2 border-t font-semibold" style={{ color: '#3d3020', borderColor: '#f0ebe0', fontSize: '13px' }}>
+        <div style={{ paddingTop: 8, borderTop: '1px solid #c4b59a', fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
           Source: {detail.source}
         </div>
       </div>
@@ -620,7 +614,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
   );
 }
 
-export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, countryCode, mapillaryCoverageGap, streetCharacter, streetCharacterLoading, airQualityReading }: MetricGridProps) {
+export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, countryCode, mapillaryCoverageGap, streetCharacter, streetCharacterLoading, airQualityReading, inline }: MetricGridProps) {
   const [expandedMetric, setExpandedMetric] = useState<string | null>(null);
   const isUS = countryCode === 'us';
   const visibleMetrics = METRICS.filter(def =>
@@ -638,15 +632,17 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
   })).filter(g => g.defs.length > 0);
 
   return (
-    <div className="w-full">
-      <div className="mb-6">
-        <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a3a1a' }}>
-          Score Breakdown
-        </h2>
-        <p style={{ color: '#1a3a1a', fontSize: '16px', fontWeight: 500, marginTop: '4px' }}>
-          Each metric contributes to your walkability score. Green = strength, red = needs attention.
-        </p>
-      </div>
+    <div className="w-full" style={inline ? { padding: '0 24px 20px' } : undefined}>
+      {!inline && (
+        <div className="mb-6">
+          <h2 style={{ fontSize: '28px', fontWeight: 800, color: '#1a3a1a' }}>
+            Score Breakdown
+          </h2>
+          <p style={{ color: '#1a3a1a', fontSize: '16px', fontWeight: 500, marginTop: '4px' }}>
+            Each metric contributes to your walkability score. Green = strength, red = needs attention.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-6">
         {groups.map(({ groupKey, defs }) => {
@@ -675,40 +671,46 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
             <div key={groupKey}>
               {/* Group header */}
               <div className="flex items-center" style={{ gap: '8px', marginBottom: '12px' }}>
-                <span style={{ fontSize: '18px' }}>{groupMeta.icon}</span>
-                <span style={{ color: '#1a3a1a', letterSpacing: '0.1em', fontSize: '15px', fontWeight: 800, textTransform: 'uppercase' as const }}>
+                <span style={{ fontSize: '14px' }}>{groupMeta.icon}</span>
+                <span style={{ color: '#3d3020', letterSpacing: '0.14em', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase' as const }}>
                   {groupMeta.label}
                 </span>
                 {networkTypeStyle && (
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, backgroundColor: networkTypeStyle.bg, color: networkTypeStyle.text }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', backgroundColor: networkTypeStyle.bg, color: networkTypeStyle.text }}>
                     {streetCharacter!.type}
                   </span>
                 )}
                 {streetCharacterLoading && groupKey === 'network' && !streetCharacter && (
-                  <div className="animate-pulse" style={{ height: 18, width: 90, background: '#d8d0c4', borderRadius: 4 }} />
+                  <div className="animate-pulse" style={{ height: 16, width: 80, background: '#d8d0c4' }} />
                 )}
-                <div className="flex-1" style={{ height: '2px', backgroundColor: '#c4b59a' }} />
+                <div className="flex-1" style={{ height: '1px', backgroundColor: '#c4b59a' }} />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {cards.filter(c => !c.hidden || c.isLoading).map(({ def, score, isLoading }) => {
-                  const streetGridSubMetrics = def.key === 'streetGrid'
-                    ? compositeScore?.components.networkDesign.metrics
-                    : undefined;
-                  return (
-                  <MetricCardSimple
-                    key={def.key}
-                    def={def}
-                    score={score}
-                    isLoading={isLoading}
-                    isExpanded={expandedMetric === def.key}
-                    onClick={() => toggleMetric(def.key)}
-                    subMetrics={streetGridSubMetrics}
-                    streetCharacter={def.key === 'streetGrid' ? streetCharacter : undefined}
-                    airQualityReading={def.key === 'airQuality' ? airQualityReading : undefined}
-                  />
-                  );
-                })}
+                {(() => {
+                  const visible = cards.filter(c => !c.hidden || c.isLoading);
+                  const isOdd = visible.length % 2 !== 0;
+                  return visible.map(({ def, score, isLoading }, idx) => {
+                    const streetGridSubMetrics = def.key === 'streetGrid'
+                      ? compositeScore?.components.networkDesign.metrics
+                      : undefined;
+                    const isLast = idx === visible.length - 1;
+                    return (
+                      <div key={def.key} className={isOdd && isLast ? 'sm:col-span-2' : ''}>
+                        <MetricCardSimple
+                          def={def}
+                          score={score}
+                          isLoading={isLoading}
+                          isExpanded={expandedMetric === def.key}
+                          onClick={() => toggleMetric(def.key)}
+                          subMetrics={streetGridSubMetrics}
+                          streetCharacter={def.key === 'streetGrid' ? streetCharacter : undefined}
+                          airQualityReading={def.key === 'airQuality' ? airQualityReading : undefined}
+                        />
+                      </div>
+                    );
+                  });
+                })()}
               </div>
 
               {/* Expanded detail panel  -  appears directly below the expanded metric's group */}

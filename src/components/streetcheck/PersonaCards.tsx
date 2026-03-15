@@ -4,6 +4,7 @@ import type { PersonaResult } from '../../utils/personas';
 
 interface PersonaCardsProps {
   compositeScore: WalkabilityScoreV2 | null;
+  inline?: boolean;
 }
 
 const PERSONA_NAMES = ['Daily Commuter', 'Families', 'Older Adults', 'Car-Free Living', 'Remote Workers'];
@@ -76,24 +77,32 @@ function PersonaRow({ name, subtitle, score, verdictLabel: verdict }: PersonaRes
   );
 }
 
-export default function PersonaCards({ compositeScore }: PersonaCardsProps) {
+export default function PersonaCards({ compositeScore, inline }: PersonaCardsProps) {
   if (!compositeScore) return <PersonaCardsSkeleton />;
 
   const personas = computePersonas(compositeScore);
 
-  return (
-    <div className="retro-card" style={{ overflow: 'hidden' }}>
-      <div className="retro-card-header">
-        <span className="retro-card-header-title">Who is this area good for?</span>
-        <span className="retro-card-header-meta">Score / 10</span>
+  const content = (
+    <>
+      <div style={inline ? { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px 8px' } : undefined} className={inline ? undefined : 'retro-card-header'}>
+        <span style={inline ? { fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020' } : undefined} className={inline ? undefined : 'retro-card-header-title'}>Who is this area good for?</span>
+        <span style={inline ? { fontSize: 10, fontWeight: 600, color: '#7a6e5a' } : undefined} className={inline ? undefined : 'retro-card-header-meta'}>Score / 10</span>
       </div>
-      <div>
+      <div style={inline ? { padding: '0 10px 10px' } : undefined}>
         {personas.map((p, i) => (
           <div key={p.name} style={{ borderBottom: i < personas.length - 1 ? '1px solid #c4b59a' : 'none' }}>
             <PersonaRow {...p} />
           </div>
         ))}
       </div>
+    </>
+  );
+
+  if (inline) return <div>{content}</div>;
+
+  return (
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
+      {content}
     </div>
   );
 }

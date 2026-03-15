@@ -53,9 +53,10 @@ function getWorstLabels(
 interface PlainLanguageSummaryProps {
   metrics: WalkabilityMetrics;
   compositeScore?: WalkabilityScoreV2 | null;
+  inline?: boolean;
 }
 
-export default function PlainLanguageSummary({ metrics, compositeScore }: PlainLanguageSummaryProps) {
+export default function PlainLanguageSummary({ metrics, compositeScore, inline }: PlainLanguageSummaryProps) {
   const score = compositeScore?.overallScore ?? Math.round(metrics.overallScore * 10);
   const worst = getWorstLabels(metrics, compositeScore, 3);
 
@@ -91,7 +92,7 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
   const tierLabel = score >= 80 ? 'Walkable' : score >= 60 ? 'Moderate' : score >= 40 ? 'Car-dependent' : score >= 20 ? 'Difficult' : 'Hostile';
 
   return (
-    <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px solid #c4b59a' }}>
+    <div style={inline ? undefined : { marginTop: 16, paddingTop: 12, borderTop: '1px solid #c4b59a' }}>
       <div style={{ padding: '12px 14px', background: colors.bg, border: `2px solid ${colors.text}`, fontSize: 14, lineHeight: 1.65, color: '#2a2010' }}>
         <span style={{ color: colors.text, fontWeight: 800, letterSpacing: '0.04em' }}>
           {tierLabel}
