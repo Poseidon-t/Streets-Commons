@@ -1017,6 +1017,17 @@ function App() {
                         Watch Demo
                       </span>
                     </button>
+                    <span style={{ color: '#a0b0a0' }} className="text-sm">·</span>
+                    <button
+                      onClick={handleCompareMode}
+                      className="text-sm font-semibold transition-colors"
+                      style={{ color: '#e07850' }}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        Compare locations
+                      </span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1690,19 +1701,6 @@ function App() {
 
         {!compareMode && !location && !isAnalyzing && (
           <>
-            {/* Compare CTA */}
-            <section className="py-12 bg-white/50">
-              <div className="text-center">
-                <p className="text-earth-text-light mb-4 text-sm">Want to compare two neighborhoods?</p>
-                <button
-                  onClick={handleCompareMode}
-                  className="px-8 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 border-terra text-terra hover:bg-orange-50"
-                >
-                  Compare Two Locations
-                </button>
-              </div>
-            </section>
-
             {/* What You'll Learn */}
             <section className="py-16 bg-earth-sage/60">
               <div className="max-w-5xl mx-auto px-6">
@@ -1770,87 +1768,6 @@ function App() {
                       ))}
                     </div>
                   </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Scoring Methodology Section */}
-            <section className="py-16 bg-white/50">
-              <div className="max-w-5xl mx-auto px-6">
-                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-3 text-earth-text-dark">
-                  How We Score Walkability
-                </h2>
-                <p className="text-center text-sm sm:text-base mb-10 max-w-2xl mx-auto" style={{ color: '#6b7a6b' }}>
-                  Four evidence-based components, weighted by impact on daily walkability. Every metric uses open data — no black boxes.
-                </p>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    {
-                      label: 'Network Design',
-                      weight: '20%',
-                      color: '#4a8a4a',
-                      metrics: 'Intersection density, block length, network density, dead-end ratio, connectivity (betweenness centrality)',
-                      source: 'OpenStreetMap',
-                      why: 'Are there multiple routes to walk, or does the street layout force detours?',
-                    },
-                    {
-                      label: 'Environmental Comfort',
-                      weight: '20%',
-                      color: '#2d8a6a',
-                      metrics: 'Tree canopy (heat-adjusted), air quality, noise, speed environment, terrain, street lighting',
-                      source: 'Sentinel-2, Open-Meteo, OpenAQ, OSM, NASADEM',
-                      why: 'Is it comfortable to walk — shade, clean air, quiet streets, manageable slopes?',
-                    },
-                    {
-                      label: 'Street Design',
-                      weight: '25%',
-                      color: '#b87a00',
-                      metrics: 'EPA National Walkability Index: intersection density, transit proximity, land use diversity',
-                      source: 'EPA (US), OSM (intl)',
-                      why: 'Is the built environment designed around people or cars?',
-                    },
-                    {
-                      label: 'Accessibility',
-                      weight: '35%',
-                      color: '#8a4a2a',
-                      metrics: 'Commute mode share, destination access, transit stops within 800m',
-                      source: 'Census ACS (US), OpenStreetMap',
-                      why: 'Can you actually reach daily needs on foot — groceries, schools, transit?',
-                    },
-                  ].map(comp => (
-                    <div
-                      key={comp.label}
-                      className="rounded-xl border p-5"
-                      style={{ backgroundColor: 'rgba(255,255,255,0.7)', borderColor: '#e0dbd0' }}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-bold" style={{ color: comp.color }}>{comp.label}</span>
-                        <span
-                          className="text-xs font-bold px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${comp.color}15`, color: comp.color }}
-                        >
-                          {comp.weight}
-                        </span>
-                      </div>
-                      <p className="text-xs italic mb-2" style={{ color: '#5a6a5a' }}>
-                        {comp.why}
-                      </p>
-                      <p className="text-xs" style={{ color: '#6b7a6b' }}>
-                        {comp.metrics}
-                      </p>
-                      <p className="text-[10px] mt-2" style={{ color: '#8a9a8a' }}>
-                        Data: {comp.source}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-8 text-center">
-                  <p className="text-xs max-w-xl mx-auto" style={{ color: '#8a9a8a' }}>
-                    Score is 0–10 with tier labels: Walkable (8+), Moderate (6–7.9), Car-dependent (4–5.9), Difficult (2–3.9), Hostile (0–1.9).
-                    Each component uses weighted sub-metrics. Missing data is redistributed proportionally — the score reflects what we can verify.
-                  </p>
                 </div>
               </div>
             </section>
