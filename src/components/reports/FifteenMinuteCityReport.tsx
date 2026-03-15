@@ -51,7 +51,7 @@ function getLabel(score: number): string {
 }
 
 function getWalkTime(meters: number): string {
-  if (meters < 0) return '—';
+  if (meters < 0) return ' - ';
   const minutes = Math.round(meters / 80);
   return minutes < 1 ? '<1m' : `${minutes}m`;
 }

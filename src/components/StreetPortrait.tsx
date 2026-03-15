@@ -1,10 +1,10 @@
 /**
- * StreetPortrait — illustrated street-level scene based on walkability tier.
+ * StreetPortrait  -  illustrated street-level scene based on walkability tier.
  * Five AI-generated NACTO-style illustrations, one per score tier.
  */
 
 interface StreetPortraitProps {
-  score: number; // 0–10
+  score: number; // 0-10
   locationName?: string;
 }
 
@@ -21,7 +21,7 @@ function getTier(score: number): Tier {
 const TIER_META: Record<Tier, { label: string; caption: string; color: string }> = {
   'walkable':      { label: 'Highly Walkable',  caption: 'Wide shaded footpaths, protected cycling, active street life.', color: '#166534' },
   'moderate':      { label: 'Moderate',          caption: 'Functional streets with some trees and pedestrian space.', color: '#854d0e' },
-  'car-dependent': { label: 'Car-Dependent',     caption: 'Designed around vehicles — walking is possible but uncomfortable.', color: '#9a3412' },
+  'car-dependent': { label: 'Car-Dependent',     caption: 'Designed around vehicles  -  walking is possible but uncomfortable.', color: '#9a3412' },
   'difficult':     { label: 'Difficult to Walk', caption: 'Poor infrastructure, narrow or crumbling footpaths, heavy traffic.', color: '#7f1d1d' },
   'hostile':       { label: 'Hostile',           caption: 'No pedestrian provision. Walking here is unsafe and exhausting.', color: '#450a0a' },
 };
@@ -37,7 +37,7 @@ export default function StreetPortrait({ score, locationName }: StreetPortraitPr
       <div className="relative">
         <img
           src={src}
-          alt={`Street scene illustration — ${meta.label}`}
+          alt={`Street scene illustration  -  ${meta.label}`}
           className="w-full object-cover"
           style={{ maxHeight: '320px' }}
         />
@@ -54,7 +54,7 @@ export default function StreetPortrait({ score, locationName }: StreetPortraitPr
       <div className="px-4 py-3 bg-gray-50 flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-0.5">
-            Street Portrait {locationName ? `— ${locationName}` : ''}
+            Street Portrait {locationName ? ` -  ${locationName}` : ''}
           </div>
           <p className="text-sm text-gray-600">{meta.caption}</p>
         </div>

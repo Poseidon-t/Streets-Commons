@@ -8,7 +8,7 @@
  * - Circle head (proportionally large, as in AIGA style)
  * - Geometric filled body, no strokes
  * - Dynamic stride: arms and legs counterbalance
- * - No ornamentation — pure gesture
+ * - No ornamentation  -  pure gesture
  */
 
 interface FigureProps {
@@ -32,24 +32,24 @@ export function PedestrianFigure({ color = '#1e1608', opacity = 1, width = 13, h
       style={{ opacity, flexShrink: 0, display: 'block' }}
       aria-hidden="true"
     >
-      {/* Head — large circle, AIGA proportion */}
+      {/* Head  -  large circle, AIGA proportion */}
       <circle cx="6.5" cy="2.2" r="2.1" />
-      {/* Torso — slight trapezoid, wider at shoulder */}
+      {/* Torso  -  slight trapezoid, wider at shoulder */}
       <path d="M 4.5 4.8 L 8.5 4.8 L 8 11 L 5 11 Z" />
-      {/* Left arm — forward, angled down-left */}
+      {/* Left arm  -  forward, angled down-left */}
       <path d="M 4.5 6.2 L 0.8 9.8 L 1.9 10.8 L 5.5 7.3 Z" />
-      {/* Right arm — back, angled up-right */}
+      {/* Right arm  -  back, angled up-right */}
       <path d="M 8.5 6.2 L 12.2 8.2 L 11.7 9.4 L 8.1 7.5 Z" />
-      {/* Left leg — forward stride */}
+      {/* Left leg  -  forward stride */}
       <path d="M 5 11 L 7.2 11 L 6.2 21 L 4 21 Z" />
-      {/* Right leg — back stride, wider spread */}
+      {/* Right leg  -  back stride, wider spread */}
       <path d="M 6 11 L 8.5 11 L 10.2 21 L 8.2 21 Z" />
     </svg>
   );
 }
 
 /**
- * Family group — adult and child side by side.
+ * Family group  -  adult and child side by side.
  * Used for Families persona chip.
  */
 export function FamilyFigure({ color = '#1e1608', opacity = 1, width = 24, height = 22 }: FigureProps) {
@@ -67,7 +67,7 @@ export function FamilyFigure({ color = '#1e1608', opacity = 1, width = 24, heigh
       <path d="M 4 4.8 L 8 4.8 L 7.5 11 L 4.5 11 Z" />
       {/* adult left arm */}
       <path d="M 4 6.2 L 0.5 9.5 L 1.5 10.5 L 4.8 7.3 Z" />
-      {/* adult right arm — reaching toward child */}
+      {/* adult right arm  -  reaching toward child */}
       <path d="M 8 6.2 L 11.5 7.5 L 11 8.6 L 7.7 7.4 Z" />
       {/* adult left leg */}
       <path d="M 4.5 11 L 6.5 11 L 5.5 21 L 3.5 21 Z" />
@@ -106,24 +106,24 @@ export function ElderFigure({ color = '#1e1608', opacity = 1, width = 15, height
     >
       {/* Head */}
       <circle cx="6.5" cy="2.2" r="2.1" />
-      {/* Torso — more upright than walking figure */}
+      {/* Torso  -  more upright than walking figure */}
       <path d="M 4.8 4.8 L 8.2 4.8 L 8 11 L 5 11 Z" />
-      {/* Left arm — slight forward, not as extended */}
+      {/* Left arm  -  slight forward, not as extended */}
       <path d="M 4.8 6.5 L 2.5 9 L 3.4 10 L 5.6 7.5 Z" />
-      {/* Right arm — holding cane, angled down-right */}
+      {/* Right arm  -  holding cane, angled down-right */}
       <path d="M 8.2 6.5 L 10.5 8.5 L 9.8 9.5 L 7.8 7.5 Z" />
-      {/* Cane — thin diagonal from right hand to ground */}
+      {/* Cane  -  thin diagonal from right hand to ground */}
       <path d="M 10.2 8.8 L 14 21 L 13 21 Z" />
-      {/* Left leg — moderate stride */}
+      {/* Left leg  -  moderate stride */}
       <path d="M 5 11 L 7 11 L 6.2 21 L 4.2 21 Z" />
-      {/* Right leg — slight forward */}
+      {/* Right leg  -  slight forward */}
       <path d="M 6 11 L 8 11 L 9 21 L 7.2 21 Z" />
     </svg>
   );
 }
 
 /**
- * Map pin / location marker — used in document header area.
+ * Map pin / location marker  -  used in document header area.
  * Classic survey-style crosshair pin.
  */
 export function SurveyPin({ color = '#b8401a', size = 20 }: { color?: string; size?: number }) {

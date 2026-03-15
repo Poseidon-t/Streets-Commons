@@ -2,10 +2,10 @@
  * 4-Component Walkability Scoring (0-100 + A-F Grade)
  *
  * Components:
- *   Network Design   20%  — intersection density, block length, network density, dead-end ratio, connectivity/betweenness centrality (OSM topology)
- *   Environment      20%  — tree canopy (heat-adjusted via Open-Meteo), terrain, street lighting, air quality, noise, speed environment
- *   Street Design    25%  — EPA National Walkability Index (intersection density, transit proximity, land use mix)
- *   Accessibility    35%  — commute mode (Census ACS), destination access (OSM POIs), transit access
+ *   Network Design   20%   -  intersection density, block length, network density, dead-end ratio, connectivity/betweenness centrality (OSM topology)
+ *   Environment      20%   -  tree canopy (heat-adjusted via Open-Meteo), terrain, street lighting, air quality, noise, speed environment
+ *   Street Design    25%   -  EPA National Walkability Index (intersection density, transit proximity, land use mix)
+ *   Accessibility    35%   -  commute mode (Census ACS), destination access (OSM POIs), transit access
  *
  * Each sub-metric is 0-100. Components are weighted averages of their sub-metrics.
  * Missing metrics have their weight redistributed proportionally.
@@ -112,7 +112,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: networkMetrics,
   };
 
-  // ===== 2. Environment (20%) — Tree Canopy + Terrain + Street Lighting + Noise + Air Quality + Speed Environment =====
+  // ===== 2. Environment (20%)  -  Tree Canopy + Terrain + Street Lighting + Noise + Air Quality + Speed Environment =====
   // Apply heat stress modifier: adjusts canopy importance based on thermal conditions (Open-Meteo)
   const adjustedCanopy = applyHeatStressModifier(legacy.treeCanopy, weatherData ?? null);
   const treeScore = scale10to100(adjustedCanopy);
@@ -151,7 +151,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: envMetrics,
   };
 
-  // ===== 3. Street Design (15%) — EPA Walkability Index =====
+  // ===== 3. Street Design (15%)  -  EPA Walkability Index =====
   const sdScore = streetDesignScore ?? 0;
 
   const safetyMetrics: SubMetric[] = [
@@ -165,7 +165,7 @@ export function calculateCompositeScore(input: CompositeScoreInput): Walkability
     metrics: safetyMetrics,
   };
 
-  // ===== 4. Accessibility (25%) — Commute Mode + Destinations + Transit =====
+  // ===== 4. Accessibility (25%)  -  Commute Mode + Destinations + Transit =====
   const popScore = populationDensityScore ?? 0;
   const destScore = scale10to100(legacy.destinationAccess);
   const transitS = transitAccessScore ?? 0;

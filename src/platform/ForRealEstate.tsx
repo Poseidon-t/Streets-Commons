@@ -4,7 +4,7 @@ import VerticalPage from './components/VerticalPage';
 export default function ForRealEstate() {
   return (
     <>
-      {/* Agent-focused hero section — direct link to the tool */}
+      {/* Agent-focused hero section  -  direct link to the tool */}
       <section className="border-b" style={{ borderColor: '#e0dbd0', backgroundColor: '#faf8f4' }}>
         <div className="max-w-5xl mx-auto px-6 py-12 sm:py-16">
           <div className="grid sm:grid-cols-2 gap-8 items-center">
@@ -16,7 +16,7 @@ export default function ForRealEstate() {
                 Branded Walkability Reports for Your Listings
               </h2>
               <p className="text-sm mb-4 leading-relaxed" style={{ color: '#6b7280' }}>
-                Give your buyers the walkability data they need — and put your name on it. Metrics from satellite imagery and OpenStreetMap, formatted as a print-ready PDF with your branding.
+                Give your buyers the walkability data they need  -  and put your name on it. Metrics from satellite imagery and OpenStreetMap, formatted as a print-ready PDF with your branding.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -60,7 +60,7 @@ export default function ForRealEstate() {
         challenges={[
           {
             title: 'Proximity Scores Are Not Enough',
-            description: 'Traditional walkability scores measure proximity to destinations but ignore actual pedestrian conditions — street network quality, tree canopy, and environmental comfort.',
+            description: 'Traditional walkability scores measure proximity to destinations but ignore actual pedestrian conditions  -  street network quality, tree canopy, and environmental comfort.',
           },
           {
             title: 'Hidden Development Risk',
@@ -72,7 +72,7 @@ export default function ForRealEstate() {
           },
         ]}
         solutionTitle="Beyond Proximity Scores"
-        solutionDescription="Our platform uses satellite imagery, OpenStreetMap, and government data to give you a multi-dimensional view of pedestrian conditions — not just proximity scores."
+        solutionDescription="Our platform uses satellite imagery, OpenStreetMap, and government data to give you a multi-dimensional view of pedestrian conditions  -  not just proximity scores."
         solutionPoints={[
           'Interactive dashboard for site comparison and portfolio monitoring',
           'Composite walkability scoring across 4 components (Network, Comfort, Safety, Density)',

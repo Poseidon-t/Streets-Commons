@@ -98,7 +98,7 @@ export default function Contact() {
       <section className="bg-platform-gray py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid md:grid-cols-5 gap-8 md:gap-16">
-            {/* Left — Info */}
+            {/* Left  -  Info */}
             <div className="md:col-span-2">
               <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">Contact Sales</p>
               <h1 className="text-3xl md:text-4xl font-bold text-platform-slate mb-4">Let's discuss your project</h1>
@@ -142,7 +142,7 @@ export default function Contact() {
               </div>
             </div>
 
-            {/* Right — Form */}
+            {/* Right  -  Form */}
             <div className="md:col-span-3">
               <form onSubmit={handleSubmit} className="bg-platform-gray rounded-2xl p-8 space-y-5">
                 <div className="grid sm:grid-cols-2 gap-5">
@@ -203,7 +203,7 @@ export default function Contact() {
                     name="message"
                     required
                     rows={4}
-                    placeholder="Tell us about your use case — e.g. ADA compliance monitoring, Vision Zero prioritization, site selection, transit planning, or research. What decisions do you need to make?"
+                    placeholder="Tell us about your use case  -  e.g. ADA compliance monitoring, Vision Zero prioritization, site selection, transit planning, or research. What decisions do you need to make?"
                     className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-platform-navy/20 focus:border-platform-navy resize-none"
                   />
                 </div>

@@ -75,7 +75,7 @@ export default function BlogPost() {
     );
   }
 
-  // Sort related posts — prefer same category
+  // Sort related posts  -  prefer same category
   const sortedRelated = [...relatedPosts].sort((a, b) => {
     const aMatch = a.category === post.category ? 1 : 0;
     const bMatch = b.category === post.category ? 1 : 0;

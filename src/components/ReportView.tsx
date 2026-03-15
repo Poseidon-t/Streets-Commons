@@ -57,7 +57,7 @@ function buildMetrics(
 ): { key: string; name: string; icon: string; description: string; score: number }[] {
   const list: { key: string; name: string; icon: string; description: string; score: number }[] = [];
 
-  // 1. Street Grid — OSM network topology (35% of composite score)
+  // 1. Street Grid  -  OSM network topology (35% of composite score)
   const networkScore = compositeScore
     ? compositeScore.components.networkDesign.score / 10
     : 0;
@@ -70,12 +70,12 @@ function buildMetrics(
       key: 'streetGrid',
       name: 'Street Grid',
       icon: '🔀',
-      description: `OpenStreetMap street topology — intersection density, block length, network density, dead-end ratio. ${subDetails}`,
+      description: `OpenStreetMap street topology  -  intersection density, block length, network density, dead-end ratio. ${subDetails}`,
       score: networkScore,
     });
   }
 
-  // 2. Tree Canopy — Sentinel-2 NDVI
+  // 2. Tree Canopy  -  Sentinel-2 NDVI
   if (metrics.treeCanopy > 0) {
     list.push({
       key: 'treeCanopy',
@@ -86,7 +86,7 @@ function buildMetrics(
     });
   }
 
-  // 3. Street Design — EPA (US only)
+  // 3. Street Design  -  EPA (US only)
   const sdScore = compositeScore
     ? compositeScore.components.safety.score / 10
     : 0;
@@ -95,12 +95,12 @@ function buildMetrics(
       key: 'streetDesign',
       name: 'Street Design',
       icon: '🛣️',
-      description: 'EPA National Walkability Index — intersection density, transit proximity, land use mix.',
+      description: 'EPA National Walkability Index  -  intersection density, transit proximity, land use mix.',
       score: sdScore,
     });
   }
 
-  // 4. Destinations — OSM POIs
+  // 4. Destinations  -  OSM POIs
   if (metrics.destinationAccess > 0) {
     list.push({
       key: 'destinationAccess',
@@ -111,7 +111,7 @@ function buildMetrics(
     });
   }
 
-  // 5. Commute Mode — Census ACS (US only)
+  // 5. Commute Mode  -  Census ACS (US only)
   const commuteMetric = compositeScore?.components.densityContext.metrics.find(
     m => m.name === 'Commute Mode' || m.name === 'Population Density',
   );
@@ -309,7 +309,7 @@ export default function ReportView() {
           </div>
         )}
 
-        {/* Location header — always visible */}
+        {/* Location header  -  always visible */}
         <div className="mb-8">
           <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">SafeStreets · Walkability Assessment</p>
           <h1 className="text-2xl font-bold text-gray-900">{location.displayName}</h1>
@@ -318,7 +318,7 @@ export default function ReportView() {
         {/* ── TAB: OVERVIEW ─────────────────────────────────────────────────── */}
         <div className={activeTab === 'overview' ? 'block' : 'hidden print:block'}>
 
-          {/* Score hero — compact */}
+          {/* Score hero  -  compact */}
           <div className="flex items-center gap-6 mb-8 p-6 bg-gray-50 rounded-2xl">
             <div className="text-center">
               <div className={`text-6xl font-bold leading-none ${getScoreColor(displayScore)}`}>
@@ -350,7 +350,7 @@ export default function ReportView() {
             <StreetPortrait score={displayScore} locationName={location?.displayName} />
           </div>
 
-          {/* Key findings — 2 col grid */}
+          {/* Key findings  -  2 col grid */}
           <div className="mb-8">
             <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">Key Findings</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -375,7 +375,7 @@ export default function ReportView() {
             </div>
           </div>
 
-          {/* Score components — 2x2 grid */}
+          {/* Score components  -  2x2 grid */}
           {components.length > 0 && (
             <div className="mb-8">
               <h2 className="text-base font-semibold text-gray-500 uppercase tracking-wide mb-3">Score Components</h2>
@@ -401,7 +401,7 @@ export default function ReportView() {
             </div>
           )}
 
-          {/* Summary prose — collapsed to essentials */}
+          {/* Summary prose  -  collapsed to essentials */}
           <div className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-6">
             Analysis based on OpenStreetMap, Sentinel-2 satellite imagery, EPA, and US Census ACS.
             {fieldMode && hasAnyAdjustment && ' Some scores adjusted from field observation.'}
@@ -620,7 +620,7 @@ export default function ReportView() {
             {displayScore >= 6
               ? `This area meets most international standards for pedestrian infrastructure.`
               : `Key areas for improvement include street network design and environmental comfort.`}
-            {resolvedMetrics.find(m => m.key === 'streetGrid') && ` Street network scores ${resolvedMetrics.find(m => m.key === 'streetGrid')!.adjusted.toFixed(1)}/10 — ${resolvedMetrics.find(m => m.key === 'streetGrid')!.adjusted >= 6 ? 'meeting' : 'below'} the ITDP block-size benchmark.`}
+            {resolvedMetrics.find(m => m.key === 'streetGrid') && ` Street network scores ${resolvedMetrics.find(m => m.key === 'streetGrid')!.adjusted.toFixed(1)}/10  -  ${resolvedMetrics.find(m => m.key === 'streetGrid')!.adjusted >= 6 ? 'meeting' : 'below'} the ITDP block-size benchmark.`}
           </div>
         </div>
 

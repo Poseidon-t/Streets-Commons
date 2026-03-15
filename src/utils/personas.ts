@@ -84,7 +84,7 @@ export function computePersonas(cs: WalkabilityScoreV2): PersonaResult[] {
     { name: 'Daily Commuter',   subtitle: 'Walking, transit & daily errands on foot', score: commuter, verdictLabel: verdictLabel(commuter) },
     { name: 'Families',         subtitle: 'Safe streets, parks, school runs',          score: families, verdictLabel: verdictLabel(families) },
     { name: 'Older Adults',     subtitle: 'Accessible services, flat terrain, safety', score: elderly,  verdictLabel: verdictLabel(elderly)  },
-    { name: 'Car-Free Living',  subtitle: 'No vehicle — walking and transit only',     score: carFree,  verdictLabel: verdictLabel(carFree)  },
+    { name: 'Car-Free Living',  subtitle: 'No vehicle  -  walking and transit only',     score: carFree,  verdictLabel: verdictLabel(carFree)  },
     { name: 'Remote Workers',   subtitle: 'Cafés, parks, midday walks',                score: remote,   verdictLabel: verdictLabel(remote)   },
   ];
 }

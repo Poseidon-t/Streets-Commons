@@ -23,11 +23,11 @@ const PLATFORM_FEATURES = [
 const FAQS = [
   {
     q: 'What geographic area can the platform cover?',
-    a: 'The platform can analyze any geography — from a single corridor or neighborhood to a full city or multi-city portfolio. Coverage is based on OpenStreetMap and satellite data, which is available globally. Larger geographies may affect configuration time and pricing.',
+    a: 'The platform can analyze any geography  -  from a single corridor or neighborhood to a full city or multi-city portfolio. Coverage is based on OpenStreetMap and satellite data, which is available globally. Larger geographies may affect configuration time and pricing.',
   },
   {
     q: 'Can we connect our own data to the platform?',
-    a: 'Yes. The Custom Decisioning Build tier supports integration of your organization\'s internal datasets — GIS layers, inspection records, complaint logs, permit data, or any other structured data source. Custom data layers are incorporated into dashboards and scoring logic during the Data Configuration phase.',
+    a: 'Yes. The Custom Decisioning Build tier supports integration of your organization\'s internal datasets  -  GIS layers, inspection records, complaint logs, permit data, or any other structured data source. Custom data layers are incorporated into dashboards and scoring logic during the Data Configuration phase.',
   },
   {
     q: 'What does "decisioning rules" mean in practice?',
@@ -39,11 +39,11 @@ const FAQS = [
   },
   {
     q: 'What is white-label or embedded deployment?',
-    a: 'White-label deployment means the platform runs under your organization\'s branding, domain, and access controls — with no SafeStreets branding visible to your users. Embedded deployment means specific dashboard views or map widgets are embedded directly into your existing internal tools or public-facing portals. Both options are available in the Custom Decisioning Build tier.',
+    a: 'White-label deployment means the platform runs under your organization\'s branding, domain, and access controls  -  with no SafeStreets branding visible to your users. Embedded deployment means specific dashboard views or map widgets are embedded directly into your existing internal tools or public-facing portals. Both options are available in the Custom Decisioning Build tier.',
   },
   {
     q: 'How long does it take to go live?',
-    a: 'A standard Intelligence Platform deployment typically takes 5–6 weeks from contract to launch. Custom Decisioning Builds with system integrations or white-label deployment typically take 6–10 weeks depending on complexity. Timeline is established during Discovery.',
+    a: 'A standard Intelligence Platform deployment typically takes 5-6 weeks from contract to launch. Custom Decisioning Builds with system integrations or white-label deployment typically take 6-10 weeks depending on complexity. Timeline is established during Discovery.',
   },
   {
     q: 'How often is the data updated?',
@@ -92,7 +92,7 @@ export default function Pricing() {
               <Link to="/platform/contact" className="block text-center py-3.5 border-2 border-platform-navy text-platform-navy font-semibold rounded-lg hover:bg-platform-navy hover:text-white transition mb-6">
                 Request a Quote
               </Link>
-              <p className="text-xs text-gray-400 text-center">Typical deployment: 5–6 weeks</p>
+              <p className="text-xs text-gray-400 text-center">Typical deployment: 5-6 weeks</p>
             </div>
 
             {/* Custom Decisioning Build */}
@@ -109,7 +109,7 @@ export default function Pricing() {
               <Link to="/platform/contact" className="block text-center py-3.5 bg-platform-green text-white font-semibold rounded-lg hover:bg-platform-green-light transition mb-6">
                 Contact Sales
               </Link>
-              <p className="text-xs text-gray-500 text-center">Typical deployment: 6–10 weeks</p>
+              <p className="text-xs text-gray-500 text-center">Typical deployment: 6-10 weeks</p>
             </div>
           </div>
 

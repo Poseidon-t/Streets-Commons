@@ -1,5 +1,5 @@
 /**
- * Network Design metrics — 5 pure functions scoring 0-100
+ * Network Design metrics  -  5 pure functions scoring 0-100
  * Derived from OSM way topology (NetworkGraph).
  */
 import type { NetworkGraph } from '../types';

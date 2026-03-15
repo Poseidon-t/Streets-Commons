@@ -100,7 +100,7 @@ export default function ProductTour({ isActive, onComplete, onSkip }: ProductTou
 
   return (
     <>
-      {/* Tour card — pinned bottom-right (desktop) or bottom sheet (mobile), no overlay */}
+      {/* Tour card  -  pinned bottom-right (desktop) or bottom sheet (mobile), no overlay */}
       <div
         ref={tooltipRef}
         className={`fixed z-[60] bg-white border border-gray-200 shadow-lg ${

@@ -41,7 +41,7 @@ function buildDemographicStats(demographics: DemographicData): DemographicStat[]
       stats.push({
         label: 'Poverty Rate',
         value: `${rate.toFixed(1)}%`,
-        context: rate > 20 ? 'High — national avg is 12.4%' : rate > 15 ? 'Above national avg (12.4%)' : undefined,
+        context: rate > 20 ? 'High  -  national avg is 12.4%' : rate > 15 ? 'Above national avg (12.4%)' : undefined,
         contextColor: rate > 20 ? '#dc2626' : rate > 15 ? '#ca8a04' : undefined,
       });
     }
@@ -147,7 +147,7 @@ function computeEquityAnalysis(
       insights.push({
         icon: '📉',
         label: 'Economic vulnerability',
-        detail: `${demographics.unemploymentRate.toFixed(1)}% unemployment paired with limited walkability. Job access depends heavily on transportation — poor pedestrian infrastructure limits economic opportunity.`,
+        detail: `${demographics.unemploymentRate.toFixed(1)}% unemployment paired with limited walkability. Job access depends heavily on transportation  -  poor pedestrian infrastructure limits economic opportunity.`,
       });
     }
   } else if (demographics.type === 'international') {
@@ -157,7 +157,7 @@ function computeEquityAnalysis(
       insights.push({
         icon: '🏚️',
         label: 'Infrastructure gap',
-        detail: `Walkability score of ${(score / 10).toFixed(1)}/10 in a country with $${gdpPerCapita.toLocaleString()} GDP per capita. Walking is not a lifestyle choice here — it is a necessity, and the infrastructure doesn't support it.`,
+        detail: `Walkability score of ${(score / 10).toFixed(1)}/10 in a country with $${gdpPerCapita.toLocaleString()} GDP per capita. Walking is not a lifestyle choice here  -  it is a necessity, and the infrastructure doesn't support it.`,
       });
     }
 
@@ -187,7 +187,7 @@ function computeEquityAnalysis(
         insights.push({
           icon: '🏜️',
           label: 'Service desert',
-          detail: criticalGaps[0] + ' — in a community that depends on walking for daily access.',
+          detail: criticalGaps[0] + '  -  in a community that depends on walking for daily access.',
         });
       }
     }

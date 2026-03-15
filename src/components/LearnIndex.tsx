@@ -1,5 +1,5 @@
 /**
- * Learn index page — educational content organized by topic
+ * Learn index page  -  educational content organized by topic
  * Fetches blog posts with education categories and groups them by topic
  */
 
@@ -34,7 +34,7 @@ const LEARN_TOPICS = [
   {
     id: 'street-design',
     title: 'Street Design Fundamentals',
-    description: 'How to analyze a street — lane width, sidewalk presence, crossing safety, speed design. Learn why certain designs feel safe or dangerous, and what human-scale infrastructure looks like.',
+    description: 'How to analyze a street  -  lane width, sidewalk presence, crossing safety, speed design. Learn why certain designs feel safe or dangerous, and what human-scale infrastructure looks like.',
     category: 'Street Design',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -94,7 +94,7 @@ const LEARN_TOPICS = [
   {
     id: 'case-studies',
     title: 'Case Studies',
-    description: 'Before-and-after transformations: Barcelona\'s superblocks, Seoul\'s Cheonggyecheon highway removal. What works in pedestrian infrastructure globally — and what fails in car-dependent suburban design.',
+    description: 'Before-and-after transformations: Barcelona\'s superblocks, Seoul\'s Cheonggyecheon highway removal. What works in pedestrian infrastructure globally  -  and what fails in car-dependent suburban design.',
     category: 'Urban Case Studies',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -132,7 +132,7 @@ export default function LearnIndex() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
-      <title>Learn to Read Streets — SafeStreets Educational Resources</title>
+      <title>Learn to Read Streets  -  SafeStreets Educational Resources</title>
       <meta name="description" content="Free educational resources on walkability, street design, and urban planning. Learn to recognize safe infrastructure and understand how streets affect communities." />
       <link rel="canonical" href="https://safestreets.streetsandcommons.com/learn" />
 
@@ -140,13 +140,13 @@ export default function LearnIndex() {
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://safestreets.streetsandcommons.com/learn" />
       <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
-      <meta property="og:title" content="Learn to Read Streets — SafeStreets Educational Resources" />
+      <meta property="og:title" content="Learn to Read Streets  -  SafeStreets Educational Resources" />
       <meta property="og:description" content="Free educational resources on walkability, street design, and urban planning. Learn to recognize safe infrastructure." />
       <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Learn to Read Streets — SafeStreets Education" />
+      <meta name="twitter:title" content="Learn to Read Streets  -  SafeStreets Education" />
       <meta name="twitter:description" content="Educational resources on walkability, street design, and urban planning." />
       <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 

@@ -69,57 +69,57 @@ function getInsight(key: string, score: number): string {
       return score >= 8 ? 'Lush canopy, shaded walks'
         : score >= 6 ? 'Good shade coverage'
         : score >= 4 ? 'Some shade, but exposed stretches'
-        : 'Minimal shade — hot in summer';
+        : 'Minimal shade  -  hot in summer';
     case 'streetDesign':
       return score >= 8 ? 'Connected grid, designed for walking'
         : score >= 6 ? 'Good street connectivity and access'
         : score >= 4 ? 'Mixed connectivity, some car-oriented design'
         : 'Car-dependent street layout';
     case 'destinations':
-      return score >= 8 ? 'Diverse, active neighbourhood — shops, dining, parks, culture all nearby'
+      return score >= 8 ? 'Diverse, active neighbourhood  -  shops, dining, parks, culture all nearby'
         : score >= 6 ? 'Good variety of daily destinations within walking distance'
         : score >= 4 ? 'Some destinations nearby but limited variety'
-        : 'Few destinations — low diversity and density';
+        : 'Few destinations  -  low diversity and density';
     case 'populationDensity':
       return score >= 8 ? 'Most residents walk, bike, or take transit'
         : score >= 6 ? 'Good share of car-free commuters'
         : score >= 4 ? 'Some alternative commuters'
         : 'Mostly car-dependent area';
     case 'transitAccess':
-      return score >= 8 ? 'Excellent transit — multiple modes nearby'
+      return score >= 8 ? 'Excellent transit  -  multiple modes nearby'
         : score >= 6 ? 'Good transit coverage within walking distance'
-        : score >= 4 ? 'Limited transit — infrequent or few routes'
+        : score >= 4 ? 'Limited transit  -  infrequent or few routes'
         : 'Very little transit access';
     case 'terrain':
-      return score >= 9 ? 'Flat — easy walking in any direction'
-        : score >= 7 ? 'Gently rolling — minor hills only'
-        : score >= 5 ? 'Moderate hills — some inclines'
-        : score >= 3 ? 'Hilly — significant elevation changes'
-        : 'Steep terrain — elevation limits walkable routes';
+      return score >= 9 ? 'Flat  -  easy walking in any direction'
+        : score >= 7 ? 'Gently rolling  -  minor hills only'
+        : score >= 5 ? 'Moderate hills  -  some inclines'
+        : score >= 3 ? 'Hilly  -  significant elevation changes'
+        : 'Steep terrain  -  elevation limits walkable routes';
     case 'speedEnvironment':
-      return score >= 9 ? 'Very low-speed streets — safe walking pace'
-        : score >= 7 ? 'Calm 30 km/h network — low pedestrian risk'
-        : score >= 5 ? 'Mixed speeds — some faster arterials'
-        : score >= 3 ? 'Faster roads — 50–60 km/h arterials dominant'
-        : 'High-speed network — hostile walking conditions';
+      return score >= 9 ? 'Very low-speed streets  -  safe walking pace'
+        : score >= 7 ? 'Calm 30 km/h network  -  low pedestrian risk'
+        : score >= 5 ? 'Mixed speeds  -  some faster arterials'
+        : score >= 3 ? 'Faster roads  -  50-60 km/h arterials dominant'
+        : 'High-speed network  -  hostile walking conditions';
     case 'streetLighting':
-      return score >= 9 ? 'Well-lit network — safe after dark'
+      return score >= 9 ? 'Well-lit network  -  safe after dark'
         : score >= 7 ? 'Good lighting on most routes'
-        : score >= 5 ? 'Moderate lighting — some gaps at night'
-        : score >= 3 ? 'Sparse lighting — limited after-dark safety'
+        : score >= 5 ? 'Moderate lighting  -  some gaps at night'
+        : score >= 3 ? 'Sparse lighting  -  limited after-dark safety'
         : 'Very low lighting density detected';
     case 'airQuality':
-      return score >= 9 ? 'Clean air — meets WHO 2021 guidelines'
-        : score >= 7 ? 'Good air quality — minor pollution'
-        : score >= 5 ? 'Moderate pollution — sensitive groups should take care'
-        : score >= 3 ? 'Elevated pollution — regular walkers at risk'
-        : 'High pollution — air quality is a significant health concern';
+      return score >= 9 ? 'Clean air  -  meets WHO 2021 guidelines'
+        : score >= 7 ? 'Good air quality  -  minor pollution'
+        : score >= 5 ? 'Moderate pollution  -  sensitive groups should take care'
+        : score >= 3 ? 'Elevated pollution  -  regular walkers at risk'
+        : 'High pollution  -  air quality is a significant health concern';
     case 'noise':
-      return score >= 9 ? 'Very quiet streets — pedestrian or residential only'
-        : score >= 7 ? 'Calm neighbourhood — mostly residential roads'
-        : score >= 5 ? 'Moderate noise — some busier roads mixed in'
-        : score >= 3 ? 'Noisy arterials — significant traffic noise'
-        : 'High noise environment — major roads dominate';
+      return score >= 9 ? 'Very quiet streets  -  pedestrian or residential only'
+        : score >= 7 ? 'Calm neighbourhood  -  mostly residential roads'
+        : score >= 5 ? 'Moderate noise  -  some busier roads mixed in'
+        : score >= 3 ? 'Noisy arterials  -  significant traffic noise'
+        : 'High noise environment  -  major roads dominate';
     default:
       return '';
   }
@@ -136,13 +136,13 @@ interface MetricDetail {
 
 const METRIC_DETAILS: Record<string, MetricDetail> = {
   streetGrid: {
-    what: 'How well-connected the street network is — intersection density, block lengths, and dead-end ratio.',
+    what: 'How well-connected the street network is  -  intersection density, block lengths, and dead-end ratio.',
     how: '4 sub-metrics from OpenStreetMap: intersection density (30%), average block length (30%), street network density (20%), and dead-end ratio (20%). Analyzed within 800m.',
     source: 'OpenStreetMap street topology',
     getMeans: (s) =>
-      s >= 8 ? 'Excellent grid — short blocks, many intersections, and very few dead-ends. Walking routes are direct and efficient.'
+      s >= 8 ? 'Excellent grid  -  short blocks, many intersections, and very few dead-ends. Walking routes are direct and efficient.'
       : s >= 6 ? 'Good connectivity with some dead-ends. Most trips can take a fairly direct walking route.'
-      : s >= 4 ? 'Mixed connectivity — some areas are well-connected but others have limited route options.'
+      : s >= 4 ? 'Mixed connectivity  -  some areas are well-connected but others have limited route options.'
       : 'Many dead-ends and long blocks. Walking routes are often indirect, making trips longer than they need to be.',
   },
   treeCanopy: {
@@ -153,7 +153,7 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       s >= 8 ? 'Dense tree canopy providing excellent shade. Walking is comfortable even in hot weather.'
       : s >= 6 ? 'Good vegetation coverage. Most walking routes have some shade.'
       : s >= 4 ? 'Moderate coverage with gaps. Some stretches are exposed to sun and heat.'
-      : 'Very little tree cover. Walking is uncomfortable in warm weather — heat exposure is a concern.',
+      : 'Very little tree cover. Walking is uncomfortable in warm weather  -  heat exposure is a concern.',
   },
   streetDesign: {
     what: 'How well the street network is designed for walking, based on intersection density, transit proximity, and land use mix.',
@@ -166,14 +166,14 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : 'Car-dependent street layout with low intersection density, distant transit, and separated land uses. Walking is impractical for most trips.',
   },
   destinations: {
-    what: 'How diverse and active the surrounding neighbourhood is — scored across 8 categories: grocery, dining, health, education, parks, culture, services, and transit.',
-    how: 'Shannon entropy across 8 POI categories within 1.2km. A perfectly diverse neighbourhood (equal spread across all categories) scores highest. Density and evening economy (dining + culture share) also contribute. Monocultures — all restaurants, or all shops — score lower even with high counts.',
+    what: 'How diverse and active the surrounding neighbourhood is  -  scored across 8 categories: grocery, dining, health, education, parks, culture, services, and transit.',
+    how: 'Shannon entropy across 8 POI categories within 1.2km. A perfectly diverse neighbourhood (equal spread across all categories) scores highest. Density and evening economy (dining + culture share) also contribute. Monocultures  -  all restaurants, or all shops  -  score lower even with high counts.',
     source: 'OpenStreetMap amenities, 1.2km radius',
     getMeans: (s) =>
-      s >= 8 ? 'Rich, diverse neighbourhood. Multiple categories are well-represented — this is the kind of place where daily life happens on foot.'
+      s >= 8 ? 'Rich, diverse neighbourhood. Multiple categories are well-represented  -  this is the kind of place where daily life happens on foot.'
       : s >= 6 ? 'Good variety nearby. Most categories are represented, with some gaps. A typical active urban neighbourhood.'
-      : s >= 4 ? 'Limited diversity. A few categories dominate — the neighbourhood may feel one-note despite having some destinations.'
-      : 'Low diversity and density. Few walkable options across categories — most daily needs require a car.',
+      : s >= 4 ? 'Limited diversity. A few categories dominate  -  the neighbourhood may feel one-note despite having some destinations.'
+      : 'Low diversity and density. Few walkable options across categories  -  most daily needs require a car.',
   },
   populationDensity: {
     what: 'What share of residents commute by walking, biking, or public transit instead of driving.',
@@ -186,69 +186,69 @@ const METRIC_DETAILS: Record<string, MetricDetail> = {
       : 'Mostly car-dependent. Very few residents walk, bike, or take transit to work.',
   },
   transitAccess: {
-    what: 'Number and variety of transit stops — buses, trains, trams, subways — within walking distance.',
+    what: 'Number and variety of transit stops  -  buses, trains, trams, subways  -  within walking distance.',
     how: 'Counts GTFS-verified stops from Transitland within 800m. Rail/subway stations score higher than bus stops. Falls back to OpenStreetMap if Transitland is unavailable.',
     source: 'Transitland (GTFS)',
     getMeans: (s) =>
-      s >= 8 ? 'Excellent transit access — multiple modes within easy walking distance. A car is completely optional for most trips.'
+      s >= 8 ? 'Excellent transit access  -  multiple modes within easy walking distance. A car is completely optional for most trips.'
       : s >= 6 ? 'Good transit coverage. Regular bus or rail service is nearby and usable for most errands.'
       : s >= 4 ? 'Some transit exists but service may be infrequent or routes limited. A car still helps for many trips.'
-      : 'Very limited transit. Few or no stops within walking distance — car ownership is almost necessary.',
+      : 'Very limited transit. Few or no stops within walking distance  -  car ownership is almost necessary.',
   },
   terrain: {
-    what: 'How flat or hilly the surrounding area is — steeper terrain makes walking harder and less likely.',
-    how: 'Samples a 3×3 grid of elevation points (~300m spacing) using OpenTopoData SRTM global data. Calculates elevation standard deviation across the sample area — higher variance means more hills.',
+    what: 'How flat or hilly the surrounding area is  -  steeper terrain makes walking harder and less likely.',
+    how: 'Samples a 3×3 grid of elevation points (~300m spacing) using OpenTopoData SRTM global data. Calculates elevation standard deviation across the sample area  -  higher variance means more hills.',
     source: 'OpenTopoData SRTM 90m',
     getMeans: (s) =>
-      s >= 9 ? 'Extremely flat — almost no elevation change. Walking in any direction is equally easy.'
+      s >= 9 ? 'Extremely flat  -  almost no elevation change. Walking in any direction is equally easy.'
       : s >= 7 ? 'Gently rolling terrain. Minor hills exist but won\'t discourage most walkers.'
       : s >= 5 ? 'Moderate variation in elevation. Some routes will involve noticeable inclines.'
-      : s >= 3 ? 'Hilly area — significant elevation changes that can make walking tiring, especially in heat or with mobility limitations.'
+      : s >= 3 ? 'Hilly area  -  significant elevation changes that can make walking tiring, especially in heat or with mobility limitations.'
       : 'Very steep terrain. Elevation change is a real barrier to walking and likely limits walkable routes to downhill segments.',
   },
   streetLighting: {
-    what: 'Density of street lights detected within walking distance — more lights mean safer, more accessible streets after dark.',
-    how: 'Counts street light objects detected by Mapillary\'s computer vision models across street-level photos in the 800m radius. Normalized by area (lights per km²). Requires Mapillary image coverage — areas without street-level photos show no data.',
+    what: 'Density of street lights detected within walking distance  -  more lights mean safer, more accessible streets after dark.',
+    how: 'Counts street light objects detected by Mapillary\'s computer vision models across street-level photos in the 800m radius. Normalized by area (lights per km²). Requires Mapillary image coverage  -  areas without street-level photos show no data.',
     source: 'Mapillary (computer vision)',
     getMeans: (s) =>
-      s >= 9 ? 'Excellent lighting — dense street light network. Walking after dark is well-supported across the area.'
+      s >= 9 ? 'Excellent lighting  -  dense street light network. Walking after dark is well-supported across the area.'
       : s >= 7 ? 'Good street lighting. Most routes have adequate light coverage for safe evening walking.'
       : s >= 5 ? 'Moderate lighting. Main streets are lit but some residential routes may feel dark at night.'
-      : s >= 3 ? 'Sparse street lights. After-dark walking requires more care — many streets lack consistent lighting.'
+      : s >= 3 ? 'Sparse street lights. After-dark walking requires more care  -  many streets lack consistent lighting.'
       : 'Very few or no street lights detected. This is a significant barrier for evening and night-time walking, particularly for women and older adults.',
   },
   speedEnvironment: {
-    what: 'How fast vehicles typically move through the street network — lower speeds mean safer, more comfortable walking conditions.',
+    what: 'How fast vehicles typically move through the street network  -  lower speeds mean safer, more comfortable walking conditions.',
     how: 'Reads posted speed limits (OSM maxspeed tags) for every street in the 800m radius. Where tags are missing, speeds are inferred from road type (residential = 30 km/h, primary = 60 km/h, living street = 10 km/h, etc.). Calculates a length-weighted average across the whole network.',
     source: 'OpenStreetMap (maxspeed tags)',
     getMeans: (s) =>
-      s >= 9 ? 'Very low-speed network — mostly living streets and pedestrian zones. Vehicles and people share space safely at walking pace.'
-      : s >= 7 ? 'Calm streets. Most roads are 30 km/h or below — the threshold proven to dramatically reduce pedestrian fatality risk.'
+      s >= 9 ? 'Very low-speed network  -  mostly living streets and pedestrian zones. Vehicles and people share space safely at walking pace.'
+      : s >= 7 ? 'Calm streets. Most roads are 30 km/h or below  -  the threshold proven to dramatically reduce pedestrian fatality risk.'
       : s >= 5 ? 'Mixed speed environment. Residential streets exist alongside faster arterials. Walking is manageable but requires care on some routes.'
-      : s >= 3 ? 'Faster street network. Arterials at 50–60 km/h dominate. Crossing roads feels more dangerous and crossings may be far apart.'
+      : s >= 3 ? 'Faster street network. Arterials at 50-60 km/h dominate. Crossing roads feels more dangerous and crossings may be far apart.'
       : 'High-speed network. Roads moving at 60+ km/h create a hostile walking environment and significantly increase injury risk when crossings occur.',
   },
   airQuality: {
-    what: 'Concentration of fine particulate matter (PM2.5) in the air — the primary outdoor air pollutant affecting health during walks.',
+    what: 'Concentration of fine particulate matter (PM2.5) in the air  -  the primary outdoor air pollutant affecting health during walks.',
     how: 'Queries the nearest monitoring station within 25km via OpenAQ, which aggregates data from 15,000+ government stations worldwide. PM2.5 is scored against WHO 2021 air quality guidelines (annual mean target: 5 µg/m³).',
     source: 'OpenAQ (live monitoring stations)',
     getMeans: (s) =>
-      s >= 9 ? 'Excellent air quality — PM2.5 meets or beats the strictest WHO 2021 annual guideline (5 µg/m³). Breathing during walks presents no elevated risk.'
-      : s >= 7 ? 'Good air quality — PM2.5 is low. Occasional brief exceedances may occur, but long-term walking risk is minimal.'
-      : s >= 5 ? 'Moderate air quality — PM2.5 is above WHO guidelines. Sensitive individuals (asthma, heart conditions) should consider shorter or early-morning walks.'
-      : s >= 3 ? 'Elevated pollution — regular outdoor activity carries a meaningful health risk. Walkers should check daily AQI before going out.'
-      : 'High pollution — PM2.5 levels create real health risk for regular walkers. This is a significant walkability barrier, particularly for children and older adults.',
+      s >= 9 ? 'Excellent air quality  -  PM2.5 meets or beats the strictest WHO 2021 annual guideline (5 µg/m³). Breathing during walks presents no elevated risk.'
+      : s >= 7 ? 'Good air quality  -  PM2.5 is low. Occasional brief exceedances may occur, but long-term walking risk is minimal.'
+      : s >= 5 ? 'Moderate air quality  -  PM2.5 is above WHO guidelines. Sensitive individuals (asthma, heart conditions) should consider shorter or early-morning walks.'
+      : s >= 3 ? 'Elevated pollution  -  regular outdoor activity carries a meaningful health risk. Walkers should check daily AQI before going out.'
+      : 'High pollution  -  PM2.5 levels create real health risk for regular walkers. This is a significant walkability barrier, particularly for children and older adults.',
   },
   noise: {
-    what: 'Estimated road traffic noise exposure based on the types and speeds of roads in the area — noise is the second-largest urban health risk after air pollution.',
-    how: 'Uses WHO road noise models calibrated to road type (motorway ≈76 dB, primary ≈69 dB, residential ≈54 dB, living street ≈44 dB). Computes a length-weighted average dB level across all streets in the 800m radius. No external API — derived from existing OpenStreetMap road data.',
+    what: 'Estimated road traffic noise exposure based on the types and speeds of roads in the area  -  noise is the second-largest urban health risk after air pollution.',
+    how: 'Uses WHO road noise models calibrated to road type (motorway ≈76 dB, primary ≈69 dB, residential ≈54 dB, living street ≈44 dB). Computes a length-weighted average dB level across all streets in the 800m radius. No external API  -  derived from existing OpenStreetMap road data.',
     source: 'OpenStreetMap (road type × WHO noise model)',
     getMeans: (s) =>
-      s >= 9 ? 'Very quiet streets — mostly pedestrian zones and living streets below 45 dB. Well within WHO guidelines for noise-sensitive areas.'
-      : s >= 7 ? 'Calm neighbourhood — predominantly residential roads around 50–54 dB. Most people find this comfortable for walking and relaxing outdoors.'
-      : s >= 5 ? 'Moderate noise — tertiary roads and some busier streets bring levels to 57–61 dB. Above WHO\'s recommended 53 dB daytime target, but typical for urban neighbourhoods.'
-      : s >= 3 ? 'Noisy arterials — secondary and primary roads dominate, creating 62–65 dB exposure. Research links this level to cardiovascular effects from chronic exposure.'
-      : 'High noise environment — major roads or expressways create 65+ dB exposure. At this level, outdoor walking near busy roads carries real long-term health implications.',
+      s >= 9 ? 'Very quiet streets  -  mostly pedestrian zones and living streets below 45 dB. Well within WHO guidelines for noise-sensitive areas.'
+      : s >= 7 ? 'Calm neighbourhood  -  predominantly residential roads around 50-54 dB. Most people find this comfortable for walking and relaxing outdoors.'
+      : s >= 5 ? 'Moderate noise  -  tertiary roads and some busier streets bring levels to 57-61 dB. Above WHO\'s recommended 53 dB daytime target, but typical for urban neighbourhoods.'
+      : s >= 3 ? 'Noisy arterials  -  secondary and primary roads dominate, creating 62-65 dB exposure. Research links this level to cardiovascular effects from chronic exposure.'
+      : 'High noise environment  -  major roads or expressways create 65+ dB exposure. At this level, outdoor walking near busy roads carries real long-term health implications.',
   },
 };
 
@@ -262,7 +262,7 @@ interface MetricDef {
   satKey?: string;
   usOnly?: boolean;
   internationalOnly?: boolean;
-  /** True when score is derived/modelled rather than measured — shows "Estimated" badge */
+  /** True when score is derived/modelled rather than measured  -  shows "Estimated" badge */
   estimated?: boolean;
   group: 'network' | 'environment' | 'safety' | 'density';
   getScore: (metrics: WalkabilityMetrics, compositeScore?: WalkabilityScoreV2 | null) => number;
@@ -414,7 +414,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
   airQualityReading?: { pm25: number | null; category: string | null } | null;
 }) {
   const color = getScoreColor(score);
-  const displayScore = score > 0 ? score.toFixed(1) : '—';
+  const displayScore = score > 0 ? score.toFixed(1) : ' - ';
   const detail = METRIC_DETAILS[def.key];
   const contextText = detail && score > 0 ? detail.getMeans(score) : getInsight(def.key, score);
   const bg = getCardBackground(score);
@@ -460,7 +460,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
             />
           </div>
 
-          {/* Live reading — shown for Air Quality */}
+          {/* Live reading  -  shown for Air Quality */}
           {def.key === 'airQuality' && airQualityReading && (
             <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' as const }}>
               {airQualityReading.pm25 !== null && (
@@ -476,7 +476,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
             </div>
           )}
 
-          {/* Sub-metrics — shown for Street Grid */}
+          {/* Sub-metrics  -  shown for Street Grid */}
           {subMetrics && subMetrics.length > 0 && (
             <div style={{ marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
               {subMetrics.map(m => {
@@ -503,7 +503,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
             </div>
           )}
 
-          {/* Inline context — always visible, no click required */}
+          {/* Inline context  -  always visible, no click required */}
           {!subMetrics && contextText && (
             <p style={{ color: '#1a3a1a', fontSize: '15px', fontWeight: 500, lineHeight: '1.65', marginBottom: '10px' }}>
               {contextText}
@@ -542,7 +542,7 @@ function airQualitySeasonalNote(countryCode?: string): string | null {
   if (!countryCode) return null;
   const cc = countryCode.toLowerCase();
   if (SEASONAL_AQ_COUNTRIES.has(cc)) {
-    return 'Seasonal burning periods (typically Feb–Apr in SE Asia) can push AQI to 200–400+. This score reflects readings at time of analysis and may not capture annual or worst-case conditions.';
+    return 'Seasonal burning periods (typically Feb-Apr in SE Asia) can push AQI to 200-400+. This score reflects readings at time of analysis and may not capture annual or worst-case conditions.';
   }
   if (CHRONIC_AQ_COUNTRIES.has(cc)) {
     return 'This region frequently exceeds WHO annual PM2.5 guidelines. Scores can fluctuate significantly with season and local conditions.';
@@ -711,7 +711,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
                 })}
               </div>
 
-              {/* Expanded detail panel — appears directly below the expanded metric's group */}
+              {/* Expanded detail panel  -  appears directly below the expanded metric's group */}
               {expandedMetric && visibleCards.some(c => c.def.key === expandedMetric) && (() => {
                 const card = visibleCards.find(c => c.def.key === expandedMetric);
                 if (!card) return null;

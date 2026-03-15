@@ -41,12 +41,12 @@ const STAGE_COLORS: Record<Stage, { bg: string; text: string; dot: string }> = {
 };
 
 function fmtValue(v: number | null) {
-  if (!v) return '—';
+  if (!v) return ' - ';
   return `£${v.toLocaleString()}`;
 }
 
 function fmtDate(d: string) {
-  if (!d) return '—';
+  if (!d) return ' - ';
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
 }
 
@@ -323,7 +323,7 @@ function TableView({ leads, onOpen }: { leads: Lead[]; onOpen: (l: Lead) => void
         </thead>
         <tbody>
           {leads.length === 0 && (
-            <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-sm">No leads yet — add one to get started.</td></tr>
+            <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-sm">No leads yet  -  add one to get started.</td></tr>
           )}
           {leads.map(l => {
             const s = STAGE_COLORS[l.stage];
@@ -344,7 +344,7 @@ function TableView({ leads, onOpen }: { leads: Lead[]; onOpen: (l: Lead) => void
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtValue(l.value)}</td>
                 <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{fmtDate(l.lastContacted)}</td>
-                <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{l.nextAction || '—'}</td>
+                <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{l.nextAction || ' - '}</td>
               </tr>
             );
           })}

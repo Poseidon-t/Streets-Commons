@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export default function PlatformHome() {
   useEffect(() => {
-    document.title = 'Street Intelligence Platform — SafeStreets Platform';
+    document.title = 'Street Intelligence Platform  -  SafeStreets Platform';
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute('content', 'Infrastructure intelligence platform for municipal planners, real estate developers, impact investors, and community organizations. Custom dashboards, decisioning workflows, and scenario modeling.');
   }, []);
@@ -41,7 +41,7 @@ export default function PlatformHome() {
       <section className="py-16 border-b border-gray-100">
         <div className="max-w-3xl mx-auto px-6 text-center">
           <p className="text-lg text-gray-600 leading-relaxed">
-            Streets are the foundation of how communities function. Walkable neighborhoods foster social connection, drive economic vitality, and strengthen cultural identity. SafeStreets turns that principle into actionable intelligence — for planners, developers, investors, and the communities they serve.
+            Streets are the foundation of how communities function. Walkable neighborhoods foster social connection, drive economic vitality, and strengthen cultural identity. SafeStreets turns that principle into actionable intelligence  -  for planners, developers, investors, and the communities they serve.
           </p>
         </div>
       </section>
@@ -68,7 +68,7 @@ export default function PlatformHome() {
               },
               {
                 title: 'Infrastructure Decisioning',
-                desc: 'Configure rules that turn scores into action — flag corridors below a walkability threshold, prioritize interventions by composite score, and generate ranked priority lists for capital planning.',
+                desc: 'Configure rules that turn scores into action  -  flag corridors below a walkability threshold, prioritize interventions by composite score, and generate ranked priority lists for capital planning.',
                 icon: (
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
@@ -102,7 +102,7 @@ export default function PlatformHome() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-platform-slate mb-3">From Data to Decisions</h2>
-            <p className="text-gray-600">Live platform in 5–6 weeks.</p>
+            <p className="text-gray-600">Live platform in 5-6 weeks.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
@@ -125,7 +125,7 @@ export default function PlatformHome() {
         <div className="max-w-2xl mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-platform-slate mb-4">Custom Pricing</h2>
           <p className="text-gray-600 mb-10 leading-relaxed">
-            Every engagement is scoped to your project — geography, data depth, integrations, and deployment model. Tell us what you need and we'll put together a proposal.
+            Every engagement is scoped to your project  -  geography, data depth, integrations, and deployment model. Tell us what you need and we'll put together a proposal.
           </p>
           <Link
             to="/platform/contact"

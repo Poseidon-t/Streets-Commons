@@ -1,5 +1,5 @@
 /**
- * MapLibre GL style for SafeStreets — adapted from TerraInk (MIT).
+ * MapLibre GL style for SafeStreets  -  adapted from TerraInk (MIT).
  * Uses OpenFreeMap vector tiles (free, no API key required).
  */
 import type { StyleSpecification } from 'maplibre-gl';
@@ -159,7 +159,7 @@ export function generateMapStyle(theme: MapTheme): StyleSpecification {
           'line-opacity': opacityExpr([[8,.75],[12,.85],[18,.95]]) },
         layout: { 'line-cap': 'round', 'line-join': 'round' } },
 
-      // Roads — bold, high-contrast street network
+      // Roads  -  bold, high-contrast street network
       { id: 'road-major', source: SOURCE_ID, 'source-layer': 'transportation', type: 'line',
         filter: lineFilter(MAP_ROAD_MAJOR_CLASSES),
         paint: { 'line-color': theme.map.roads.major, 'line-width': widthExpr(MAP_ROAD_MAJOR_WIDTH), 'line-opacity': 1 },

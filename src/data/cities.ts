@@ -26,7 +26,7 @@ export const CITIES: CityData[] = [
     lon: -74.006,
     population: 8336817,
     description: 'America\'s most walkable city, with extensive subway, dense sidewalk networks, and world-class pedestrian infrastructure across five boroughs.',
-    metaTitle: 'New York City Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'New York City Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any address in New York City. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -38,7 +38,7 @@ export const CITIES: CityData[] = [
     lon: -122.4194,
     population: 873965,
     description: 'A compact, transit-rich city known for its steep hills, iconic streetcars, and walkable neighborhoods like the Mission and North Beach.',
-    metaTitle: 'San Francisco Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'San Francisco Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any San Francisco address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -50,7 +50,7 @@ export const CITIES: CityData[] = [
     lon: -87.6298,
     population: 2693976,
     description: 'A grid-planned city with excellent transit (CTA), wide sidewalks, and diverse walkable neighborhoods from Lincoln Park to Hyde Park.',
-    metaTitle: 'Chicago Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Chicago Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Chicago address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -62,7 +62,7 @@ export const CITIES: CityData[] = [
     lon: -71.0589,
     population: 675647,
     description: 'One of America\'s oldest and most walkable cities, with narrow colonial-era streets, the Freedom Trail, and compact historic neighborhoods.',
-    metaTitle: 'Boston Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Boston Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Boston address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -74,7 +74,7 @@ export const CITIES: CityData[] = [
     lon: -75.1652,
     population: 1603797,
     description: 'America\'s first planned city with a walkable grid layout, extensive SEPTA transit, and pedestrian-friendly neighborhoods like Center City and Old City.',
-    metaTitle: 'Philadelphia Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Philadelphia Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Philadelphia address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -86,7 +86,7 @@ export const CITIES: CityData[] = [
     lon: -77.0369,
     population: 689545,
     description: 'The nation\'s capital features wide boulevards, excellent Metro transit, and highly walkable neighborhoods from Georgetown to Capitol Hill.',
-    metaTitle: 'Washington DC Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Washington DC Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Washington DC address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -98,7 +98,7 @@ export const CITIES: CityData[] = [
     lon: -122.3321,
     population: 737015,
     description: 'A hilly Pacific Northwest city with growing bike infrastructure, light rail expansion, and walkable urban villages from Capitol Hill to Ballard.',
-    metaTitle: 'Seattle Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Seattle Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Seattle address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -110,7 +110,7 @@ export const CITIES: CityData[] = [
     lon: -122.675,
     population: 652503,
     description: 'A pioneer of urban planning with its urban growth boundary, extensive light rail and streetcar network, and famously walkable neighborhoods.',
-    metaTitle: 'Portland Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Portland Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Portland address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -122,7 +122,7 @@ export const CITIES: CityData[] = [
     lon: -118.2437,
     population: 3898747,
     description: 'A sprawling metropolis working to improve walkability through Metro expansion, road diets, and Vision Zero programs across diverse neighborhoods.',
-    metaTitle: 'Los Angeles Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Los Angeles Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Los Angeles address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -134,7 +134,7 @@ export const CITIES: CityData[] = [
     lon: -104.9903,
     population: 715522,
     description: 'The Mile High City combines a walkable downtown core with expanding light rail and growing Complete Streets initiatives across the metro area.',
-    metaTitle: 'Denver Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Denver Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Denver address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -146,7 +146,7 @@ export const CITIES: CityData[] = [
     lon: -93.265,
     population: 429954,
     description: 'A leader in bike infrastructure and the 2040 Plan eliminating single-family zoning, with walkable neighborhoods and extensive skyway system.',
-    metaTitle: 'Minneapolis Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Minneapolis Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Minneapolis address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -158,7 +158,7 @@ export const CITIES: CityData[] = [
     lon: -80.1918,
     population: 442241,
     description: 'A rapidly growing city with improving Metrorail and Metromover, walkable districts like Brickell and Wynwood, and unique heat and flooding challenges.',
-    metaTitle: 'Miami Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Miami Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Miami address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -170,7 +170,7 @@ export const CITIES: CityData[] = [
     lon: -97.7431,
     population: 978908,
     description: 'Texas\'s fastest-growing major city, investing in Project Connect light rail and improving pedestrian infrastructure to match rapid urban development.',
-    metaTitle: 'Austin Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Austin Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Austin address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -182,7 +182,7 @@ export const CITIES: CityData[] = [
     lon: -84.388,
     population: 498715,
     description: 'Home of the BeltLine trail and growing MARTA transit, Atlanta is transforming from car-centric sprawl to a more walkable, connected city.',
-    metaTitle: 'Atlanta Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Atlanta Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Atlanta address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -194,7 +194,7 @@ export const CITIES: CityData[] = [
     lon: -86.7816,
     population: 689447,
     description: 'A booming Sun Belt city with a walkable downtown core and emerging transit plans to improve pedestrian access across rapidly developing neighborhoods.',
-    metaTitle: 'Nashville Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Nashville Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Nashville address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -206,7 +206,7 @@ export const CITIES: CityData[] = [
     lon: -96.797,
     population: 1304379,
     description: 'A major Texas metroplex with DART light rail and growing efforts to improve pedestrian safety and walkability in key urban districts.',
-    metaTitle: 'Dallas Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Dallas Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Dallas address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -218,7 +218,7 @@ export const CITIES: CityData[] = [
     lon: -95.3698,
     population: 2304580,
     description: 'America\'s fourth-largest city with expanding METRORail, growing bike-share programs, and targeted walkability improvements in key urban corridors.',
-    metaTitle: 'Houston Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Houston Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Houston address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -230,7 +230,7 @@ export const CITIES: CityData[] = [
     lon: -112.074,
     population: 1608139,
     description: 'A sprawling desert city with Valley Metro light rail and unique heat challenges that make shade, tree cover, and pedestrian infrastructure critical.',
-    metaTitle: 'Phoenix Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Phoenix Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Phoenix address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -242,7 +242,7 @@ export const CITIES: CityData[] = [
     lon: -83.0458,
     population: 639111,
     description: 'A city in renewal with the QLine streetcar, growing bike infrastructure, and walkability improvements in downtown and Midtown neighborhoods.',
-    metaTitle: 'Detroit Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Detroit Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Detroit address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
   {
@@ -254,7 +254,7 @@ export const CITIES: CityData[] = [
     lon: -79.9959,
     population: 302971,
     description: 'The Steel City features dramatic topography, walkable neighborhoods like Squirrel Hill and Lawrenceville, and extensive bus rapid transit.',
-    metaTitle: 'Pittsburgh Walkability Score — Free Street Analysis | SafeStreets',
+    metaTitle: 'Pittsburgh Walkability Score  -  Free Street Analysis | SafeStreets',
     metaDescription: 'Get a free walkability score for any Pittsburgh address. Analyze tree canopy, street design, destinations, commute mode & more using satellite data.',
   },
 ];

@@ -10,7 +10,7 @@ const PHASES = [
     description: 'We work with your team to define the decisions you need to make, the geographies that matter, and how intelligence needs to flow into your existing workflows.',
     details: [
       'Map out the decisions your team needs to make and the data gaps blocking them',
-      'Define priority geographies — corridors, districts, city-wide, or portfolio-level',
+      'Define priority geographies  -  corridors, districts, city-wide, or portfolio-level',
       'Identify key stakeholders and how dashboards will be used across roles',
       'Determine integration requirements (GIS systems, internal tools, reporting formats)',
       'Agree on metric weights and composite score logic for your use case',
@@ -20,7 +20,7 @@ const PHASES = [
   {
     number: '02',
     title: 'Data Configuration',
-    duration: 'Week 1–2',
+    duration: 'Week 1-2',
     description: 'The intelligence engine is configured for your geography and use case. Your datasets are connected. Metric weights and scoring rules are tuned to your decision-making logic.',
     details: [
       'Configure the scoring engine for your geographic area',
@@ -34,8 +34,8 @@ const PHASES = [
   {
     number: '03',
     title: 'Dashboard Build',
-    duration: 'Week 2–4',
-    description: 'Custom dashboard views are built to your specification — organized around the questions your team needs to answer, not generic metrics.',
+    duration: 'Week 2-4',
+    description: 'Custom dashboard views are built to your specification  -  organized around the questions your team needs to answer, not generic metrics.',
     details: [
       'Build primary dashboard view with your priority metrics and map layers',
       'Configure per-role views for planners, executives, and field teams',
@@ -48,7 +48,7 @@ const PHASES = [
   {
     number: '04',
     title: 'Integration & Deployment',
-    duration: 'Week 3–5',
+    duration: 'Week 3-5',
     description: 'The platform is connected to your existing systems. Whether you need API access, a GIS export pipeline, an embedded view, or a white-label deployment, we set it up and hand it over.',
     details: [
       'Set up API keys and documentation for your developers',
@@ -62,11 +62,11 @@ const PHASES = [
   {
     number: '05',
     title: 'Launch & Ongoing Intelligence',
-    duration: 'Week 5–6 and beyond',
+    duration: 'Week 5-6 and beyond',
     description: 'Your team goes live. Ongoing support ensures the intelligence stays current and your decisioning workflows evolve with your needs.',
     details: [
       'Team onboarding sessions and role-specific documentation',
-      'Data refresh cadence established — quarterly or continuous depending on tier',
+      'Data refresh cadence established  -  quarterly or continuous depending on tier',
       'Alert and notification configuration finalized',
       'Dedicated support contact for questions and workflow adjustments',
       'Quarterly review of scoring rules and decisioning thresholds',
@@ -100,7 +100,7 @@ export default function HowItWorks() {
           <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">How It Works</p>
           <h1 className="text-4xl md:text-5xl font-bold text-platform-slate mb-6">From Raw Data to Decisions</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            A structured 5-phase process that takes your organization from scattered street data to a live decisioning platform — configured around how your team actually works.
+            A structured 5-phase process that takes your organization from scattered street data to a live decisioning platform  -  configured around how your team actually works.
           </p>
         </div>
       </section>
@@ -162,7 +162,7 @@ export default function HowItWorks() {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-platform-slate mb-3">Data Sources</h2>
-            <p className="text-gray-600 max-w-xl mx-auto">The intelligence engine integrates multiple authoritative sources — plus your own datasets — for a complete picture of pedestrian conditions.</p>
+            <p className="text-gray-600 max-w-xl mx-auto">The intelligence engine integrates multiple authoritative sources  -  plus your own datasets  -  for a complete picture of pedestrian conditions.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {DATA_SOURCES.map((ds) => (
@@ -180,7 +180,7 @@ export default function HowItWorks() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-platform-slate mb-3">What You Get</h2>
-            <p className="text-gray-500 max-w-xl mx-auto">A live platform built around your decisions — not a one-time report that sits in a drawer.</p>
+            <p className="text-gray-500 max-w-xl mx-auto">A live platform built around your decisions  -  not a one-time report that sits in a drawer.</p>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-white border-2 border-gray-100 rounded-2xl p-8">

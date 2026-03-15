@@ -62,8 +62,8 @@ export async function fetchOSMData(lat: number, lon: number): Promise<OSMData> {
   const poiRadius = 1200; // 15-min walk radius for service availability
 
   // Split into two output groups to avoid downloading full geometry for POIs.
-  // Group 1: Streets/crossings/sidewalks — need full node geometry for length calculation.
-  // Group 2: POIs/amenities/transit — only need center coordinates (much lighter).
+  // Group 1: Streets/crossings/sidewalks  -  need full node geometry for length calculation.
+  // Group 2: POIs/amenities/transit  -  only need center coordinates (much lighter).
   const query = `[out:json][timeout:25];
 (
   node(around:${radius},${lat},${lon})["highway"="crossing"];
@@ -233,7 +233,7 @@ out count;`;
     }
   }
 
-  // Amenity count — Overpass `out count;` returns a single element with tags.total
+  // Amenity count  -  Overpass `out count;` returns a single element with tags.total
   const amenityCount =
     parseInt(amenityData?.elements?.[0]?.tags?.total ?? '0', 10);
 
@@ -289,7 +289,7 @@ function parseMaxspeedKmh(raw: string | undefined): number | undefined {
   return lower.includes('mph') ? Math.round(val * 1.609) : val;
 }
 
-// Road noise model (dB Leq) by highway type — WHO road traffic noise estimates
+// Road noise model (dB Leq) by highway type  -  WHO road traffic noise estimates
 const ROAD_NOISE_DB: Record<string, number> = {
   motorway:     76,
   trunk:        73,
@@ -358,7 +358,7 @@ function processOSMData(data: any): OSMData {
       const key = nodeId.toString();
       nodeDegree.set(key, (nodeDegree.get(key) || 0) + 1);
     }
-    // Endpoint nodes of a single way count as connections too —
+    // Endpoint nodes of a single way count as connections too  - 
     // but only endpoint-to-endpoint matters for dead-end detection.
     // The degree count above already handles this: a dead-end cul-de-sac
     // endpoint appears in exactly 1 way → degree 1.
@@ -423,7 +423,7 @@ function processOSMData(data: any): OSMData {
     noiseWeightedSum += noiseDb * wayLen;
     if (speed <= 30) lowSpeedLength += wayLen;
 
-    // OSM lit tag (count ways, not length — proxy for street coverage)
+    // OSM lit tag (count ways, not length  -  proxy for street coverage)
     const lit = way.tags?.lit;
     if (lit) {
       litTagged++;

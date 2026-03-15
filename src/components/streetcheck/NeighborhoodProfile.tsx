@@ -167,10 +167,10 @@ function DailyLifeTab({ intel }: { intel: NeighborhoodIntelligence }) {
           {commute && (
             <p className="text-xs mb-3" style={{ color: '#2a2010' }}>
               {altPct >= 30
-                ? `${altPct}% walk, bike, or take transit — a car-optional neighbourhood.`
+                ? `${altPct}% walk, bike, or take transit  -  a car-optional neighbourhood.`
                 : altPct >= 15
                 ? `${altPct}% use alternatives to driving.`
-                : `${altPct}% avoid driving — most residents depend on a car.`}
+                : `${altPct}% avoid driving  -  most residents depend on a car.`}
             </p>
           )}
           {commute && <CommuteBar commute={commute} />}
@@ -214,7 +214,7 @@ function DailyLifeTab({ intel }: { intel: NeighborhoodIntelligence }) {
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg mb-3" style={{ backgroundColor: 'rgba(239,68,68,0.06)' }}>
               <span className="text-sm">⚠️</span>
               <span className="text-xs font-medium" style={{ color: '#dc2626' }}>
-                Food desert — no supermarket within 800m
+                Food desert  -  no supermarket within 800m
               </span>
             </div>
           )}

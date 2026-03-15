@@ -76,7 +76,7 @@ createRoot(document.getElementById('root')!).render(
           {/* Blog */}
           <Route path="/blog" element={<BlogIndex />} />
           <Route path="/blog/:postSlug" element={<BlogPost />} />
-          {/* Learn — educational resources */}
+          {/* Learn  -  educational resources */}
           <Route path="/learn" element={<LearnIndex />} />
           {/* Reports */}
           <Route path="/report/15-minute-city" element={<FifteenMinuteCityReport />} />

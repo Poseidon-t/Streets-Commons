@@ -1,5 +1,5 @@
 /**
- * Streets & Commons Lab — landing page
+ * Streets & Commons Lab  -  landing page
  * Served at streetsandcommons.com
  */
 
@@ -69,7 +69,7 @@ export default function StreetsCommons() {
           background: C.accent, clipPath: 'polygon(15% 0, 100% 0, 100% 100%, 0% 100%)',
         }} />
         <div style={{ position: 'relative', zIndex: 1, padding: '5rem 2rem 5rem', maxWidth: '700px' }}>
-          <div style={overline(C)}>Est. 2026 — Urban Research & Action</div>
+          <div style={overline(C)}>Est. 2026  -  Urban Research & Action</div>
           <h1 style={{ fontSize: 'clamp(2.75rem, 6vw, 5.5rem)', fontWeight: 900, lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.02em', color: C.light, margin: '0 0 2rem' }}>
             The Street<br />Belongs to<br /><span style={{ color: C.accent }}>Everyone.</span>
           </h1>
@@ -117,7 +117,7 @@ export default function StreetsCommons() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', borderTop: `3px solid ${C.bg}` }}>
             {[
               { num: '01', title: 'Audit', desc: 'Rigorous, custom street audits using clear scorecards, walkability data, and on-ground documentation.' },
-              { num: '02', title: 'Publish', desc: 'Case studies and reports shared openly — giving communities and decision-makers the evidence they need.' },
+              { num: '02', title: 'Publish', desc: 'Case studies and reports shared openly  -  giving communities and decision-makers the evidence they need.' },
               { num: '03', title: 'Engage', desc: 'Work with residents and governments to push for change that puts the pedestrian first.' },
             ].map(({ num, title, desc }, i) => (
               <div key={num} style={{ padding: '2.5rem 2rem', borderRight: i < 2 ? `1px solid rgba(0,0,0,0.1)` : 'none' }}>
@@ -160,10 +160,10 @@ export default function StreetsCommons() {
           <div style={{ maxWidth: '560px' }}>
             <div style={overline(C)}>Our Free Tool</div>
             <h2 style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', color: C.bg, margin: '0 0 1rem', lineHeight: 1.0 }}>
-              SafeStreets —<br />Walkability Analysis<br />for Any Address.
+              SafeStreets  - <br />Walkability Analysis<br />for Any Address.
             </h2>
             <p style={{ fontSize: '1rem', color: C.textBody, lineHeight: 1.8, margin: '0 0 2rem' }}>
-              Check the walkability score of any neighbourhood in seconds. Built on satellite imagery, OpenStreetMap, EPA, and Census data. No sign-up needed — completely free.
+              Check the walkability score of any neighbourhood in seconds. Built on satellite imagery, OpenStreetMap, EPA, and Census data. No sign-up needed  -  completely free.
             </p>
             <a
               href={SAFESTREETS_URL}
@@ -176,7 +176,7 @@ export default function StreetsCommons() {
           </div>
           {/* Feature list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '220px' }}>
-            {['0–10 Walkability Score', 'PersonaCards — car-free, kids, aging', 'CDC Health Outcomes', 'FEMA Flood Risk', '15-Minute City Analysis', 'Satellite Tree Canopy'].map(f => (
+            {['0-10 Walkability Score', 'PersonaCards  -  car-free, kids, aging', 'CDC Health Outcomes', 'FEMA Flood Risk', '15-Minute City Analysis', 'Satellite Tree Canopy'].map(f => (
               <div key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ width: 6, height: 6, background: C.accent, flexShrink: 0 }} />
                 <span style={{ fontSize: '0.875rem', color: C.textBody, fontWeight: 600 }}>{f}</span>
@@ -194,7 +194,7 @@ export default function StreetsCommons() {
             Ready to Improve<br />Your Streets?
           </h2>
           <p style={{ fontSize: '1rem', color: C.muted, lineHeight: 1.8, margin: '0 0 2.75rem' }}>
-            Commission a custom audit for your street, neighbourhood, or project — or reach out to explore how we can work together.
+            Commission a custom audit for your street, neighbourhood, or project  -  or reach out to explore how we can work together.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <a

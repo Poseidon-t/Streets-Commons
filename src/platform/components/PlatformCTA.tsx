@@ -12,7 +12,7 @@ interface PlatformCTAProps {
 
 export default function PlatformCTA({
   title = 'Ready to build your street intelligence platform?',
-  description = 'Custom dashboards, decisioning workflows, and API access — configured for how your organization makes decisions.',
+  description = 'Custom dashboards, decisioning workflows, and API access  -  configured for how your organization makes decisions.',
   primaryLabel = 'Contact Sales',
   primaryHref = '/platform/contact',
   secondaryLabel = 'View Pricing',

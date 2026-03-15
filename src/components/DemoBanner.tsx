@@ -10,7 +10,7 @@ export default function DemoBanner({ onExit, onUnlock }: DemoBannerProps) {
         <div className="flex items-center gap-2 text-sm">
           <span className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
           <span className="font-medium">You're viewing a demo</span>
-          <span className="hidden sm:inline text-white/70">— Portland, OR</span>
+          <span className="hidden sm:inline text-white/70"> -  Portland, OR</span>
         </div>
         <div className="flex items-center gap-3">
           <button

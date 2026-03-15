@@ -75,13 +75,13 @@ export default function ThemePicker() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Landing Page Theme</h1>
         <p className="text-gray-500 mt-1 text-sm">
-          Choose the colour theme for <strong>streetsandcommons.com</strong>. Changes apply immediately — no redeploy needed.
+          Choose the colour theme for <strong>streetsandcommons.com</strong>. Changes apply immediately  -  no redeploy needed.
         </p>
       </div>
 
       {saved && (
         <div className="mb-6 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm font-medium">
-          Theme saved — live on the site now.
+          Theme saved  -  live on the site now.
         </div>
       )}
 

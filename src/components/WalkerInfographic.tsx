@@ -1,5 +1,5 @@
 /**
- * Walker Infographic — retro urbanism pictographic visualization.
+ * Walker Infographic  -  retro urbanism pictographic visualization.
  *
  * Shows 10 DOT/Aicher-style pedestrian figures:
  * colored = walk here comfortably, ghost = would find it difficult.
@@ -13,7 +13,7 @@ interface WalkerInfographicProps {
   score: number;
   /** Use inline styles instead of Tailwind (for print/PDF contexts) */
   inline?: boolean;
-  /** When true: no top/bottom border or vertical margin — for use inside a card */
+  /** When true: no top/bottom border or vertical margin  -  for use inside a card */
   compact?: boolean;
 }
 

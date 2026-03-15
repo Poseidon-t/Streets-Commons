@@ -9,17 +9,17 @@ interface NeighborhoodIntelSectionProps {
 
 function getCommuteContext(c: CommuteData): string {
   const altPct = Math.round(c.walkPct + c.bikePct + c.transitPct);
-  if (altPct >= 30) return `${altPct}% of residents walk, bike, or take transit — this is a car-optional neighborhood.`;
+  if (altPct >= 30) return `${altPct}% of residents walk, bike, or take transit  -  this is a car-optional neighborhood.`;
   if (altPct >= 15) return `${altPct}% use alternatives to driving. Car ownership is still common.`;
-  return `Most residents drive — only ${altPct}% walk, bike, or take transit.`;
+  return `Most residents drive  -  only ${altPct}% walk, bike, or take transit.`;
 }
 
 function getTransitContext(t: TransitAccessData): string {
-  if (t.railStops > 0 && t.busStops >= 5) return `Strong transit access — rail plus ${t.busStops} bus stops within walking distance.`;
+  if (t.railStops > 0 && t.busStops >= 5) return `Strong transit access  -  rail plus ${t.busStops} bus stops within walking distance.`;
   if (t.railStops > 0) return `Rail access available, plus ${t.busStops} bus stop${t.busStops !== 1 ? 's' : ''}.`;
-  if (t.busStops >= 5) return `${t.busStops} bus stops nearby — decent bus service.`;
-  if (t.busStops >= 2) return `Limited transit — only ${t.busStops} bus stops nearby.`;
-  return 'No transit stops within walking distance — car-dependent for commuting.';
+  if (t.busStops >= 5) return `${t.busStops} bus stops nearby  -  decent bus service.`;
+  if (t.busStops >= 2) return `Limited transit  -  only ${t.busStops} bus stops nearby.`;
+  return 'No transit stops within walking distance  -  car-dependent for commuting.';
 }
 
 function getNearbyContext(parks: ParkAccessData | null, food: FoodAccessData | null): string {
@@ -30,7 +30,7 @@ function getNearbyContext(parks: ParkAccessData | null, food: FoodAccessData | n
   if (food && food.supermarkets > 0) {
     parts.push(`${food.supermarkets} supermarket${food.supermarkets !== 1 ? 's' : ''}`);
   }
-  if (food?.isFoodDesert) return 'Food desert — no supermarket within 800m walking distance.';
+  if (food?.isFoodDesert) return 'Food desert  -  no supermarket within 800m walking distance.';
   if (parts.length > 0) return `${parts.join(' and ')} within walking distance.`;
   return 'Limited amenities nearby.';
 }
@@ -41,9 +41,9 @@ function getHealthContext(h: CDCHealthData): string {
   if (h.diabetes !== null) { total++; if (h.diabetes < 11) better++; }
   if (h.physicalInactivity !== null) { total++; if (h.physicalInactivity < 26) better++; }
   if (h.asthma !== null) { total++; if (h.asthma < 10) better++; }
-  if (better > total / 2) return `Healthier than average — ${better} of ${total} indicators beat US norms.`;
+  if (better > total / 2) return `Healthier than average  -  ${better} of ${total} indicators beat US norms.`;
   if (better === Math.floor(total / 2)) return 'Community health near national average.';
-  return `${total - better} health indicator${total - better !== 1 ? 's' : ''} above US average — a concern for active living.`;
+  return `${total - better} health indicator${total - better !== 1 ? 's' : ''} above US average  -  a concern for active living.`;
 }
 
 // --- Section score calculators ---
@@ -334,7 +334,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
               <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-lg" style={{ backgroundColor: 'rgba(239,68,68,0.06)' }}>
                 <span className="text-sm">⚠️</span>
                 <span className="text-xs font-medium" style={{ color: '#dc2626' }}>
-                  Food desert — no supermarket within 800m walking distance
+                  Food desert  -  no supermarket within 800m walking distance
                 </span>
               </div>
             )}

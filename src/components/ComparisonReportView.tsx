@@ -1,5 +1,5 @@
 /**
- * Comparison Report View — Side-by-side branded neighborhood comparison.
+ * Comparison Report View  -  Side-by-side branded neighborhood comparison.
  * Opened via /report/comparison. Reads from sessionStorage key 'agentComparisonData'.
  */
 
@@ -72,7 +72,7 @@ const metricsConfig = [
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
-// Estimated value premium per walkability score point (urban economics research range: $700–$3,250)
+// Estimated value premium per walkability score point (urban economics research range: $700-$3,250)
 const VALUE_PER_POINT = 2000;
 
 export default function ComparisonReportView() {
@@ -160,7 +160,7 @@ export default function ComparisonReportView() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'white' }}>
-      {/* Toolbar — hidden on print */}
+      {/* Toolbar  -  hidden on print */}
       <div className="print:hidden" style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: '64rem', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
           <a href="/" style={{ fontSize: '0.875rem', color: brandAccent, textDecoration: 'none' }}>&larr; Back</a>
@@ -267,7 +267,7 @@ export default function ComparisonReportView() {
               <strong>{maxScore.toFixed(1)}/10</strong>
               {reports.length > 1 && scores[winnerIdx] - Math.min(...scores) > 0 && (
                 <span style={{ color: C.textMuted }}>
-                  {' '}— {(scores[winnerIdx] - Math.min(...scores)).toFixed(1)} points ahead of {shortName(reports[scores.indexOf(Math.min(...scores))])}
+                  {' '} -  {(scores[winnerIdx] - Math.min(...scores)).toFixed(1)} points ahead of {shortName(reports[scores.indexOf(Math.min(...scores))])}
                 </span>
               )}
             </p>
@@ -291,7 +291,7 @@ export default function ComparisonReportView() {
                 </div>
               ))}
             </div>
-            {/* Metric rows — hide metrics where all neighborhoods scored 0 */}
+            {/* Metric rows  -  hide metrics where all neighborhoods scored 0 */}
             {(() => {
               const visibleMetrics = metricsConfig.filter(m =>
                 reports.some(r => ((r.metrics[m.key as keyof WalkabilityMetrics] as number) ?? 0) > 0)
@@ -334,7 +334,7 @@ export default function ComparisonReportView() {
               Estimated Walkability Value Premium
             </h3>
             <p style={{ fontSize: '0.8125rem', color: C.textMuted, marginBottom: '1rem', lineHeight: 1.6 }}>
-              Research shows each walkability score point adds $700–$3,250 to home value (Brookings Institution, CEOs for Cities). Estimates below use the $2,000 midpoint.
+              Research shows each walkability score point adds $700-$3,250 to home value (Brookings Institution, CEOs for Cities). Estimates below use the $2,000 midpoint.
             </p>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${colCount}, 1fr)`, gap: '1rem' }}>
               {reports.map((r, i) => {

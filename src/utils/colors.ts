@@ -2,8 +2,8 @@
  * Centralized score → color utilities.
  *
  * Two scales exist in the codebase:
- *   scoreColor10  — legacy WalkabilityMetrics  (0–10)
- *   scoreColor100 — WalkabilityScoreV2 / SubMetric (0–100)
+ *   scoreColor10   -  legacy WalkabilityMetrics  (0-10)
+ *   scoreColor100  -  WalkabilityScoreV2 / SubMetric (0-100)
  */
 
 export function scoreColor10(score: number): string {

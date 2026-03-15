@@ -1,5 +1,5 @@
 /**
- * Sign-In Modal — wraps Clerk SignIn in a modal dialog.
+ * Sign-In Modal  -  wraps Clerk SignIn in a modal dialog.
  * Used by the "Sign In" button in the header.
  */
 
@@ -23,7 +23,7 @@ export default function PaymentModalWithAuth({ isOpen, onClose }: UpgradeModalPr
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Already signed in — auto-close
+  // Already signed in  -  auto-close
   useEffect(() => {
     if (isOpen && isSignedIn) {
       onClose();

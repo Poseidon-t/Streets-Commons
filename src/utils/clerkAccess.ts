@@ -1,6 +1,6 @@
 /**
  * Clerk-based user utilities.
- * All features are free — this module handles agent profile storage only.
+ * All features are free  -  this module handles agent profile storage only.
  */
 
 // Agent profile stored in Clerk unsafeMetadata (client-writable)

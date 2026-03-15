@@ -1,5 +1,5 @@
 /**
- * Street Audit Tool — walk your street with a structured checklist,
+ * Street Audit Tool  -  walk your street with a structured checklist,
  * document conditions, and generate a proposal-ready report.
  */
 
@@ -273,7 +273,7 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
            return `<div style="padding:10px 14px;margin-bottom:8px;border-left:4px solid ${c.bg};background:#fafafa;border-radius:0 8px 8px 0">
              <strong>${i.label}</strong>
              <span style="color:${c.bg};font-size:0.85em;margin-left:8px">${lbl}</span>
-             <span style="color:#999;font-size:0.85em;margin-left:8px">— ${i.catName}</span>
+             <span style="color:#999;font-size:0.85em;margin-left:8px"> -  ${i.catName}</span>
              ${i.entry.note ? `<p style="margin:4px 0 0;color:#555;font-size:0.9em">${i.entry.note}</p>` : ''}
            </div>`;
          }).join('')}` : '';
@@ -281,19 +281,19 @@ export default function StreetAuditTool({ address, metrics, compositeScore, onCl
     const catHtml = cats.map(c => {
       const rows = c.items.map(item => {
         const e = entries[item.id];
-        const lbl = e?.rating ? RATING_LABELS[e.rating] : '—';
+        const lbl = e?.rating ? RATING_LABELS[e.rating] : ' - ';
         const color = e?.rating ? RATING_COLORS[e.rating].bg : '#8a9a8a';
         return `<tr>
           <td style="padding:6px 10px;border-bottom:1px solid #eee">${item.label}</td>
           <td style="padding:6px 10px;border-bottom:1px solid #eee;color:${color};font-weight:600;white-space:nowrap">${lbl}</td>
-          <td style="padding:6px 10px;border-bottom:1px solid #eee;color:#666;font-size:0.85em">${e?.note || '—'}</td>
+          <td style="padding:6px 10px;border-bottom:1px solid #eee;color:#666;font-size:0.85em">${e?.note || ' - '}</td>
         </tr>`;
       }).join('');
       return `<h3 style="margin:20px 0 6px;color:#2a3a2a">${c.name}</h3>
         <table style="width:100%;border-collapse:collapse"><tbody>${rows}</tbody></table>`;
     }).join('');
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Street Audit — ${address}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Street Audit  -  ${address}</title>
       <style>body{font-family:-apple-system,system-ui,'Segoe UI',sans-serif;max-width:760px;margin:0 auto;padding:40px 20px;color:#2a3a2a;line-height:1.5}
       table{width:100%}@media print{body{padding:16px}}</style></head><body>
       <div style="text-align:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #e0dbd0">

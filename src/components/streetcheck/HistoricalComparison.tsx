@@ -45,7 +45,7 @@ function DiffRow({ label, past, current, unit, goodHigh }: {
         <span className="font-semibold" style={{ color: '#1a3a1a' }}>{current.toFixed(1)}{unit}</span>
       </div>
       <div className="text-xs font-semibold flex-shrink-0" style={{ color: diffColor }}>
-        {unchanged ? '—' : `${diffSign}${pct}%`}
+        {unchanged ? ' - ' : `${diffSign}${pct}%`}
       </div>
     </div>
   );

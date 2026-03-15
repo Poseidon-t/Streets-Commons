@@ -1,5 +1,5 @@
 /**
- * Street Design service — fetches EPA National Walkability Index data from backend
+ * Street Design service  -  fetches EPA National Walkability Index data from backend
  */
 
 export interface StreetDesignResult {

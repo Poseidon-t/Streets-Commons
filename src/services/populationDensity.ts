@@ -1,5 +1,5 @@
 /**
- * Commute Mode service — fetches Census ACS commute data from backend
+ * Commute Mode service  -  fetches Census ACS commute data from backend
  * (Endpoint kept as /api/population-density for backward compatibility)
  */
 

@@ -85,7 +85,7 @@ This data suggests the area is particularly challenging for: ${personaConcerns.j
 
 This analysis is based on open data sources including Sentinel-2 satellite imagery, OpenStreetMap, and${location.countryCode === 'us' ? ' US Census, CDC PLACES, EPA Walkability Index, FEMA flood maps, and' : ''} other publicly available datasets.
 
-I would welcome the opportunity to discuss what improvements — such as better crossings, tree planting, traffic calming, or transit access — could make this neighborhood safer and more walkable for residents.
+I would welcome the opportunity to discuss what improvements  -  such as better crossings, tree planting, traffic calming, or transit access  -  could make this neighborhood safer and more walkable for residents.
 
 You can view the full analysis at: safestreets.streetsandcommons.com
 
@@ -136,7 +136,7 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
               Advocacy Letter
             </div>
             <div style={{ fontSize: 11, color: '#a09880', marginTop: 2 }}>
-              Pre-filled with your analysis data — edit and send to your local representative
+              Pre-filled with your analysis data  -  edit and send to your local representative
             </div>
           </div>
           <button
@@ -163,7 +163,7 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
             spellCheck
           />
           <p className="text-xs mt-2" style={{ color: '#8a9a8a' }}>
-            Edit the letter above — replace [Council Member / Local Representative] and [Your Name] with real details before sending.
+            Edit the letter above  -  replace [Council Member / Local Representative] and [Your Name] with real details before sending.
           </p>
         </div>
 

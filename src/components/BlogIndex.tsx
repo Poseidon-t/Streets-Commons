@@ -1,5 +1,5 @@
 /**
- * Blog index page — lists all blog posts (fetched from API)
+ * Blog index page  -  lists all blog posts (fetched from API)
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -52,7 +52,7 @@ export default function BlogIndex() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
-      <title>SafeStreets Blog — Walkability Analysis, Urban Planning & Advocacy</title>
+      <title>SafeStreets Blog  -  Walkability Analysis, Urban Planning & Advocacy</title>
       <meta name="description" content="Articles on walkability, urban planning, pedestrian safety, and street advocacy. Learn how satellite data is changing how we understand and improve our streets." />
       <link rel="canonical" href="https://safestreets.streetsandcommons.com/blog" />
 
@@ -60,13 +60,13 @@ export default function BlogIndex() {
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://safestreets.streetsandcommons.com/blog" />
       <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
-      <meta property="og:title" content="SafeStreets Blog — Walkability Analysis, Urban Planning & Advocacy" />
+      <meta property="og:title" content="SafeStreets Blog  -  Walkability Analysis, Urban Planning & Advocacy" />
       <meta property="og:description" content="Articles on walkability, urban planning, pedestrian safety, and street advocacy. Learn how satellite data is changing how we understand and improve our streets." />
       <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="SafeStreets Blog — Walkability Analysis & Urban Planning" />
+      <meta name="twitter:title" content="SafeStreets Blog  -  Walkability Analysis & Urban Planning" />
       <meta name="twitter:description" content="Articles on walkability, pedestrian safety, and street advocacy. Powered by satellite data." />
       <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 

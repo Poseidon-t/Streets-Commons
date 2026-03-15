@@ -75,11 +75,11 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
     summary = `Walking is difficult here. ${capitalize(worst[0] ?? 'Poor infrastructure')}, ${worst[1] ?? 'limited destinations'}, and ${worst[2] ?? 'weak street connectivity'} put pedestrians at a serious disadvantage.`;
     tone = 'danger';
   } else {
-    summary = `This street is hostile to pedestrians. Basic safety infrastructure is missing — immediate intervention is needed.`;
+    summary = `This street is hostile to pedestrians. Basic safety infrastructure is missing  -  immediate intervention is needed.`;
     tone = 'danger';
   }
 
-  // Vibrant palette — matches green/amber/brick system
+  // Vibrant palette  -  matches green/amber/brick system
   const toneColors = {
     positive: { text: '#1a7a28', bg: 'rgba(26,122,40,0.06)' },
     neutral:  { text: '#b87a00', bg: 'rgba(184,122,0,0.06)' },
@@ -96,7 +96,7 @@ export default function PlainLanguageSummary({ metrics, compositeScore }: PlainL
         <span style={{ color: colors.text, fontWeight: 800, letterSpacing: '0.04em' }}>
           {tierLabel}
         </span>
-        {' — '}
+        {'  -  '}
         {summary}
       </div>
     </div>

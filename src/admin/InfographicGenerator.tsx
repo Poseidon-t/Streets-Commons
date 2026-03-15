@@ -151,7 +151,7 @@ function DataStoryCard({ d }: { d: DataStoryData }) {
           <span style={{ color: '#e07850', fontSize: 64, fontWeight: 900, lineHeight: 1 }}>{d.stat || '43K'}</span>
           <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 20, fontWeight: 700 }}>{d.unit || 'deaths/yr'}</span>
         </div>
-        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.5, borderLeft: '3px solid #e07850', paddingLeft: 12 }}>{d.context || 'Americans killed in traffic crashes — more than gun homicides.'}</div>
+        <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.5, borderLeft: '3px solid #e07850', paddingLeft: 12 }}>{d.context || 'Americans killed in traffic crashes  -  more than gun homicides.'}</div>
       </div>
 
       {/* Facts */}
@@ -190,11 +190,11 @@ function BeforeAfterCard({ d }: { d: BeforeAfterData }) {
             <span style={{ fontSize: 16 }}>✕</span> Before
           </div>
           <div style={{ marginBottom: 14 }}>
-            <div style={{ color: '#ef4444', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.beforeStat1 || '—'}</div>
+            <div style={{ color: '#ef4444', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.beforeStat1 || ' - '}</div>
             <div style={{ color: '#991b1b', fontSize: 11, fontWeight: 600, marginTop: 3 }}>{d.beforeStat1Label || 'Annual pedestrian deaths'}</div>
           </div>
           <div>
-            <div style={{ color: '#ef4444', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.beforeStat2 || '—'}</div>
+            <div style={{ color: '#ef4444', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.beforeStat2 || ' - '}</div>
             <div style={{ color: '#991b1b', fontSize: 11, fontWeight: 600, marginTop: 3 }}>{d.beforeStat2Label || 'Average vehicle speed'}</div>
           </div>
         </div>
@@ -203,11 +203,11 @@ function BeforeAfterCard({ d }: { d: BeforeAfterData }) {
             <span style={{ fontSize: 16 }}>✓</span> After
           </div>
           <div style={{ marginBottom: 14 }}>
-            <div style={{ color: '#16a34a', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.afterStat1 || '—'}</div>
+            <div style={{ color: '#16a34a', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.afterStat1 || ' - '}</div>
             <div style={{ color: '#14532d', fontSize: 11, fontWeight: 600, marginTop: 3 }}>{d.afterStat1Label || 'Annual pedestrian deaths'}</div>
           </div>
           <div>
-            <div style={{ color: '#16a34a', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.afterStat2 || '—'}</div>
+            <div style={{ color: '#16a34a', fontSize: 32, fontWeight: 900, lineHeight: 1 }}>{d.afterStat2 || ' - '}</div>
             <div style={{ color: '#14532d', fontSize: 11, fontWeight: 600, marginTop: 3 }}>{d.afterStat2Label || 'Average vehicle speed'}</div>
           </div>
         </div>
@@ -295,7 +295,7 @@ const defaultScoreCard: ScoreCardData = {
 const defaultDataStory: DataStoryData = {
   headline: 'The U.S. Pedestrian Safety Crisis',
   stat: '7,522', unit: 'pedestrians killed',
-  context: 'In 2022 — the highest in 40 years. That\'s one person killed every 70 minutes.',
+  context: 'In 2022  -  the highest in 40 years. That\'s one person killed every 70 minutes.',
   fact1: 'SUVs and pickup trucks are 2× more likely to kill a pedestrian in a crash than sedans',
   fact2: 'Black Americans are 82% more likely to be killed as pedestrians than white Americans',
   fact3: 'States with the weakest pedestrian laws have 3× higher fatality rates',
@@ -307,21 +307,21 @@ const defaultBeforeAfter: BeforeAfterData = {
   period: '2016 → 2019',
   beforeStat1: '3', beforeStat1Label: 'Pedestrian deaths/year (city center)',
   beforeStat2: '18,000', beforeStat2Label: 'Cars/day through center',
-  afterStat1: '0', afterStat1Label: 'Pedestrian deaths (2019–2023)',
+  afterStat1: '0', afterStat1Label: 'Pedestrian deaths (2019-2023)',
   afterStat2: '350', afterStat2Label: 'Cars/day (residents/deliveries only)',
-  lessonLearned: 'Removing cars didn\'t kill business — retail revenue rose 10% in the first year.',
+  lessonLearned: 'Removing cars didn\'t kill business  -  retail revenue rose 10% in the first year.',
 };
 
 const defaultComparison: CityComparisonData = {
   title: 'Walking Safety: World Cities Ranked',
-  metric: 'SafeStreets Walkability Score (0–10)',
+  metric: 'SafeStreets Walkability Score (0-10)',
   cities: [
     { name: 'Amsterdam', score: 8.9, fatalities: '1.1/100k', transitMode: '63% cycling' },
     { name: 'Tokyo', score: 8.4, fatalities: '0.9/100k', transitMode: '72% transit' },
     { name: 'New York', score: 5.3, fatalities: '3.2/100k', transitMode: '55% transit' },
     { name: 'Houston', score: 2.8, fatalities: '6.1/100k', transitMode: '84% car' },
   ],
-  insight: 'Amsterdam\'s cycling infrastructure doesn\'t just serve cyclists — it protects pedestrians by reducing vehicle speeds city-wide.',
+  insight: 'Amsterdam\'s cycling infrastructure doesn\'t just serve cyclists  -  it protects pedestrians by reducing vehicle speeds city-wide.',
 };
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -380,7 +380,7 @@ export default function InfographicGenerator() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Infographic Generator</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Create shareable cards for Reddit, Twitter/X, Instagram — export as PNG</p>
+        <p className="text-sm text-gray-500 mt-0.5">Create shareable cards for Reddit, Twitter/X, Instagram  -  export as PNG</p>
       </div>
 
       {/* Card type tabs */}
@@ -459,7 +459,7 @@ export default function InfographicGenerator() {
               {copied ? '✓ Copied!' : 'Copy to Clipboard'}
             </button>
           </div>
-          <p className="text-xs text-gray-400">PNG exports at 3× resolution (1680px wide) — ideal for social sharing</p>
+          <p className="text-xs text-gray-400">PNG exports at 3× resolution (1680px wide)  -  ideal for social sharing</p>
         </div>
       </div>
     </div>
@@ -490,7 +490,7 @@ function ScoreCardForm({ data, onChange }: { data: ScoreCardData; onChange: (d: 
         <Field label="City"><input className={inputCls} value={data.city} onChange={f('city')} placeholder="Oslo" /></Field>
         <Field label="Country"><input className={inputCls} value={data.country} onChange={f('country')} placeholder="Norway" /></Field>
       </div>
-      <Field label="Overall Score (0–10)">
+      <Field label="Overall Score (0-10)">
         <input type="number" min={0} max={10} step={0.1} className={inputCls} value={data.score} onChange={f('score')} />
       </Field>
       <div className="grid grid-cols-2 gap-3">

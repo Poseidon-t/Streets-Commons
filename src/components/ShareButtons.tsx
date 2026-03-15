@@ -352,7 +352,7 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
           </>
         )}
 
-        {/* PDF Report — free for all users */}
+        {/* PDF Report  -  free for all users */}
         <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />
         <button
           onClick={handleGeneratePDF}
@@ -362,9 +362,9 @@ export default function ShareButtons({ location, metrics, compositeScore, dataQu
           PDF Report
         </button>
 
-        {/* Map Poster — hidden until TerraInk has a stable domain */}
+        {/* Map Poster  -  hidden until TerraInk has a stable domain */}
 
-        {/* JSON Export — premium only */}
+        {/* JSON Export  -  premium only */}
         {isPremium && (
           <>
             <div className="w-px h-5 mx-0.5" style={{ backgroundColor: '#e0dbd0' }} />

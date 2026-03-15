@@ -170,7 +170,7 @@ export default function Metrics() {
           <p className="text-platform-navy font-semibold text-sm uppercase tracking-wider mb-3">Our Metrics</p>
           <h1 className="text-4xl md:text-5xl font-bold text-platform-slate mb-6">12 Metrics That Define Pedestrian Safety</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Every SafeStreets platform deployment is built on a rigorous framework of 12 metrics across 4 categories — measured through satellite imagery, open data, and census sources, and surfaced in your configurable dashboard.
+            Every SafeStreets platform deployment is built on a rigorous framework of 12 metrics across 4 categories  -  measured through satellite imagery, open data, and census sources, and surfaced in your configurable dashboard.
           </p>
         </div>
       </section>
@@ -213,7 +213,7 @@ export default function Metrics() {
         <div className="max-w-4xl mx-auto px-6 text-center">
           <h2 className="text-2xl font-bold text-platform-slate mb-4">Comprehensive Coverage</h2>
           <p className="text-gray-600 mb-8">
-            All 12 metrics are available in the platform with configurable weights, custom scoring logic, and composite scores tuned to your organization's decisions. Pricing is custom — contact us to scope your engagement.
+            All 12 metrics are available in the platform with configurable weights, custom scoring logic, and composite scores tuned to your organization's decisions. Pricing is custom  -  contact us to scope your engagement.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/platform/pricing" className="px-6 py-3 bg-platform-navy text-white font-semibold rounded-lg hover:bg-platform-navy-light transition">

@@ -11,7 +11,7 @@ export default function ForGovernments() {
       challenges={[
         {
           title: 'Fragmented Pedestrian Data',
-          description: 'Cities lack a unified view of walkability conditions — street connectivity, tree cover, transit access, and safety data live in separate systems with no composite picture.',
+          description: 'Cities lack a unified view of walkability conditions  -  street connectivity, tree cover, transit access, and safety data live in separate systems with no composite picture.',
         },
         {
           title: 'Vision Zero Without Data',

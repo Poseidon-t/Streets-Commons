@@ -124,9 +124,9 @@ export default function Map({ location, osmData, mapGeometry, seamless }: MapPro
 
   // Color based on distance to nearest crossing: green (close) → amber → terra (far)
   function crossingProximityColor(dist: number): string {
-    if (dist < 100) return '#7ab87a'; // sage green — safe crossing nearby
-    if (dist < 250) return '#c4a882'; // warm tan — moderate
-    return '#c87a5a'; // terra — far from crossings
+    if (dist < 100) return '#7ab87a'; // sage green  -  safe crossing nearby
+    if (dist < 250) return '#c4a882'; // warm tan  -  moderate
+    return '#c87a5a'; // terra  -  far from crossings
   }
 
   // Push geometry data (buildings, parks, water) into MapLibre sources
@@ -218,7 +218,7 @@ export default function Map({ location, osmData, mapGeometry, seamless }: MapPro
       map.addSource('water-geo', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
       map.addSource('waterways-geo', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
 
-      // Building footprints — hidden in 3D mode (default)
+      // Building footprints  -  hidden in 3D mode (default)
       map.addLayer({ id: 'buildings-fill', type: 'fill', source: 'buildings-geo',
         layout: { visibility: 'none' },
         paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.55 } });
@@ -226,7 +226,7 @@ export default function Map({ location, osmData, mapGeometry, seamless }: MapPro
         layout: { visibility: 'none' },
         paint: { 'line-color': '#b8a890', 'line-width': 0.5, 'line-opacity': 0.7 } });
 
-      // 3D extruded buildings — visible by default
+      // 3D extruded buildings  -  visible by default
       map.addLayer({ id: 'buildings-3d', type: 'fill-extrusion', source: 'buildings-geo',
         paint: {
           'fill-extrusion-color': ['get', 'color'],
@@ -339,7 +339,7 @@ export default function Map({ location, osmData, mapGeometry, seamless }: MapPro
   const crossings = osmData?.crossings?.filter((c: any) => c.lat && c.lon) ?? [];
   const showControls = osmData || mapGeometry;
 
-  // Layer visibility state — all on by default
+  // Layer visibility state  -  all on by default
   const [layers, setLayers] = useState<Record<string, boolean>>({
     crossings: true,
     buildings: true,
@@ -348,7 +348,7 @@ export default function Map({ location, osmData, mapGeometry, seamless }: MapPro
     radius: true,
   });
 
-  // 3D mode state — on by default
+  // 3D mode state  -  on by default
   const [is3D, setIs3D] = useState(true);
 
   const toggle3D = useCallback(() => {

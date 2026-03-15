@@ -1,5 +1,5 @@
 /**
- * Agent Report View — Branded walkability report for real estate agents.
+ * Agent Report View  -  Branded walkability report for real estate agents.
  * Opened via /report/agent. Reads from sessionStorage.
  */
 
@@ -263,7 +263,7 @@ export default function AgentReportView() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'white' }}>
-      {/* Toolbar — hidden on print */}
+      {/* Toolbar  -  hidden on print */}
       <div className="print:hidden" style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)', borderBottom: `1px solid ${C.border}` }}>
         <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '0.75rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
           <a href="/" style={{ fontSize: '0.875rem', color: C.accent, textDecoration: 'none' }}>&larr; Back to Analysis</a>
@@ -329,7 +329,7 @@ export default function AgentReportView() {
         </div>
       </div>
 
-      {/* Report Health Panel — admin-only, hidden in print */}
+      {/* Report Health Panel  -  admin-only, hidden in print */}
       {(data as AgentReportData & { reportHealth?: ReportHealth })?.reportHealth && (
         <div className="print:hidden" style={{ maxWidth: '56rem', margin: '0 auto', padding: '0.75rem 3rem 0' }}>
           {(() => {
@@ -409,7 +409,7 @@ export default function AgentReportView() {
 
       <div style={{ maxWidth: '56rem', margin: '0 auto', padding: '3rem' }}>
 
-        {/* Field-Verified banner — only visible in print */}
+        {/* Field-Verified banner  -  only visible in print */}
         {fieldMode && hasAnyAdjustment && (
           <div className="hidden print:block" style={{ marginBottom: '1rem', padding: '0.625rem 1rem', background: '#eff6ff', borderLeft: '4px solid #2563eb', borderRadius: '0.25rem', fontSize: '0.8125rem', color: '#1e40af' }}>
             <strong>Field-Verified Report</strong>
@@ -548,7 +548,7 @@ export default function AgentReportView() {
                   {/* Field verification controls */}
                   {fieldMode && (
                     <div style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: `1px solid ${C.border}` }}>
-                      {/* Adjuster — hidden in print */}
+                      {/* Adjuster  -  hidden in print */}
                       <div className="print:hidden" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
                         <span style={{ fontSize: '0.6875rem', fontWeight: 600, color: C.textLight, width: '4.5rem' }}>Field Score:</span>
                         <div style={{ display: 'flex', alignItems: 'center', border: `1px solid ${C.border}`, borderRadius: '0.375rem', overflow: 'hidden' }}>
@@ -585,7 +585,7 @@ export default function AgentReportView() {
                         )}
                       </div>
 
-                      {/* Dual score — visible in print when adjusted */}
+                      {/* Dual score  -  visible in print when adjusted */}
                       {isAdjusted && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.8125rem' }}>
                           <div>
@@ -600,7 +600,7 @@ export default function AgentReportView() {
                         </div>
                       )}
 
-                      {/* Observation notes — hidden in print, shown as text in print when present */}
+                      {/* Observation notes  -  hidden in print, shown as text in print when present */}
                       <textarea
                         className="print:hidden"
                         rows={2}
@@ -669,7 +669,7 @@ export default function AgentReportView() {
             </div>
           )}
 
-          {/* Neighborhood Intelligence — Visual Sections */}
+          {/* Neighborhood Intelligence  -  Visual Sections */}
           {data.neighborhoodIntel && (() => {
             const ni = data.neighborhoodIntel!;
             const hasData = ni.commute || ni.transit || ni.parks || ni.food || ni.health || ni.flood;
@@ -880,11 +880,11 @@ export default function AgentReportView() {
             );
           })()}
 
-          {/* Local Planning Context — shown only when Cloudflare crawl data is available */}
+          {/* Local Planning Context  -  shown only when Cloudflare crawl data is available */}
           {data.planningContext && data.planningContext.insights.length > 0 && (
             <div style={{ marginBottom: '2.5rem' }}>
               <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: C.text, marginBottom: '0.75rem', paddingBottom: '0.5rem', borderBottom: `2px solid ${C.border}` }}>Local Planning Context</h2>
-              <p style={{ fontSize: '0.8125rem', color: C.textLight, marginBottom: '1rem' }}>Sourced from city government — active projects and pedestrian safety programs.</p>
+              <p style={{ fontSize: '0.8125rem', color: C.textLight, marginBottom: '1rem' }}>Sourced from city government  -  active projects and pedestrian safety programs.</p>
               <div style={{ padding: '1.25rem', borderRadius: '0.75rem', border: `1px solid ${C.border}`, background: 'white' }}>
                 <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {data.planningContext.insights.map((insight, i) => (
@@ -943,6 +943,7 @@ export default function AgentReportView() {
             Powered by SafeStreets &middot; safestreets.streetsandcommons.com
           </div>
         </div>
+
       </div>
 
       {/* Print styles */}

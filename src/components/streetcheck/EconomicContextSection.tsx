@@ -116,12 +116,12 @@ function LocalEconomyView({ profile }: { profile: LocalEconomicProfile }) {
 }
 
 function formatCurrency(value: number | null): string {
-  if (value === null) return '—';
+  if (value === null) return ' - ';
   return value.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 }
 
 function formatPercent(value: number | null): string {
-  if (value === null) return '—';
+  if (value === null) return ' - ';
   return `${value.toFixed(1)}%`;
 }
 

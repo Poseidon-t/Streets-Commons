@@ -73,7 +73,7 @@ async function estimateNDVIFromOSM(lat: number, lon: number): Promise<number> {
     const data = result.data || result;
     const greenSpaces = data.elements || [];
 
-    // Conservative estimation — OSM green space count is a rough proxy
+    // Conservative estimation  -  OSM green space count is a rough proxy
     // Cap at 0.45 (score ~6) since polygon count doesn't measure actual canopy density
     if (greenSpaces.length >= 10) return 0.45; // Many green spaces
     if (greenSpaces.length >= 5) return 0.40; // Good green coverage
@@ -95,7 +95,7 @@ async function fetchSatelliteNDVI(lat: number, lon: number): Promise<number | nu
 
   try {
     const response = await fetch(`${apiUrl}/api/ndvi?lat=${lat}&lon=${lon}`, {
-      signal: AbortSignal.timeout(15000), // 15 second timeout — satellite GeoTIFF processing can be slow
+      signal: AbortSignal.timeout(15000), // 15 second timeout  -  satellite GeoTIFF processing can be slow
     });
 
     if (!response.ok) {
@@ -137,7 +137,7 @@ export async function fetchNDVI(lat: number, lon: number): Promise<number | null
       return satelliteNDVI;
     }
 
-    // Satellite unavailable — fall back to OSM green space estimation
+    // Satellite unavailable  -  fall back to OSM green space estimation
     console.log('Satellite NDVI unavailable, falling back to OSM estimation');
     const osmNDVI = await estimateNDVIFromOSM(lat, lon);
     console.log(`🌿 OSM estimated NDVI: ${osmNDVI.toFixed(2)}`);
@@ -188,7 +188,7 @@ export interface WeatherData {
  *
  * Logic: In hot weather, sparse canopy is penalized harder (shade is critical)
  * while good canopy gets a small bonus. In cold weather, canopy matters slightly less.
- * Modifier is asymmetric — uses apparent temperature (factors in humidity).
+ * Modifier is asymmetric  -  uses apparent temperature (factors in humidity).
  *
  * Returns adjusted score (0-10), never exceeds 10 or drops below 0.
  */
@@ -201,19 +201,19 @@ export function applyHeatStressModifier(canopyScore: number, weather: WeatherDat
   let modifier = 1.0;
 
   if (temp < 5) {
-    // Cold — shade/canopy less relevant (bare trees, no heat relief needed)
+    // Cold  -  shade/canopy less relevant (bare trees, no heat relief needed)
     modifier = 0.95;
   } else if (temp <= 25) {
-    // Mild — baseline, no adjustment
+    // Mild  -  baseline, no adjustment
     modifier = 1.0;
   } else if (temp <= 30) {
-    // Warm — sparse canopy penalized, good canopy unchanged
+    // Warm  -  sparse canopy penalized, good canopy unchanged
     modifier = isLowCanopy ? 0.90 : 1.0;
   } else if (temp <= 35) {
-    // Hot — sparse canopy penalized harder, good canopy gets small bonus
+    // Hot  -  sparse canopy penalized harder, good canopy gets small bonus
     modifier = isLowCanopy ? 0.80 : 1.05;
   } else {
-    // Extreme heat (>35°C) — shade is critical
+    // Extreme heat (>35°C)  -  shade is critical
     modifier = isLowCanopy ? 0.70 : 1.10;
   }
 

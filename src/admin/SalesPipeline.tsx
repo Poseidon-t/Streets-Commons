@@ -609,7 +609,7 @@ export default function SalesPipeline() {
             </h2>
             <p className="text-xs text-gray-500 mb-4">
               {emailModalLead.email.startsWith('Check') ? (
-                <span className="text-amber-600">⚠ Email not verified — check their website first</span>
+                <span className="text-amber-600">⚠ Email not verified  -  check their website first</span>
               ) : (
                 <>To: {emailModalLead.email}</>
               )}
@@ -744,7 +744,7 @@ function LeadRow({
         </td>
         <td className="px-4 py-3 text-sm text-gray-600 hidden lg:table-cell">{lead.brokerage}</td>
         <td className="px-4 py-3 hidden xl:table-cell">
-          <div className="text-sm text-gray-700 truncate max-w-[200px]">{lead.sampleListing || '—'}</div>
+          <div className="text-sm text-gray-700 truncate max-w-[200px]">{lead.sampleListing || ' - '}</div>
           <div className="text-xs text-gray-400">{lead.listingPrice || ''}</div>
         </td>
         <td className="px-4 py-3 relative">
@@ -855,7 +855,7 @@ function LeadRow({
               <div className="space-y-2">
                 <h4 className="text-xs font-semibold text-gray-500 uppercase">Listings</h4>
                 <div className="text-sm text-gray-700">
-                  <div>{lead.sampleListing || '—'}</div>
+                  <div>{lead.sampleListing || ' - '}</div>
                   {lead.listingPrice && <div className="text-xs text-gray-400">{lead.listingPrice}</div>}
                 </div>
                 <div className="flex flex-wrap gap-1.5 pt-1">

@@ -95,8 +95,8 @@ const URBANIST_QUOTES = [
   { text: 'Cities have the capability of providing something for everybody, only because, and only when, they are created by everybody.', author: 'Jane Jacobs' },
   { text: 'There must be eyes upon the street, eyes belonging to those we might call the natural proprietors of the street.', author: 'Jane Jacobs' },
   { text: 'Under the seeming disorder of the old city, wherever the old city is working successfully, is a marvelous order.', author: 'Jane Jacobs' },
-  { text: 'First life, then spaces, then buildings — the other way around never works.', author: 'Jan Gehl' },
-  { text: 'A good city is like a good party — people stay longer than really necessary, because they are enjoying themselves.', author: 'Jan Gehl' },
+  { text: 'First life, then spaces, then buildings  -  the other way around never works.', author: 'Jan Gehl' },
+  { text: 'A good city is like a good party  -  people stay longer than really necessary, because they are enjoying themselves.', author: 'Jan Gehl' },
   { text: 'Walkable places are the foundations on which productive cities and healthy communities are built.', author: 'Jeff Speck' },
   { text: 'A city built for speed is a city built for nobody.', author: 'Jeff Speck' },
   { text: 'The street is the river of life of the city.', author: 'William H. Whyte' },
@@ -153,7 +153,7 @@ function App() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showAllFaqs, setShowAllFaqs] = useState(false);
 
-  // Sign-in modal state (was payment modal — now all features are free)
+  // Sign-in modal state (was payment modal  -  now all features are free)
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [showMethodology, setShowMethodology] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -242,19 +242,19 @@ function App() {
     }
   }, []);
 
-  // Dynamic page title — updates when analysis loads
+  // Dynamic page title  -  updates when analysis loads
   useEffect(() => {
     if (location && compositeScore) {
       const shortName = location.displayName.split(',').slice(0, 2).join(',').trim();
       const grade = compositeScore.grade || '';
       const score = compositeScore.overallScore ? (compositeScore.overallScore / 10).toFixed(1) : '';
-      document.title = `${shortName} — Walkability Score ${score}/10 (${grade}) | SafeStreets`;
+      document.title = `${shortName}  -  Walkability Score ${score}/10 (${grade}) | SafeStreets`;
     } else if (isAnalyzing && location) {
       document.title = `Analyzing ${location.displayName.split(',')[0]}... | SafeStreets`;
     } else if (compareMode) {
-      document.title = 'Compare Mode — SafeStreets Walkability Analysis';
+      document.title = 'Compare Mode  -  SafeStreets Walkability Analysis';
     } else {
-      document.title = 'SafeStreets — Is Your Street Safe to Walk? | Free Walkability Analysis';
+      document.title = 'SafeStreets  -  Is Your Street Safe to Walk? | Free Walkability Analysis';
     }
   }, [location, compositeScore, isAnalyzing, compareMode]);
 
@@ -443,7 +443,7 @@ function App() {
     setSatelliteLoaded(new Set(DEMO_SATELLITE_SOURCES));
     setIsAnalyzing(false);
 
-    // Always start tour in demo mode — users clicking "Watch Demo" expect the guided walkthrough
+    // Always start tour in demo mode  -  users clicking "Watch Demo" expect the guided walkthrough
     setTimeout(() => setShowTour(true), 800);
   };
 
@@ -660,11 +660,11 @@ function App() {
       recalc();
     });
 
-    // Street features (Mapillary CV) — street lights, crosswalk markings, speed signs
+    // Street features (Mapillary CV)  -  street lights, crosswalk markings, speed signs
     promises.streetFeatures.then(result => {
       if (abortController.signal.aborted) return;
       if (!result || result.coverageInsufficient) {
-        // Mapillary has no coverage — fall back to OSM lit tags if available
+        // Mapillary has no coverage  -  fall back to OSM lit tags if available
         const osmLit = currentOsmData.networkGraph?.osmLitScore;
         if (osmLit != null) {
           extra.streetLighting = osmLit * 10; // 0-10 → 0-100
@@ -948,7 +948,7 @@ function App() {
                 </div>
               </div>
 
-              {/* Right column — Example score card */}
+              {/* Right column  -  Example score card */}
               <div className="flex justify-center">
                 <div className="relative w-full" style={{ maxWidth: 420 }}>
                   {/* Example badge */}
@@ -1397,7 +1397,7 @@ function App() {
                   "{analysisQuote.text}"
                 </p>
                 <p className="text-xs mt-2 font-semibold tracking-wide" style={{ color: '#8a9a8a' }}>
-                  — {analysisQuote.author}
+                   -  {analysisQuote.author}
                 </p>
               </div>
             )}
@@ -1441,7 +1441,7 @@ function App() {
               </div>
             </div>
 
-            {/* ACT 1 — Hero: wider map + archetype + score */}
+            {/* ACT 1  -  Hero: wider map + archetype + score */}
             <div id="score" style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4, overflow: 'hidden' }} className="scroll-mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-[58%_42%] lg:items-stretch">
                 <div style={{ borderRight: '2px solid #1e1608', minHeight: 300 }} className="lg:border-r-0 max-lg:border-b-2 max-lg:border-[#1e1608]">
@@ -1456,10 +1456,10 @@ function App() {
               </div>
             </div>
 
-            {/* ACT 1 — Persona verdicts */}
+            {/* ACT 1  -  Persona verdicts */}
             <PersonaCards compositeScore={compositeScore} />
 
-            {/* ACT 2 — Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
+            {/* ACT 2  -  Ground Reality: AI narrative synthesizing Mapillary CV + satellite vision + OSM */}
             <GroundRealityCard
               narrative={groundReality}
               narrativeLoading={groundRealityLoading}
@@ -1477,7 +1477,7 @@ function App() {
               <div style={{ flex: 1, height: 2, background: '#1a3a1a' }} />
             </div>
 
-            {/* ACT 3 starts after divider — no duplicate persona table */}
+            {/* ACT 3 starts after divider  -  no duplicate persona table */}
 
 
             {/* Metrics Grid */}
@@ -1485,7 +1485,7 @@ function App() {
               <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} />
             </div>
 
-            {/* Neighbourhood Profile — daily life, local economy, community */}
+            {/* Neighbourhood Profile  -  daily life, local economy, community */}
             <NeighborhoodProfile
               neighborhoodIntel={neighborhoodIntel ?? null}
               demographicData={demographicData ?? null}
@@ -1494,7 +1494,7 @@ function App() {
               osmData={osmData ?? null}
             />
 
-            {/* Take action — merged CTA */}
+            {/* Take action  -  merged CTA */}
             <div className="retro-card" style={{ padding: '14px 18px' }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a', marginBottom: 10 }}>
                 Take action on this analysis
@@ -1597,7 +1597,7 @@ function App() {
                     <div>
                       <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Data Quality</strong>
                       <p style={{ fontSize: 13, color: '#2a2010' }}>
-                        Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span> — {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
+                        Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span>  -  {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
                         Sources: OSM, Sentinel-2{location?.countryCode === 'US' ? ', Census ACS, EPA' : ''}.
                       </p>
                     </div>
@@ -1623,7 +1623,7 @@ function App() {
                   What You'll Learn
                 </h2>
                 <p className="text-center text-gray-600 mb-12 max-w-2xl mx-auto">
-                  Satellite imagery and open government data — completely free, no sign-up required.
+                  Satellite imagery and open government data  -  completely free, no sign-up required.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1759,7 +1759,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 2 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Your score (0–10) combines four weighted components. <strong>Network Design</strong> (20%) measures street connectivity — intersection density, block length, dead-end ratio, and betweenness centrality from OpenStreetMap. <strong>Environmental Comfort</strong> (20%) covers tree canopy (heat-adjusted using real-time weather), air quality, noise, speed environment, terrain, and street lighting. <strong>Street Design</strong> (25%) uses the EPA National Walkability Index for intersection density, transit proximity, and land use mix (US only). <strong>Accessibility</strong> (35%) scores commute mode share, destination access, and transit stops within walking distance. Missing data is redistributed proportionally — the score reflects what we can verify. International locations get full Network Design and Environmental Comfort scores via OpenStreetMap and Sentinel-2 satellite imagery.
+                    Your score (0-10) combines four weighted components. <strong>Network Design</strong> (20%) measures street connectivity  -  intersection density, block length, dead-end ratio, and betweenness centrality from OpenStreetMap. <strong>Environmental Comfort</strong> (20%) covers tree canopy (heat-adjusted using real-time weather), air quality, noise, speed environment, terrain, and street lighting. <strong>Street Design</strong> (25%) uses the EPA National Walkability Index for intersection density, transit proximity, and land use mix (US only). <strong>Accessibility</strong> (35%) scores commute mode share, destination access, and transit stops within walking distance. Missing data is redistributed proportionally  -  the score reflects what we can verify. International locations get full Network Design and Environmental Comfort scores via OpenStreetMap and Sentinel-2 satellite imagery.
                   </p>
                 </div>
               </div>
@@ -1784,7 +1784,7 @@ function App() {
                   className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 3 ? 'block' : 'hidden'}`}
                 >
                   <p>
-                    Most tools give you a single number with no breakdown. SafeStreets analyzes the actual experience of walking in a neighborhood: shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data — not just distance calculations. And it's completely free, no sign-up.
+                    Most tools give you a single number with no breakdown. SafeStreets analyzes the actual experience of walking in a neighborhood: shade, street design quality, transit access, food deserts, health outcomes, and flood risk. We use real satellite imagery and government data  -  not just distance calculations. And it's completely free, no sign-up.
                   </p>
                 </div>
               </div>
@@ -1939,7 +1939,7 @@ function App() {
       )}
 
 
-      {/* Platform CTA — for teams and organizations */}
+      {/* Platform CTA  -  for teams and organizations */}
       {!compareMode && !isAnalyzing && (
         <section className="py-8 border-t border-earth-border/30" style={{ backgroundColor: '#f0ede8' }}>
           <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">

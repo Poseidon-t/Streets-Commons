@@ -24,11 +24,11 @@ const EXPLANATIONS: Record<string, (score: number) => string> = {
     : 'Fragmented street network makes walking routes indirect or difficult',
   'Environmental Comfort': (s) =>
     s >= 65 ? 'Pleasant walking environment with shade, low noise, and good air quality'
-    : s >= 42 ? 'Moderate comfort — some noise or limited shade on key routes'
+    : s >= 42 ? 'Moderate comfort  -  some noise or limited shade on key routes'
     : 'High noise, limited tree canopy, or poor air quality reduces walking comfort',
   'Safety': (s) =>
     s >= 65 ? 'Low traffic speeds and good pedestrian infrastructure make walking safe'
-    : s >= 42 ? 'Moderate safety — main arterials are more exposed to traffic'
+    : s >= 42 ? 'Moderate safety  -  main arterials are more exposed to traffic'
     : 'High traffic speeds or missing crossings create hazards for pedestrians',
   'Density & Destinations': (s) =>
     s >= 65 ? 'Excellent access to daily needs and services within walking distance'

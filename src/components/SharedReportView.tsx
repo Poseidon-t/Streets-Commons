@@ -1,5 +1,5 @@
 /**
- * Shared Report View — Loads a persisted report by ID from /r/:reportId.
+ * Shared Report View  -  Loads a persisted report by ID from /r/:reportId.
  * Shows optional lead capture before revealing full report.
  */
 
@@ -70,7 +70,7 @@ export default function SharedReportView() {
         body: JSON.stringify({ email: leadEmail.trim(), name: leadName.trim() || null }),
       });
     } catch {
-      // Non-critical — don't block report access
+      // Non-critical  -  don't block report access
     }
     setShowLeadCapture(false);
     setSubmitting(false);

@@ -270,7 +270,7 @@ export default function RedditMonitor() {
       setRefreshResult(`Found ${result.newPosts} new posts (${result.totalPosts} total)`);
       await reload();
     } catch {
-      setError('Refresh failed — Reddit may be rate-limiting');
+      setError('Refresh failed  -  Reddit may be rate-limiting');
     } finally {
       setRefreshing(false);
     }

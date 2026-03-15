@@ -782,7 +782,7 @@ export default function ContentQueue() {
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-500">{TYPE_LABELS[post.postType] || post.postType}</td>
                 <td className="px-4 py-3 text-xs text-gray-500">{TONE_LABELS[post.tone] || post.tone}</td>
-                <td className="px-4 py-3 text-xs text-gray-500">{post.targetDate || '—'}</td>
+                <td className="px-4 py-3 text-xs text-gray-500">{post.targetDate || ' - '}</td>
                 <td className="px-4 py-3">
                   <span
                     className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${

@@ -1,5 +1,5 @@
 /**
- * City index page — lists all available city walkability pages
+ * City index page  -  lists all available city walkability pages
  * Good for SEO internal linking and discoverability
  */
 
@@ -19,7 +19,7 @@ export default function CityIndex() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #eef5f0 100%)' }}>
-      <title>Walkability Scores by City — Free Analysis for 20+ US Cities | SafeStreets</title>
+      <title>Walkability Scores by City  -  Free Analysis for 20+ US Cities | SafeStreets</title>
       <meta name="description" content="Get free walkability scores for major US cities. Analyze sidewalks, tree cover, street design & more using Sentinel-2 satellite data. No sign-up required." />
       <link rel="canonical" href="https://safestreets.streetsandcommons.com/walkability" />
 
@@ -27,13 +27,13 @@ export default function CityIndex() {
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://safestreets.streetsandcommons.com/walkability" />
       <meta property="og:site_name" content="SafeStreets by Streets & Commons" />
-      <meta property="og:title" content="Walkability Scores by City — Free Analysis for 20+ US Cities" />
+      <meta property="og:title" content="Walkability Scores by City  -  Free Analysis for 20+ US Cities" />
       <meta property="og:description" content="Get free walkability scores for major US cities. Analyze sidewalks, tree cover, street design & more using Sentinel-2 satellite data." />
       <meta property="og:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content="Walkability Scores by City — 20+ US Cities | SafeStreets" />
+      <meta name="twitter:title" content="Walkability Scores by City  -  20+ US Cities | SafeStreets" />
       <meta name="twitter:description" content="Free satellite-powered walkability analysis for major US cities. No sign-up required." />
       <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
@@ -130,7 +130,7 @@ export default function CityIndex() {
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-white text-lg transition-all hover:shadow-lg"
             style={{ backgroundColor: '#e07850' }}
           >
-            Analyze Any Address — Free
+            Analyze Any Address  -  Free
           </Link>
         </div>
       </section>

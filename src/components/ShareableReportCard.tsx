@@ -50,7 +50,7 @@ function buildDisplayMetrics(
 ): DisplayMetric[] {
   const result: DisplayMetric[] = [];
 
-  // Street Grid — from OSM network topology (largest component: 35%)
+  // Street Grid  -  from OSM network topology (largest component: 35%)
   const networkScore = compositeScore
     ? compositeScore.components.networkDesign.score / 10
     : 0;
@@ -58,17 +58,17 @@ function buildDisplayMetrics(
     result.push({ key: 'streetGrid', label: 'Street Grid', icon: '🔀', baseScore: networkScore });
   }
 
-  // Destinations — from OSM POIs
+  // Destinations  -  from OSM POIs
   if (metrics.destinationAccess > 0) {
     result.push({ key: 'destinationAccess', label: 'Destinations', icon: '🏪', baseScore: metrics.destinationAccess });
   }
 
-  // Tree Cover — from Sentinel-2 NDVI
+  // Tree Cover  -  from Sentinel-2 NDVI
   if (metrics.treeCanopy > 0) {
     result.push({ key: 'treeCanopy', label: 'Tree Cover', icon: '🌳', baseScore: metrics.treeCanopy });
   }
 
-  // Street Design — EPA (US only, shown when available)
+  // Street Design  -  EPA (US only, shown when available)
   const sdScore = compositeScore
     ? compositeScore.components.safety.score / 10
     : 0;
@@ -76,7 +76,7 @@ function buildDisplayMetrics(
     result.push({ key: 'streetDesign', label: 'Street Design', icon: '🛣️', baseScore: sdScore });
   }
 
-  // Commute Mode — Census ACS (US only, shown when available)
+  // Commute Mode  -  Census ACS (US only, shown when available)
   const popMetric = compositeScore?.components.densityContext.metrics.find(
     m => m.name === 'Commute Mode' || m.name === 'Population Density',
   );
@@ -98,7 +98,7 @@ function createEmptyAdjustments(metrics: DisplayMetric[]): FieldAdjustments {
   return result;
 }
 
-/** Recalculate overall score (0–100) from adjusted metric scores. */
+/** Recalculate overall score (0-100) from adjusted metric scores. */
 function recalcOverall(
   displayMetrics: DisplayMetric[],
   adjustments: FieldAdjustments,
@@ -192,7 +192,7 @@ export default function ShareableReportCard({
       link.href = canvas.toDataURL('image/png');
       link.click();
     } catch {
-      // Silently fail — user can screenshot instead
+      // Silently fail  -  user can screenshot instead
     } finally {
       setDownloading(false);
     }
@@ -239,7 +239,7 @@ export default function ShareableReportCard({
 
         <h2 className="text-lg font-bold mb-4" style={{ color: '#1a2a1a' }}>Share Your Walkability Score</h2>
 
-        {/* The Card — captured as image */}
+        {/* The Card  -  captured as image */}
         <div
           ref={cardRef}
           style={{
@@ -368,7 +368,7 @@ export default function ShareableReportCard({
           </div>
         </div>
 
-        {/* Field Verification Controls — OUTSIDE cardRef, not captured in image */}
+        {/* Field Verification Controls  -  OUTSIDE cardRef, not captured in image */}
         <div className="mt-4 border rounded-xl p-4" style={{ borderColor: '#e0dbd0' }}>
           <div className="flex items-center justify-between mb-1">
             <button
