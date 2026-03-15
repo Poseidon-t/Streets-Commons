@@ -116,8 +116,7 @@ function App() {
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
-  const demoVideoRef = useRef<HTMLVideoElement>(null);
+  const [activeStep, setActiveStep] = useState(1);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
@@ -1714,34 +1713,47 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl shadow-2xl border relative" style={{ borderColor: '#e0dbd0' }}>
-                  {/* Skeleton loader shown until video can play */}
-                  <div
-                    className="absolute inset-0 flex flex-col items-center justify-center bg-earth-cream transition-opacity duration-500"
-                    style={{
-                      opacity: videoReady ? 0 : 1,
-                      pointerEvents: videoReady ? 'none' : 'auto',
-                      zIndex: 1,
-                    }}
-                  >
-                    <div className="w-12 h-12 rounded-full border-[3px] border-terra/30 border-t-terra animate-spin mb-3" />
-                    <span className="text-sm text-earth-text-light">Loading demo…</span>
-                  </div>
-                  <video
-                    ref={demoVideoRef}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="auto"
-                    className="w-full block"
-                    style={{ aspectRatio: '1920/1080', backgroundColor: '#f5f2ec' }}
-                    onCanPlayThrough={() => setVideoReady(true)}
-                    onPlaying={() => setVideoReady(true)}
-                  >
-                    <source src="/demo.mp4" type="video/mp4" />
-                  </video>
-                </div>
+                {/* Step-by-step screenshots */}
+                {(() => {
+                  const steps = [
+                    { img: '/screenshots/step-1-search.png', label: 'Search any address', step: 1 },
+                    { img: '/screenshots/step-2-analysis.png', label: 'Get satellite analysis', step: 2 },
+                    { img: '/screenshots/step-3-metrics.png', label: 'See detailed metrics', step: 3 },
+                  ];
+                  return (
+                    <div className="mx-auto max-w-4xl">
+                      <div className="flex justify-center gap-2 sm:gap-3 mb-6">
+                        {steps.map((s) => (
+                          <button
+                            key={s.step}
+                            onClick={() => setActiveStep(s.step)}
+                            className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
+                              activeStep === s.step
+                                ? 'bg-terra text-white shadow-md'
+                                : 'bg-white text-earth-text-light hover:bg-orange-50 border border-gray-200'
+                            }`}
+                          >
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
+                              activeStep === s.step ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                            }`}>{s.step}</span>
+                            <span className="hidden sm:inline">{s.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <div className="overflow-hidden rounded-2xl shadow-2xl border" style={{ borderColor: '#e0dbd0' }}>
+                        {steps.map((s) => (
+                          <img
+                            key={s.step}
+                            src={s.img}
+                            alt={s.label}
+                            className={`w-full block ${activeStep === s.step ? '' : 'hidden'}`}
+                            loading={s.step === 1 ? 'eager' : 'lazy'}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* CTA */}
                 <div className="text-center mt-12">
