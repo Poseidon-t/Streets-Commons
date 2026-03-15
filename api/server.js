@@ -15,7 +15,6 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { fromUrl } from 'geotiff';
-import Stripe from 'stripe';
 import helmet from 'helmet';
 import { createClerkClient } from '@clerk/clerk-sdk-node';
 
@@ -61,10 +60,6 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
 });
 
-// Initialize Stripe (only if key is configured)
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY)
-  : null;
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -175,14 +170,8 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// Parse JSON for all routes EXCEPT Stripe webhook (needs raw body for signature verification)
-// Limit body size to prevent DoS attacks
-app.use((req, res, next) => {
-  if (req.originalUrl === '/api/stripe-webhook') {
-    return next();
-  }
-  express.json({ limit: '1mb' })(req, res, next);
-});
+// Parse JSON for all routes — limit body size to prevent DoS attacks
+app.use(express.json({ limit: '1mb' }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -6237,241 +6226,6 @@ Be specific to ${locationName} where possible, but be honest that this is guidan
   }
 });
 
-// =====================
-// STRIPE PAYMENT API
-// =====================
-
-// Stripe checkout session endpoint
-app.post('/api/create-checkout-session', async (req, res) => {
-  try {
-    if (!stripe) {
-      return res.status(500).json({
-        error: 'Stripe not configured. Add STRIPE_SECRET_KEY to .env file.',
-      });
-    }
-
-    const { email, tier, locationName, userId, metadata } = req.body;
-
-    if (!email || !tier) {
-      return res.status(400).json({ error: 'Missing required fields: email, tier' });
-    }
-
-    // Define pricing
-    const pricing = {
-      pro: {
-        amount: 4900, // $49 one-time
-        name: 'SafeStreets Pro — Agent Reports',
-        description: 'Branded walkability reports for real estate listings',
-        mode: 'payment',
-      },
-    };
-
-    const selectedPricing = pricing[tier];
-    if (!selectedPricing) {
-      return res.status(400).json({ error: 'Invalid tier. Must be "pro"' });
-    }
-
-    console.log(`💳 Creating checkout session for ${email} - ${tier} tier (${selectedPricing.mode})`);
-
-    // Build checkout session config
-    const sessionConfig = {
-      payment_method_types: ['card'],
-      customer_email: email,
-      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=success`,
-      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?payment=cancelled`,
-      metadata: {
-        userId: userId || '',
-        tier,
-        locationName: locationName || '',
-        companyName: metadata?.companyName || '',
-      },
-    };
-
-    if (selectedPricing.mode === 'subscription') {
-      sessionConfig.mode = 'subscription';
-      sessionConfig.line_items = [{
-        price_data: {
-          currency: 'usd',
-          product_data: { name: selectedPricing.name, description: selectedPricing.description },
-          unit_amount: selectedPricing.amount,
-          recurring: { interval: selectedPricing.interval },
-        },
-        quantity: 1,
-      }];
-      sessionConfig.subscription_data = {
-        metadata: { userId: userId || '', tier },
-      };
-    } else {
-      sessionConfig.mode = 'payment';
-      sessionConfig.line_items = [{
-        price_data: {
-          currency: 'usd',
-          product_data: { name: selectedPricing.name, description: `${selectedPricing.description} for ${locationName}` },
-          unit_amount: selectedPricing.amount,
-        },
-        quantity: 1,
-      }];
-    }
-
-    // Create Stripe checkout session
-    const session = await stripe.checkout.sessions.create(sessionConfig);
-
-    console.log(`✅ Checkout session created: ${session.id}`);
-    res.json({ url: session.url });
-
-  } catch (error) {
-    console.error('❌ Stripe error:', error);
-    res.status(500).json({
-      error: error.message || 'Failed to create checkout session',
-    });
-  }
-});
-
-// Stripe webhook endpoint (for handling successful payments)
-app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  if (!stripe) {
-    return res.status(500).json({ error: 'Stripe not configured' });
-  }
-
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!webhookSecret) {
-    console.warn('⚠️  Stripe webhook secret not configured');
-    return res.status(400).json({ error: 'Webhook secret not configured' });
-  }
-
-  try {
-    const event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
-
-    if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const { tier, userId, locationName } = session.metadata || {};
-      console.log(`✅ Payment successful for ${session.customer_email}`);
-      console.log(`   Tier: ${tier}`);
-      console.log(`   Location: ${locationName}`);
-
-      // Validate tier to prevent metadata tampering
-      const validTiers = ['pro'];
-      if (tier && !validTiers.includes(tier)) {
-        console.error(`❌ Invalid tier in session metadata: ${tier}`);
-        return res.status(400).json({ error: 'Invalid tier in session metadata' });
-      }
-
-      // Update Clerk user metadata to grant premium access
-      if (userId && tier) {
-        try {
-          const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-          if (!clerkSecretKey) {
-            console.error('❌ CLERK_SECRET_KEY not configured — cannot activate tier');
-          } else {
-            const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Bearer ${clerkSecretKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                public_metadata: {
-                  tier,
-                  activatedAt: new Date().toISOString(),
-                  stripeSessionId: session.id,
-                  ...(tier === 'pro' && session.subscription ? { stripeSubscriptionId: session.subscription } : {}),
-                },
-              }),
-            });
-
-            if (clerkRes.ok) {
-              console.log(`✅ Clerk metadata updated: ${userId} → ${tier}`);
-            } else {
-              const errBody = await clerkRes.text();
-              console.error(`❌ Clerk API error (${clerkRes.status}): ${errBody}`);
-              return res.status(503).json({ error: 'Failed to activate tier — will retry' });
-            }
-          }
-        } catch (clerkErr) {
-          console.error('❌ Failed to update Clerk metadata:', clerkErr.message);
-          return res.status(503).json({ error: 'Failed to activate tier — will retry' });
-        }
-      } else {
-        console.warn('⚠️  Missing userId or tier in session metadata — cannot activate');
-      }
-    }
-
-    // Handle subscription cancellation — downgrade pro users
-    if (event.type === 'customer.subscription.deleted') {
-      const subscription = event.data.object;
-      const userId = subscription.metadata?.userId;
-      console.log(`⚠️  Subscription cancelled: ${subscription.id}`);
-
-      if (userId) {
-        try {
-          const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-          if (clerkSecretKey) {
-            const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-              method: 'PATCH',
-              headers: {
-                'Authorization': `Bearer ${clerkSecretKey}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                public_metadata: {
-                  tier: 'free',
-                  cancelledAt: new Date().toISOString(),
-                },
-              }),
-            });
-
-            if (clerkRes.ok) {
-              console.log(`✅ User ${userId} downgraded to free tier after subscription cancellation`);
-            } else {
-              console.error(`❌ Failed to downgrade user ${userId}`);
-            }
-          }
-        } catch (err) {
-          console.error('❌ Failed to process subscription cancellation:', err.message);
-        }
-      }
-    }
-
-    res.json({ received: true });
-  } catch (error) {
-    console.error('❌ Webhook error:', error.message);
-    res.status(400).json({ error: `Webhook Error: ${error.message}` });
-  }
-});
-
-// Verify payment status - frontend polls this after Stripe redirect
-app.get('/api/verify-payment', async (req, res) => {
-  const { userId } = req.query;
-
-  if (!userId) {
-    return res.status(400).json({ error: 'Missing userId' });
-  }
-
-  const clerkSecretKey = process.env.CLERK_SECRET_KEY;
-  if (!clerkSecretKey) {
-    return res.status(500).json({ error: 'Clerk not configured' });
-  }
-
-  try {
-    const clerkRes = await fetch(`https://api.clerk.com/v1/users/${userId}`, {
-      headers: { 'Authorization': `Bearer ${clerkSecretKey}` },
-    });
-
-    if (!clerkRes.ok) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    const user = await clerkRes.json();
-    const tier = user.public_metadata?.tier || 'free';
-
-    res.json({ tier, activated: tier !== 'free' });
-  } catch (error) {
-    console.error('Verify payment error:', error.message);
-    res.status(500).json({ error: 'Failed to verify payment status' });
-  }
-});
 
 // Verify access token (legacy magic-link support)
 app.get('/api/verify-token', async (req, res) => {
@@ -7248,9 +7002,6 @@ app.listen(PORT, () => {
   console.log(`   🚶 Commute Mode: GET /api/population-density`);
   console.log(`   🛣️  Street Design: GET /api/street-design (EPA Walkability Index)`);
   console.log(`   🗺️  Overpass Proxy: POST /api/overpass`);
-  console.log(`   💳 Stripe Checkout: POST /api/create-checkout-session ${stripe ? '(configured)' : '(needs API key)'}`);
-  console.log(`   🔑 Verify Payment: GET /api/verify-payment ${process.env.CLERK_SECRET_KEY ? '(configured)' : '(needs CLERK_SECRET_KEY)'}`);
-  console.log(`   🪝 Stripe Webhook: POST /api/stripe-webhook ${process.env.STRIPE_WEBHOOK_SECRET ? '(configured)' : '(needs STRIPE_WEBHOOK_SECRET)'}`);
   console.log(`   📬 Contact Inquiry: POST /api/contact-inquiry ${process.env.SMTP_HOST ? '(email configured)' : '(console-only)'}\n`);
 });
 

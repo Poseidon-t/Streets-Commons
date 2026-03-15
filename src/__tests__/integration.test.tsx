@@ -109,13 +109,7 @@ vi.mock('../services/heatisland', () => ({
 
 
 vi.mock('../utils/clerkAccess', () => ({
-  isPremium: vi.fn(() => false),
-  isPro: vi.fn(() => false),
-  isSignedIn: vi.fn(() => false),
-  getAccessInfoFromUser: vi.fn(() => ({ tier: 'free', source: 'default' })),
   getAgentProfile: vi.fn(() => null),
-  getProTrialReportsUsed: vi.fn(() => 0),
-  canGenerateAgentReport: vi.fn(() => false),
 }));
 
 // Mock fetch globally
