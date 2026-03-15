@@ -1797,13 +1797,13 @@ function App() {
               </div>
             </section>
 
-            {/* HIDDEN: Pricing / Pro Section — keeping code for future use */}
-            {false && (<><section className="py-16 bg-white/50">
+            {/* Pricing */}
+            <section className="py-16 bg-white/50">
               <div className="max-w-4xl mx-auto px-6">
                 <div className="text-center mb-10">
                   <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>Simple, Honest Pricing</h2>
                   <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: '#6b7a6b' }}>
-                    The core analysis is free forever. Pro unlocks comparison, reports, and branding — one payment, no subscription.
+                    The core tool is free forever. Agent Reports let you brand the data for your clients.
                   </p>
                 </div>
 
@@ -1821,11 +1821,11 @@ function App() {
                     <ul className="space-y-2.5 flex-1">
                       {[
                         'Walkability score for any address worldwide',
-                        'Street metrics — canopy, design, destinations',
-                        'Interactive map with OSM data',
-                        'Neighborhood intelligence (health, flood, transit)',
-                        'Persona analysis for 5 buyer types',
-                        'Walking atmosphere visualization',
+                        '4-component breakdown (Network, Comfort, Design, Accessibility)',
+                        'Interactive map with amenities and transit',
+                        'Neighborhood intelligence (health, flood, commute data)',
+                        'Persona verdicts — car-free, kids, aging in place',
+                        'Advocacy letter generator',
                       ].map(f => (
                         <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
                           <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#4a8a4a" viewBox="0 0 24 24">
@@ -1844,27 +1844,26 @@ function App() {
                     </button>
                   </div>
 
-                  {/* Pro tier */}
+                  {/* Agent Reports tier */}
                   <div className="rounded-2xl border-2 p-6 flex flex-col relative" style={{ backgroundColor: '#ffffff', borderColor: '#e07850' }}>
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>Most Popular</span>
+                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>For Agents</span>
                     </div>
                     <div className="mb-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Pro</span>
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Agent Reports</span>
                       <div className="flex items-baseline gap-1">
                         <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$49</span>
                         <span className="text-sm" style={{ color: '#8a9a8a' }}>one-time</span>
                       </div>
-                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>Lifetime access, no renewal</p>
+                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>First 3 reports free — no payment needed to try</p>
                     </div>
                     <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#8a9a8a' }}>Everything in Free, plus:</p>
                     <ul className="space-y-2.5 flex-1">
                       {[
-                        { text: 'Street Audit Tool — generate structured reports', bold: true },
-                        { text: 'Shareable walkability reports (PDF + link)', bold: true },
-                        { text: 'Your logo & branding on every report', bold: true },
-                        { text: '3 free branded reports to try before you pay', bold: false },
-                        { text: 'Perfect for real estate agents & urban planners', bold: false },
+                        { text: 'Branded PDF walkability reports', bold: true },
+                        { text: 'Your name, company, phone & email on every page', bold: true },
+                        { text: 'Unlimited reports after one-time payment', bold: true },
+                        { text: 'Built for real estate agents and brokers', bold: false },
                       ].map(f => (
                         <li key={f.text} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
                           <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#e07850" viewBox="0 0 24 24">
@@ -1879,7 +1878,7 @@ function App() {
                       className="mt-6 w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
                       style={{ backgroundColor: '#e07850' }}
                     >
-                      Get Pro — $49 One-Time
+                      Try 3 Free Reports
                     </button>
                     <div className="mt-3 flex items-center justify-center gap-1 text-xs" style={{ color: '#8a9a8a' }}>
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1898,16 +1897,15 @@ function App() {
                 <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1a2a1a' }}>
                   <div className="p-8 sm:p-10 lg:p-12">
                     <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-                      {/* Content */}
                       <div className="flex-1 text-center lg:text-left">
                         <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
-                          Branded Reports
+                          For Real Estate Agents
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-                          Branded Walkability Reports for Any Address
+                          Branded Walkability Reports for Any Listing
                         </h3>
                         <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                          Generate branded walkability reports for any listing. Your logo, brand colors, and contact details on every page — with data your clients can't find anywhere else.
+                          Generate branded PDF reports with your name, company, and contact details. Walkability scores, neighborhood data, and persona verdicts — all under your brand.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
                           <a
@@ -1927,10 +1925,9 @@ function App() {
                         </div>
                       </div>
 
-                      {/* Mini report preview - realistic branded report */}
+                      {/* Mini report preview */}
                       <div className="hidden lg:block flex-shrink-0">
                         <div className="w-48 rounded-lg shadow-2xl overflow-hidden transform rotate-2" style={{ backgroundColor: '#ffffff' }}>
-                          {/* Agent branding header */}
                           <div className="px-4 pt-3 pb-2" style={{ backgroundColor: '#f8f6f1', borderBottom: '2px solid #e07850' }}>
                             <div className="flex items-center gap-2 mb-1">
                               <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#e07850' }} />
@@ -1940,7 +1937,6 @@ function App() {
                               </div>
                             </div>
                           </div>
-                          {/* Report content */}
                           <div className="px-4 pt-3 pb-2">
                             <div className="h-1 w-24 rounded mb-0.5" style={{ backgroundColor: '#1a2a1a' }} />
                             <div className="h-0.5 w-16 rounded mb-3" style={{ backgroundColor: '#c0b8a8' }} />
@@ -1948,18 +1944,15 @@ function App() {
                               <span className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>8.4</span>
                               <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
                             </div>
-                            {/* Metric rows with names */}
                             <div className="space-y-1.5 mb-3">
                               {[
-                                { name: 'Grid', w: 78 },
-                                { name: 'Trees', w: 65 },
+                                { name: 'Network', w: 78 },
+                                { name: 'Comfort', w: 65 },
                                 { name: 'Design', w: 82 },
                                 { name: 'Access', w: 71 },
-                                { name: 'Transit', w: 58 },
-                                { name: 'Health', w: 74 },
                               ].map((m) => (
                                 <div key={m.name} className="flex items-center gap-1.5">
-                                  <span className="text-[6px] w-6 text-right" style={{ color: '#8a9a8a' }}>{m.name}</span>
+                                  <span className="text-[6px] w-8 text-right" style={{ color: '#8a9a8a' }}>{m.name}</span>
                                   <div className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: '#f0ebe0' }}>
                                     <div className="h-full rounded-full" style={{ width: `${m.w}%`, backgroundColor: '#4a8a4a', opacity: 0.6 }} />
                                   </div>
@@ -1967,7 +1960,6 @@ function App() {
                               ))}
                             </div>
                           </div>
-                          {/* Footer with agent contact */}
                           <div className="px-4 py-2" style={{ backgroundColor: '#f8f6f1' }}>
                             <div className="h-0.5 w-14 mx-auto rounded mb-0.5" style={{ backgroundColor: '#c0b8a8' }} />
                             <div className="h-0.5 w-20 mx-auto rounded" style={{ backgroundColor: '#e0dbd0' }} />
@@ -1978,7 +1970,7 @@ function App() {
 
                     {/* Feature bar */}
                     <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      {['Compare 2-4 neighborhoods side-by-side', 'Shareable links', 'Your logo & brand colors', 'Walkability value premium estimates'].map(f => (
+                      {['Your branding on every page', 'PDF download', 'First 3 free', 'Unlimited after $49'].map(f => (
                         <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
                           <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -1990,7 +1982,7 @@ function App() {
                   </div>
                 </div>
               </div>
-            </section></>)}
+            </section>
 
           </>
         )}
