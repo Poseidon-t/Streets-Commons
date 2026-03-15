@@ -116,7 +116,6 @@ function App() {
   const [dataQuality, setDataQuality] = useState<DataQuality | null>(null);
   const [osmData, setOsmData] = useState<OSMData | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [activeStep, setActiveStep] = useState(1);
   const [satelliteLoaded, setSatelliteLoaded] = useState<Set<string>>(new Set());
   const [streetDesignScore, setStreetDesignScore] = useState<number | undefined>();
   const [compositeScore, setCompositeScore] = useState<WalkabilityScoreV2 | null>(null);
@@ -1713,47 +1712,23 @@ function App() {
                   Three simple steps to understand any neighborhood
                 </p>
 
-                {/* Step-by-step screenshots */}
-                {(() => {
-                  const steps = [
-                    { img: '/screenshots/step-1-search.png', label: 'Search any address', step: 1 },
-                    { img: '/screenshots/step-2-analysis.png', label: 'Get satellite analysis', step: 2 },
-                    { img: '/screenshots/step-3-metrics.png', label: 'See detailed metrics', step: 3 },
-                  ];
-                  return (
-                    <div className="mx-auto max-w-4xl">
-                      <div className="flex justify-center gap-2 sm:gap-3 mb-6">
-                        {steps.map((s) => (
-                          <button
-                            key={s.step}
-                            onClick={() => setActiveStep(s.step)}
-                            className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${
-                              activeStep === s.step
-                                ? 'bg-terra text-white shadow-md'
-                                : 'bg-white text-earth-text-light hover:bg-orange-50 border border-gray-200'
-                            }`}
-                          >
-                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                              activeStep === s.step ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
-                            }`}>{s.step}</span>
-                            <span className="hidden sm:inline">{s.label}</span>
-                          </button>
-                        ))}
+                <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-3 gap-6">
+                  {[
+                    { img: '/screenshots/step-1-search.png', num: '1', label: 'Enter any address' },
+                    { img: '/screenshots/step-2-analysis.png', num: '2', label: 'See neighborhood analysis' },
+                    { img: '/screenshots/step-3-metrics.png', num: '3', label: 'Explore detailed metrics' },
+                  ].map((step) => (
+                    <div key={step.num}>
+                      <div className="flex items-center gap-2 mb-3 justify-center">
+                        <span className="w-7 h-7 rounded-full bg-terra text-white flex items-center justify-center text-xs font-bold flex-shrink-0">{step.num}</span>
+                        <span className="text-sm font-semibold text-earth-text-dark">{step.label}</span>
                       </div>
-                      <div className="overflow-hidden rounded-2xl shadow-2xl border" style={{ borderColor: '#e0dbd0' }}>
-                        {steps.map((s) => (
-                          <img
-                            key={s.step}
-                            src={s.img}
-                            alt={s.label}
-                            className={`w-full block ${activeStep === s.step ? '' : 'hidden'}`}
-                            loading={s.step === 1 ? 'eager' : 'lazy'}
-                          />
-                        ))}
+                      <div className="overflow-hidden rounded-xl shadow-lg border" style={{ borderColor: '#e0dbd0' }}>
+                        <img src={step.img} alt={step.label} className="w-full block" loading={step.num === '1' ? 'eager' : 'lazy'} />
                       </div>
                     </div>
-                  );
-                })()}
+                  ))}
+                </div>
 
                 {/* CTA */}
                 <div className="text-center mt-12">
