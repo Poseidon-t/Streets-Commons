@@ -18,7 +18,6 @@ const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
-const ProUpgradeModal = lazy(() => import('./components/ProUpgradeModal'));
 const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
 
@@ -36,7 +35,7 @@ import { fetchPopulationDensity } from './services/populationDensity';
 import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { isPremium, isPro, canGenerateAgentReport, getAgentProfile, getProTrialReportsUsed } from './utils/clerkAccess';
+import { getAgentProfile } from './utils/clerkAccess';
 import type { AgentProfile } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
@@ -135,16 +134,12 @@ function App() {
   const [groundReality, setGroundReality] = useState<GroundRealityNarrative | null>(null);
   const [groundRealityLoading, setGroundRealityLoading] = useState(false);
 
-  // Premium access - Clerk integration
+  // Clerk user context
   const { user, isSignedIn } = useUser();
-  const userIsPremium = isPremium(user);
 
   // Demo mode + product tour
   const [demoMode, setDemoMode] = useState(false);
   const [showTour, setShowTour] = useState(false);
-
-  // Effective premium: real premium OR demo mode
-  const effectivePremium = userIsPremium || demoMode;
 
   // Compare mode state
   const [location1, setLocation1] = useState<AnalysisData | null>(null);
@@ -166,7 +161,6 @@ function App() {
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
-  const [showProUpgradeModal, setShowProUpgradeModal] = useState(false);
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [showAdvocacyLetter, setShowAdvocacyLetter] = useState(false);
 
@@ -174,44 +168,12 @@ function App() {
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [analysisQuote, setAnalysisQuote] = useState<{ text: string; author: string } | null>(null);
-  const [paymentBanner, setPaymentBanner] = useState<'success' | 'cancelled' | null>(null);
-
-  // Handle post-payment redirect — detect ?payment=success or ?payment=cancelled
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const paymentStatus = params.get('payment');
-    if (paymentStatus === 'success' || paymentStatus === 'cancelled') {
-      setPaymentBanner(paymentStatus);
-      // Clean up URL so banner doesn't re-show on refresh
-      params.delete('payment');
-      const newUrl = params.toString()
-        ? `${window.location.pathname}?${params.toString()}`
-        : window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-      // On success, poll verify-payment to sync Clerk tier
-      if (paymentStatus === 'success' && user?.id) {
-        trackEvent('payment_success', { userId: user.id });
-        const apiUrl = import.meta.env.VITE_API_URL || '';
-        fetch(`${apiUrl}/api/verify-payment?userId=${user.id}`)
-          .then(r => r.json())
-          .then(data => {
-            if (data.activated) user.reload?.();
-          })
-          .catch(() => {/* non-critical */});
-      }
-      // Auto-dismiss banner after 8 seconds
-      const t = setTimeout(() => setPaymentBanner(null), 8000);
-      return () => clearTimeout(t);
-    }
-  }, [user]);
-
 
   // Identify signed-in user in PostHog
   useEffect(() => {
     if (isSignedIn && user?.id) {
       identifyUser(user.id, {
         email: user.primaryEmailAddress?.emailAddress,
-        tier: user.publicMetadata?.tier || 'free',
       });
     }
   }, [isSignedIn, user?.id]);
@@ -725,22 +687,12 @@ function App() {
     });
   };
 
-  // Agent Report flow: check access → profile → generate
+  // Agent Report flow: sign in → profile → generate
   const handleAgentReportClick = () => {
-    if (!isSignedIn || !canGenerateAgentReport(user)) {
-      setShowProUpgradeModal(true);
+    if (!isSignedIn) {
+      setShowSignInModal(true);
       return;
     }
-    const profile = getAgentProfile(user);
-    if (!profile) {
-      setShowAgentProfileModal(true);
-      return;
-    }
-    generateAgentReport(profile);
-  };
-
-  const handleProUpgradeReady = () => {
-    setShowProUpgradeModal(false);
     const profile = getAgentProfile(user);
     if (!profile) {
       setShowAgentProfileModal(true);
@@ -757,21 +709,6 @@ function App() {
   const generateAgentReport = async (profile: AgentProfile) => {
     if (!location || !metrics) return;
 
-    // Increment trial counter if not pro
-    if (user && !isPro(user)) {
-      const used = getProTrialReportsUsed(user);
-      try {
-        await user.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
-            proTrialReportsUsed: used + 1,
-          },
-        });
-      } catch (err) {
-        console.error('Failed to update trial counter:', err);
-      }
-    }
-
     // Store report data in sessionStorage
     const reportData = {
       location,
@@ -787,18 +724,6 @@ function App() {
 
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #f2f0eb 30%, #eef5f0 60%, #f0ede8 100%)' }}>
-      {/* Payment status banner */}
-      {paymentBanner && (
-        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg text-sm font-semibold transition-all
-          ${paymentBanner === 'success' ? 'bg-green-600 text-white' : 'bg-gray-700 text-white'}`}>
-          {paymentBanner === 'success' ? (
-            <>✓ Payment successful — Agent Report access activated!</>
-          ) : (
-            <>Payment cancelled — no charge was made.</>
-          )}
-          <button onClick={() => setPaymentBanner(null)} className="ml-2 opacity-70 hover:opacity-100 text-lg leading-none">×</button>
-        </div>
-      )}
 
       {/* Sign-In Modal */}
       <PaymentModalWithAuth
@@ -819,15 +744,6 @@ function App() {
           />
         </Suspense>
       )}
-
-      {/* Pro Upgrade Modal */}
-      <Suspense fallback={null}>
-        <ProUpgradeModal
-          isOpen={showProUpgradeModal}
-          onClose={() => setShowProUpgradeModal(false)}
-          onReady={handleProUpgradeReady}
-        />
-      </Suspense>
 
       {/* Agent Profile Modal */}
       <Suspense fallback={null}>
@@ -890,9 +806,6 @@ function App() {
             <a href="/learn" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Learn</a>
             <a href="/platform" className="text-sm font-medium transition-colors hidden sm:block text-earth-text-body">Platform</a>
             <div className="flex items-center gap-1.5">
-              {isSignedIn && userIsPremium && (
-                <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: '#e07850' }}>Pro</span>
-              )}
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
@@ -1590,7 +1503,6 @@ function App() {
                 <button
                   onClick={() => {
                     if (!isSignedIn) { setShowSignInModal(true); return; }
-                    if (!canGenerateAgentReport(user)) { setShowProUpgradeModal(true); return; }
                     setShowAuditTool(true);
                   }}
                   style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
@@ -1642,7 +1554,7 @@ function App() {
                     metrics={metrics}
                     compositeScore={compositeScore}
                     dataQuality={dataQuality || undefined}
-                    isPremium={effectivePremium}
+                    isPremium
                     onShareReport={() => setShowReportCard(true)}
                   />
                 </Suspense>
@@ -1775,218 +1687,6 @@ function App() {
               </div>
             </section>
 
-            {/* Support / Donate Section */}
-            <section className="py-12 bg-white/30">
-              <div className="max-w-2xl mx-auto px-6 text-center">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>Support SafeStreets</h2>
-                <p className="text-sm sm:text-base max-w-xl mx-auto mb-6" style={{ color: '#6b7a6b' }}>
-                  SafeStreets is free and open source. If this tool helped you make a better decision about where to live or walk, consider supporting us.
-                </p>
-                <a
-                  href="https://buymeacoffee.com/civiclensproject"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:brightness-110"
-                  style={{ backgroundColor: '#e07850', color: '#ffffff' }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>
-                  </svg>
-                  Support Us
-                </a>
-                <p className="text-xs mt-4" style={{ color: '#8a9a8a' }}>
-                  Every contribution helps us add more cities and improve the data.
-                </p>
-              </div>
-            </section>
-
-            {/* Pricing */}
-            <section className="py-16 bg-white/50">
-              <div className="max-w-4xl mx-auto px-6">
-                <div className="text-center mb-10">
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-3" style={{ color: '#1a2a1a' }}>Simple, Honest Pricing</h2>
-                  <p className="text-sm sm:text-base max-w-xl mx-auto" style={{ color: '#6b7a6b' }}>
-                    The core tool is free forever. Agent Reports let you brand the data for your clients.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  {/* Free tier */}
-                  <div className="rounded-2xl border p-6 flex flex-col" style={{ backgroundColor: '#faf8f4', borderColor: '#e0dbd0' }}>
-                    <div className="mb-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(74,138,74,0.1)', color: '#4a8a4a' }}>Free</span>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$0</span>
-                        <span className="text-sm" style={{ color: '#8a9a8a' }}>forever</span>
-                      </div>
-                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>No sign-up required</p>
-                    </div>
-                    <ul className="space-y-2.5 flex-1">
-                      {[
-                        'Walkability score for any address worldwide',
-                        '4-component breakdown (Network, Comfort, Design, Accessibility)',
-                        'Interactive map with amenities and transit',
-                        'Neighborhood intelligence (health, flood, commute data)',
-                        'Persona verdicts — car-free, kids, aging in place',
-                        'Advocacy letter generator',
-                      ].map(f => (
-                        <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
-                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#4a8a4a" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      onClick={() => document.querySelector<HTMLInputElement>('input[type="text"]')?.focus()}
-                      className="mt-6 w-full py-2.5 rounded-xl text-sm font-semibold border transition-all hover:bg-[#f0ebe0]"
-                      style={{ borderColor: '#c8c0b0', color: '#4a5a4a' }}
-                    >
-                      Get started free
-                    </button>
-                  </div>
-
-                  {/* Pro tier */}
-                  <div className="rounded-2xl border-2 p-6 flex flex-col relative" style={{ backgroundColor: '#ffffff', borderColor: '#e07850' }}>
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white" style={{ backgroundColor: '#e07850' }}>Most Popular</span>
-                    </div>
-                    <div className="mb-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-3" style={{ backgroundColor: 'rgba(224,120,80,0.1)', color: '#e07850' }}>Pro</span>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold" style={{ color: '#1a2a1a' }}>$49</span>
-                        <span className="text-sm" style={{ color: '#8a9a8a' }}>one-time</span>
-                      </div>
-                      <p className="text-xs mt-1" style={{ color: '#8a9a8a' }}>First 3 reports free — no payment needed to try</p>
-                    </div>
-                    <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#8a9a8a' }}>Everything in Free, plus:</p>
-                    <ul className="space-y-2.5 flex-1">
-                      {[
-                        { text: 'Street Audit Tool — generate structured reports', bold: true },
-                        { text: 'Shareable walkability reports (PDF + link)', bold: true },
-                        { text: 'Your logo & branding on every report', bold: true },
-                        { text: 'Unlimited reports after one-time payment', bold: false },
-                        { text: '3 free reports to try before you pay', bold: false },
-                      ].map(f => (
-                        <li key={f.text} className="flex items-start gap-2.5 text-sm" style={{ color: '#4a5a4a' }}>
-                          <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="#e07850" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span style={{ fontWeight: f.bold ? 600 : 400 }}>{f.text}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <button
-                      onClick={() => isSignedIn ? setShowProUpgradeModal(true) : setShowSignInModal(true)}
-                      className="mt-6 w-full py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 hover:shadow-md"
-                      style={{ backgroundColor: '#e07850' }}
-                    >
-                      Try 3 Free Reports
-                    </button>
-                    <div className="mt-3 flex items-center justify-center gap-1 text-xs" style={{ color: '#8a9a8a' }}>
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Secure checkout via Stripe
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Branded Reports CTA */}
-            <section className="py-12 bg-white/30">
-              <div className="max-w-5xl mx-auto px-6">
-                <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: '#1a2a1a' }}>
-                  <div className="p-8 sm:p-10 lg:p-12">
-                    <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-                      <div className="flex-1 text-center lg:text-left">
-                        <span className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4" style={{ backgroundColor: 'rgba(224,120,80,0.15)', color: '#e8a070' }}>
-                          Branded Reports
-                        </span>
-                        <h3 className="text-2xl sm:text-3xl font-bold text-white mb-3">
-                          Branded Walkability Reports for Any Address
-                        </h3>
-                        <p className="text-sm sm:text-base leading-relaxed mb-6" style={{ color: 'rgba(255,255,255,0.65)' }}>
-                          Generate branded walkability reports for any address. Your logo, brand colors, and contact details on every page — perfect for agents, planners, and consultants.
-                        </p>
-                        <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3">
-                          <a
-                            href="/?agent=true"
-                            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all hover:shadow-lg hover:brightness-110"
-                            style={{ backgroundColor: '#e07850', color: '#ffffff' }}
-                          >
-                            Try 3 Free Reports
-                          </a>
-                          <button
-                            onClick={() => isSignedIn ? setShowProUpgradeModal(true) : setShowSignInModal(true)}
-                            className="inline-flex items-center gap-1 px-6 py-3 rounded-xl font-semibold text-sm transition-all hover:bg-white/10 cursor-pointer"
-                            style={{ border: '1.5px solid rgba(224,120,80,0.4)', color: '#e8a070', background: 'transparent' }}
-                          >
-                            $49 One-Time / Unlimited
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Mini report preview */}
-                      <div className="hidden lg:block flex-shrink-0">
-                        <div className="w-48 rounded-lg shadow-2xl overflow-hidden transform rotate-2" style={{ backgroundColor: '#ffffff' }}>
-                          <div className="px-4 pt-3 pb-2" style={{ backgroundColor: '#f8f6f1', borderBottom: '2px solid #e07850' }}>
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: '#e07850' }} />
-                              <div>
-                                <div className="h-1.5 w-16 rounded" style={{ backgroundColor: '#1a2a1a' }} />
-                                <div className="h-1 w-12 rounded mt-0.5" style={{ backgroundColor: '#8a9a8a' }} />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="px-4 pt-3 pb-2">
-                            <div className="h-1 w-24 rounded mb-0.5" style={{ backgroundColor: '#1a2a1a' }} />
-                            <div className="h-0.5 w-16 rounded mb-3" style={{ backgroundColor: '#c0b8a8' }} />
-                            <div className="flex items-baseline justify-center gap-1 mb-3">
-                              <span className="text-2xl font-bold" style={{ color: '#1a2a1a' }}>8.4</span>
-                              <span className="text-xs" style={{ color: '#8a9a8a' }}>/10</span>
-                            </div>
-                            <div className="space-y-1.5 mb-3">
-                              {[
-                                { name: 'Network', w: 78 },
-                                { name: 'Comfort', w: 65 },
-                                { name: 'Design', w: 82 },
-                                { name: 'Access', w: 71 },
-                              ].map((m) => (
-                                <div key={m.name} className="flex items-center gap-1.5">
-                                  <span className="text-[6px] w-8 text-right" style={{ color: '#8a9a8a' }}>{m.name}</span>
-                                  <div className="h-1.5 flex-1 rounded-full" style={{ backgroundColor: '#f0ebe0' }}>
-                                    <div className="h-full rounded-full" style={{ width: `${m.w}%`, backgroundColor: '#4a8a4a', opacity: 0.6 }} />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="px-4 py-2" style={{ backgroundColor: '#f8f6f1' }}>
-                            <div className="h-0.5 w-14 mx-auto rounded mb-0.5" style={{ backgroundColor: '#c0b8a8' }} />
-                            <div className="h-0.5 w-20 mx-auto rounded" style={{ backgroundColor: '#e0dbd0' }} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Feature bar */}
-                    <div className="mt-8 pt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                      {['Your logo & brand colors', 'Shareable PDF + link', 'First 3 free', 'Unlimited after $49'].map(f => (
-                        <span key={f} className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                          <svg className="w-3.5 h-3.5" style={{ color: '#4a8a4a' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                          {f}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
 
           </>
         )}
@@ -2223,30 +1923,6 @@ function App() {
                 </div>
               </div>
 
-              {/* FAQ 9 */}
-              <div className="rounded-lg border overflow-hidden bg-white/80 border-earth-border shadow-sm">
-                <button
-                  onClick={() => setOpenFaq(openFaq === 9 ? null : 9)}
-                  className="w-full text-left p-6 flex justify-between items-center transition hover:opacity-80"
-                  aria-expanded={openFaq === 9}
-                  aria-controls="faq-9-content"
-                >
-                  <h3 className="text-lg font-bold text-earth-text-dark">
-                    Can real estate agents use this?
-                  </h3>
-                  <span className="text-2xl text-gray-500" aria-hidden="true">
-                    {openFaq === 9 ? '−' : '+'}
-                  </span>
-                </button>
-                <div
-                  id="faq-9-content"
-                  className={`px-4 sm:px-6 pb-4 sm:pb-6 text-gray-700 ${openFaq === 9 ? 'block' : 'hidden'}`}
-                >
-                  <p>
-                    Yes! Generate branded walkability reports for any listing. Enter the address, complete your profile once, and export a print-ready PDF with your name, company, and contact details. The first 3 branded reports are free — then $49 one-time for unlimited. Research consistently shows walkable neighborhoods command a significant home value premium — give your clients the data they need to decide.
-                  </p>
-                </div>
-              </div>
               </>
               )}
 
@@ -2255,7 +1931,7 @@ function App() {
                 onClick={() => setShowAllFaqs(!showAllFaqs)}
                 className="w-full py-4 text-sm font-medium transition-colors rounded-lg border border-earth-border hover:bg-white/50 text-earth-text-body"
               >
-                {showAllFaqs ? 'Show fewer questions' : 'Show 4 more questions'}
+                {showAllFaqs ? 'Show fewer questions' : 'Show 3 more questions'}
               </button>
             </div>
           </div>

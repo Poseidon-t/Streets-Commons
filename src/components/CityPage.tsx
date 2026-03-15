@@ -215,7 +215,7 @@ export default function CityPage() {
                 Real Estate Agent in {city.name}?
               </h3>
               <p className="text-sm" style={{ color: '#6b7280' }}>
-                Generate branded walkability reports for your listings. 3 free reports, then $49 one-time for unlimited.
+                Generate free branded walkability reports for your listings — with your logo and contact details.
               </p>
             </div>
             <Link
