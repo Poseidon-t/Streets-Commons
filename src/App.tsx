@@ -1690,56 +1690,16 @@ function App() {
 
         {!compareMode && !location && !isAnalyzing && (
           <>
-            {/* How It Works Section */}
-            <section className="py-16 relative overflow-hidden bg-white/50">
-              {/* Subtle background pattern */}
-              <div className="absolute inset-0 opacity-[0.03]">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="10" cy="10" r="1.5" fill="#1a2a1a"/>
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#dots)"/>
-                </svg>
-              </div>
-
-              <div className="relative max-w-5xl mx-auto px-6">
-                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4 text-earth-text-dark">
-                  How It Works
-                </h2>
-                <p className="text-center text-gray-600 mb-8 sm:mb-12 max-w-xl mx-auto text-sm sm:text-base">
-                  Three simple steps to understand any neighborhood
-                </p>
-
-                <div className="mx-auto max-w-6xl grid grid-cols-1 sm:grid-cols-3 gap-6">
-                  {[
-                    { img: '/screenshots/step-1-search.png', num: '1', label: 'Enter any address' },
-                    { img: '/screenshots/step-2-analysis.png', num: '2', label: 'See neighborhood analysis' },
-                    { img: '/screenshots/step-3-metrics.png', num: '3', label: 'Explore detailed metrics' },
-                  ].map((step) => (
-                    <div key={step.num}>
-                      <div className="flex items-center gap-2 mb-3 justify-center">
-                        <span className="w-7 h-7 rounded-full bg-terra text-white flex items-center justify-center text-xs font-bold flex-shrink-0">{step.num}</span>
-                        <span className="text-sm font-semibold text-earth-text-dark">{step.label}</span>
-                      </div>
-                      <div className="overflow-hidden rounded-xl shadow-lg border" style={{ borderColor: '#e0dbd0' }}>
-                        <img src={step.img} alt={step.label} className="w-full block" loading={step.num === '1' ? 'eager' : 'lazy'} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* CTA */}
-                <div className="text-center mt-12">
-                  <p className="text-earth-text-light mb-4 text-sm">Want to compare two neighborhoods?</p>
-                  <button
-                    onClick={handleCompareMode}
-                    className="px-8 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 border-terra text-terra hover:bg-orange-50"
-                  >
-                    Compare Two Locations
-                  </button>
-                </div>
+            {/* Compare CTA */}
+            <section className="py-12 bg-white/50">
+              <div className="text-center">
+                <p className="text-earth-text-light mb-4 text-sm">Want to compare two neighborhoods?</p>
+                <button
+                  onClick={handleCompareMode}
+                  className="px-8 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 border-terra text-terra hover:bg-orange-50"
+                >
+                  Compare Two Locations
+                </button>
               </div>
             </section>
 
