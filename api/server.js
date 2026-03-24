@@ -33,6 +33,48 @@ const __dirname = path.dirname(__filename);
 // Load .env from parent directory (project root)
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
+// ---------- Daily API budget caps ----------
+// Prevents runaway costs. Override defaults via env: DAILY_CAP_ANTHROPIC=100
+const _budgetCounters = new Map();
+const _budgetDefaults = { anthropic: 50, groq: 500, gemini: 100, google_places: 100 };
+
+function checkApiBudget(service) {
+  const key = service.toLowerCase();
+  const d = new Date().toISOString().slice(0, 10);
+  const envCap = process.env[`DAILY_CAP_${key.toUpperCase()}`];
+  const cap = envCap && !isNaN(Number(envCap)) ? Number(envCap) : (_budgetDefaults[key] ?? 1000);
+
+  let c = _budgetCounters.get(key);
+  if (!c || c.date !== d) { c = { date: d, count: 0 }; _budgetCounters.set(key, c); }
+
+  if (c.count >= cap) {
+    console.warn(`[api-budget] ${service} daily cap reached (${cap}). Blocking call.`);
+    return false;
+  }
+  c.count++;
+  return true;
+}
+
+function getApiBudgetStats() {
+  const d = new Date().toISOString().slice(0, 10);
+  const stats = {};
+  for (const [key, def] of Object.entries(_budgetDefaults)) {
+    const c = _budgetCounters.get(key);
+    const envCap = process.env[`DAILY_CAP_${key.toUpperCase()}`];
+    const cap = envCap && !isNaN(Number(envCap)) ? Number(envCap) : def;
+    stats[key] = { used: (c && c.date === d) ? c.count : 0, cap, date: d };
+  }
+  return stats;
+}
+
+// Budget-checked Anthropic fetch — drops in place of fetch('https://api.anthropic.com/...')
+async function fetchAnthropic(url, options) {
+  if (!checkApiBudget('anthropic')) {
+    return { ok: false, status: 429, json: async () => ({ error: { message: 'Daily Anthropic budget reached' } }), text: async () => 'Daily Anthropic budget reached' };
+  }
+  return fetch(url, options);
+}
+
 // PDF parsing function using pdfjs-dist (proper ESM support)
 async function parsePDF(buffer) {
   const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
@@ -560,6 +602,11 @@ app.get('/api/blog/posts/:slug', (req, res) => {
 
 // ─── Admin API ──────────────────────────────────────────────────────────────
 
+
+app.get('/api/admin/budget', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  res.json(getApiBudgetStats());
+});
 
 app.get('/api/admin/inquiries', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
@@ -1530,7 +1577,7 @@ Write the complete blog post now. Remember: output ONLY a valid JSON object, no 
   try {
     console.log(`🤖 Generating blog post: "${topic}" (${postType}, ${region})`);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1676,7 +1723,7 @@ Return ONLY a JSON array (no markdown code fences) with this structure:
   try {
     console.log(`💡 Suggesting ${safeCount} topics for region: ${region}`);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2763,7 +2810,7 @@ Return ONLY a JSON array (no markdown code fences):
   try {
     console.log(`🔍 AI searching for ${safeCount} agents in ${locationDesc}...`);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -4300,7 +4347,7 @@ Trust neighbourhood-level descriptions over city-wide averages.`
         await new Promise(r => setTimeout(r, delay));
       }
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -4390,7 +4437,7 @@ async function fetchCityPlanningContext(city, state, neighborhood) {
 
   try {
     // Step 1: Ask Claude Haiku for the most likely city transportation/planning URL
-    const urlRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const urlRes = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4454,7 +4501,7 @@ async function fetchCityPlanningContext(city, state, neighborhood) {
     console.log(`  ✅ Cloudflare crawl: ${pages.length} pages fetched from ${cityUrl}`);
 
     // Step 5: Extract walkability insights via Claude Haiku
-    const extractRes = await fetch('https://api.anthropic.com/v1/messages', {
+    const extractRes = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -4525,7 +4572,7 @@ Type selection guide (weight location name heavily alongside the metrics):
 
 IMPORTANT: Low intersection density scores in South/Southeast Asian, Middle Eastern, African, and Latin American cities almost always reflect incomplete OSM tagging, not actual sprawl. If the location name suggests a dense urban area, default to Organic Urban or Mixed Pattern.`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -5637,7 +5684,7 @@ Definitions:
 - urbanPattern: predominant layout visible from above
 - activeStreetFrontage: buildings facing streets with doors/windows vs blank walls or parking lots`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
@@ -5789,7 +5836,7 @@ Respond with ONLY valid JSON, no markdown, no surrounding text:
   "confidence": "high|medium|low"
 }`;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
@@ -5989,6 +6036,7 @@ Be thorough and identify ALL relevant line items. Use the actual currency from t
 
 // Helper function to call Groq API (primary - faster and more generous limits)
 async function callGroqAPI(prompt, groqKey) {
+  if (!checkApiBudget('groq')) return null;
   const models = ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768'];
 
   for (const model of models) {
@@ -6041,6 +6089,7 @@ async function callGroqAPI(prompt, groqKey) {
 
 // Helper function to call Gemini API (fallback)
 async function callGeminiAPI(prompt, geminiKey) {
+  if (!checkApiBudget('gemini')) return null;
   const models = ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro'];
 
   for (const model of models) {
@@ -6625,7 +6674,7 @@ HONESTY & DATA INTEGRITY — THESE ARE EQUALLY CRITICAL:
       content: msg.content,
     }));
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetchAnthropic('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -6983,6 +7032,189 @@ app.post('/api/admin/landing-theme', async (req, res) => {
   }
   saveTheme({ theme });
   res.json({ success: true, theme });
+});
+
+// ── Google Places API proxy ──────────────────────────────────────────────────
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
+
+// POST /api/places/autocomplete — proxy Google Places Autocomplete (New)
+app.post('/api/places/autocomplete', async (req, res) => {
+  if (!GOOGLE_PLACES_API_KEY) {
+    return res.status(501).json({ error: 'Google Places API key not configured' });
+  }
+  if (!checkApiBudget('google_places')) {
+    return res.status(429).json({ error: 'Google Places daily budget reached. Try again tomorrow.' });
+  }
+
+  const { input, locationBias } = req.body;
+  if (!input || typeof input !== 'string' || input.trim().length < 2) {
+    return res.status(400).json({ error: 'input is required (min 2 chars)' });
+  }
+
+  try {
+    const body = { input: input.trim() };
+
+    if (locationBias?.lat && locationBias?.lon) {
+      body.locationBias = {
+        circle: {
+          center: { latitude: locationBias.lat, longitude: locationBias.lon },
+          radius: 50000.0,
+        },
+      };
+    }
+
+    const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Google Places Autocomplete error:', response.status, errText);
+      return res.status(502).json({ error: 'Google Places API error' });
+    }
+
+    const data = await response.json();
+
+    const suggestions = (data.suggestions || [])
+      .filter(s => s.placePrediction)
+      .slice(0, 5)
+      .map(s => ({
+        placeId: s.placePrediction.placeId,
+        description: s.placePrediction.text?.text || '',
+        primaryText: s.placePrediction.structuredFormat?.mainText?.text || '',
+        secondaryText: s.placePrediction.structuredFormat?.secondaryText?.text || '',
+      }));
+
+    res.json({ suggestions });
+  } catch (err) {
+    console.error('Google Places Autocomplete fetch failed:', err.message);
+    res.status(502).json({ error: 'Failed to reach Google Places API' });
+  }
+});
+
+// GET /api/places/details — proxy Google Place Details (Essentials) for lat/lon
+app.get('/api/places/details', async (req, res) => {
+  if (!GOOGLE_PLACES_API_KEY) {
+    return res.status(501).json({ error: 'Google Places API key not configured' });
+  }
+  if (!checkApiBudget('google_places')) {
+    return res.status(429).json({ error: 'Google Places daily budget reached. Try again tomorrow.' });
+  }
+
+  const { placeId } = req.query;
+  if (!placeId) {
+    return res.status(400).json({ error: 'placeId is required' });
+  }
+
+  try {
+    const response = await fetch(
+      `https://places.googleapis.com/v1/places/${placeId}`,
+      {
+        headers: {
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'location,formattedAddress,addressComponents',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Google Place Details error:', response.status, errText);
+      return res.status(502).json({ error: 'Google Places API error' });
+    }
+
+    const data = await response.json();
+
+    const city = data.addressComponents?.find(c =>
+      c.types?.includes('locality')
+    )?.longText || '';
+    const country = data.addressComponents?.find(c =>
+      c.types?.includes('country')
+    )?.longText || '';
+    const countryCode = data.addressComponents?.find(c =>
+      c.types?.includes('country')
+    )?.shortText?.toLowerCase() || '';
+
+    res.json({
+      lat: data.location?.latitude,
+      lon: data.location?.longitude,
+      formattedAddress: data.formattedAddress || '',
+      city,
+      country,
+      countryCode,
+    });
+  } catch (err) {
+    console.error('Google Place Details fetch failed:', err.message);
+    res.status(502).json({ error: 'Failed to reach Google Places API' });
+  }
+});
+
+// ── Premium Checkout ($29 tier) ──────────────────────────────────────────────
+
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const STRIPE_PREMIUM_PRICE = process.env.STRIPE_PREMIUM_PRICE_ID; // Stripe Price ID for $29 product
+
+app.post('/api/create-premium-checkout', async (req, res) => {
+  const { addressKey, returnUrl } = req.body;
+
+  if (!addressKey || !returnUrl) {
+    return res.status(400).json({ error: 'addressKey and returnUrl required' });
+  }
+
+  // If Stripe is not configured, return empty (frontend will handle MVP fallback)
+  if (!STRIPE_SECRET_KEY || !STRIPE_PREMIUM_PRICE) {
+    return res.json({ url: null, message: 'Stripe not configured — MVP mode' });
+  }
+
+  try {
+    const stripe = (await import('stripe')).default(STRIPE_SECRET_KEY);
+
+    // Build the return URL with session ID placeholder
+    const successUrl = new URL(returnUrl);
+    successUrl.searchParams.set('premium_session', '{CHECKOUT_SESSION_ID}');
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: [{ price: STRIPE_PREMIUM_PRICE, quantity: 1 }],
+      success_url: successUrl.toString(),
+      cancel_url: returnUrl,
+      metadata: { addressKey },
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe checkout creation failed:', err.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+app.get('/api/verify-premium', async (req, res) => {
+  const { session_id, address_key } = req.query;
+
+  if (!session_id || !address_key) {
+    return res.status(400).json({ verified: false, error: 'session_id and address_key required' });
+  }
+
+  // If Stripe is not configured, auto-verify (MVP)
+  if (!STRIPE_SECRET_KEY) {
+    return res.json({ verified: true });
+  }
+
+  try {
+    const stripe = (await import('stripe')).default(STRIPE_SECRET_KEY);
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+
+    const verified = session.payment_status === 'paid' && session.metadata?.addressKey === address_key;
+    res.json({ verified });
+  } catch (err) {
+    console.error('Stripe session verification failed:', err.message);
+    res.json({ verified: false });
+  }
 });
 
 // Start server
