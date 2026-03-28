@@ -128,11 +128,8 @@
         "name": "Streets & Commons",
         "url": "https://streetsandcommons.com"
       },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "120"
-      }
+      "datePublished": "2024-01-01",
+      "dateModified": "2026-03-28"
     }
     </script>
 
@@ -184,6 +181,10 @@
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
+      "speakable": {
+        "@type": "SpeakableSpecification",
+        "cssSelector": [".prose", "noscript"]
+      },
       "mainEntity": [
         {
           "@type": "Question",
@@ -278,6 +279,66 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="max-width:800px;margin:0 auto;padding:40px 20px;font-family:system-ui,sans-serif;color:#1a2a1a;">
+        <h1>SafeStreets - Free Walkability Score for Any Address</h1>
+        <p>SafeStreets is a free, no-sign-up tool by Streets &amp; Commons that analyzes the walkability of any address worldwide and returns a composite score (0-10) with tier labels, persona-specific verdicts, and neighborhood intelligence. It uses satellite imagery (Sentinel-2), OpenStreetMap, and government data sources including EPA, US Census, CDC PLACES, and FEMA.</p>
+
+        <h2>How It Works</h2>
+        <p>Enter any address and get an instant walkability score from 0 to 10. Scores are categorized into five tiers: Walkable (8.0-10.0), Moderate (6.0-7.9), Car-dependent (4.0-5.9), Difficult (2.0-3.9), and Hostile (0-1.9). The composite score combines four components: Network Design, Environmental Comfort, Safety, and Density Context.</p>
+
+        <h2>PersonaCards</h2>
+        <p>SafeStreets answers three real-life questions with Yes, Borderline, or Unlikely verdicts: Can I go car-free here? Is it safe for kids to walk? Is it good for aging in place? Each verdict includes a plain-language explanation computed from relevant sub-scores.</p>
+
+        <h2>15-Minute City Analysis</h2>
+        <p>Measures whether six key daily destinations - grocery store, school, park, pharmacy, transit stop, and restaurant - are accessible within a 15-minute walk from a given address. Each destination is scored individually with a composite access score. Works worldwide using OpenStreetMap data.</p>
+
+        <h2>Neighborhood Intelligence (US Addresses)</h2>
+        <p>US addresses receive enhanced data: commute mode patterns from Census ACS, CDC health outcomes (obesity, diabetes, asthma rates vs US average by census tract), FEMA flood zone classification, and terrain slope analysis via NASADEM for ADA accessibility.</p>
+
+        <h2>Data Sources</h2>
+        <ul>
+          <li>Sentinel-2 (ESA, 10m resolution) - Tree canopy, vegetation, urban heat</li>
+          <li>OpenStreetMap - Street network, sidewalks, crossings, transit, amenities</li>
+          <li>EPA National Walkability Index - Intersection density, transit access, land use mix</li>
+          <li>US Census ACS - Commute mode split, demographics, income</li>
+          <li>CDC PLACES - Health outcomes by census tract</li>
+          <li>FEMA NFHL - Flood zone classification</li>
+          <li>NASADEM - Terrain slope and ADA accessibility</li>
+          <li>OpenAQ - Real-time air quality (PM2.5)</li>
+          <li>Open-Meteo - Heat stress modifier for tree canopy scoring</li>
+        </ul>
+
+        <h2>Features</h2>
+        <ul>
+          <li>Free walkability score (0-10) for any address worldwide, no sign-up</li>
+          <li>PersonaCards: car-free, kid safety, aging-in-place verdicts</li>
+          <li>15-Minute City Analysis with walk-time scoring</li>
+          <li>Street Network Analysis: connectivity, intersection density, pedestrian paths</li>
+          <li>12 scored walkability metrics with expandable detail</li>
+          <li>Compare Mode: side-by-side comparison of up to 4 addresses</li>
+          <li>Agent Reports: branded PDF walkability reports for real estate listings</li>
+          <li>Works in 190+ countries</li>
+        </ul>
+
+        <h2>Pricing</h2>
+        <ul>
+          <li>Core walkability tool: Free, no sign-up, no usage limits</li>
+          <li>Agent Reports (branded PDFs): First 3 free, then $49 one-time for unlimited</li>
+          <li>SafeStreets Intelligence Platform: Custom pricing for organizations</li>
+        </ul>
+
+        <h2>Common Questions</h2>
+        <p><strong>Is SafeStreets really free?</strong> Yes. All core features are completely free with no sign-up required. Works in 190+ countries with unlimited searches.</p>
+        <p><strong>Does it work outside the US?</strong> Yes. Walkability analysis works globally using Sentinel-2 and OpenStreetMap. US-specific features (Census, CDC, FEMA) are only available for US addresses.</p>
+        <p><strong>What is a 15-minute city score?</strong> It measures whether grocery, school, park, pharmacy, transit, and restaurant are within a 15-minute walk from the address.</p>
+
+        <h2>City Walkability Guides</h2>
+        <p>Explore walkability scores for major US cities: <a href="/walkability/new-york">New York</a>, <a href="/walkability/san-francisco">San Francisco</a>, <a href="/walkability/chicago">Chicago</a>, <a href="/walkability/boston">Boston</a>, <a href="/walkability/portland">Portland</a>, <a href="/walkability/seattle">Seattle</a>, <a href="/walkability/washington-dc">Washington DC</a>, <a href="/walkability/philadelphia">Philadelphia</a>, <a href="/walkability/los-angeles">Los Angeles</a>, <a href="/walkability/denver">Denver</a>, <a href="/walkability/minneapolis">Minneapolis</a>, <a href="/walkability/miami">Miami</a>, <a href="/walkability/austin">Austin</a>, <a href="/walkability/atlanta">Atlanta</a>, <a href="/walkability/nashville">Nashville</a>, <a href="/walkability/dallas">Dallas</a>, <a href="/walkability/houston">Houston</a>, <a href="/walkability/phoenix">Phoenix</a>, <a href="/walkability/detroit">Detroit</a>, <a href="/walkability/pittsburgh">Pittsburgh</a>.</p>
+
+        <p>Built by <a href="https://streetsandcommons.com">Streets &amp; Commons</a> - Open data tools for urban walkability, pedestrian safety, and neighborhood intelligence.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

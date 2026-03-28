@@ -107,25 +107,39 @@ export default function BlogPost() {
       <meta name="twitter:description" content={post.metaDescription} />
       <meta name="twitter:image" content="https://safestreets.streetsandcommons.com/og-image.png" />
 
-      {/* JSON-LD Article */}
+      {/* JSON-LD BlogPosting */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "Article",
+        "@type": "BlogPosting",
         "headline": post.title,
         "description": post.metaDescription,
         "datePublished": post.date,
-        "author": { "@type": "Organization", "name": "Streets & Commons" },
+        "dateModified": post.date,
+        "author": {
+          "@type": "Organization",
+          "name": "Streets & Commons",
+          "url": "https://streetsandcommons.com"
+        },
         "publisher": {
           "@type": "Organization",
           "name": "SafeStreets",
-          "url": "https://safestreets.streetsandcommons.com"
+          "url": "https://safestreets.streetsandcommons.com",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://safestreets.streetsandcommons.com/logo.svg"
+          }
         },
         "mainEntityOfPage": {
           "@type": "WebPage",
           "@id": `https://safestreets.streetsandcommons.com/blog/${post.slug}`
         },
         "articleSection": post.category,
-        "keywords": post.tags.join(', ')
+        "keywords": post.tags.join(', '),
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": [".prose h1", ".prose h2", ".prose p:first-of-type"]
+        },
+        "isAccessibleForFree": true
       }) }} />
 
       {/* JSON-LD BreadcrumbList */}

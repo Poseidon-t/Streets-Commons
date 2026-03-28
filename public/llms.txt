@@ -1,5 +1,10 @@
 # SafeStreets by Streets & Commons
 
+# License: Content available for AI search indexing and citation with attribution to SafeStreets by Streets & Commons.
+# Last Updated: 2026-03-28
+# Contact: https://safestreets.streetsandcommons.com/platform/contact
+# See also: https://safestreets.streetsandcommons.com/sitemap.xml
+
 > Free neighborhood walkability and street intelligence for any address worldwide. Uses satellite imagery and government data. No sign-up required.
 
 ## What SafeStreets Is
