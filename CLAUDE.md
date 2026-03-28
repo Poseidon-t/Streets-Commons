@@ -25,7 +25,7 @@ Read `docs/claude/project-context.md` first. It has the current product state, a
 → Admin is gated by ADMIN_USER_ID env var. Blog images use a static bank (no UNSPLASH_ACCESS_KEY). Read `docs/claude/project-context.md` section on admin.
 
 **Touching pricing anywhere (UI copy, FAQs, schema, llms.txt)?**
-→ Core tool: free. Agent reports: $49 one-time (first 3 free). Enterprise: custom inquiry. No other pricing exists.
+→ Core tool: free. Moving Research: $29 one-time (school route safety, commute analysis, car-free savings, unlimited saves). Enterprise: custom inquiry. No other pricing exists.
 
 ---
 
@@ -43,7 +43,7 @@ Read `docs/claude/project-context.md` first. It has the current product state, a
 - Re-introduce removed features (email capture, Reddit monitor, custom analytics, $19/$99 tiers, AI chatbot, advocacy letters)
 - Commit without running `npm run build` and `eslint .`
 - Mix Consumer and Enterprise design modes
-- Change pricing from: Free core / $49 Agent Reports / Custom Enterprise
+- Change pricing from: Free core / $29 Moving Research / Custom Enterprise
 
 ### ALWAYS
 - Show diff before committing

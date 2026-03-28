@@ -48,7 +48,7 @@ Each verdict is computed from the relevant sub-scores and shown with a plain-lan
 - **Street Network Analysis**: Connectivity, intersection density, pedestrian path coverage, street character
 - **Metric Grid**: 12 scored metrics with expandable detail — tree canopy, sidewalk quality, crossing safety, transit access, destinations, lighting, and more
 - **Compare Mode**: Side-by-side walkability comparison of up to 4 addresses
-- **Agent Reports**: Print-ready branded PDFs for real estate agents — first 3 free, unlimited for $49 one-time
+- **Moving Research**: School route safety, commute analysis, car-free savings, unlimited saved addresses, PDF reports — $29 one-time
 - **platform**: Custom dashboards and decisioning workflows for governments, developers, mobility operators, and research institutions
 
 ## Data Sources
@@ -82,7 +82,6 @@ Platform is built on OpenStreetMap, Sentinel-2, EPA, and Census data — plus cl
 
 - **Core walkability tool**: Free, no sign-up, no usage limits
 - **Moving Research** (for families & relocators): $29 one-time — school route safety, commute analysis, car-free savings calculator, unlimited saved addresses, similar neighborhood recommendations, PDF reports. Works for every address, forever.
-- **Agent Reports** (branded PDFs for listings): First 3 free, then $49 one-time for unlimited
 - **platform**: Custom pricing based on geography, integrations, and deployment scope
 
 ## Common Questions SafeStreets Answers

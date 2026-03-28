@@ -9,8 +9,8 @@ import StreetVibe from './components/streetcheck/StreetVibe';
 import PlainLanguageSummary from './components/streetcheck/PlainLanguageSummary';
 import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import Map from './components/Map';
-import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 import FifteenMinuteCity from './components/FifteenMinuteCity';
+import PaymentModalWithAuth from './components/PaymentModalWithAuth';
 import PremiumPaywall from './components/premium/PremiumPaywall';
 
 import ErrorBoundary from './components/ErrorBoundary';
@@ -22,7 +22,6 @@ const ShareableReportCard = lazy(() => import('./components/ShareableReportCard'
 const StreetAuditTool = lazy(() => import('./components/StreetAuditTool'));
 const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
-const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
 const SchoolRouteSafety = lazy(() => import('./components/premium/SchoolRouteSafety'));
 const CommuteAnalysis = lazy(() => import('./components/premium/CommuteAnalysis'));
@@ -42,8 +41,6 @@ import { fetchPopulationDensity } from './services/populationDensity';
 import { fetchDemographicData } from './services/demographics';
 import { calculateCompositeScore } from './utils/compositeScore';
 import { useUser, UserButton } from '@clerk/clerk-react';
-import { getAgentProfile } from './utils/clerkAccess';
-import type { AgentProfile } from './utils/clerkAccess';
 import { getSavedAddresses, saveAddress, removeAddress, getMaxAddresses, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
 import { fetchCDCHealth } from './services/cdcHealth';
@@ -217,7 +214,6 @@ function App() {
   const [showSavedDropdown, setShowSavedDropdown] = useState(false);
   const [showReportCard, setShowReportCard] = useState(false);
   const [showAuditTool, setShowAuditTool] = useState(false);
-  const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [showAdvocacyLetter, setShowAdvocacyLetter] = useState(false);
 
   // Premium features — Moving Research ($29 one-time, global unlock)
@@ -229,7 +225,6 @@ function App() {
   const [schoolInput, setSchoolInput] = useState('');
   const [workInput, setWorkInput] = useState('');
 
-  const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
   const [compareError, setCompareError] = useState<string | null>(null);
   const [analysisQuote, setAnalysisQuote] = useState<{ text: string; author: string } | null>(null);
@@ -275,27 +270,6 @@ function App() {
     }
   }, []);
 
-  // Auto-trigger agent report flow when arriving via ?agent=true (from ForRealEstate / CityPage / Admin Sales Pipeline)
-  useEffect(() => {
-    if (pendingAgentReport.current && metrics && location) {
-      pendingAgentReport.current = false;
-      const params = new URLSearchParams(window.location.search);
-      const urlAgentName = params.get('agentName');
-      // If agent profile provided via URL params (admin sales pipeline), skip modals and generate directly
-      if (urlAgentName) {
-        const profile: AgentProfile = {
-          name: urlAgentName,
-          company: params.get('agentCompany') || '',
-          email: params.get('agentEmail') || '',
-          phone: params.get('agentPhone') || '',
-          title: params.get('agentTitle') || '',
-        };
-        setTimeout(() => generateAgentReport(profile), 500);
-      } else {
-        setTimeout(() => handleAgentReportClick(), 500);
-      }
-    }
-  }, [metrics, location]);
 
   // Clean up legacy ?upgrade=pro param if present (no longer used)
   useEffect(() => {
@@ -752,41 +726,6 @@ function App() {
     });
   };
 
-  // Agent Report flow: sign in → profile → generate
-  const handleAgentReportClick = () => {
-    if (!isSignedIn) {
-      setShowSignInModal(true);
-      return;
-    }
-    const profile = getAgentProfile(user);
-    if (!profile) {
-      setShowAgentProfileModal(true);
-      return;
-    }
-    generateAgentReport(profile);
-  };
-
-  const handleAgentProfileSave = (profile: AgentProfile) => {
-    setShowAgentProfileModal(false);
-    generateAgentReport(profile);
-  };
-
-  const generateAgentReport = async (profile: AgentProfile) => {
-    if (!location || !metrics) return;
-
-    // Store report data in sessionStorage
-    const reportData = {
-      location,
-      metrics,
-      compositeScore,
-      dataQuality,
-      neighborhoodIntel,
-      agentProfile: profile,
-    };
-    sessionStorage.setItem('agentReportData', JSON.stringify(reportData));
-    window.open('/report/agent', '_blank');
-  };
-
   return (
     <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, #f8f6f1 0%, #f2f0eb 30%, #eef5f0 60%, #f0ede8 100%)' }}>
 
@@ -809,15 +748,6 @@ function App() {
           />
         </Suspense>
       )}
-
-      {/* Agent Profile Modal */}
-      <Suspense fallback={null}>
-        <AgentProfileModal
-          isOpen={showAgentProfileModal}
-          onClose={() => setShowAgentProfileModal(false)}
-          onSave={handleAgentProfileSave}
-        />
-      </Suspense>
 
       {/* Custom styles for light aesthetic */}
       <style>{`
@@ -1786,10 +1716,7 @@ function App() {
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
                 <button
-                  onClick={() => {
-                    if (!isSignedIn) { setShowSignInModal(true); return; }
-                    setShowAuditTool(true);
-                  }}
+                  onClick={() => setShowAuditTool(true)}
                   style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
                 >
                   Generate report →
