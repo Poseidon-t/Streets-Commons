@@ -341,3 +341,92 @@ export interface GroundRealityNarrative {
   dataSources: string[];
   confidence: 'high' | 'medium' | 'low';
 }
+
+// ── Premium Features ($29 tier) ──────────────────────────────────────────────
+
+export type RouteSegmentSafety = 'safe' | 'caution' | 'danger';
+
+export interface RouteSegment {
+  streetName: string;
+  streetType: string; // residential, collector, arterial, etc.
+  description: string;
+  distanceMi: number;
+  walkMinutes: number;
+  isCrossing: boolean;
+  sidewalkCoverage: string; // "both sides", "one side", "none"
+  speedLimit: number | null; // mph
+  lanes: number | null;
+  signal: string | null; // "stop sign", "signal", "none", etc.
+  safety: RouteSegmentSafety;
+  badges: { label: string; type: RouteSegmentSafety | 'info' }[];
+}
+
+export interface CrossingAlert {
+  streetName: string;
+  intersection: string;
+  speedLimit: number;
+  lanes: number;
+  signal: string;
+  hasCrosswalk: boolean;
+  hasMedianRefuge: boolean;
+  description: string;
+}
+
+export type SchoolRouteVerdict = 'Safe' | 'Walk with Caution' | 'Not Recommended';
+
+export interface SchoolRouteSafetyResult {
+  schoolName: string;
+  schoolLat: number;
+  schoolLon: number;
+  totalDistanceMi: number;
+  totalWalkMinutes: number;
+  totalCrossings: number;
+  highSpeedCrossings: number;
+  sidewalkCoverage: number; // 0-100%
+  segments: RouteSegment[];
+  crossingAlerts: CrossingAlert[];
+  verdict: SchoolRouteVerdict;
+  verdictReason: string;
+}
+
+export interface CommuteJourneyLeg {
+  mode: 'walk' | 'bus' | 'train' | 'transfer' | 'cycle';
+  label: string; // "Walk", "Bus #7", "Blue Line", "Transfer"
+  durationMinutes: number;
+  detail: string; // "To Bus Stop #42 · 0.4 mi"
+  icon: string; // emoji
+}
+
+export interface CommuteWalkLegQuality {
+  legLabel: string;
+  sidewalkCoverage: number; // 0-100%
+  maxSpeedMph: number;
+  crossings: string;
+  lighting: string;
+  safety: RouteSegmentSafety;
+}
+
+export interface CommuteComparisonMode {
+  mode: string;
+  icon: string;
+  durationMinutes: number;
+  isThisRoute?: boolean;
+}
+
+export interface CommuteAnalysisResult {
+  homeName: string;
+  workName: string;
+  journeyLegs: CommuteJourneyLeg[];
+  totalMinutes: number;
+  walkLegs: CommuteWalkLegQuality[];
+  comparison: CommuteComparisonMode[];
+  annualSavingsVsDriving: number;
+  assessment: string;
+}
+
+export interface PremiumReportData {
+  schoolRoute: SchoolRouteSafetyResult | null;
+  commute: CommuteAnalysisResult | null;
+  purchasedAt: string;
+  addressKey: string; // lat,lon key
+}

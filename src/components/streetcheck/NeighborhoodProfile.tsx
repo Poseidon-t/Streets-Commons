@@ -408,24 +408,22 @@ export default function NeighborhoodProfile({
   demographicData,
   osmData,
 }: NeighborhoodProfileProps) {
-  const [tab, setTab] = useState<ProfileTab>('daily');
+  const [tab, setTab] = useState<ProfileTab>('economy');
 
   const economyProfile = osmData ? analyzeLocalEconomy(osmData) : null;
   const hasEconomy = economyProfile !== null &&
     (economyProfile.totalBusinesses > 0 || economyProfile.categories.recreation > 0 || economyProfile.categories.transit > 0);
   const hasCommunity = !!(demographicData || neighborhoodIntel?.health || neighborhoodIntel?.flood);
-  const hasDaily = !!(neighborhoodIntel && (neighborhoodIntel.commute || neighborhoodIntel.transit || neighborhoodIntel.parks || neighborhoodIntel.food));
 
-  if (!hasDaily && !hasEconomy && !hasCommunity) return null;
+  if (!hasEconomy && !hasCommunity) return null;
 
   const tabs: { id: ProfileTab; label: string }[] = [
-    ...(hasDaily   ? [{ id: 'daily'     as ProfileTab, label: 'Daily Life' }] : []),
     ...(hasEconomy ? [{ id: 'economy'   as ProfileTab, label: 'Local Economy' }] : []),
     ...(hasCommunity ? [{ id: 'community' as ProfileTab, label: 'Community' }] : []),
   ];
 
   // Default to first available tab
-  const activeTab = tabs.some(t => t.id === tab) ? tab : tabs[0]?.id ?? 'daily';
+  const activeTab = tabs.some(t => t.id === tab) ? tab : tabs[0]?.id ?? 'economy';
 
   return (
     <div className="retro-card mt-8" style={{ overflow: 'hidden' }}>
@@ -453,7 +451,6 @@ export default function NeighborhoodProfile({
       )}
 
       <div style={{ padding: '16px 18px' }}>
-        {activeTab === 'daily' && neighborhoodIntel && <DailyLifeTab intel={neighborhoodIntel} />}
         {activeTab === 'economy' && economyProfile && <EconomyTab profile={economyProfile} />}
         {activeTab === 'community' && <CommunityTab demographicData={demographicData} intel={neighborhoodIntel} />}
       </div>

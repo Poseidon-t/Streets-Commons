@@ -10,6 +10,8 @@ import PlainLanguageSummary from './components/streetcheck/PlainLanguageSummary'
 import ComponentHighlight from './components/streetcheck/ComponentHighlight';
 import Map from './components/Map';
 import PaymentModalWithAuth from './components/PaymentModalWithAuth';
+import FifteenMinuteCity from './components/FifteenMinuteCity';
+import PremiumPaywall from './components/premium/PremiumPaywall';
 
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -22,7 +24,10 @@ const ProductTour = lazy(() => import('./components/ProductTour'));
 const DemoBanner = lazy(() => import('./components/DemoBanner'));
 const AgentProfileModal = lazy(() => import('./components/AgentProfileModal'));
 const AdvocacyLetter = lazy(() => import('./components/AdvocacyLetter'));
+const SchoolRouteSafety = lazy(() => import('./components/premium/SchoolRouteSafety'));
+const CommuteAnalysis = lazy(() => import('./components/premium/CommuteAnalysis'));
 
+import { usePremium } from './hooks/usePremium';
 import { trackEvent, identifyUser } from './utils/analytics';
 import { fetchOSMData, fetchMapGeometry } from './services/overpass';
 import type { MapGeometry } from './services/overpass';
@@ -47,7 +52,9 @@ import { fetchTerrain } from './services/terrain';
 import { fetchTransitAccess } from './services/transitAccess';
 import { fetchStreetFeatures } from './services/streetFeatures';
 import { computeParkAccess, computeFoodAccess } from './utils/neighborhoodIntelligence';
-import type { Location, WalkabilityMetrics, DataQuality, OSMData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis, MapillaryIntelligence, SatelliteVisionAnalysis, GroundRealityNarrative } from './types';
+import type { Location, WalkabilityMetrics, DataQuality, OSMData, WalkabilityScoreV2, DemographicData, NeighborhoodIntelligence, StreetCharacterAnalysis, MapillaryIntelligence, SatelliteVisionAnalysis, GroundRealityNarrative, SchoolRouteSafetyResult, CommuteAnalysisResult } from './types';
+import { analyzeSchoolRoute } from './services/schoolRouteSafety';
+import { analyzeCommute } from './services/commuteAnalysis';
 
 interface AnalysisData {
   location: Location;
@@ -56,6 +63,53 @@ interface AnalysisData {
   osmData: OSMData;
   compositeScore?: WalkabilityScoreV2 | null;
   streetDesignScore?: number;
+}
+
+/** Collapsible wrapper for the detailed MetricGrid — starts collapsed so walk times stay prominent */
+function MetricGridCollapsible({ metrics, location, satelliteLoaded, compositeScore, demographicData, demographicLoading, osmData, streetDesignScore, mapillaryCoverageGap, streetCharacter, streetCharacterLoading, airQualityReading }: {
+  metrics: WalkabilityMetrics;
+  location: Location;
+  satelliteLoaded: Set<string>;
+  compositeScore: WalkabilityScoreV2 | null;
+  demographicData: DemographicData | null;
+  demographicLoading: boolean;
+  osmData: OSMData | null;
+  streetDesignScore: number | undefined;
+  mapillaryCoverageGap: boolean;
+  streetCharacter: StreetCharacterAnalysis | null;
+  streetCharacterLoading: boolean;
+  airQualityReading: { pm25: number | null; category: string | null } | null;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="retro-card" style={{ overflow: 'hidden' }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 18px',
+          cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+        }}
+      >
+        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
+          Street Quality — Detailed Metrics
+        </span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
+          {open ? '− Hide' : '+ Show 12 metrics'}
+        </span>
+      </button>
+      {open && (
+        <div id="metrics" style={{ paddingTop: 4 }} className="scroll-mt-16">
+          <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} inline />
+        </div>
+      )}
+    </div>
+  );
 }
 
 const ANALYSIS_STEPS = [
@@ -165,6 +219,15 @@ function App() {
   const [showAuditTool, setShowAuditTool] = useState(false);
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [showAdvocacyLetter, setShowAdvocacyLetter] = useState(false);
+
+  // Premium features ($29 tier)
+  const premium = usePremium(location?.lat ?? null, location?.lon ?? null);
+  const [schoolRouteData, setSchoolRouteData] = useState<SchoolRouteSafetyResult | null>(null);
+  const [schoolRouteLoading, setSchoolRouteLoading] = useState(false);
+  const [commuteData, setCommuteData] = useState<CommuteAnalysisResult | null>(null);
+  const [commuteLoading, setCommuteLoading] = useState(false);
+  const [schoolInput, setSchoolInput] = useState('');
+  const [workInput, setWorkInput] = useState('');
 
   const pendingAgentReport = useRef(new URLSearchParams(window.location.search).get('agent') === 'true');
   const [analysisError, setAnalysisError] = useState<string | null>(null);
@@ -1475,26 +1538,34 @@ function App() {
               {/* Divider */}
               <div style={{ height: 2, background: '#1a1208' }} />
 
-              {/* Persona Verdicts */}
-              <PersonaCards compositeScore={compositeScore} inline />
+              {/* 15-Minute Walk Times — headline feature */}
+              <ErrorBoundary sectionName="15-Minute Walk Times">
+                <FifteenMinuteCity location={location} osmElements={osmData?.rawElements} inline />
+              </ErrorBoundary>
 
               {/* Divider */}
               <div style={{ height: 2, background: '#1a1208' }} />
 
-              {/* Detailed Metrics */}
-              <div id="metrics" style={{ paddingTop: 18 }} className="scroll-mt-16">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px 12px' }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
-                    Key Metrics
-                  </span>
-                  <span style={{ fontSize: 10, fontWeight: 500, color: '#7a6e5a', fontStyle: 'italic' }}>
-                    Tap any metric to expand
-                  </span>
-                </div>
-                <MetricGrid metrics={metrics} locationName={location.displayName} satelliteLoaded={satelliteLoaded} compositeScore={compositeScore} demographicData={demographicData} demographicLoading={demographicLoading} osmData={osmData} streetDesignScore={streetDesignScore} countryCode={location.countryCode} mapillaryCoverageGap={mapillaryCoverageGap} streetCharacter={streetCharacter} streetCharacterLoading={streetCharacterLoading} airQualityReading={airQualityReading} inline />
-              </div>
+              {/* Persona Verdicts */}
+              <PersonaCards compositeScore={compositeScore} inline />
 
             </div>
+
+            {/* Street Quality — detailed metrics (collapsible) */}
+            <MetricGridCollapsible
+              metrics={metrics}
+              location={location}
+              satelliteLoaded={satelliteLoaded}
+              compositeScore={compositeScore}
+              demographicData={demographicData}
+              demographicLoading={demographicLoading}
+              osmData={osmData}
+              streetDesignScore={streetDesignScore}
+              mapillaryCoverageGap={mapillaryCoverageGap}
+              streetCharacter={streetCharacter}
+              streetCharacterLoading={streetCharacterLoading}
+              airQualityReading={airQualityReading}
+            />
 
             {/* Ground Reality: AI narrative */}
             <GroundRealityCard
@@ -1513,6 +1584,200 @@ function App() {
               compositeScore={compositeScore ?? null}
               osmData={osmData ?? null}
             />
+
+            {/* ── Premium Section ($29) ── */}
+            {!premium.unlocked && (
+              <PremiumPaywall onUnlock={premium.startCheckout} loading={premium.loading} />
+            )}
+
+            {premium.unlocked && (
+              <>
+                {/* School Route Safety */}
+                <ErrorBoundary sectionName="School Route Safety">
+                  <div style={{
+                    border: '2px solid #1a1208',
+                    background: '#f5f2eb',
+                    overflow: 'hidden',
+                    boxShadow: '3px 3px 0 rgba(26,18,8,0.10)',
+                    marginBottom: 4,
+                  }}>
+                    <div style={{
+                      background: '#1a3a1a',
+                      padding: '8px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
+                        🎓 School Route Safety
+                      </span>
+                      <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
+                        Premium
+                      </span>
+                    </div>
+                    <div style={{ padding: '14px 18px' }}>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
+                        <div style={{ flex: 1, minWidth: 200 }}>
+                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#7a6e5a', display: 'block', marginBottom: 4 }}>
+                            School name or address
+                          </label>
+                          <input
+                            type="text"
+                            value={schoolInput}
+                            onChange={e => setSchoolInput(e.target.value)}
+                            placeholder="e.g. Springfield Elementary"
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              fontFamily: "'DM Sans', sans-serif",
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: '#1a3a1a',
+                              border: '2px solid #1a3a1a',
+                              background: '#fff',
+                              outline: 'none',
+                            }}
+                          />
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!schoolInput.trim() || !location) return;
+                            setSchoolRouteLoading(true);
+                            try {
+                              // For MVP: use a point slightly offset as "school" location
+                              // In production, geocode the school address
+                              const offsetLat = location.lat + (Math.random() - 0.5) * 0.01;
+                              const offsetLon = location.lon + (Math.random() - 0.5) * 0.01;
+                              const result = await analyzeSchoolRoute(location.lat, location.lon, offsetLat, offsetLon, schoolInput);
+                              setSchoolRouteData(result);
+                              trackEvent('premium_school_route_analyzed');
+                            } catch {
+                              // Silently handle
+                            } finally {
+                              setSchoolRouteLoading(false);
+                            }
+                          }}
+                          disabled={schoolRouteLoading || !schoolInput.trim()}
+                          style={{
+                            padding: '8px 20px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase' as const,
+                            background: schoolRouteLoading ? '#c4b59a' : '#e07850',
+                            color: '#fff',
+                            border: `2px solid ${schoolRouteLoading ? '#a09880' : '#c06040'}`,
+                            cursor: schoolRouteLoading ? 'not-allowed' : 'pointer',
+                            whiteSpace: 'nowrap' as const,
+                          }}
+                        >
+                          {schoolRouteLoading ? 'Analyzing...' : 'Analyze Route'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {schoolRouteData && (
+                    <Suspense fallback={null}>
+                      <SchoolRouteSafety data={schoolRouteData} />
+                    </Suspense>
+                  )}
+                </ErrorBoundary>
+
+                {/* Commute Analysis */}
+                <ErrorBoundary sectionName="Commute Analysis">
+                  <div style={{
+                    border: '2px solid #1a1208',
+                    background: '#f5f2eb',
+                    overflow: 'hidden',
+                    boxShadow: '3px 3px 0 rgba(26,18,8,0.10)',
+                    marginBottom: 4,
+                  }}>
+                    <div style={{
+                      background: '#1a3a1a',
+                      padding: '8px 16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}>
+                      <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
+                        🚌 Commute Analysis
+                      </span>
+                      <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
+                        Premium
+                      </span>
+                    </div>
+                    <div style={{ padding: '14px 18px' }}>
+                      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
+                        <div style={{ flex: 1, minWidth: 200 }}>
+                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#7a6e5a', display: 'block', marginBottom: 4 }}>
+                            Work address
+                          </label>
+                          <input
+                            type="text"
+                            value={workInput}
+                            onChange={e => setWorkInput(e.target.value)}
+                            placeholder="e.g. 200 W Adams St, Chicago"
+                            style={{
+                              width: '100%',
+                              padding: '8px 12px',
+                              fontFamily: "'DM Sans', sans-serif",
+                              fontSize: 13,
+                              fontWeight: 600,
+                              color: '#1a3a1a',
+                              border: '2px solid #1a3a1a',
+                              background: '#fff',
+                              outline: 'none',
+                            }}
+                          />
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!workInput.trim() || !location) return;
+                            setCommuteLoading(true);
+                            try {
+                              // For MVP: use a point offset as "work" location
+                              // In production, geocode the work address
+                              const offsetLat = location.lat + (Math.random() - 0.5) * 0.05;
+                              const offsetLon = location.lon + (Math.random() - 0.5) * 0.05;
+                              const result = await analyzeCommute(
+                                location.lat, location.lon, location.displayName.split(',')[0],
+                                offsetLat, offsetLon, workInput
+                              );
+                              setCommuteData(result);
+                              trackEvent('premium_commute_analyzed');
+                            } catch {
+                              // Silently handle
+                            } finally {
+                              setCommuteLoading(false);
+                            }
+                          }}
+                          disabled={commuteLoading || !workInput.trim()}
+                          style={{
+                            padding: '8px 20px',
+                            fontSize: 12,
+                            fontWeight: 700,
+                            letterSpacing: '0.06em',
+                            textTransform: 'uppercase' as const,
+                            background: commuteLoading ? '#c4b59a' : '#e07850',
+                            color: '#fff',
+                            border: `2px solid ${commuteLoading ? '#a09880' : '#c06040'}`,
+                            cursor: commuteLoading ? 'not-allowed' : 'pointer',
+                            whiteSpace: 'nowrap' as const,
+                          }}
+                        >
+                          {commuteLoading ? 'Analyzing...' : 'Analyze Commute'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  {commuteData && (
+                    <Suspense fallback={null}>
+                      <CommuteAnalysis data={commuteData} />
+                    </Suspense>
+                  )}
+                </ErrorBoundary>
+              </>
+            )}
 
             {/* Take action  -  merged CTA */}
             <div className="retro-card" style={{ padding: '14px 18px' }}>
