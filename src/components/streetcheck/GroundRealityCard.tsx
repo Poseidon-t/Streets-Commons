@@ -43,7 +43,7 @@ function PhotoThumbnail({ url, capturedAt }: { url: string; capturedAt: string }
         onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
       />
       {year && (
-        <div style={{ position: 'absolute', bottom: 2, right: 3, fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 3px', background: 'rgba(0,0,0,0.55)', color: 'white' }}>
+        <div style={{ position: 'absolute', bottom: 2, right: 3, fontSize: 11, fontWeight: 700, letterSpacing: '0.06em', padding: '1px 3px', background: 'rgba(0,0,0,0.55)', color: 'white' }}>
           {year}
         </div>
       )}
@@ -82,7 +82,7 @@ export default function GroundRealityCard({
       <div className="retro-card-header">
         <span className="retro-card-header-title">🗺 What it's actually like</span>
         <span style={{
-          fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
+          fontSize: 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase' as const,
           padding: '3px 8px', border: `2px solid ${confColor}`, color: confColor,
         }}>
           {narrative.confidence} confidence
@@ -114,7 +114,7 @@ export default function GroundRealityCard({
               <PhotoThumbnail key={i} url={photo.url} capturedAt={photo.capturedAt} />
             ))}
           </div>
-          <p style={{ marginTop: 5, fontSize: 11, fontWeight: 600, color: '#3d3020', letterSpacing: '0.04em' }}>
+          <p style={{ marginTop: 5, fontSize: 13, fontWeight: 600, color: '#3d3020', letterSpacing: '0.04em' }}>
             Mapillary (open data, Meta) · {mapillary?.imageCount} images in area
           </p>
         </div>
@@ -125,10 +125,10 @@ export default function GroundRealityCard({
         <div style={{ margin: '0 16px 14px', border: '1px solid #c4b59a', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)' }}>
           {satelliteRows.map(({ label, value }, i) => (
             <div key={label} style={{ padding: '8px 10px', borderRight: i < 2 ? '1px solid #c4b59a' : 'none' }}>
-              <div style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: '#3d3020', marginBottom: 3 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: '#3d3020', marginBottom: 3 }}>
                 {label}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: '#1e1608' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.06em', color: '#1e1608' }}>
                 {value}
               </div>
             </div>
@@ -139,7 +139,7 @@ export default function GroundRealityCard({
       {/* Data sources */}
       <div style={{ padding: '8px 16px 12px', display: 'flex', flexWrap: 'wrap', gap: 5 }}>
         {narrative.dataSources.map(src => (
-          <span key={src} style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#2a2010', padding: '2px 6px', border: '1.5px solid #c4b59a' }}>
+          <span key={src} style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#2a2010', padding: '2px 6px', border: '1.5px solid #c4b59a' }}>
             {src}
           </span>
         ))}

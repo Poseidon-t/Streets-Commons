@@ -121,7 +121,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
           />
           <span
             style={{
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
@@ -164,7 +164,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
         <span
           style={{
             color: '#f0e8d8',
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
             fontWeight: 700,
@@ -175,7 +175,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
         <span
           style={{
             color: '#f0e8d8',
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.18em',
             textTransform: 'uppercase',
             fontWeight: 500,
@@ -232,7 +232,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
                     <span
                       className="hidden sm:inline"
                       style={{
-                        fontSize: 11,
+                        fontSize: 13,
                         color: '#5a5040',
                         fontWeight: 500,
                       }}
@@ -245,7 +245,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
                       style={{
                         border: `2px solid ${stamp.borderColor}`,
                         color: stamp.color,
-                        fontSize: 11,
+                        fontSize: 13,
                         letterSpacing: '0.1em',
                         textTransform: 'uppercase',
                         padding: '4px 10px',
@@ -265,7 +265,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
                       style={{
                         fontFamily: "'IBM Plex Mono', monospace",
                         fontVariantNumeric: 'tabular-nums',
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: 700,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
@@ -333,7 +333,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
           style={{
             border: `2px solid ${overallStamp.borderColor}`,
             color: overallStamp.color,
-            fontSize: 11,
+            fontSize: 13,
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             padding: '4px 10px',
@@ -349,7 +349,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
       <div
         className="px-4 pb-3"
         style={{
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: 700,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',

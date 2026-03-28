@@ -59,7 +59,7 @@ export default function PremiumPaywall({ onUnlock, loading }: PremiumPaywallProp
         justifyContent: 'space-between',
       }}>
         <span style={{
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
           color: '#f0e8d8',
@@ -68,7 +68,7 @@ export default function PremiumPaywall({ onUnlock, loading }: PremiumPaywallProp
           Moving Research
         </span>
         <span style={{
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: '0.06em',
           color: '#e0d8c8',
           fontWeight: 600,
@@ -191,7 +191,7 @@ export default function PremiumPaywall({ onUnlock, loading }: PremiumPaywallProp
 
         {/* Trust signals */}
         <div style={{
-          fontSize: 11,
+          fontSize: 13,
           color: '#5a5040',
           fontWeight: 500,
           marginTop: 14,

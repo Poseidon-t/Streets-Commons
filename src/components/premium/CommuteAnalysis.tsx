@@ -57,7 +57,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
         }}
       >
         <span style={{
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: '0.18em',
           textTransform: 'uppercase',
           color: '#f0e8d8',
@@ -66,7 +66,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
           🚌 Commute Analysis
         </span>
         <span style={{
-          fontSize: 11,
+          fontSize: 13,
           letterSpacing: '0.06em',
           color: '#e0d8c8',
           fontWeight: 600,
@@ -79,18 +79,18 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
         <>
           {/* Address inputs (readonly display) */}
           <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Home:</span>
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Home:</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a1a' }}>{data.homeName}</span>
           </div>
           <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Work:</span>
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Work:</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a1a' }}>{data.workName}</span>
           </div>
 
           {/* Journey visualization */}
           <div style={{ padding: '20px 18px', borderBottom: '1px solid #c4b59a' }}>
             <div style={{
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
@@ -107,7 +107,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
                   <div style={{ flex: 1, textAlign: 'center', padding: '0 4px', minWidth: 60 }}>
                     <div style={{ fontSize: 20, marginBottom: 6 }}>{leg.icon}</div>
                     <div style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
@@ -125,7 +125,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
                     }}>
                       {leg.durationMinutes}
                     </div>
-                    <div style={{ fontSize: 10, color: '#2a2010', fontWeight: 500, marginTop: 3, lineHeight: 1.3 }}>
+                    <div style={{ fontSize: 12, color: '#2a2010', fontWeight: 500, marginTop: 3, lineHeight: 1.3 }}>
                       {leg.detail}
                     </div>
                   </div>
@@ -195,7 +195,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
                   🚶 {leg.legLabel}
                 </div>
                 <span style={{
-                  fontSize: 9,
+                  fontSize: 11,
                   fontWeight: 700,
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
@@ -224,10 +224,10 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
               alignItems: 'center',
               justifyContent: 'space-between',
             }}>
-              <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#f0e8d8', fontWeight: 700 }}>
+              <span style={{ fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#f0e8d8', fontWeight: 700 }}>
                 How does this compare?
               </span>
-              <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
+              <span style={{ fontSize: 13, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
                 Same Route
               </span>
             </div>
@@ -292,7 +292,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
 
           {/* Source */}
           <div style={{ padding: '10px 18px', borderTop: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: '#5a5040' }}>
               Source: GTFS transit schedules · OpenStreetMap road data · Walking time estimates at 3.1 mph avg
             </span>
           </div>
@@ -312,7 +312,7 @@ function QualityItem({ label, value, color }: { label: string; value: string; co
       minWidth: 100,
     }}>
       <div style={{
-        fontSize: 9,
+        fontSize: 11,
         fontWeight: 700,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',

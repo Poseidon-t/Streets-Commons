@@ -32,7 +32,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
   if (!compositeScore) {
     return (
       <div style={{ paddingBottom: 14 }}>
-        <div style={{ fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#3d3020', marginBottom: 4 }}>
+        <div style={{ fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#3d3020', marginBottom: 4 }}>
           Street character
         </div>
         <div className="animate-pulse" style={{ height: 20, width: 140, backgroundColor: '#c4b59a', marginBottom: 4 }} />
@@ -46,7 +46,7 @@ export default function StreetVibe({ compositeScore }: StreetVibeProps) {
 
   return (
     <div style={{ paddingBottom: 16 }}>
-      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
         Street character
       </div>
       <div style={{

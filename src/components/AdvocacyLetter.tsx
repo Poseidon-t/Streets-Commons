@@ -135,7 +135,7 @@ export default function AdvocacyLetter({ location, compositeScore, onClose }: Ad
             <div style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#e8e0d0' }}>
               Advocacy Letter
             </div>
-            <div style={{ fontSize: 11, color: '#a09880', marginTop: 2 }}>
+            <div style={{ fontSize: 13, color: '#5a5040', marginTop: 2 }}>
               Pre-filled with your analysis data  -  edit and send to your local representative
             </div>
           </div>

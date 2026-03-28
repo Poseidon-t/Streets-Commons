@@ -39,7 +39,7 @@ export default function WalkerInfographic({ score, inline, compact }: WalkerInfo
       {/* Label */}
       <p style={{
         textAlign: 'center',
-        fontSize: 11,
+        fontSize: 13,
         fontWeight: 700,
         letterSpacing: '0.12em',
         textTransform: 'uppercase',

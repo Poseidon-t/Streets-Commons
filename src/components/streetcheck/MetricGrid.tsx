@@ -450,7 +450,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
               <span style={{ fontFamily: "'IBM Plex Mono', monospace", color, fontSize: 18, fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{displayScore}</span>
-              <span style={{ color: '#3d3020', fontSize: 11, fontWeight: 700 }}>/10</span>
+              <span style={{ color: '#3d3020', fontSize: 13, fontWeight: 700 }}>/10</span>
             </div>
           </div>
 
@@ -468,7 +468,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
                 </span>
               )}
               {airQualityReading.category && (
-                <span style={{ fontSize: 11, fontWeight: 600, color, border: `1px solid ${color}`, padding: '1px 6px' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color, border: `1px solid ${color}`, padding: '1px 6px' }}>
                   {airQualityReading.category}
                 </span>
               )}
@@ -483,19 +483,19 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
                 const c = subMetricBarColor(m.score);
                 return (
                   <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ width: 110, fontSize: 11, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
+                    <span style={{ width: 110, fontSize: 13, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
                       {label}
                       {m.rawValue && <span style={{ color: '#5a6a5a', fontWeight: 400 }}> · {m.rawValue}</span>}
                     </span>
                     <div style={{ flex: 1, height: 4, overflow: 'hidden', backgroundColor: '#e8e4d8' }}>
                       <div style={{ height: '100%', width: `${Math.max(m.score, 2)}%`, backgroundColor: c, transition: 'width 0.5s' }} />
                     </div>
-                    <span style={{ width: 24, textAlign: 'right', fontSize: 10, fontWeight: 700, color: c, flexShrink: 0 }}>{m.score}</span>
+                    <span style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 700, color: c, flexShrink: 0 }}>{m.score}</span>
                   </div>
                 );
               })}
               {streetCharacter && (
-                <div style={{ marginTop: 2, fontSize: 11, color: '#2a2010', lineHeight: 1.5 }}>
+                <div style={{ marginTop: 2, fontSize: 13, color: '#2a2010', lineHeight: 1.5 }}>
                   {streetCharacter.assessment}
                 </div>
               )}
@@ -512,14 +512,14 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
           {/* Data source + expand toggle */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTop: '1px solid #c4b59a' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#5a5040', fontSize: 10, fontWeight: 600 }}>{detail?.source ?? def.source}</span>
+              <span style={{ color: '#5a5040', fontSize: 12, fontWeight: 600 }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
-                <span style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>
+                <span style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: 12, fontWeight: 700, padding: '1px 6px' }}>
                   Estimated
                 </span>
               )}
             </div>
-            <span style={{ color: '#1a7a28', fontSize: 11, fontWeight: 700, textDecoration: 'underline' }}>
+            <span style={{ color: '#1a7a28', fontSize: 13, fontWeight: 700, textDecoration: 'underline' }}>
               {isExpanded ? 'Less' : "How it's scored"}
             </span>
           </div>
@@ -569,7 +569,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
             What this measures
           </div>
           <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
@@ -578,7 +578,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
         </div>
 
         <div>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 4 }}>
             How it's scored
           </div>
           <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
@@ -587,7 +587,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
         </div>
 
         <div style={{ backgroundColor: '#f5f2eb', border: '1px solid #c4b59a', padding: '10px 12px' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color, marginBottom: 4 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color, marginBottom: 4 }}>
             What your {score.toFixed(1)} means
           </div>
           <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
@@ -597,7 +597,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
 
         {seasonalNote && (
           <div style={{ backgroundColor: 'rgba(184,122,0,0.06)', border: '1px solid #b87a00', padding: '10px 12px' }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#b87a00', marginBottom: 4 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#b87a00', marginBottom: 4 }}>
               Seasonal variation
             </div>
             <div style={{ fontSize: 12, lineHeight: 1.6, color: '#2a2010' }}>
@@ -606,7 +606,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
           </div>
         )}
 
-        <div style={{ paddingTop: 8, borderTop: '1px solid #c4b59a', fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
+        <div style={{ paddingTop: 8, borderTop: '1px solid #c4b59a', fontSize: 12, fontWeight: 600, color: '#5a5040' }}>
           Source: {detail.source}
         </div>
       </div>
@@ -676,7 +676,7 @@ export default function MetricGrid({ metrics, satelliteLoaded, compositeScore, d
                   {groupMeta.label}
                 </span>
                 {networkTypeStyle && (
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 7px', backgroundColor: networkTypeStyle.bg, color: networkTypeStyle.text }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 7px', backgroundColor: networkTypeStyle.bg, color: networkTypeStyle.text }}>
                     {streetCharacter!.type}
                   </span>
                 )}

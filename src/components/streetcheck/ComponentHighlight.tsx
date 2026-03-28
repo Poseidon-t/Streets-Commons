@@ -124,7 +124,7 @@ export default function ComponentHighlight({ compositeScore, inline }: Component
               <div style={{ height: 5, background: '#d8d0c4', overflow: 'hidden' }}>
                 <div style={{ height: '100%', width: `${Math.max(c.score, 2)}%`, background: color }} />
               </div>
-              <div style={{ fontSize: 11, color: '#2a2010', lineHeight: 1.5, marginTop: 6 }}>
+              <div style={{ fontSize: 13, color: '#2a2010', lineHeight: 1.5, marginTop: 6 }}>
                 {explanation}
               </div>
             </div>

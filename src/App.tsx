@@ -93,10 +93,10 @@ function MetricGridCollapsible({ metrics, location, satelliteLoaded, compositeSc
           border: 'none',
         }}
       >
-        <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
           Street Quality — Detailed Metrics
         </span>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#5a5040' }}>
           {open ? '− Hide' : '+ Show 12 metrics'}
         </span>
       </button>
@@ -1419,10 +1419,10 @@ function App() {
             {/* Document header */}
             <div style={{ border: '2px solid #1a1208', background: '#f5f2eb', marginBottom: 4 }}>
               <div style={{ background: '#1a3a1a', padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#e8e0d0', fontWeight: 700 }}>
+                <span style={{ fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#e8e0d0', fontWeight: 700 }}>
                   Streets &amp; Commons · SafeStreets
                 </span>
-                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', color: '#e8e0d0' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', color: '#e8e0d0' }}>
                   PEDESTRIAN SURVEY
                 </span>
               </div>
@@ -1430,7 +1430,7 @@ function App() {
                 <h2 style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 28, fontWeight: 700, color: '#1a3a1a', letterSpacing: '-0.01em', lineHeight: 1 }}>
                   {location.displayName.split(',').slice(0, 2).join(',')}
                 </h2>
-                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
+                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' as const, color: '#3d3020' }}>
                   {location.countryCode} · Urban Analysis
                 </span>
               </div>
@@ -1457,7 +1457,7 @@ function App() {
                 <PlainLanguageSummary metrics={metrics} compositeScore={compositeScore} inline />
                 {compositeScore && (
                   <div style={{ marginTop: 16 }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 10 }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020', marginBottom: 10 }}>
                       Score Components
                     </div>
                     <ComponentHighlight compositeScore={compositeScore} inline />
@@ -1538,17 +1538,17 @@ function App() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                     }}>
-                      <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
+                      <span style={{ fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
                         🎓 School Route Safety
                       </span>
-                      <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
+                      <span style={{ fontSize: 13, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
                         Moving Research
                       </span>
                     </div>
                     <div style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
                         <div style={{ flex: 1, minWidth: 200 }}>
-                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
+                          <label style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
                             School name or address
                           </label>
                           <input
@@ -1560,7 +1560,7 @@ function App() {
                               width: '100%',
                               padding: '8px 12px',
                               fontFamily: "'DM Sans', sans-serif",
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: 600,
                               color: '#1a3a1a',
                               border: '2px solid #1a3a1a',
@@ -1590,7 +1590,7 @@ function App() {
                           disabled={schoolRouteLoading || !schoolInput.trim()}
                           style={{
                             padding: '8px 20px',
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
                             letterSpacing: '0.06em',
                             textTransform: 'uppercase' as const,
@@ -1629,17 +1629,17 @@ function App() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                     }}>
-                      <span style={{ fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
+                      <span style={{ fontSize: 13, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#f0e8d8', fontWeight: 700 }}>
                         🚌 Commute Analysis
                       </span>
-                      <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
+                      <span style={{ fontSize: 13, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
                         Moving Research
                       </span>
                     </div>
                     <div style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
                         <div style={{ flex: 1, minWidth: 200 }}>
-                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
+                          <label style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
                             Work address
                           </label>
                           <input
@@ -1651,7 +1651,7 @@ function App() {
                               width: '100%',
                               padding: '8px 12px',
                               fontFamily: "'DM Sans', sans-serif",
-                              fontSize: 13,
+                              fontSize: 14,
                               fontWeight: 600,
                               color: '#1a3a1a',
                               border: '2px solid #1a3a1a',
@@ -1684,7 +1684,7 @@ function App() {
                           disabled={commuteLoading || !workInput.trim()}
                           style={{
                             padding: '8px 20px',
-                            fontSize: 12,
+                            fontSize: 13,
                             fontWeight: 700,
                             letterSpacing: '0.06em',
                             textTransform: 'uppercase' as const,
@@ -1711,19 +1711,19 @@ function App() {
 
             {/* Take action  -  merged CTA */}
             <div className="retro-card" style={{ padding: '14px 18px' }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a1a', marginBottom: 10 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#1a3a1a', marginBottom: 10 }}>
                 Take action on this analysis
               </div>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' as const }}>
                 <button
                   onClick={() => setShowAuditTool(true)}
-                  style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
+                  style={{ padding: '7px 16px', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
                 >
                   Generate report →
                 </button>
                 <button
                   onClick={() => setShowAdvocacyLetter(true)}
-                  style={{ padding: '7px 16px', fontSize: 12, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
+                  style={{ padding: '7px 16px', fontSize: 13, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' as const, border: '2px solid #1a1208', color: '#1a3a1a', background: '#f5f2eb', cursor: 'pointer' }}
                 >
                   Write to council →
                 </button>
@@ -1782,7 +1782,7 @@ function App() {
                 onClick={() => setShowMethodology(!showMethodology)}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', cursor: 'pointer', background: 'none', border: 'none' }}
               >
-                <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
+                <span style={{ fontSize: 14, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
                   How This Analysis Works
                 </span>
                 <span style={{ fontSize: 18, color: '#3d3020' }}>
@@ -1791,7 +1791,7 @@ function App() {
               </button>
               {showMethodology && (
                 <div style={{ padding: '0 18px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: '#2a2010', lineHeight: 1.6 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: '#2a2010', lineHeight: 1.6 }}>
                     <div>
                       <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Walkability Metrics</strong>
                       <p>US locations get 4 metrics: tree canopy, street design, destinations, and commute mode from Sentinel-2 satellite imagery, EPA National Walkability Index, OpenStreetMap, and Census ACS. International locations get 3 metrics with OSM street grid analysis replacing US-only data sources.</p>
@@ -1808,14 +1808,14 @@ function App() {
                   {dataQuality && (
                     <div>
                       <strong style={{ display: 'block', marginBottom: 2, color: '#1a3a1a' }}>Data Quality</strong>
-                      <p style={{ fontSize: 13, color: '#2a2010' }}>
+                      <p style={{ fontSize: 14, color: '#2a2010' }}>
                         Confidence: <span style={{ fontWeight: 700, color: dataQuality.confidence === 'high' ? '#1a7a28' : dataQuality.confidence === 'medium' ? '#b87a00' : '#b8401a' }}>{dataQuality.confidence.toUpperCase()}</span>  -  {dataQuality.streetCount} streets, {dataQuality.sidewalkCount} sidewalks, {dataQuality.crossingCount} crossings analyzed.
                         Sources: OSM, Sentinel-2{location?.countryCode === 'US' ? ', Census ACS, EPA' : ''}.
                       </p>
                     </div>
                   )}
                   <div style={{ padding: 12, border: '1px solid #c4b59a', background: '#f8f6f1' }}>
-                    <p style={{ fontSize: 12, color: '#2a2010' }}>
+                    <p style={{ fontSize: 13, color: '#2a2010' }}>
                       <strong>Note:</strong> This analysis focuses on infrastructure and environment. It does not measure pavement condition, crime rates, or personal safety perceptions, which require local surveys or in-person audits.
                     </p>
                   </div>
