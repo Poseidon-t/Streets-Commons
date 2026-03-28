@@ -485,7 +485,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
                   <div key={m.name} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ width: 110, fontSize: 11, fontWeight: 600, color: '#2a2010', flexShrink: 0 }}>
                       {label}
-                      {m.rawValue && <span style={{ color: '#8a9a8a', fontWeight: 400 }}> · {m.rawValue}</span>}
+                      {m.rawValue && <span style={{ color: '#5a6a5a', fontWeight: 400 }}> · {m.rawValue}</span>}
                     </span>
                     <div style={{ flex: 1, height: 4, overflow: 'hidden', backgroundColor: '#e8e4d8' }}>
                       <div style={{ height: '100%', width: `${Math.max(m.score, 2)}%`, backgroundColor: c, transition: 'width 0.5s' }} />
@@ -512,7 +512,7 @@ function MetricCardSimple({ def, score, isLoading, isExpanded, onClick, subMetri
           {/* Data source + expand toggle */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 6, borderTop: '1px solid #c4b59a' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ color: '#7a6e5a', fontSize: 10, fontWeight: 600 }}>{detail?.source ?? def.source}</span>
+              <span style={{ color: '#5a5040', fontSize: 10, fontWeight: 600 }}>{detail?.source ?? def.source}</span>
               {def.estimated && (
                 <span style={{ backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', fontSize: 10, fontWeight: 700, padding: '1px 6px' }}>
                   Estimated
@@ -606,7 +606,7 @@ function MetricDetailPanel({ metricKey, score, icon, name, countryCode }: {
           </div>
         )}
 
-        <div style={{ paddingTop: 8, borderTop: '1px solid #c4b59a', fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
+        <div style={{ paddingTop: 8, borderTop: '1px solid #c4b59a', fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
           Source: {detail.source}
         </div>
       </div>

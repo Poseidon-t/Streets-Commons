@@ -180,7 +180,7 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
       <span className="text-2xl mb-1">{icon}</span>
       <span className="text-lg font-bold" style={{ color: hasItems ? '#1a3a1a' : '#c0b0a0' }}>{count}</span>
       <span className="text-xs leading-tight" style={{ color: '#2a2010' }}>{label}</span>
-      {distance && <span className="text-xs mt-0.5" style={{ color: '#a0b0a0' }}>{distance}</span>}
+      {distance && <span className="text-xs mt-0.5" style={{ color: '#5a6a5a' }}>{distance}</span>}
     </div>
   );
 }
@@ -363,7 +363,7 @@ export default function NeighborhoodIntelSection({ neighborhoodIntel }: Neighbor
                 <div className="text-xs font-medium mb-3" style={{ color: '#2a2010' }}>
                   Community health vs US average
                   <span className="inline-block ml-2 h-3 w-0.5 rounded-full align-middle" style={{ backgroundColor: '#8a9a8a' }} />
-                  <span className="text-xs ml-1" style={{ color: '#a0b0a0' }}>gray line = US avg</span>
+                  <span className="text-xs ml-1" style={{ color: '#5a6a5a' }}>gray line = US avg</span>
                 </div>
                 {health.obesity !== null && (
                   <HealthBar label="Obesity" value={health.obesity} usAvg={32} maxVal={50} />

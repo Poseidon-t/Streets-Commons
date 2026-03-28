@@ -176,7 +176,7 @@ export default function AddressInput({ onSelect, placeholder, keepValueOnSelect 
         <div
           data-testid="search-no-results"
           className="absolute z-50 w-full mt-2 bg-white border-2 border-gray-200 rounded-xl shadow-xl p-4 text-center text-sm"
-          style={{ color: '#8a9a8a' }}
+          style={{ color: '#5a6a5a' }}
         >
           No results found. Try a more specific address.
         </div>

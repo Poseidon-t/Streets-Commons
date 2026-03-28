@@ -86,7 +86,7 @@ export default function PersonaCards({ compositeScore, inline }: PersonaCardsPro
     <>
       <div style={inline ? { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 24px 8px' } : undefined} className={inline ? undefined : 'retro-card-header'}>
         <span style={inline ? { fontSize: 10, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#3d3020' } : undefined} className={inline ? undefined : 'retro-card-header-title'}>Who is this area good for?</span>
-        <span style={inline ? { fontSize: 10, fontWeight: 600, color: '#7a6e5a' } : undefined} className={inline ? undefined : 'retro-card-header-meta'}>Score / 10</span>
+        <span style={inline ? { fontSize: 10, fontWeight: 600, color: '#5a5040' } : undefined} className={inline ? undefined : 'retro-card-header-meta'}>Score / 10</span>
       </div>
       <div style={inline ? { padding: '0 10px 10px' } : undefined}>
         {personas.map((p, i) => (

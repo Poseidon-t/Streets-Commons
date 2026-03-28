@@ -96,7 +96,7 @@ function MetricGridCollapsible({ metrics, location, satelliteLoaded, compositeSc
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' as const, color: '#1a3a1a' }}>
           Street Quality — Detailed Metrics
         </span>
-        <span style={{ fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
+        <span style={{ fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
           {open ? '− Hide' : '+ Show 12 metrics'}
         </span>
       </button>
@@ -917,7 +917,7 @@ function App() {
                         Use my location
                       </span>
                     </button>
-                    <span style={{ color: '#a0b0a0' }} className="text-sm">·</span>
+                    <span style={{ color: '#5a6a5a' }} className="text-sm">·</span>
                     <button
                       onClick={activateDemoMode}
                       className="text-sm font-semibold transition-colors"
@@ -928,7 +928,7 @@ function App() {
                         Watch Demo
                       </span>
                     </button>
-                    <span style={{ color: '#a0b0a0' }} className="text-sm">·</span>
+                    <span style={{ color: '#5a6a5a' }} className="text-sm">·</span>
                     <button
                       onClick={handleCompareMode}
                       className="text-sm font-semibold transition-colors"
@@ -964,11 +964,11 @@ function App() {
                     {/* Big score row */}
                     <div className="flex items-end gap-5 px-6 py-5 border-b" style={{ borderColor: '#f0ede8' }}>
                       <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 72, fontWeight: 700, lineHeight: 1, color: '#22c55e', letterSpacing: '-0.03em' }}>
-                        7.4<span style={{ fontSize: 26, color: '#a0b8a0', fontWeight: 400 }}>/10</span>
+                        7.4<span style={{ fontSize: 26, color: '#5a7a5a', fontWeight: 400 }}>/10</span>
                       </div>
                       <div className="pb-2">
                         <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#22c55e' }}>Walkable</div>
-                        <div className="text-xs" style={{ color: '#7a9a7a', maxWidth: 160, lineHeight: 1.4 }}>Most daily needs accessible on foot</div>
+                        <div className="text-xs" style={{ color: '#4a6a4a', maxWidth: 160, lineHeight: 1.4 }}>Most daily needs accessible on foot</div>
                       </div>
                     </div>
 
@@ -992,7 +992,7 @@ function App() {
 
                     {/* Persona chips */}
                     <div className="px-6 py-4">
-                      <div className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: '#a0b0a0' }}>Persona Verdicts</div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest mb-2.5" style={{ color: '#5a6a5a' }}>Persona Verdicts</div>
                       <div className="flex flex-wrap gap-2">
                         {[
                           { name: 'Car-free here?', verdict: 'Yes', color: '#22c55e' },
@@ -1021,7 +1021,7 @@ function App() {
               { label: <><strong>US Census</strong> & CDC</> },
               { label: <>Informed by <strong>NACTO</strong> & <strong>Vision Zero</strong></> },
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs font-medium" style={{ color: '#7a9a7a' }}>
+              <div key={i} className="flex items-center gap-2 text-xs font-medium" style={{ color: '#4a6a4a' }}>
                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: '#3a7a3a' }} />
                 <span>{item.label}</span>
               </div>
@@ -1391,7 +1391,7 @@ function App() {
                 <p className="text-sm leading-relaxed" style={{ color: '#5a6a5a', fontStyle: 'italic' }}>
                   "{analysisQuote.text}"
                 </p>
-                <p className="text-xs mt-2 font-semibold tracking-wide" style={{ color: '#8a9a8a' }}>
+                <p className="text-xs mt-2 font-semibold tracking-wide" style={{ color: '#5a6a5a' }}>
                    -  {analysisQuote.author}
                 </p>
               </div>
@@ -1548,7 +1548,7 @@ function App() {
                     <div style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
                         <div style={{ flex: 1, minWidth: 200 }}>
-                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#7a6e5a', display: 'block', marginBottom: 4 }}>
+                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
                             School name or address
                           </label>
                           <input
@@ -1639,7 +1639,7 @@ function App() {
                     <div style={{ padding: '14px 18px' }}>
                       <div style={{ display: 'flex', gap: 10, alignItems: 'flex-end', flexWrap: 'wrap' as const }}>
                         <div style={{ flex: 1, minWidth: 200 }}>
-                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#7a6e5a', display: 'block', marginBottom: 4 }}>
+                          <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' as const, color: '#5a5040', display: 'block', marginBottom: 4 }}>
                             Work address
                           </label>
                           <input

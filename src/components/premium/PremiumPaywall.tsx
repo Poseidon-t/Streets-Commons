@@ -154,13 +154,13 @@ export default function PremiumPaywall({ onUnlock, loading }: PremiumPaywallProp
             }}>
               $29
             </span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#7a6e5a' }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#5a5040' }}>
               one-time
             </span>
           </div>
           <div style={{
             fontSize: 12,
-            color: '#7a6e5a',
+            color: '#5a5040',
             fontWeight: 500,
             marginTop: 6,
           }}>
@@ -192,7 +192,7 @@ export default function PremiumPaywall({ onUnlock, loading }: PremiumPaywallProp
         {/* Trust signals */}
         <div style={{
           fontSize: 11,
-          color: '#7a6e5a',
+          color: '#5a5040',
           fontWeight: 500,
           marginTop: 14,
           lineHeight: 1.5,

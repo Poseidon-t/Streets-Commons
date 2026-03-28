@@ -67,7 +67,7 @@ function AmenityCard({ icon, count, label, distance }: { icon: string; count: nu
       <span className="text-2xl mb-0.5">{icon}</span>
       <span className="text-base font-bold" style={{ color: count > 0 ? '#1a3a1a' : '#c0b0a0' }}>{count}</span>
       <span className="text-xs leading-tight" style={{ color: '#2a2010' }}>{label}</span>
-      {distance && <span className="text-xs" style={{ color: '#a0b0a0' }}>{distance}</span>}
+      {distance && <span className="text-xs" style={{ color: '#5a6a5a' }}>{distance}</span>}
     </div>
   );
 }
@@ -373,7 +373,7 @@ function CommunityTab({
           <div className="flex items-center gap-2 mb-3">
             <span className="text-base">❤️</span>
             <span className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>Community health vs US average</span>
-            <span className="text-xs ml-1" style={{ color: '#a0b0a0' }}>gray line = US avg</span>
+            <span className="text-xs ml-1" style={{ color: '#5a6a5a' }}>gray line = US avg</span>
           </div>
           {health!.obesity !== null && <HealthBar label="Obesity" value={health!.obesity} usAvg={32} maxVal={50} />}
           {health!.diabetes !== null && <HealthBar label="Diabetes" value={health!.diabetes} usAvg={11} maxVal={25} />}
@@ -387,7 +387,7 @@ function CommunityTab({
       {flood && <FloodBadge flood={flood} />}
 
       {!stats.length && !hasHealth && !flood && (
-        <p className="text-sm" style={{ color: '#a0b0a0' }}>No community data available for this location.</p>
+        <p className="text-sm" style={{ color: '#5a6a5a' }}>No community data available for this location.</p>
       )}
     </div>
   );

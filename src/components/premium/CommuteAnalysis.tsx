@@ -79,11 +79,11 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
         <>
           {/* Address inputs (readonly display) */}
           <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7a6e5a', flexShrink: 0 }}>Home:</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Home:</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a1a' }}>{data.homeName}</span>
           </div>
           <div style={{ padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7a6e5a', flexShrink: 0 }}>Work:</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', flexShrink: 0 }}>Work:</span>
             <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a1a' }}>{data.workName}</span>
           </div>
 
@@ -94,7 +94,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: '#7a6e5a',
+              color: '#5a5040',
               marginBottom: 14,
             }}>
               Your door-to-door commute
@@ -111,7 +111,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
                       fontWeight: 700,
                       letterSpacing: '0.08em',
                       textTransform: 'uppercase',
-                      color: '#7a6e5a',
+                      color: '#5a5040',
                       marginBottom: 4,
                     }}>
                       {leg.label}
@@ -292,7 +292,7 @@ export default function CommuteAnalysis({ data }: CommuteAnalysisProps) {
 
           {/* Source */}
           <div style={{ padding: '10px 18px', borderTop: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
               Source: GTFS transit schedules · OpenStreetMap road data · Walking time estimates at 3.1 mph avg
             </span>
           </div>
@@ -316,7 +316,7 @@ function QualityItem({ label, value, color }: { label: string; value: string; co
         fontWeight: 700,
         letterSpacing: '0.1em',
         textTransform: 'uppercase',
-        color: '#7a6e5a',
+        color: '#5a5040',
         marginBottom: 3,
       }}>
         {label}

@@ -42,7 +42,7 @@ function SubMetricBar({ name, score, rawValue }: { name: string; score: number; 
       <div className="w-36 flex-shrink-0">
         <div className="text-xs font-medium" style={{ color: '#2a2010' }}>{label}</div>
         {rawValue && (
-          <div className="text-xs" style={{ color: '#8a9a8a' }}>{rawValue}</div>
+          <div className="text-xs" style={{ color: '#5a6a5a' }}>{rawValue}</div>
         )}
       </div>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#f0ebe0' }}>

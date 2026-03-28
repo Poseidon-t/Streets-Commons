@@ -40,8 +40,8 @@ function DiffRow({ label, past, current, unit, goodHigh }: {
     <div className="flex items-center gap-3 py-2 border-b last:border-0" style={{ borderColor: '#f0ebe0' }}>
       <div className="w-36 flex-shrink-0 text-sm" style={{ color: '#2a2010' }}>{label}</div>
       <div className="flex-1 flex items-center gap-2 text-sm">
-        <span style={{ color: '#8a9a8a' }}>{past.toFixed(1)}{unit}</span>
-        <span style={{ color: '#c0b8b0' }}>→</span>
+        <span style={{ color: '#5a6a5a' }}>{past.toFixed(1)}{unit}</span>
+        <span style={{ color: '#6b6156' }}>→</span>
         <span className="font-semibold" style={{ color: '#1a3a1a' }}>{current.toFixed(1)}{unit}</span>
       </div>
       <div className="text-xs font-semibold flex-shrink-0" style={{ color: diffColor }}>
@@ -86,7 +86,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
           <div className="text-sm font-semibold" style={{ color: '#1a3a1a' }}>
             Has this area improved?
           </div>
-          <div className="text-xs mt-0.5" style={{ color: '#8a9a8a' }}>
+          <div className="text-xs mt-0.5" style={{ color: '#5a6a5a' }}>
             Compare today's street network against {year} OpenStreetMap data
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
             Change since {year}
           </span>
         </div>
-        <span className="text-xs" style={{ color: '#8a9a8a' }}>OpenStreetMap data</span>
+        <span className="text-xs" style={{ color: '#5a6a5a' }}>OpenStreetMap data</span>
       </div>
 
       <div className="px-5 py-4">
@@ -204,7 +204,7 @@ export default function HistoricalComparison({ lat, lon, compositeScore }: Histo
         )}
       </div>
 
-      <div className="px-5 pb-4 text-xs" style={{ color: '#b0a8a0' }}>
+      <div className="px-5 pb-4 text-xs" style={{ color: '#6b6156' }}>
         Past data: OSM snapshot from Jan {year} · Current: today's OSM data
       </div>
     </div>

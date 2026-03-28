@@ -89,7 +89,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
               fontWeight: 700,
               letterSpacing: '0.1em',
               textTransform: 'uppercase',
-              color: '#7a6e5a',
+              color: '#5a5040',
               flexShrink: 0,
             }}>
               School:
@@ -135,7 +135,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: '#7a6e5a',
+              color: '#5a5040',
               padding: '14px 0 10px',
             }}>
               Step-by-step route breakdown
@@ -201,7 +201,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
                     <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
                       {seg.badges.map((badge, bi) => {
                         const bc = badge.type === 'info'
-                          ? { color: '#7a6e5a', borderColor: '#c4b59a' }
+                          ? { color: '#5a5040', borderColor: '#c4b59a' }
                           : stampClass(badge.type);
                         return (
                           <span key={bi} style={{
@@ -231,7 +231,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
                     }}>
                       {seg.walkMinutes < 1 ? '<1' : seg.walkMinutes}
                     </div>
-                    <div style={{ fontSize: 10, color: '#7a6e5a', fontWeight: 600 }}>
+                    <div style={{ fontSize: 10, color: '#5a5040', fontWeight: 600 }}>
                       {seg.isCrossing ? 'min wait' : 'min'}
                     </div>
                   </div>
@@ -265,7 +265,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7a6e5a', marginBottom: 3 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', marginBottom: 3 }}>
                     Speed Limit
                   </div>
                   <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 800, color: '#b8401a' }}>
@@ -273,7 +273,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7a6e5a', marginBottom: 3 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', marginBottom: 3 }}>
                     Lanes
                   </div>
                   <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 800, color: '#b8401a' }}>
@@ -281,7 +281,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
                   </div>
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#7a6e5a', marginBottom: 3 }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5a5040', marginBottom: 3 }}>
                     Signal
                   </div>
                   <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 16, fontWeight: 800, color: '#b87a00' }}>
@@ -289,7 +289,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
                   </div>
                 </div>
               </div>
-              <div style={{ marginTop: 10, fontSize: 11, color: '#7a6e5a' }}>
+              <div style={{ marginTop: 10, fontSize: 11, color: '#5a5040' }}>
                 Research: pedestrian fatality risk increases 4× between 30 mph and 40 mph impacts (AAA Foundation 2018)
               </div>
             </div>
@@ -341,7 +341,7 @@ export default function SchoolRouteSafety({ data }: SchoolRouteSafetyProps) {
 
           {/* Source */}
           <div style={{ padding: '10px 18px', borderTop: '1px solid #c4b59a' }}>
-            <span style={{ fontSize: 10, fontWeight: 600, color: '#7a6e5a' }}>
+            <span style={{ fontSize: 10, fontWeight: 600, color: '#5a5040' }}>
               Source: OpenStreetMap road data · Speed limits · Crossing infrastructure · Road classification
             </span>
           </div>

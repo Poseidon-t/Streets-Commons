@@ -125,7 +125,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
               fontWeight: 700,
               letterSpacing: '0.14em',
               textTransform: 'uppercase',
-              color: '#7a6e5a',
+              color: '#5a5040',
             }}
           >
             Analyzing walk times...
@@ -233,7 +233,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
                       className="hidden sm:inline"
                       style={{
                         fontSize: 11,
-                        color: '#7a6e5a',
+                        color: '#5a5040',
                         fontWeight: 500,
                       }}
                     >
@@ -269,7 +269,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
                         fontWeight: 700,
                         letterSpacing: '0.14em',
                         textTransform: 'uppercase',
-                        color: '#7a6e5a',
+                        color: '#5a5040',
                         minWidth: 48,
                       }}
                     >
@@ -353,7 +353,7 @@ export default function FifteenMinuteCity({ location, osmElements, inline }: Fif
           fontWeight: 700,
           letterSpacing: '0.14em',
           textTransform: 'uppercase',
-          color: '#7a6e5a',
+          color: '#5a5040',
         }}
       >
         Data: OpenStreetMap · 1.2 km radius · Walk speed ~5 km/h
