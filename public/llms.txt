@@ -81,6 +81,7 @@ Platform is built on OpenStreetMap, Sentinel-2, EPA, and Census data — plus cl
 ## Pricing
 
 - **Core walkability tool**: Free, no sign-up, no usage limits
+- **Moving Research** (for families & relocators): $29 one-time — school route safety, commute analysis, car-free savings calculator, unlimited saved addresses, similar neighborhood recommendations, PDF reports. Works for every address, forever.
 - **Agent Reports** (branded PDFs for listings): First 3 free, then $49 one-time for unlimited
 - **platform**: Custom pricing based on geography, integrations, and deployment scope
 

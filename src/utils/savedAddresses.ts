@@ -1,5 +1,8 @@
+import { isPremiumUnlocked } from '../hooks/usePremium';
+
 const STORAGE_KEY = 'safestreets_saved_addresses';
-const MAX_ADDRESSES = 10;
+const MAX_ADDRESSES_FREE = 5;
+const MAX_ADDRESSES_PREMIUM = 999;
 
 export interface SavedAddress {
   id: string;
@@ -8,6 +11,10 @@ export interface SavedAddress {
   lon: number;
   savedAt: string;
   overallScore?: number;
+}
+
+export function getMaxAddresses(): number {
+  return isPremiumUnlocked() ? MAX_ADDRESSES_PREMIUM : MAX_ADDRESSES_FREE;
 }
 
 export function getSavedAddresses(): SavedAddress[] {
@@ -30,7 +37,8 @@ export function saveAddress(address: Omit<SavedAddress, 'id' | 'savedAt'>): Save
   );
   if (isDuplicate) return null;
 
-  if (addresses.length >= MAX_ADDRESSES) return null;
+  const max = getMaxAddresses();
+  if (addresses.length >= max) return null;
 
   const newAddress: SavedAddress = {
     ...address,
@@ -56,4 +64,4 @@ export function removeAddress(id: string): void {
   }
 }
 
-export { MAX_ADDRESSES };
+export const MAX_ADDRESSES = MAX_ADDRESSES_FREE;

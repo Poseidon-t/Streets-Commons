@@ -44,7 +44,7 @@ import { calculateCompositeScore } from './utils/compositeScore';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { getAgentProfile } from './utils/clerkAccess';
 import type { AgentProfile } from './utils/clerkAccess';
-import { getSavedAddresses, saveAddress, removeAddress, MAX_ADDRESSES, type SavedAddress } from './utils/savedAddresses';
+import { getSavedAddresses, saveAddress, removeAddress, getMaxAddresses, type SavedAddress } from './utils/savedAddresses';
 import { COLORS } from './constants';
 import { fetchCDCHealth } from './services/cdcHealth';
 import { fetchFloodRisk } from './services/floodRisk';
@@ -220,8 +220,8 @@ function App() {
   const [showAgentProfileModal, setShowAgentProfileModal] = useState(false);
   const [showAdvocacyLetter, setShowAdvocacyLetter] = useState(false);
 
-  // Premium features ($29 tier)
-  const premium = usePremium(location?.lat ?? null, location?.lon ?? null);
+  // Premium features — Moving Research ($29 one-time, global unlock)
+  const premium = usePremium();
   const [schoolRouteData, setSchoolRouteData] = useState<SchoolRouteSafetyResult | null>(null);
   const [schoolRouteLoading, setSchoolRouteLoading] = useState(false);
   const [commuteData, setCommuteData] = useState<CommuteAnalysisResult | null>(null);
@@ -1140,12 +1140,12 @@ function App() {
                     setSavedAddressList(getSavedAddresses());
                   }
                 }}
-                disabled={savedAddressList.length >= MAX_ADDRESSES || savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)}
+                disabled={savedAddressList.length >= getMaxAddresses() || savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)}
                 className="px-4 sm:px-6 py-3 rounded-xl font-semibold transition-all hover:shadow-lg border-2 text-sm sm:text-base disabled:opacity-40 border-earth-border text-earth-text-dark bg-white"
               >
                 {savedAddressList.some(a => Math.abs(a.lat - location.lat) < 0.0001 && Math.abs(a.lon - location.lon) < 0.0001)
                   ? 'Saved'
-                  : `Save (${savedAddressList.length}/${MAX_ADDRESSES})`}
+                  : `Save (${savedAddressList.length}/${getMaxAddresses()})`}
               </button>
             )}
           </div>
@@ -1585,7 +1585,7 @@ function App() {
               osmData={osmData ?? null}
             />
 
-            {/* ── Premium Section ($29) ── */}
+            {/* ── Moving Research ($29 one-time) ── */}
             {!premium.unlocked && (
               <PremiumPaywall onUnlock={premium.startCheckout} loading={premium.loading} />
             )}
@@ -1612,7 +1612,7 @@ function App() {
                         🎓 School Route Safety
                       </span>
                       <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
-                        Premium
+                        Moving Research
                       </span>
                     </div>
                     <div style={{ padding: '14px 18px' }}>
@@ -1703,7 +1703,7 @@ function App() {
                         🚌 Commute Analysis
                       </span>
                       <span style={{ fontSize: 11, letterSpacing: '0.06em', color: '#e0d8c8', fontWeight: 600 }}>
-                        Premium
+                        Moving Research
                       </span>
                     </div>
                     <div style={{ padding: '14px 18px' }}>

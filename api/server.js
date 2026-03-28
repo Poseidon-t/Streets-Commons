@@ -7154,16 +7154,16 @@ app.get('/api/places/details', async (req, res) => {
   }
 });
 
-// ── Premium Checkout ($29 tier) ──────────────────────────────────────────────
+// ── Moving Research Checkout ($29 one-time, global unlock) ───────────────────
 
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const STRIPE_PREMIUM_PRICE = process.env.STRIPE_PREMIUM_PRICE_ID; // Stripe Price ID for $29 product
+const STRIPE_PREMIUM_PRICE = process.env.STRIPE_PREMIUM_PRICE_ID; // Stripe Price ID for $29 Moving Research product
 
 app.post('/api/create-premium-checkout', async (req, res) => {
-  const { addressKey, returnUrl } = req.body;
+  const { returnUrl } = req.body;
 
-  if (!addressKey || !returnUrl) {
-    return res.status(400).json({ error: 'addressKey and returnUrl required' });
+  if (!returnUrl) {
+    return res.status(400).json({ error: 'returnUrl required' });
   }
 
   // If Stripe is not configured, return empty (frontend will handle MVP fallback)
@@ -7183,7 +7183,7 @@ app.post('/api/create-premium-checkout', async (req, res) => {
       line_items: [{ price: STRIPE_PREMIUM_PRICE, quantity: 1 }],
       success_url: successUrl.toString(),
       cancel_url: returnUrl,
-      metadata: { addressKey },
+      metadata: { product: 'moving_research' },
     });
 
     res.json({ url: session.url });
@@ -7194,10 +7194,10 @@ app.post('/api/create-premium-checkout', async (req, res) => {
 });
 
 app.get('/api/verify-premium', async (req, res) => {
-  const { session_id, address_key } = req.query;
+  const { session_id } = req.query;
 
-  if (!session_id || !address_key) {
-    return res.status(400).json({ verified: false, error: 'session_id and address_key required' });
+  if (!session_id) {
+    return res.status(400).json({ verified: false, error: 'session_id required' });
   }
 
   // If Stripe is not configured, auto-verify (MVP)
@@ -7209,7 +7209,7 @@ app.get('/api/verify-premium', async (req, res) => {
     const stripe = (await import('stripe')).default(STRIPE_SECRET_KEY);
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
-    const verified = session.payment_status === 'paid' && session.metadata?.addressKey === address_key;
+    const verified = session.payment_status === 'paid' && session.metadata?.product === 'moving_research';
     res.json({ verified });
   } catch (err) {
     console.error('Stripe session verification failed:', err.message);
