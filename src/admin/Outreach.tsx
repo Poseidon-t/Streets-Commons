@@ -36,8 +36,10 @@ export default function Outreach() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sending, setSending] = useState<string | null>(null);
   const [generating, setGenerating] = useState<string | null>(null);
+  const [lookingUp, setLookingUp] = useState<string | null>(null);
   const [bulkSending, setBulkSending] = useState(false);
   const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkLookingUp, setBulkLookingUp] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -163,6 +165,38 @@ export default function Outreach() {
     }
   }
 
+  async function lookupEmail(id: string) {
+    setLookingUp(id);
+    setError('');
+    try {
+      const result = await api.lookupEmail(id);
+      if (result.found) {
+        setSuccess(`Found: ${result.email}`);
+      } else {
+        setError(result.message || 'No verified email found');
+      }
+      load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Lookup failed');
+    } finally {
+      setLookingUp(null);
+    }
+  }
+
+  async function lookupEmailsBulk() {
+    if (!confirm('Look up verified emails for all leads via Apollo.io?')) return;
+    setBulkLookingUp(true);
+    setError('');
+    try {
+      const result = await api.lookupEmailsBulk();
+      setSuccess(result.message || 'Looking up emails in background. Refresh to see progress.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Bulk lookup failed');
+    } finally {
+      setBulkLookingUp(false);
+    }
+  }
+
   async function findLeads(params: { segment?: string; count?: number; region?: string }) {
     setFindingLeads(true);
     setError('');
@@ -211,6 +245,13 @@ export default function Outreach() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={lookupEmailsBulk}
+            disabled={bulkLookingUp}
+            style={btnStyle(bulkLookingUp ? '#c4b59a' : '#3a5a8a', '#fff', 'transparent')}
+          >
+            {bulkLookingUp ? 'Looking up...' : 'Verify Emails'}
+          </button>
           <button onClick={() => setShowFindLeads(true)} style={btnStyle('#2a5a3a', '#fff', 'transparent')}>
             Find Leads
           </button>
@@ -310,8 +351,10 @@ export default function Outreach() {
               onDelete={() => deleteLead(lead.id)}
               onSend={() => sendEmail(lead.id)}
               onGenerate={() => generateEmail(lead.id)}
+              onLookup={() => lookupEmail(lead.id)}
               sending={sending === lead.id}
               generating={generating === lead.id}
+              lookingUp={lookingUp === lead.id}
               smtpOk={smtpOk}
             />
           ))}
@@ -353,7 +396,7 @@ export default function Outreach() {
 }
 
 function LeadCard({
-  lead, expanded, onToggle, onUpdate, onDelete, onSend, onGenerate, sending, generating, smtpOk,
+  lead, expanded, onToggle, onUpdate, onDelete, onSend, onGenerate, onLookup, sending, generating, lookingUp, smtpOk,
 }: {
   lead: OutreachLead;
   expanded: boolean;
@@ -362,8 +405,10 @@ function LeadCard({
   onDelete: () => void;
   onSend: () => void;
   onGenerate: () => void;
+  onLookup: () => void;
   sending: boolean;
   generating: boolean;
+  lookingUp: boolean;
   smtpOk: boolean;
 }) {
   const [subject, setSubject] = useState(lead.emailSubject);
@@ -434,11 +479,18 @@ function LeadCard({
       {expanded && (
         <div style={{ padding: '16px', borderTop: '1px solid #e8e0d0' }}>
           {/* Lead info row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 10, marginBottom: 14, alignItems: 'end' }}>
             <FieldInput label="Name" value={lead.name} onChange={v => onUpdate({ name: v })} />
             <FieldInput label="Company" value={lead.company} onChange={v => onUpdate({ company: v })} />
             <FieldInput label="Role" value={lead.role} onChange={v => onUpdate({ role: v })} />
             <FieldInput label="Email" value={lead.email} onChange={v => onUpdate({ email: v })} />
+            <button
+              onClick={onLookup}
+              disabled={lookingUp}
+              style={{ ...btnStyle(lookingUp ? '#c4b59a' : '#3a5a8a', '#fff', 'transparent'), fontSize: 11, padding: '8px 12px', whiteSpace: 'nowrap' as const }}
+            >
+              {lookingUp ? 'Looking up...' : lead.notes?.includes('Apollo verified') ? 'Verified' : 'Find Email'}
+            </button>
           </div>
 
           {/* Angle */}

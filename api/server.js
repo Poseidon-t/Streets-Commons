@@ -7328,6 +7328,160 @@ function getMailTransporter() {
   });
 }
 
+// Apollo.io email lookup for a lead
+app.post('/api/admin/outreach/lookup-email/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const apolloKey = process.env.APOLLO_API_KEY;
+  if (!apolloKey) {
+    return res.status(400).json({ error: 'APOLLO_API_KEY not configured. Get one free at apollo.io' });
+  }
+
+  const leads = loadOutreach();
+  const idx = leads.findIndex(l => l.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+  const lead = leads[idx];
+
+  if (!lead.name || !lead.company) {
+    return res.status(400).json({ error: 'Lead needs name and company' });
+  }
+
+  try {
+    const nameParts = lead.name.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+
+    console.log(`Apollo lookup: ${lead.name} at ${lead.company}...`);
+
+    // Try people/match first (enrichment)
+    const matchResponse = await fetch('https://api.apollo.io/v1/people/match', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': apolloKey,
+      },
+      body: JSON.stringify({
+        first_name: firstName,
+        last_name: lastName,
+        organization_name: lead.company,
+        reveal_personal_emails: false,
+      }),
+    });
+
+    if (matchResponse.ok) {
+      const matchData = await matchResponse.json();
+      const person = matchData.person;
+      if (person && person.email) {
+        leads[idx].email = person.email;
+        leads[idx].role = person.title || leads[idx].role;
+        leads[idx].notes = [
+          leads[idx].notes,
+          `Apollo verified: ${person.email}`,
+          person.headline ? `LinkedIn: ${person.headline}` : '',
+          person.organization?.name ? `Org: ${person.organization.name}` : '',
+        ].filter(Boolean).join('\n');
+        leads[idx].updatedAt = new Date().toISOString();
+        saveOutreach(leads);
+        console.log(`Found verified email: ${person.email}`);
+        return res.json({ found: true, email: person.email, name: person.name, title: person.title });
+      }
+    }
+
+    // Fallback: search by name + company
+    const searchResponse = await fetch('https://api.apollo.io/v1/mixed_people/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Api-Key': apolloKey,
+      },
+      body: JSON.stringify({
+        q_keywords: `${lead.name} ${lead.company}`,
+        page: 1,
+        per_page: 3,
+      }),
+    });
+
+    if (searchResponse.ok) {
+      const searchData = await searchResponse.json();
+      const people = searchData.people || [];
+      const match = people.find(p => p.email && (
+        p.organization?.name?.toLowerCase().includes(lead.company.toLowerCase()) ||
+        lead.company.toLowerCase().includes(p.organization?.name?.toLowerCase() || '')
+      ));
+
+      if (match && match.email) {
+        leads[idx].email = match.email;
+        leads[idx].role = match.title || leads[idx].role;
+        leads[idx].notes = [
+          leads[idx].notes,
+          `Apollo verified: ${match.email}`,
+          match.headline ? `LinkedIn: ${match.headline}` : '',
+        ].filter(Boolean).join('\n');
+        leads[idx].updatedAt = new Date().toISOString();
+        saveOutreach(leads);
+        console.log(`Found via search: ${match.email}`);
+        return res.json({ found: true, email: match.email, name: match.name, title: match.title });
+      }
+    }
+
+    res.json({ found: false, message: `No verified email found for ${lead.name} at ${lead.company}` });
+
+  } catch (err) {
+    console.error('Apollo lookup error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk Apollo lookup for all leads missing verified emails
+app.post('/api/admin/outreach/lookup-emails-bulk', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const apolloKey = process.env.APOLLO_API_KEY;
+  if (!apolloKey) {
+    return res.status(400).json({ error: 'APOLLO_API_KEY not configured' });
+  }
+
+  const leads = loadOutreach();
+  // Find leads without Apollo-verified emails
+  const unverified = leads.filter(l => l.name && l.company && !l.notes?.includes('Apollo verified'));
+
+  res.json({ ok: true, message: `Looking up ${unverified.length} leads. Refresh to see progress.` });
+
+  let found = 0;
+  for (const lead of unverified) {
+    try {
+      const nameParts = lead.name.trim().split(/\s+/);
+      const matchResponse = await fetch('https://api.apollo.io/v1/people/match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Api-Key': apolloKey },
+        body: JSON.stringify({
+          first_name: nameParts[0],
+          last_name: nameParts.slice(1).join(' '),
+          organization_name: lead.company,
+          reveal_personal_emails: false,
+        }),
+      });
+
+      if (matchResponse.ok) {
+        const data = await matchResponse.json();
+        if (data.person?.email) {
+          const idx = leads.findIndex(l => l.id === lead.id);
+          if (idx !== -1) {
+            leads[idx].email = data.person.email;
+            leads[idx].role = data.person.title || leads[idx].role;
+            leads[idx].notes = [leads[idx].notes, `Apollo verified: ${data.person.email}`].filter(Boolean).join('\n');
+            leads[idx].updatedAt = new Date().toISOString();
+            found++;
+          }
+        }
+      }
+      await new Promise(r => setTimeout(r, 1000)); // rate limit
+    } catch (err) {
+      console.error(`Apollo bulk error for ${lead.name}:`, err.message);
+    }
+  }
+  saveOutreach(leads);
+  console.log(`Apollo bulk: found ${found}/${unverified.length} emails`);
+});
+
 // List all outreach leads
 app.get('/api/admin/outreach/leads', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
