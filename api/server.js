@@ -21,6 +21,7 @@ import { createClerkClient } from '@clerk/clerk-sdk-node';
 import dns from 'node:dns';
 import { promisify } from 'node:util';
 import multer from 'multer';
+import nodemailer from 'nodemailer';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -7290,4 +7291,430 @@ app.delete('/api/admin/crm/leads/:id', async (req, res) => {
   if (filtered.length === leads.length) return res.status(404).json({ error: 'Lead not found' });
   saveCrmLeads(filtered);
   res.json({ ok: true });
+});
+
+// ─── Outreach Module ──────────────────────────────────────────────────────────
+
+const OUTREACH_FILE = path.join(__dirname, '..', 'data', 'outreach.json');
+
+function loadOutreach() {
+  try {
+    return JSON.parse(fs.readFileSync(OUTREACH_FILE, 'utf8'));
+  } catch {
+    return [];
+  }
+}
+
+function saveOutreach(leads) {
+  fs.mkdirSync(path.dirname(OUTREACH_FILE), { recursive: true });
+  fs.writeFileSync(OUTREACH_FILE, JSON.stringify(leads, null, 2));
+}
+
+function getMailTransporter() {
+  const host = process.env.SMTP_HOST || 'smtp.zoho.com';
+  const port = parseInt(process.env.SMTP_PORT || '465');
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465,
+    auth: { user, pass },
+  });
+}
+
+// List all outreach leads
+app.get('/api/admin/outreach/leads', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadOutreach();
+  res.json({ leads, count: leads.length });
+});
+
+// Add a new outreach lead
+app.post('/api/admin/outreach/leads', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadOutreach();
+  const lead = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    company: '',
+    name: '',
+    role: '',
+    email: '',
+    angle: '',
+    emailSubject: '',
+    emailBody: '',
+    status: 'draft',
+    sentAt: null,
+    repliedAt: null,
+    notes: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    ...req.body,
+  };
+  leads.push(lead);
+  saveOutreach(leads);
+  res.json({ lead });
+});
+
+// Bulk import outreach leads
+app.post('/api/admin/outreach/import', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const existing = loadOutreach();
+  const incoming = req.body.leads || [];
+  const added = [];
+  for (const item of incoming) {
+    const lead = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + added.length,
+      company: item.company || '',
+      name: item.name || '',
+      role: item.role || '',
+      email: item.email || '',
+      angle: item.angle || '',
+      emailSubject: item.emailSubject || '',
+      emailBody: item.emailBody || '',
+      status: item.emailBody ? 'ready' : 'draft',
+      sentAt: null,
+      repliedAt: null,
+      notes: item.notes || '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    existing.push(lead);
+    added.push(lead);
+  }
+  saveOutreach(existing);
+  res.json({ added: added.length, total: existing.length });
+});
+
+// Update an outreach lead
+app.put('/api/admin/outreach/leads/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadOutreach();
+  const idx = leads.findIndex(l => l.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+  leads[idx] = { ...leads[idx], ...req.body, id: req.params.id, updatedAt: new Date().toISOString() };
+  saveOutreach(leads);
+  res.json({ lead: leads[idx] });
+});
+
+// Delete an outreach lead
+app.delete('/api/admin/outreach/leads/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const leads = loadOutreach();
+  const filtered = leads.filter(l => l.id !== req.params.id);
+  if (filtered.length === leads.length) return res.status(404).json({ error: 'Lead not found' });
+  saveOutreach(filtered);
+  res.json({ ok: true });
+});
+
+// Check SMTP config status
+app.get('/api/admin/outreach/smtp-status', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    return res.json({ configured: false, message: 'Set SMTP_USER and SMTP_PASS env vars' });
+  }
+  try {
+    await transporter.verify();
+    res.json({ configured: true, user: process.env.SMTP_USER });
+  } catch (err) {
+    res.json({ configured: false, message: err.message });
+  }
+});
+
+// Send email to a single lead
+app.post('/api/admin/outreach/send/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    return res.status(400).json({ error: 'SMTP not configured. Set SMTP_USER and SMTP_PASS env vars.' });
+  }
+  const leads = loadOutreach();
+  const idx = leads.findIndex(l => l.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+  const lead = leads[idx];
+  if (!lead.email || !lead.emailSubject || !lead.emailBody) {
+    return res.status(400).json({ error: 'Lead missing email, subject, or body' });
+  }
+  try {
+    await transporter.sendMail({
+      from: `"Sarath Sabarish" <${process.env.SMTP_USER}>`,
+      to: lead.email,
+      subject: lead.emailSubject,
+      text: lead.emailBody,
+      html: lead.emailBody.replace(/\n/g, '<br>'),
+    });
+    leads[idx].status = 'sent';
+    leads[idx].sentAt = new Date().toISOString();
+    leads[idx].updatedAt = new Date().toISOString();
+    saveOutreach(leads);
+    console.log(`Outreach email sent to ${lead.name} <${lead.email}>`);
+    res.json({ ok: true, lead: leads[idx] });
+  } catch (err) {
+    console.error(`Failed to send to ${lead.email}:`, err.message);
+    res.status(500).json({ error: `Send failed: ${err.message}` });
+  }
+});
+
+// Bulk send all "ready" leads
+app.post('/api/admin/outreach/send-bulk', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const transporter = getMailTransporter();
+  if (!transporter) {
+    return res.status(400).json({ error: 'SMTP not configured' });
+  }
+  const leads = loadOutreach();
+  const ready = leads.filter(l => l.status === 'ready' && l.email && l.emailSubject && l.emailBody);
+  let sent = 0;
+  let failed = 0;
+  for (const lead of ready) {
+    try {
+      await transporter.sendMail({
+        from: `"Sarath Sabarish" <${process.env.SMTP_USER}>`,
+        to: lead.email,
+        subject: lead.emailSubject,
+        text: lead.emailBody,
+        html: lead.emailBody.replace(/\n/g, '<br>'),
+      });
+      lead.status = 'sent';
+      lead.sentAt = new Date().toISOString();
+      lead.updatedAt = new Date().toISOString();
+      sent++;
+      console.log(`Outreach email sent to ${lead.name} <${lead.email}>`);
+      // 2-second delay between emails to avoid throttling
+      await new Promise(r => setTimeout(r, 2000));
+    } catch (err) {
+      failed++;
+      console.error(`Failed to send to ${lead.email}:`, err.message);
+    }
+  }
+  saveOutreach(leads);
+  res.json({ sent, failed, total: ready.length });
+});
+
+// Generate personalized email for a lead using Gemini + web search grounding
+const SAFESTREETS_CONTEXT = `
+# SafeStreets by Streets & Commons
+
+Free neighborhood walkability scoring tool. Analyzes any address globally using satellite imagery and open data. Produces a 0-10 composite score.
+Live at: safestreets.streetsandcommons.com (free, no signup)
+
+## 4 Scored Components (each 0-10)
+
+Network Design: intersection density, dead-end ratio, block length, sidewalk coverage, street connectivity (betweenness centrality)
+Environmental Comfort: tree canopy (with heat stress modifier from Open-Meteo), green space access, air quality (OpenAQ), noise, flood risk (FEMA/NWI)
+Safety: street lighting density, crosswalk coverage, speed limits, crash data, crime proximity
+Density Context: population density, transit access, mixed-use zoning, amenity density (grocery, healthcare, schools)
+
+## Persona Verdicts (Yes / Borderline / Unlikely)
+Car-free living, Kids walking to school, Aging in place
+
+## Additional Features
+15-Minute City analysis, component highlights, metric-level breakdowns, Walker Infographic, Street Vibe analysis, Ground Reality cards
+
+## Data Sources (9+)
+Sentinel-2 satellite imagery, OpenStreetMap, US Census ACS, CDC PLACES, EPA Walkability Index, FEMA flood maps, NASADEM elevation, OpenAQ air quality, Open-Meteo climate
+
+## Premium: Moving Research ($29 one-time)
+School Route Safety, Commute Analysis, Car-Free Savings, unlimited saved addresses, PDF reports
+
+## What Makes SafeStreets Different from Walk Score
+Walk Score only measures proximity to amenities. SafeStreets measures the QUALITY of the walk: sidewalk safety, shade, crosswalks, lighting. 4 components vs single number. Persona verdicts. Satellite imagery analysis. Free, open data.
+
+## About the Builder
+Sarath Sabarish, founder of Streets & Commons. Also builds custom dashboards, internal tools, AI automation, and data platforms. Past clients: Fujifilm Australia, healthcare chains, urban planning firms.
+`;
+
+app.post('/api/admin/outreach/generate/:id', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  }
+  const leads = loadOutreach();
+  const idx = leads.findIndex(l => l.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'Lead not found' });
+  const lead = leads[idx];
+
+  if (!lead.company || !lead.name) {
+    return res.status(400).json({ error: 'Lead needs at least a company and name' });
+  }
+
+  try {
+    // Step 1: Research the company and person
+    console.log(`Generating email for ${lead.name} at ${lead.company}...`);
+
+    const researchPrompt = `Research this company and person for a B2B cold email campaign. Be thorough.
+
+Company: ${lead.company}
+Person: ${lead.name}
+Role: ${lead.role || 'Unknown'}
+Email: ${lead.email || 'Unknown'}
+Context: ${lead.angle || 'Walkability data integration'}
+
+Find:
+1. What does ${lead.company} actually do? Core products, recent projects, clients, strategic priorities.
+2. What is ${lead.name}'s specific role, background, and what they care about? Are they still at this company?
+3. What gaps exist in ${lead.company}'s offerings where walkability/urban data would add value?
+4. What competitors or peers already use walkability data?
+5. What language and framing would resonate with their industry?
+
+Return detailed, structured research notes.`;
+
+    const researchResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: researchPrompt }] }],
+          tools: [{ google_search: {} }],
+        }),
+      }
+    );
+
+    if (!researchResponse.ok) {
+      const err = await researchResponse.text();
+      console.error('Gemini research error:', err);
+      return res.status(500).json({ error: 'Research failed: ' + err.slice(0, 200) });
+    }
+
+    const researchData = await researchResponse.json();
+    const research = researchData.candidates?.[0]?.content?.parts
+      ?.map(p => p.text)
+      .filter(Boolean)
+      .join('\n') || 'No research found';
+
+    // Step 2: Generate the email using research + SafeStreets context
+    const emailPrompt = `You are writing a cold email for Sarath Sabarish, founder of Streets & Commons.
+
+## SafeStreets Product Context
+${SAFESTREETS_CONTEXT}
+
+## Research on This Lead
+${research}
+
+## Lead Info
+Company: ${lead.company}
+Person: ${lead.name}
+Role: ${lead.role || 'Unknown'}
+Email: ${lead.email || 'Unknown'}
+Pitch Angle: ${lead.angle || 'General walkability data integration'}
+
+## Email Writing Rules
+
+SUBJECT LINE: Short, specific to THEIR company or problem. Not generic. Make it about THEM.
+
+OPENING: Start with THEIR specific problem, project, or initiative from the research. Never open with "I built SafeStreets". Show you know their world.
+
+PRODUCT DEPTH: Show full depth of SafeStreets:
+- Name the 4 components: Network Design, Environmental Comfort, Safety, Density Context
+- Mention 3-4 specific sub-metrics relevant to THIS company
+- Include persona verdicts (car-free, kids walking, aging in place) if relevant
+- Name at least 4 data sources (Sentinel-2, OpenStreetMap, Census, CDC PLACES, EPA, FEMA, OpenAQ, Open-Meteo)
+- Mention: works globally, runs in seconds, no fieldwork
+- Explain how it differs from Walk Score
+
+FIT: 3 bullet points showing how SafeStreets helps THIS company specifically. Use colons after bold labels.
+
+SECONDARY: One sentence about Sarath building custom dashboards and white-label integrations, if relevant.
+
+CTA: End with "Happy to walk you through a live demo whenever works."
+
+SIGN OFF:
+Best,
+Sarath Sabarish
+Streets & Commons
+safestreets.streetsandcommons.com
+
+FORMATTING:
+- NO en dashes or em dashes. Use commas, colons, periods instead.
+- NO emojis
+- Under 350 words
+- If research shows person LEFT the company, note this clearly.
+
+Output format: First line must be the subject line only (no "Subject:" prefix). Then a blank line. Then the email body. Nothing else.`;
+
+    const emailResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: emailPrompt }] }],
+        }),
+      }
+    );
+
+    if (!emailResponse.ok) {
+      const err = await emailResponse.text();
+      console.error('Gemini email error:', err);
+      return res.status(500).json({ error: 'Email generation failed: ' + err.slice(0, 200) });
+    }
+
+    const emailData = await emailResponse.json();
+    const emailText = emailData.candidates?.[0]?.content?.parts
+      ?.map(p => p.text)
+      .filter(Boolean)
+      .join('\n') || '';
+
+    // Parse subject and body
+    const lines = emailText.trim().split('\n');
+    let subject = lines[0] || '';
+    // Remove "Subject:" prefix if Gemini added it
+    subject = subject.replace(/^Subject:\s*/i, '').trim();
+    const body = lines.slice(1).join('\n').trim();
+
+    // Update the lead
+    leads[idx].emailSubject = subject;
+    leads[idx].emailBody = body;
+    leads[idx].notes = research.slice(0, 2000);
+    leads[idx].status = 'ready';
+    leads[idx].updatedAt = new Date().toISOString();
+    saveOutreach(leads);
+
+    console.log(`Email generated for ${lead.name} at ${lead.company}`);
+    res.json({ lead: leads[idx], research: research.slice(0, 3000) });
+
+  } catch (err) {
+    console.error('Generate error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Bulk generate emails for all draft leads
+app.post('/api/admin/outreach/generate-bulk', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  }
+  // Return immediately, process in background
+  res.json({ ok: true, message: 'Generating emails in background. Refresh to see progress.' });
+
+  const leads = loadOutreach();
+  const drafts = leads.filter(l => l.status === 'draft' && l.company && l.name);
+  console.log(`Bulk generating ${drafts.length} emails...`);
+
+  for (const lead of drafts) {
+    try {
+      // Simulate calling the generate endpoint internally
+      const fakeReq = { params: { id: lead.id } };
+      // Just do a local HTTP call to ourselves
+      const url = `http://localhost:${process.env.PORT || 3002}/api/admin/outreach/generate/${lead.id}`;
+      await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.ADMIN_USER_ID || 'internal'}`,
+        },
+      }).catch(() => {});
+      // Delay between generations to respect rate limits
+      await new Promise(r => setTimeout(r, 5000));
+    } catch (err) {
+      console.error(`Bulk generate error for ${lead.name}:`, err.message);
+    }
+  }
+  console.log('Bulk generation complete');
 });

@@ -47,6 +47,7 @@ const BlogManager = lazy(() => import('./admin/BlogManager'))
 const BlogEditor = lazy(() => import('./admin/BlogEditor'))
 const ContentQueue = lazy(() => import('./admin/ContentQueue'))
 const CRM = lazy(() => import('./admin/CRM'))
+const Outreach = lazy(() => import('./admin/Outreach'))
 const InfographicGenerator = lazy(() => import('./admin/InfographicGenerator'))
 const SketchGenerator = lazy(() => import('./admin/SketchGenerator'))
 const ThemePicker = lazy(() => import('./admin/ThemePicker'))
@@ -113,6 +114,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="blog" element={<BlogManager />} />
             <Route path="blog/new" element={<BlogEditor />} />
             <Route path="blog/edit/:slug" element={<BlogEditor />} />
+            <Route path="outreach" element={<Outreach />} />
             <Route path="crm" element={<CRM />} />
             <Route path="infographics" element={<InfographicGenerator />} />
             <Route path="sketch" element={<SketchGenerator />} />

@@ -4,6 +4,7 @@ import AdminGuard from './AdminGuard';
 
 const navItems = [
   { to: '/admin', label: 'Dashboard', end: true },
+  { to: '/admin/outreach', label: 'Outreach', end: false },
   { to: '/admin/crm', label: 'Sales CRM', end: false },
   { to: '/admin/content-queue', label: 'Content Queue', end: false },
   { to: '/admin/blog', label: 'Blog Posts', end: false },

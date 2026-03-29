@@ -31,6 +31,7 @@
     "leaflet": "^1.9.4",
     "mapillary-js": "^4.1.2",
     "maplibre-gl": "^5.19.0",
+    "nodemailer": "^8.0.4",
     "posthog-js": "^1.359.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

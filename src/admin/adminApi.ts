@@ -90,5 +90,24 @@ export function useAdminApi() {
       adminFetch('/api/admin/reddit/config', { method: 'PUT', body: JSON.stringify(config) }),
     clearRedditPosts: () => adminFetch('/api/admin/reddit/clear', { method: 'POST' }),
 
+    // Outreach
+    fetchOutreachLeads: () => adminFetch('/api/admin/outreach/leads'),
+    addOutreachLead: (data: Record<string, unknown>) =>
+      adminFetch('/api/admin/outreach/leads', { method: 'POST', body: JSON.stringify(data) }),
+    importOutreachLeads: (leads: Record<string, unknown>[]) =>
+      adminFetch('/api/admin/outreach/import', { method: 'POST', body: JSON.stringify({ leads }) }),
+    updateOutreachLead: (id: string, data: Record<string, unknown>) =>
+      adminFetch(`/api/admin/outreach/leads/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteOutreachLead: (id: string) =>
+      adminFetch(`/api/admin/outreach/leads/${id}`, { method: 'DELETE' }),
+    checkSmtpStatus: () => adminFetch('/api/admin/outreach/smtp-status'),
+    sendOutreachEmail: (id: string) =>
+      adminFetch(`/api/admin/outreach/send/${id}`, { method: 'POST' }),
+    sendOutreachBulk: () =>
+      adminFetch('/api/admin/outreach/send-bulk', { method: 'POST' }),
+    generateOutreachEmail: (id: string) =>
+      adminFetch(`/api/admin/outreach/generate/${id}`, { method: 'POST' }),
+    generateOutreachBulk: () =>
+      adminFetch('/api/admin/outreach/generate-bulk', { method: 'POST' }),
   };
 }
