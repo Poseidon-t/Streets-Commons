@@ -7312,7 +7312,7 @@ function saveOutreach(leads) {
 
 function getMailTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.zoho.com';
-  const port = parseInt(process.env.SMTP_PORT || '465');
+  const port = parseInt(process.env.SMTP_PORT || '587');
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   if (!user || !pass) return null;
@@ -7320,7 +7320,11 @@ function getMailTransporter() {
     host,
     port,
     secure: port === 465,
+    ...(port !== 465 ? { requireTLS: true } : {}),
     auth: { user, pass },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 }
 
@@ -7416,10 +7420,20 @@ app.get('/api/admin/outreach/smtp-status', async (req, res) => {
     return res.json({ configured: false, message: 'Set SMTP_USER and SMTP_PASS env vars' });
   }
   try {
-    await transporter.verify();
+    // Race verify against a 8s timeout so the page doesn't hang
+    await Promise.race([
+      transporter.verify(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('SMTP verify timed out')), 8000)),
+    ]);
     res.json({ configured: true, user: process.env.SMTP_USER });
   } catch (err) {
-    res.json({ configured: false, message: err.message });
+    // Still report as configured if creds exist (send will try at send time)
+    const hasCredentials = !!(process.env.SMTP_USER && process.env.SMTP_PASS);
+    res.json({
+      configured: hasCredentials,
+      user: process.env.SMTP_USER || '',
+      message: hasCredentials ? `Credentials set (verify: ${err.message})` : err.message,
+    });
   }
 });
 
