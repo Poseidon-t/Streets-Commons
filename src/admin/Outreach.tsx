@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAdminApi } from './adminApi';
 
 interface OutreachLead {
@@ -369,6 +369,16 @@ function LeadCard({
   const [subject, setSubject] = useState(lead.emailSubject);
   const [body, setBody] = useState(lead.emailBody);
   const [notes, setNotes] = useState(lead.notes);
+  const prevUpdated = useRef(lead.updatedAt);
+
+  useEffect(() => {
+    if (lead.updatedAt !== prevUpdated.current) {
+      setSubject(lead.emailSubject);
+      setBody(lead.emailBody);
+      setNotes(lead.notes);
+      prevUpdated.current = lead.updatedAt;
+    }
+  }, [lead.updatedAt, lead.emailSubject, lead.emailBody, lead.notes]);
   const statusColor = STATUS_COLORS[lead.status] || STATUS_COLORS.draft;
   const canSend = smtpOk && lead.email && lead.emailSubject && lead.emailBody && lead.status !== 'sent';
 
