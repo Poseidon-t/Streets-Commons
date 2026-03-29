@@ -7718,3 +7718,154 @@ app.post('/api/admin/outreach/generate-bulk', async (req, res) => {
   }
   console.log('Bulk generation complete');
 });
+
+// Generate new qualified leads using Gemini + Google Search
+app.post('/api/admin/outreach/generate-leads', async (req, res) => {
+  if (!(await requireAdminKey(req, res))) return;
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  }
+
+  const { segment, count = 10, region = 'global' } = req.body;
+
+  const prompt = `You are a B2B lead research assistant for SafeStreets, a walkability analytics platform.
+
+## What SafeStreets Offers (for context on ideal customers)
+${SAFESTREETS_CONTEXT}
+
+## Lead Qualification Criteria
+
+IDEAL CUSTOMERS (companies that would PAY for walkability data):
+- Real estate portals and proptech platforms (property listings, valuations, market analytics)
+- Urban planning and design consultancies (master plans, TOD, neighborhood design)
+- Mobility and transportation companies (ride-share, micro-mobility, transit tech)
+- Architecture and development firms (residential, mixed-use, township developers)
+- ESG and sustainability consultancies (green building, LEED, carbon footprint)
+- Insurance and risk analytics companies (property risk assessment)
+- Health and wellness platforms (community health, active living)
+- Smart city technology vendors
+- Real estate investment and advisory firms
+- Location intelligence and geospatial data companies
+
+DISQUALIFIED (never suggest):
+- Government agencies, municipalities, city councils
+- Academic institutions
+- Non-profits focused on advocacy (not data/tech)
+- Companies with fewer than 20 employees
+- Companies already using Walk Score as a core product (like Redfin)
+
+## Task
+
+Find ${count || 10} qualified B2B leads${segment ? ` in the "${segment}" segment` : ''}${region !== 'global' ? ` in ${region}` : ''}.
+
+For EACH lead, find:
+1. Company name
+2. A specific decision-maker (CEO, CTO, VP Product, Head of Innovation, or similar). Find their REAL name.
+3. Their exact title/role
+4. Their PERSONAL work email address (not info@ or contact@ or press@). Search LinkedIn, company team pages, conference speaker lists, press releases, podcast appearances. If you cannot find a personal email, use the standard format for their company (firstname@company.com or firstname.lastname@company.com).
+5. A specific pitch angle: what problem of THEIRS does SafeStreets solve? Reference their actual products, projects, or strategic initiatives.
+
+Return ONLY a valid JSON array, no markdown, no explanation. Each object must have exactly these fields:
+{
+  "company": "Company Name",
+  "name": "Full Name",
+  "role": "Their Title",
+  "email": "personal@company.com",
+  "angle": "Specific pitch angle tied to their business",
+  "notes": "Key facts: revenue, recent projects, competitors, why now"
+}`;
+
+  try {
+    console.log(`Generating ${count} leads for segment: ${segment || 'general'}, region: ${region}...`);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          tools: [{ google_search: {} }],
+          generationConfig: { temperature: 0.7 },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Gemini lead gen error:', err);
+      return res.status(500).json({ error: 'Lead generation failed: ' + err.slice(0, 200) });
+    }
+
+    const data = await response.json();
+    const rawText = data.candidates?.[0]?.content?.parts
+      ?.map(p => p.text)
+      .filter(Boolean)
+      .join('\n') || '';
+
+    // Extract JSON array from response
+    const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.error('No JSON array found in response:', rawText.slice(0, 500));
+      return res.status(500).json({ error: 'Could not parse leads from AI response' });
+    }
+
+    let newLeads;
+    try {
+      newLeads = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error('JSON parse error:', parseErr.message, rawText.slice(0, 500));
+      return res.status(500).json({ error: 'Invalid JSON from AI response' });
+    }
+
+    if (!Array.isArray(newLeads) || newLeads.length === 0) {
+      return res.status(500).json({ error: 'No leads generated' });
+    }
+
+    // Deduplicate against existing leads
+    const existing = loadOutreach();
+    const existingEmails = new Set(existing.map(l => l.email.toLowerCase()));
+    const existingCompanies = new Set(existing.map(l => l.company.toLowerCase()));
+
+    const dedupedLeads = newLeads.filter(l => {
+      if (!l.company || !l.name || !l.email) return false;
+      if (l.email.startsWith('info@') || l.email.startsWith('contact@') || l.email.startsWith('press@') || l.email.startsWith('find@')) return false;
+      if (existingEmails.has(l.email.toLowerCase())) return false;
+      if (existingCompanies.has(l.company.toLowerCase())) return false;
+      return true;
+    });
+
+    // Add to outreach
+    const added = [];
+    for (const lead of dedupedLeads) {
+      const newLead = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+        company: lead.company || '',
+        name: lead.name || '',
+        role: lead.role || '',
+        email: lead.email || '',
+        angle: lead.angle || '',
+        emailSubject: '',
+        emailBody: '',
+        status: 'draft',
+        sentAt: null,
+        repliedAt: null,
+        notes: lead.notes || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      existing.push(newLead);
+      added.push(newLead);
+    }
+
+    saveOutreach(existing);
+    const skipped = newLeads.length - dedupedLeads.length;
+    console.log(`Generated ${added.length} new leads, skipped ${skipped} duplicates`);
+    res.json({ added: added.length, skipped, leads: added });
+
+  } catch (err) {
+    console.error('Lead generation error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});

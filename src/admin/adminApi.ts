@@ -109,5 +109,7 @@ export function useAdminApi() {
       adminFetch(`/api/admin/outreach/generate/${id}`, { method: 'POST' }),
     generateOutreachBulk: () =>
       adminFetch('/api/admin/outreach/generate-bulk', { method: 'POST' }),
+    generateOutreachLeads: (params: { segment?: string; count?: number; region?: string }) =>
+      adminFetch('/api/admin/outreach/generate-leads', { method: 'POST', body: JSON.stringify(params) }),
   };
 }

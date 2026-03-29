@@ -41,6 +41,8 @@ export default function Outreach() {
   const [filter, setFilter] = useState<string>('all');
   const [showAdd, setShowAdd] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [showFindLeads, setShowFindLeads] = useState(false);
+  const [findingLeads, setFindingLeads] = useState(false);
   const [importJson, setImportJson] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -161,6 +163,21 @@ export default function Outreach() {
     }
   }
 
+  async function findLeads(params: { segment?: string; count?: number; region?: string }) {
+    setFindingLeads(true);
+    setError('');
+    try {
+      const result = await api.generateOutreachLeads(params);
+      setSuccess(`Found ${result.added} new leads${result.skipped ? ` (${result.skipped} duplicates skipped)` : ''}`);
+      setShowFindLeads(false);
+      load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Lead generation failed');
+    } finally {
+      setFindingLeads(false);
+    }
+  }
+
   async function handleImport() {
     try {
       const parsed = JSON.parse(importJson);
@@ -194,6 +211,9 @@ export default function Outreach() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => setShowFindLeads(true)} style={btnStyle('#2a5a3a', '#fff', 'transparent')}>
+            Find Leads
+          </button>
           <button onClick={() => setShowImport(true)} style={btnStyle('#f5f2eb', '#1a3a1a', '#c4b59a')}>
             Import JSON
           </button>
@@ -300,6 +320,15 @@ export default function Outreach() {
 
       {/* Add Lead Modal */}
       {showAdd && <AddLeadModal onAdd={addLead} onClose={() => setShowAdd(false)} />}
+
+      {/* Find Leads Modal */}
+      {showFindLeads && (
+        <FindLeadsModal
+          onFind={findLeads}
+          onClose={() => setShowFindLeads(false)}
+          loading={findingLeads}
+        />
+      )}
 
       {/* Import Modal */}
       {showImport && (
@@ -543,6 +572,81 @@ function AddLeadModal({ onAdd, onClose }: { onAdd: (lead: Partial<OutreachLead>)
             style={btnStyle(!company || !name || !email ? '#c4b59a' : '#e07850', '#fff', 'transparent')}
           >
             Add
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+const SEGMENTS = [
+  { value: '', label: 'All segments (mixed)' },
+  { value: 'real-estate', label: 'Real Estate & Proptech' },
+  { value: 'urban-planning', label: 'Urban Planning & Design' },
+  { value: 'mobility', label: 'Mobility & Transportation' },
+  { value: 'architecture', label: 'Architecture & Development' },
+  { value: 'esg', label: 'ESG & Sustainability' },
+  { value: 'insurance', label: 'Insurance & Risk Analytics' },
+  { value: 'location-intelligence', label: 'Location Intelligence & GeoData' },
+  { value: 'health-wellness', label: 'Health & Active Living' },
+];
+
+const REGIONS = [
+  { value: 'global', label: 'Global' },
+  { value: 'india', label: 'India' },
+  { value: 'usa', label: 'USA' },
+  { value: 'europe', label: 'Europe' },
+  { value: 'southeast-asia', label: 'Southeast Asia' },
+  { value: 'middle-east', label: 'Middle East' },
+  { value: 'australia', label: 'Australia / ANZ' },
+];
+
+function FindLeadsModal({ onFind, onClose, loading }: {
+  onFind: (params: { segment?: string; count?: number; region?: string }) => void;
+  onClose: () => void;
+  loading: boolean;
+}) {
+  const [segment, setSegment] = useState('');
+  const [region, setRegion] = useState('global');
+  const [count, setCount] = useState(10);
+
+  return (
+    <Modal onClose={onClose} title="Find New Leads">
+      <p style={{ fontSize: 13, color: '#5a5040', marginBottom: 16 }}>
+        AI will search the web for qualified B2B leads matching your criteria. Duplicates are automatically filtered out.
+      </p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <label style={labelStyle}>Segment</label>
+          <select value={segment} onChange={e => setSegment(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            {SEGMENTS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Region</label>
+          <select value={region} onChange={e => setRegion(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+            {REGIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label style={labelStyle}>Number of Leads</label>
+          <input
+            type="number"
+            value={count}
+            onChange={e => setCount(Math.min(25, Math.max(1, parseInt(e.target.value) || 5)))}
+            min={1}
+            max={25}
+            style={inputStyle}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+          <button onClick={onClose} style={btnStyle('#f5f2eb', '#1a3a1a', '#c4b59a')}>Cancel</button>
+          <button
+            onClick={() => onFind({ segment: segment || undefined, count, region })}
+            disabled={loading}
+            style={btnStyle(loading ? '#c4b59a' : '#2a5a3a', '#fff', 'transparent')}
+          >
+            {loading ? 'Searching...' : `Find ${count} Leads`}
           </button>
         </div>
       </div>
