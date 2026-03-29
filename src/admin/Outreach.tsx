@@ -35,10 +35,8 @@ export default function Outreach() {
   const [smtpMsg, setSmtpMsg] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [sending, setSending] = useState<string | null>(null);
-  const [generating, setGenerating] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState<string | null>(null);
   const [bulkSending, setBulkSending] = useState(false);
-  const [bulkGenerating, setBulkGenerating] = useState(false);
   const [bulkLookingUp, setBulkLookingUp] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   const [showAdd, setShowAdd] = useState(false);
@@ -136,35 +134,6 @@ export default function Outreach() {
     }
   }
 
-  async function generateEmail(id: string) {
-    setGenerating(id);
-    setError('');
-    try {
-      await api.generateOutreachEmail(id);
-      setSuccess('Email generated!');
-      load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Generation failed');
-    } finally {
-      setGenerating(null);
-    }
-  }
-
-  async function generateBulk() {
-    if (!confirm('Generate emails for all draft leads? This may take a few minutes.')) return;
-    setBulkGenerating(true);
-    setError('');
-    try {
-      const result = await api.generateOutreachBulk();
-      setSuccess(`Generated: ${result.generated}, Failed: ${result.failed}`);
-      load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Bulk generation failed');
-    } finally {
-      setBulkGenerating(false);
-    }
-  }
-
   async function lookupEmail(id: string) {
     setLookingUp(id);
     setError('');
@@ -227,7 +196,6 @@ export default function Outreach() {
   }
 
   const filtered = filter === 'all' ? leads : leads.filter(l => l.status === filter);
-  const draftCount = leads.filter(l => l.status === 'draft').length;
   const readyCount = leads.filter(l => l.status === 'ready').length;
   const sentCount = leads.filter(l => l.status === 'sent').length;
   const repliedCount = leads.filter(l => l.status === 'replied').length;
@@ -261,15 +229,6 @@ export default function Outreach() {
           <button onClick={() => setShowAdd(true)} style={btnStyle('#f5f2eb', '#1a3a1a', '#c4b59a')}>
             + Add Lead
           </button>
-          {draftCount > 0 && (
-            <button
-              onClick={generateBulk}
-              disabled={bulkGenerating}
-              style={btnStyle(bulkGenerating ? '#c4b59a' : '#4a7c59', '#fff', 'transparent')}
-            >
-              {bulkGenerating ? 'Generating...' : `Generate All Drafts (${draftCount})`}
-            </button>
-          )}
           {readyCount > 0 && smtpOk && (
             <button
               onClick={sendBulk}
@@ -350,10 +309,8 @@ export default function Outreach() {
               onUpdate={(data) => updateLead(lead.id, data)}
               onDelete={() => deleteLead(lead.id)}
               onSend={() => sendEmail(lead.id)}
-              onGenerate={() => generateEmail(lead.id)}
               onLookup={() => lookupEmail(lead.id)}
               sending={sending === lead.id}
-              generating={generating === lead.id}
               lookingUp={lookingUp === lead.id}
               smtpOk={smtpOk}
             />
@@ -396,7 +353,7 @@ export default function Outreach() {
 }
 
 function LeadCard({
-  lead, expanded, onToggle, onUpdate, onDelete, onSend, onGenerate, onLookup, sending, generating, lookingUp, smtpOk,
+  lead, expanded, onToggle, onUpdate, onDelete, onSend, onLookup, sending, lookingUp, smtpOk,
 }: {
   lead: OutreachLead;
   expanded: boolean;
@@ -404,10 +361,8 @@ function LeadCard({
   onUpdate: (data: Partial<OutreachLead>) => void;
   onDelete: () => void;
   onSend: () => void;
-  onGenerate: () => void;
   onLookup: () => void;
   sending: boolean;
-  generating: boolean;
   lookingUp: boolean;
   smtpOk: boolean;
 }) {
@@ -542,15 +497,6 @@ function LeadCard({
 
           {/* Actions */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            {(lead.status === 'draft' || !lead.emailBody) && (
-              <button
-                onClick={onGenerate}
-                disabled={generating}
-                style={btnStyle(generating ? '#c4b59a' : '#4a7c59', '#fff', 'transparent')}
-              >
-                {generating ? 'Researching & Writing...' : 'Generate Email'}
-              </button>
-            )}
             {canSend && (
               <button
                 onClick={onSend}
