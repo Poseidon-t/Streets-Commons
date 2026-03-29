@@ -7540,11 +7540,35 @@ Walk Score only measures proximity to amenities. SafeStreets measures the QUALIT
 Sarath Sabarish, founder of Streets & Commons. Also builds custom dashboards, internal tools, AI automation, and data platforms. Past clients: Fujifilm Australia, healthcare chains, urban planning firms.
 `;
 
+// Helper: call Groq chat completions
+async function groqChat(messages, options = {}) {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY not configured');
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: options.model || 'llama-3.3-70b-versatile',
+      messages,
+      temperature: options.temperature ?? 0.7,
+      max_tokens: options.max_tokens || 4096,
+    }),
+  });
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error('Groq API error: ' + err.slice(0, 300));
+  }
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content || '';
+}
+
 app.post('/api/admin/outreach/generate/:id', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) {
-    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(400).json({ error: 'GROQ_API_KEY not configured' });
   }
   const leads = loadOutreach();
   const idx = leads.findIndex(l => l.id === req.params.id);
@@ -7556,54 +7580,32 @@ app.post('/api/admin/outreach/generate/:id', async (req, res) => {
   }
 
   try {
-    // Step 1: Research the company and person
     console.log(`Generating email for ${lead.name} at ${lead.company}...`);
 
-    const researchPrompt = `Research this company and person for a B2B cold email campaign. Be thorough.
+    // Step 1: Research the company and person
+    const research = await groqChat([
+      { role: 'system', content: 'You are a B2B sales research analyst. Provide detailed, structured research notes about companies and decision-makers. Be specific about products, recent initiatives, strategic priorities, and gaps where walkability/urban data would add value.' },
+      { role: 'user', content: `Research this company and person for a B2B cold email campaign. Be thorough.
 
 Company: ${lead.company}
 Person: ${lead.name}
 Role: ${lead.role || 'Unknown'}
-Email: ${lead.email || 'Unknown'}
 Context: ${lead.angle || 'Walkability data integration'}
 
 Find:
 1. What does ${lead.company} actually do? Core products, recent projects, clients, strategic priorities.
-2. What is ${lead.name}'s specific role, background, and what they care about? Are they still at this company?
+2. What is ${lead.name}'s specific role, background, and what they care about?
 3. What gaps exist in ${lead.company}'s offerings where walkability/urban data would add value?
 4. What competitors or peers already use walkability data?
 5. What language and framing would resonate with their industry?
 
-Return detailed, structured research notes.`;
+Return detailed, structured research notes.` }
+    ]);
 
-    const researchResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: researchPrompt }] }],
-          tools: [{ google_search: {} }],
-        }),
-      }
-    );
-
-    if (!researchResponse.ok) {
-      const err = await researchResponse.text();
-      console.error('Gemini research error:', err);
-      return res.status(500).json({ error: 'Research failed: ' + err.slice(0, 200) });
-    }
-
-    const researchData = await researchResponse.json();
-    const research = researchData.candidates?.[0]?.content?.parts
-      ?.map(p => p.text)
-      .filter(Boolean)
-      .join('\n') || 'No research found';
-
-    // Step 2: Generate the email using research + SafeStreets context
-    const emailPrompt = `You are writing a cold email for Sarath Sabarish, founder of Streets & Commons.
-
-## SafeStreets Product Context
+    // Step 2: Generate the email
+    const emailText = await groqChat([
+      { role: 'system', content: `You are writing a cold email for Sarath Sabarish, founder of Streets & Commons. Follow the rules exactly. Output format: First line is the subject line only (no "Subject:" prefix). Then a blank line. Then the email body. Nothing else.` },
+      { role: 'user', content: `## SafeStreets Product Context
 ${SAFESTREETS_CONTEXT}
 
 ## Research on This Lead
@@ -7613,7 +7615,6 @@ ${research}
 Company: ${lead.company}
 Person: ${lead.name}
 Role: ${lead.role || 'Unknown'}
-Email: ${lead.email || 'Unknown'}
 Pitch Angle: ${lead.angle || 'General walkability data integration'}
 
 ## Email Writing Rules
@@ -7646,41 +7647,15 @@ FORMATTING:
 - NO en dashes or em dashes. Use commas, colons, periods instead.
 - NO emojis
 - Under 350 words
-- If research shows person LEFT the company, note this clearly.
-
-Output format: First line must be the subject line only (no "Subject:" prefix). Then a blank line. Then the email body. Nothing else.`;
-
-    const emailResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: emailPrompt }] }],
-        }),
-      }
-    );
-
-    if (!emailResponse.ok) {
-      const err = await emailResponse.text();
-      console.error('Gemini email error:', err);
-      return res.status(500).json({ error: 'Email generation failed: ' + err.slice(0, 200) });
-    }
-
-    const emailData = await emailResponse.json();
-    const emailText = emailData.candidates?.[0]?.content?.parts
-      ?.map(p => p.text)
-      .filter(Boolean)
-      .join('\n') || '';
+- Current year is 2026.` }
+    ], { temperature: 0.6 });
 
     // Parse subject and body
     const lines = emailText.trim().split('\n');
     let subject = lines[0] || '';
-    // Remove "Subject:" prefix if Gemini added it
     subject = subject.replace(/^Subject:\s*/i, '').trim();
     const body = lines.slice(1).join('\n').trim();
 
-    // Update the lead
     leads[idx].emailSubject = subject;
     leads[idx].emailBody = body;
     leads[idx].notes = research.slice(0, 2000);
@@ -7700,9 +7675,8 @@ Output format: First line must be the subject line only (no "Subject:" prefix). 
 // Bulk generate emails for all draft leads
 app.post('/api/admin/outreach/generate-bulk', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) {
-    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(400).json({ error: 'GROQ_API_KEY not configured' });
   }
   // Return immediately, process in background
   res.json({ ok: true, message: 'Generating emails in background. Refresh to see progress.' });
@@ -7711,53 +7685,71 @@ app.post('/api/admin/outreach/generate-bulk', async (req, res) => {
   const drafts = leads.filter(l => l.status === 'draft' && l.company && l.name);
   console.log(`Bulk generating ${drafts.length} emails...`);
 
-  for (const lead of drafts) {
+  for (const draft of drafts) {
     try {
-      // Simulate calling the generate endpoint internally
-      const fakeReq = { params: { id: lead.id } };
-      // Just do a local HTTP call to ourselves
-      const url = `http://localhost:${process.env.PORT || 3002}/api/admin/outreach/generate/${lead.id}`;
-      await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.ADMIN_USER_ID || 'internal'}`,
-        },
-      }).catch(() => {});
-      // Delay between generations to respect rate limits
-      await new Promise(r => setTimeout(r, 5000));
+      const idx = leads.findIndex(l => l.id === draft.id);
+      if (idx === -1) continue;
+
+      const research = await groqChat([
+        { role: 'system', content: 'You are a B2B sales research analyst. Provide detailed research notes about companies and decision-makers.' },
+        { role: 'user', content: `Research ${draft.name} at ${draft.company} (${draft.role || 'Unknown role'}). Context: ${draft.angle || 'Walkability data integration'}. What do they do, what gaps exist for walkability data, who are their competitors?` }
+      ]);
+
+      const emailText = await groqChat([
+        { role: 'system', content: 'You write cold emails for Sarath Sabarish, founder of Streets & Commons. First line = subject (no prefix). Blank line. Then body. No en/em dashes. No emojis. Under 350 words. CTA: "Happy to walk you through a live demo whenever works." Sign off: Best, Sarath Sabarish, Streets & Commons, safestreets.streetsandcommons.com' },
+        { role: 'user', content: `Product:\n${SAFESTREETS_CONTEXT}\n\nResearch:\n${research}\n\nLead: ${draft.name}, ${draft.role} at ${draft.company}. Angle: ${draft.angle || 'walkability data'}. Open with THEIR problem. Show 4 components, sub-metrics, data sources. 3 bullet fit points. Current year is 2026.` }
+      ], { temperature: 0.6 });
+
+      const lines = emailText.trim().split('\n');
+      let subject = lines[0].replace(/^Subject:\s*/i, '').trim();
+      const body = lines.slice(1).join('\n').trim();
+
+      leads[idx].emailSubject = subject;
+      leads[idx].emailBody = body;
+      leads[idx].notes = research.slice(0, 2000);
+      leads[idx].status = 'ready';
+      leads[idx].updatedAt = new Date().toISOString();
+      saveOutreach(leads);
+      console.log(`Generated email for ${draft.name} at ${draft.company}`);
+
+      // Groq has rate limits, small delay between calls
+      await new Promise(r => setTimeout(r, 2000));
     } catch (err) {
-      console.error(`Bulk generate error for ${lead.name}:`, err.message);
+      console.error(`Bulk generate error for ${draft.name}:`, err.message);
     }
   }
   console.log('Bulk generation complete');
 });
 
-// Generate new qualified leads using Gemini + Google Search
+// Generate new qualified leads using Groq
 app.post('/api/admin/outreach/generate-leads', async (req, res) => {
   if (!(await requireAdminKey(req, res))) return;
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) {
-    return res.status(400).json({ error: 'GEMINI_API_KEY not configured' });
+  if (!process.env.GROQ_API_KEY) {
+    return res.status(400).json({ error: 'GROQ_API_KEY not configured' });
   }
 
   const { segment, count = 10, region = 'global' } = req.body;
 
-  const prompt = `You are a B2B lead research assistant for SafeStreets, a walkability analytics platform.
+  try {
+    console.log(`Generating ${count} leads for segment: ${segment || 'general'}, region: ${region}...`);
 
-## What SafeStreets Offers (for context on ideal customers)
+    const rawText = await groqChat([
+      { role: 'system', content: `You are a B2B lead research assistant. Return ONLY a valid JSON array, no markdown fences, no explanation. Each object must have exactly these fields: company, name, role, email, angle, notes.` },
+      { role: 'user', content: `Find ${count || 10} qualified B2B leads for SafeStreets, a walkability analytics platform.
+
+## What SafeStreets Offers
 ${SAFESTREETS_CONTEXT}
 
-## Lead Qualification Criteria
+## Qualification
 
-IDEAL CUSTOMERS (companies that would PAY for walkability data):
-- Real estate portals and proptech platforms (property listings, valuations, market analytics)
-- Urban planning and design consultancies (master plans, TOD, neighborhood design)
-- Mobility and transportation companies (ride-share, micro-mobility, transit tech)
-- Architecture and development firms (residential, mixed-use, township developers)
-- ESG and sustainability consultancies (green building, LEED, carbon footprint)
-- Insurance and risk analytics companies (property risk assessment)
-- Health and wellness platforms (community health, active living)
+IDEAL CUSTOMERS:
+- Real estate portals and proptech platforms
+- Urban planning and design consultancies
+- Mobility and transportation companies
+- Architecture and development firms
+- ESG and sustainability consultancies
+- Insurance and risk analytics companies
+- Health and wellness platforms
 - Smart city technology vendors
 - Real estate investment and advisory firms
 - Location intelligence and geospatial data companies
@@ -7765,58 +7757,23 @@ IDEAL CUSTOMERS (companies that would PAY for walkability data):
 DISQUALIFIED (never suggest):
 - Government agencies, municipalities, city councils
 - Academic institutions
-- Non-profits focused on advocacy (not data/tech)
+- Non-profits focused on advocacy
 - Companies with fewer than 20 employees
-- Companies already using Walk Score as a core product (like Redfin)
+- Companies already using Walk Score as a core product
 
-## Task
+${segment ? `Focus on the "${segment}" segment.` : ''}
+${region !== 'global' ? `Focus on companies in ${region}.` : ''}
 
-Find ${count || 10} qualified B2B leads${segment ? ` in the "${segment}" segment` : ''}${region !== 'global' ? ` in ${region}` : ''}.
+For EACH lead provide:
+1. Company name (real company)
+2. A specific decision-maker name (CEO, CTO, VP Product, Head of Innovation)
+3. Their exact title
+4. Their work email (use firstname@company.com or firstname.lastname@company.com format). Never use info@, contact@, press@.
+5. A specific pitch angle tied to their actual business
+6. Key facts about the company
 
-For EACH lead, find:
-1. Company name
-2. A specific decision-maker (CEO, CTO, VP Product, Head of Innovation, or similar). Find their REAL name.
-3. Their exact title/role
-4. Their PERSONAL work email address (not info@ or contact@ or press@). Search LinkedIn, company team pages, conference speaker lists, press releases, podcast appearances. If you cannot find a personal email, use the standard format for their company (firstname@company.com or firstname.lastname@company.com).
-5. A specific pitch angle: what problem of THEIRS does SafeStreets solve? Reference their actual products, projects, or strategic initiatives.
-
-Return ONLY a valid JSON array, no markdown, no explanation. Each object must have exactly these fields:
-{
-  "company": "Company Name",
-  "name": "Full Name",
-  "role": "Their Title",
-  "email": "personal@company.com",
-  "angle": "Specific pitch angle tied to their business",
-  "notes": "Key facts: revenue, recent projects, competitors, why now"
-}`;
-
-  try {
-    console.log(`Generating ${count} leads for segment: ${segment || 'general'}, region: ${region}...`);
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.7 },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error('Gemini lead gen error:', err);
-      return res.status(500).json({ error: 'Lead generation failed: ' + err.slice(0, 200) });
-    }
-
-    const data = await response.json();
-    const rawText = data.candidates?.[0]?.content?.parts
-      ?.map(p => p.text)
-      .filter(Boolean)
-      .join('\n') || '';
+Return ONLY a JSON array.` }
+    ], { temperature: 0.7, max_tokens: 4096 });
 
     // Extract JSON array from response
     const jsonMatch = rawText.match(/\[[\s\S]*\]/);
